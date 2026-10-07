@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,25 +8,46 @@
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
     header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
     .nav-link:hover { text-decoration: underline; }
-    .content-wrapper { padding: 30px 20px; width: 100%; max-width: 680px; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1000px; }
     h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
     p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; text-align: center; }
-    .container { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    canvas { background: #11111b; border-radius: 8px; display: block; margin: 0 auto; border: 1px solid #313244; max-width: 100%; height: auto; }
-    .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
-    button { background: #89b4fa; color: #11111b; border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; }
+    
+    /* Layout Grid: Simulator on Left, Code Inspector on Right */
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 850px) { .grid-container { grid-template-columns: 1fr; } }
+
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+    
+    /* SVG Container */
+    .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; overflow: hidden; }
+    svg { display: block; width: 100%; height: auto; }
+
+    /* Code Inspector Styling */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 15px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 2px 8px; border-radius: 4px; color: #a6adc8; transition: background 0.15s ease, color 0.15s ease; }
+    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 4px solid #a6e3a1; padding-left: 4px; }
+    .kw { color: #f38ba8; } /* Keyword */
+    .fn { color: #89b4fa; } /* Function */
+    .num { color: #fab387; } /* Number */
+    .cm { color: #6c7086; font-style: italic; } /* Comment */
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 15px; }
+    button { background: #89b4fa; color: #11111b; border: none; padding: 10px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; }
     button:hover { background: #b4befe; }
     button.secondary { background: #313244; color: #cdd6f4; }
     button.secondary:hover { background: #45475a; }
-    .slider-group { width: 100%; display: flex; align-items: center; justify-content: space-between; background: #313244; padding: 10px 15px; border-radius: 6px; margin-top: 15px; }
-    label { font-size: 0.9rem; font-weight: 500; }
-    input[type=range] { width: 50%; }
-    .status-panel { margin-top: 15px; background: #11111b; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 0.9rem; border: 1px solid #313244; }
-    .step-indicator { display: flex; justify-content: space-around; margin-top: 10px; }
-    .coil-badge { padding: 6px 12px; border-radius: 4px; background: #313244; font-weight: bold; }
-    .coil-badge.active { background: #a6e3a1; color: #11111b; box-shadow: 0 0 10px #a6e3a1; }
+    
+    .slider-group { width: 100%; display: flex; align-items: center; justify-content: space-between; background: #313244; padding: 10px 12px; border-radius: 6px; margin-top: 12px; }
+    label { font-size: 0.85rem; font-weight: 500; }
+    input[type=range] { width: 45%; }
+    
+    .status-panel { margin-top: 12px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.85rem; border: 1px solid #313244; }
+    .pin-status { display: flex; justify-content: space-around; margin-top: 8px; }
+    .pin-badge { padding: 4px 10px; border-radius: 4px; background: #313244; font-weight: bold; }
+    .pin-badge.active { background: #a6e3a1; color: #11111b; box-shadow: 0 0 8px #a6e3a1; }
   </style>
 </head>
 <body>
@@ -39,39 +59,104 @@
 
   <div class="content-wrapper">
     <h1>Stepper Motor Simulator</h1>
-    <p class="subtitle">Interactive 4-Phase Full-Step Visualizer</p>
+    <p class="subtitle">Interactive 4-Phase Full-Step Visualizer & Real-Time Code Inspector</p>
 
-    <div class="container">
-      <canvas id="simCanvas" width="400" height="350"></canvas>
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN: Physical Simulation & Controls -->
+      <div class="card">
+        <div class="vis-box">
+          <svg viewBox="0 0 400 320">
+            <!-- Outer Stator Housing -->
+            <circle cx="200" cy="160" r="125" fill="none" stroke="#45475a" stroke-width="6"/>
 
-      <div class="status-panel">
-        <div>Current Step Index: <span id="stepNum" style="color:#f9e2af">0</span> / 3</div>
-        <div>MicroPython Signal: <span id="arrayVal" style="color:#89b4fa">[1, 1, 0, 0]</span></div>
-        <div class="step-indicator">
-          <span id="badge-0" class="coil-badge">IN1</span>
-          <span id="badge-1" class="coil-badge">IN2</span>
-          <span id="badge-2" class="coil-badge">IN3</span>
-          <span id="badge-3" class="coil-badge">IN4</span>
+            <!-- 4 Stator Coils (IN1, IN2, IN3, IN4) -->
+            <!-- IN1 (Top) -->
+            <g id="coil-0">
+              <circle cx="200" cy="60" r="22" fill="#313244" stroke="#cdd6f4" stroke-width="2"/>
+              <text x="200" y="64" fill="#cdd6f4" font-size="12" font-weight="bold" text-anchor="middle">IN1</text>
+            </g>
+            <!-- IN2 (Right) -->
+            <g id="coil-1">
+              <circle cx="300" cy="160" r="22" fill="#313244" stroke="#cdd6f4" stroke-width="2"/>
+              <text x="300" y="164" fill="#cdd6f4" font-size="12" font-weight="bold" text-anchor="middle">IN2</text>
+            </g>
+            <!-- IN3 (Bottom) -->
+            <g id="coil-2">
+              <circle cx="200" cy="260" r="22" fill="#313244" stroke="#cdd6f4" stroke-width="2"/>
+              <text x="200" y="264" fill="#cdd6f4" font-size="12" font-weight="bold" text-anchor="middle">IN3</text>
+            </g>
+            <!-- IN4 (Left) -->
+            <g id="coil-3">
+              <circle cx="100" cy="160" r="22" fill="#313244" stroke="#cdd6f4" stroke-width="2"/>
+              <text x="100" y="164" fill="#cdd6f4" font-size="12" font-weight="bold" text-anchor="middle">IN4</text>
+            </g>
+
+            <!-- Rotor Magnetic Shaft Group -->
+            <g id="rotorGroup" transform="translate(200, 160)">
+              <!-- North Pole (Red) -->
+              <rect x="-8" y="-48" width="16" height="48" fill="#f38ba8" rx="2"/>
+              <text x="0" y="-25" fill="#11111b" font-size="10" font-weight="bold" text-anchor="middle">N</text>
+              <!-- South Pole (Blue) -->
+              <rect x="-8" y="0" width="16" height="48" fill="#89b4fa" rx="2"/>
+              <text x="0" y="28" fill="#11111b" font-size="10" font-weight="bold" text-anchor="middle">S</text>
+              <!-- Central Shaft Axis Pin -->
+              <circle cx="0" cy="0" r="10" fill="#f9e2af"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="status-panel">
+          <div>Step Index: <span id="stepNum" style="color:#f9e2af">0</span> / 3</div>
+          <div>Coil Pattern: <span id="arrayVal" style="color:#89b4fa">[1, 1, 0, 0]</span></div>
+          <div class="pin-status">
+            <span id="badge-0" class="pin-badge">IN1</span>
+            <span id="badge-1" class="pin-badge">IN2</span>
+            <span id="badge-2" class="pin-badge">IN3</span>
+            <span id="badge-3" class="pin-badge">IN4</span>
+          </div>
+        </div>
+
+        <div class="slider-group">
+          <label for="speedSlider">Delay: <span id="speedVal">500</span> ms</label>
+          <input type="range" id="speedSlider" min="100" max="1000" step="50" value="500">
+        </div>
+
+        <div class="controls">
+          <button id="playBtn">Play Animation</button>
+          <button id="stepBtn" class="secondary">Next Step</button>
+          <button id="dirBtn" class="secondary">Direction: Clockwise</button>
         </div>
       </div>
 
-      <div class="controls">
-        <button id="playBtn">Play</button>
-        <button id="stepBtn" class="secondary">Next Step</button>
-        <button id="dirBtn" class="secondary">Direction: Clockwise</button>
+      <!-- RIGHT COLUMN: Real-Time MicroPython Code Inspector -->
+      <div class="card">
+        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 10px; font-size: 0.95rem;">
+          🐍 Live MicroPython Code Execution
+        </div>
+        
+        <div class="code-box">
+          <div id="code-l1" class="code-line"><span class="kw">import</span> machine, utime</div>
+          <div id="code-l2" class="code-line"><span class="cm"># GPIO Pin setup (Reversed order flips direction)</span></div>
+          <div id="code-l3" class="code-line">pins = <span id="codePinsVal" class="val-highlight">[GP2, GP3, GP4, GP5]</span></div>
+          <div id="code-l4" class="code-line"><span class="cm"># 4-Phase Full Step Matrix</span></div>
+          <div id="code-l5" class="code-line">seq = [</div>
+          <div id="code-seq-0" class="code-line">&nbsp;&nbsp;[1, 1, 0, 0], <span class="cm"># Step 0: IN1+IN2</span></div>
+          <div id="code-seq-1" class="code-line">&nbsp;&nbsp;[0, 1, 1, 0], <span class="cm"># Step 1: IN2+IN3</span></div>
+          <div id="code-seq-2" class="code-line">&nbsp;&nbsp;[0, 0, 1, 1], <span class="cm"># Step 2: IN3+IN4</span></div>
+          <div id="code-seq-3" class="code-line">&nbsp;&nbsp;[1, 0, 0, 1]  <span class="cm"># Step 3: IN4+IN1</span></div>
+          <div id="code-l6" class="code-line">]</div>
+          <div id="code-l7" class="code-line"><span class="kw">for</span> step <span class="kw">in</span> seq:</div>
+          <div id="code-l8" class="code-line">&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):</div>
+          <div id="code-exec" class="code-line active">&nbsp;&nbsp;&nbsp;&nbsp;pins[i].<span class="fn">value</span>(<span id="codeValOutput" class="val-highlight">step[i]</span>)</div>
+          <div id="code-sleep" class="code-line">&nbsp;&nbsp;utime.<span class="fn">sleep_ms</span>(<span id="codeDelayVal" class="val-highlight">500</span>)</div>
+        </div>
       </div>
 
-      <div class="slider-group">
-        <label for="speedSlider">Step Speed Delay: <span id="speedVal">500</span> ms</label>
-        <input type="range" id="speedSlider" min="100" max="1000" step="50" value="500">
-      </div>
     </div>
   </div>
 
   <script>
-    const canvas = document.getElementById('simCanvas');
-    const ctx = canvas.getContext('2d');
-
     const sequence = [
       [1, 1, 0, 0],
       [0, 1, 1, 0],
@@ -79,96 +164,84 @@
       [1, 0, 0, 1]
     ];
 
+    // Angles for the 4 coils in SVG coordinates:
+    // IN1 = -90° (Top), IN2 = 0° (Right), IN3 = 90° (Bottom), IN4 = 180° (Left)
+    const coilAngles = [ -Math.PI/2, 0, Math.PI/2, Math.PI ];
+
     let currentStep = 0;
     let isPlaying = false;
-    let direction = 1; // 1 = CW, -1 = CCW
+    let direction = 1; // 1 = Clockwise (GP2..GP5), -1 = CCW (GP5..GP2)
     let delay = 500;
     let timer = null;
 
-    const coilAngles = [ -Math.PI/2, 0, Math.PI/2, Math.PI ];
+    const rotorGroup = document.getElementById('rotorGroup');
+    const stepNum = document.getElementById('stepNum');
+    const arrayVal = document.getElementById('arrayVal');
+    const playBtn = document.getElementById('playBtn');
+    const stepBtn = document.getElementById('stepBtn');
+    const dirBtn = document.getElementById('dirBtn');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedVal = document.getElementById('speedVal');
+    const codePinsVal = document.getElementById('codePinsVal');
+    const codeDelayVal = document.getElementById('codeDelayVal');
+    const codeValOutput = document.getElementById('codeValOutput');
 
-    function updateUI() {
-      document.getElementById('stepNum').innerText = currentStep;
-      document.getElementById('arrayVal').innerText = JSON.stringify(sequence[currentStep]);
-      
-      const activeState = sequence[currentStep];
-      for(let i = 0; i < 4; i++) {
-        const badge = document.getElementById(`badge-${i}`);
-        if(activeState[i] === 1) badge.classList.add('active');
-        else badge.classList.remove('active');
-      }
-      draw();
-    }
-
-    function getTargetAngle() {
+    function calculateRotorAngle() {
       const active = sequence[currentStep];
       let xSum = 0, ySum = 0;
-      for(let i = 0; i < 4; i++) {
-        if(active[i] === 1) {
+      for (let i = 0; i < 4; i++) {
+        if (active[i] === 1) {
           xSum += Math.cos(coilAngles[i]);
           ySum += Math.sin(coilAngles[i]);
         }
       }
-      return Math.atan2(ySum, xSum);
+      // Return angle in degrees; add 90° offset so rotor North points at targeted vector
+      return (Math.atan2(ySum, xSum) * (180 / Math.PI)) + 90;
     }
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const radius = 100;
+    function updateUI() {
+      const activeState = sequence[currentStep];
 
-      // Draw Outer Stator
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius + 25, 0, Math.PI * 2);
-      ctx.strokeStyle = '#45475a';
-      ctx.lineWidth = 6;
-      ctx.stroke();
+      // Update text indicators
+      stepNum.innerText = currentStep;
+      arrayVal.innerText = JSON.stringify(activeState);
+      codeValOutput.innerText = JSON.stringify(activeState);
 
-      // Draw Coils
-      const active = sequence[currentStep];
-      const coilNames = ["IN1", "IN2", "IN3", "IN4"];
+      // Update Coil Colors and Pin Badges
+      for (let i = 0; i < 4; i++) {
+        const coilGroup = document.getElementById(`coil-${i}`);
+        const badge = document.getElementById(`badge-${i}`);
+        const circle = coilGroup.querySelector('circle');
+        const text = coilGroup.querySelector('text');
 
-      for(let i = 0; i < 4; i++) {
-        const x = cx + Math.cos(coilAngles[i]) * radius;
-        const y = cy + Math.sin(coilAngles[i]) * radius;
-
-        ctx.beginPath();
-        ctx.arc(x, y, 20, 0, Math.PI * 2);
-        ctx.fillStyle = active[i] === 1 ? '#a6e3a1' : '#313244';
-        ctx.fill();
-        ctx.strokeStyle = '#cdd6f4';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.fillStyle = active[i] === 1 ? '#11111b' : '#cdd6f4';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(coilNames[i], x, y);
+        if (activeState[i] === 1) {
+          circle.setAttribute('fill', '#a6e3a1');
+          text.setAttribute('fill', '#11111b');
+          badge.className = 'pin-badge active';
+        } else {
+          circle.setAttribute('fill', '#313244');
+          text.setAttribute('fill', '#cdd6f4');
+          badge.className = 'pin-badge';
+        }
       }
 
-      // Draw Rotor
-      const angle = getTargetAngle();
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(angle);
+      // Rotate Physical Rotor
+      const angle = calculateRotorAngle();
+      rotorGroup.setAttribute('transform', `translate(200, 160) rotate(${angle})`);
 
-      ctx.fillStyle = '#f38ba8'; // North
-      ctx.fillRect(-8, -45, 16, 45);
-      ctx.fillStyle = '#89b4fa'; // South
-      ctx.fillRect(-8, 0, 16, 45);
-
-      ctx.beginPath();
-      ctx.arc(0, 0, 12, 0, Math.PI * 2);
-      ctx.fillStyle = '#f9e2af';
-      ctx.fill();
-
-      ctx.restore();
+      // Highlight active line in Code Inspector
+      for (let i = 0; i < 4; i++) {
+        const seqLine = document.getElementById(`code-seq-${i}`);
+        if (i === currentStep) {
+          seqLine.classList.add('active');
+        } else {
+          seqLine.classList.remove('active');
+        }
+      }
     }
 
     function stepForward() {
-      if(direction === 1) {
+      if (direction === 1) {
         currentStep = (currentStep + 1) % 4;
       } else {
         currentStep = (currentStep - 1 + 4) % 4;
@@ -176,38 +249,47 @@
       updateUI();
     }
 
-    document.getElementById('playBtn').addEventListener('click', () => {
+    // Event Controls
+    playBtn.addEventListener('click', () => {
       isPlaying = !isPlaying;
-      const btn = document.getElementById('playBtn');
-      if(isPlaying) {
-        btn.innerText = 'Pause';
-        btn.style.background = '#f38ba8';
+      if (isPlaying) {
+        playBtn.innerText = 'Pause Animation';
+        playBtn.style.background = '#f38ba8';
         timer = setInterval(stepForward, delay);
       } else {
-        btn.innerText = 'Play';
-        btn.style.background = '#89b4fa';
+        playBtn.innerText = 'Play Animation';
+        playBtn.style.background = '#89b4fa';
         clearInterval(timer);
       }
     });
 
-    document.getElementById('stepBtn').addEventListener('click', () => {
-      if(!isPlaying) stepForward();
+    stepBtn.addEventListener('click', () => {
+      if (!isPlaying) stepForward();
     });
 
-    document.getElementById('dirBtn').addEventListener('click', () => {
+    dirBtn.addEventListener('click', () => {
       direction *= -1;
-      document.getElementById('dirBtn').innerText = direction === 1 ? 'Direction: Clockwise' : 'Direction: Counter-CW';
+      if (direction === 1) {
+        dirBtn.innerText = 'Direction: Clockwise';
+        codePinsVal.innerText = '[GP2, GP3, GP4, GP5]';
+      } else {
+        dirBtn.innerText = 'Direction: Counter-CW';
+        codePinsVal.innerText = '[GP5, GP4, GP3, GP2]';
+      }
+      updateUI();
     });
 
-    document.getElementById('speedSlider').addEventListener('input', (e) => {
+    speedSlider.addEventListener('input', (e) => {
       delay = parseInt(e.target.value);
-      document.getElementById('speedVal').innerText = delay;
-      if(isPlaying) {
+      speedVal.innerText = delay;
+      codeDelayVal.innerText = delay;
+      if (isPlaying) {
         clearInterval(timer);
         timer = setInterval(stepForward, delay);
       }
     });
 
+    // Initial Render
     updateUI();
   </script>
 </body>
