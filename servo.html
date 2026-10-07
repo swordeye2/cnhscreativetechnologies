@@ -51,4 +51,296 @@
     button.action { background: #f9e2af; color: #11111b; }
 
     .status-panel { width: 100%; margin-top: 10px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.82rem; border: 1px solid #313244; }
-    .stat-
+    .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .pin-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; background: #a6e3a1; color: #11111b; font-weight: bold; font-size: 0.75rem; margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 JHS Lab</span>
+  </header>
+
+  <div class="content-wrapper">
+    <h1>Servo Motor & Voltage Physics Simulator</h1>
+    <p class="subtitle">50Hz PWM Target Position vs. External Supply Voltage Transit Speed</p>
+
+    <div class="concept-banner">
+      ⚡ <strong>Core Principle:</strong> The <strong>RP2040 (GP16)</strong> sends only the target angle ($0^\circ \rightarrow 180^\circ$) via PWM pulse-width ($0.5\text{ms} \rightarrow 2.5\text{ms}$). The <strong>External Voltage ($V_S$)</strong> powers the internal motor, dictating the maximum physical movement speed ($\text{sec}/60^\circ$)!
+    </div>
+
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN: Physical Visualizer & Controls -->
+      <div class="card">
+        
+        <!-- SVG Servo Motor Visualizer -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 200">
+            <!-- Servo Body (SG90 Style) -->
+            <rect x="130" y="50" width="140" height="110" rx="6" fill="#1e66f5" stroke="#89b4fa" stroke-width="2"/>
+            <rect x="110" y="90" width="180" height="12" rx="3" fill="#181825" stroke="#313244" stroke-width="1.5"/>
+            <circle cx="120" cy="96" r="3" fill="#a6adc8"/>
+            <circle cx="280" cy="96" r="3" fill="#a6adc8"/>
+            <text x="200" y="145" fill="#cdd6f4" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">SG90 SERVO</text>
+
+            <!-- Angle Scale Arc (-90° to +90°) -->
+            <path d="M 120 70 A 80 80 0 0 1 280 70" fill="none" stroke="#313244" stroke-width="3" stroke-dasharray="4 4"/>
+
+            <!-- Ghost Target Position Horn (Shows RP2040 requested target angle) -->
+            <g id="ghostHorn" transform="translate(200, 70) rotate(0)" opacity="0.35">
+              <path d="M -8 0 L -4 -55 L 4 -55 L 8 0 Z" fill="#f9e2af" stroke="#f9e2af" stroke-width="1.5" stroke-dasharray="2 2"/>
+            </g>
+
+            <!-- Real Physical Horn (Tracks movement driven by Voltage) -->
+            <g id="actualHorn" transform="translate(200, 70) rotate(0)">
+              <circle cx="0" cy="0" r="22" fill="#cdd6f4" stroke="#a6adc8" stroke-width="2"/>
+              <path d="M -10 0 L -5 -60 L 5 -60 L 10 0 Z" fill="#cdd6f4"/>
+              <circle cx="0" cy="-20" r="2.5" fill="#11111b"/>
+              <circle cx="0" cy="-35" r="2.5" fill="#11111b"/>
+              <circle cx="0" cy="-50" r="2.5" fill="#11111b"/>
+              <circle cx="0" cy="0" r="6" fill="#45475a"/>
+            </g>
+
+            <text id="angleDisplaySvg" x="200" y="180" fill="#a6e3a1" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">POS: 0° | TARGET: 0°</text>
+          </svg>
+        </div>
+
+        <!-- SVG 50Hz PWM Waveform Visualizer -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 70">
+            <line x1="0" y1="50" x2="400" y2="50" stroke="#313244" stroke-width="1"/>
+            <text x="10" y="16" fill="#a6adc8" font-size="10" font-family="monospace">PWM TARGET SIGNAL (GP16)</text>
+            <path id="pulsePath" d="" fill="none" stroke="#a6e3a1" stroke-width="2.5"/>
+          </svg>
+        </div>
+
+        <!-- Interactive Settings Grid -->
+        <div class="controls-grid">
+          <!-- Power Supply Voltage Selector -->
+          <div class="control-block">
+            <label for="voltageSelect">🔌 Power Supply Voltage (Vs)</label>
+            <select id="voltageSelect">
+              <option value="4.8">4.8V (0.12 sec / 60°) ~500°/s</option>
+              <option value="6.0" selected>6.0V (0.10 sec / 60°) ~600°/s</option>
+              <option value="7.4">7.4V LiPo (0.08 sec / 60°) ~750°/s</option>
+            </select>
+          </div>
+
+          <!-- Software Delay / Pacing -->
+          <div class="control-block">
+            <label for="pacingSelect">🐍 MicroPython Pacing Method</label>
+            <select id="pacingSelect">
+              <option value="snap">Instant Jump (Hardware Max Speed)</option>
+              <option value="smooth">Smooth Step Sweep (2.0 sec duration)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="slider-group" style="margin-top: 10px;">
+          <label style="font-size:0.85rem;">Target Angle Position: <span id="targetSliderLabel" style="color:#f9e2af; font-weight:bold;">0°</span></label>
+          <input type="range" id="angleSlider" min="0" max="180" value="0">
+        </div>
+
+        <div class="btn-group">
+          <button id="btn0" class="secondary">0° (Left)</button>
+          <button id="btn90">90° (Center)</button>
+          <button id="btn180" class="secondary">180° (Right)</button>
+          <button id="step090" class="action">Test 0° → 90° Jump</button>
+        </div>
+
+        <div class="status-panel">
+          <div class="stat-row"><span>Target Angle (RP2040):</span> <span id="targetAngleText" style="color:#f9e2af">0°</span></div>
+          <div class="stat-row"><span>Physical Horn Angle:</span> <span id="actualAngleText" style="color:#a6e3a1">0.0°</span></div>
+          <div class="stat-row"><span>Transit Time (0° → 90°):</span> <span id="time090Text" style="color:#89b4fa">0.150 seconds (150 ms)</span></div>
+          <div class="stat-row"><span>Pulse Width (GP16):</span> <span id="pulseWidthText">0.50 ms (1638 duty_u16)</span></div>
+          <span class="pin-badge">GP16 PWM: 50Hz ACTIVE</span>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Code Inspector & Calculation Engine -->
+      <div class="card">
+        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
+          🧮 Hardware Specs & Live Calculations
+        </div>
+
+        <!-- Transit Time Math Breakdown Box -->
+        <div class="code-box" style="background:#181825; border-color:#45475a;">
+          <div><strong>1. Datasheet Transit Speed Rating:</strong></div>
+          <div id="mathSpecLine" style="color:#f9e2af; margin-top:2px;">• Rating @ 6.0V = 0.10 sec / 60°</div>
+          <div style="margin-top:6px;"><strong>2. Travel Time Calculation (0° → 90°):</strong></div>
+          <div id="mathCalcLine" style="color:#89b4fa; margin-top:2px;">
+            • Time = (90° / 60°) × 0.10s = <strong>0.150 sec (150 ms)</strong>
+          </div>
+        </div>
+
+        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
+          🐍 MicroPython Signal Code
+        </div>
+        
+        <div class="code-box" style="flex-grow:1;">
+          <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
+          <div class="code-line"><span class="kw">import</span> utime</div>
+          <div class="code-line"><br><span class="cm"># RP2040 sends target position PWM</span></div>
+          <div class="code-line">servo = PWM(Pin(<span class="num">16</span>), freq=<span class="num">50</span>)</div>
+          <div class="code-line"><br><span class="kw">def</span> <span class="fn">set_target_angle</span>(deg):</div>
+          <div class="code-line">&nbsp;&nbsp;pulse_ms = <span class="num">0.5</span> + (deg / <span class="num">180.0</span>) * <span class="num">2.0</span></div>
+          <div class="code-line">&nbsp;&nbsp;duty = <span class="fn">int</span>((pulse_ms / <span class="num">20.0</span>) * <span class="num">65535</span>)</div>
+          <div class="code-line">&nbsp;&nbsp;servo.<span class="fn">duty_u16</span>(duty)</div>
+          <div class="code-line"><br><span class="cm"># Request angle move to RP2040</span></div>
+          <div id="codeExecLine" class="code-line active">set_target_angle(<span id="codeAngleVal" class="val-highlight">0</span>)</div>
+          <div id="codeSleepLine" class="code-line"><span class="cm"># Sleep at least <span id="codeSleepVal" class="val-highlight">150 ms</span> for physical movement!</span></div>
+          <div class="code-line">utime.<span class="fn">sleep_ms</span>(<span id="codeSleepMsVal" class="val-highlight">150</span>)</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // State Variables
+    let targetAngle = 0;
+    let currentActualAngle = 0;
+    let voltage = 6.0; // Volts
+    let lastTimestamp = null;
+
+    // Spec Table: Voltage -> sec/60°
+    const specTable = {
+      4.8: 0.12,
+      6.0: 0.10,
+      7.4: 0.08
+    };
+
+    // DOM Elements
+    const actualHorn = document.getElementById('actualHorn');
+    const ghostHorn = document.getElementById('ghostHorn');
+    const angleDisplaySvg = document.getElementById('angleDisplaySvg');
+    const pulsePath = document.getElementById('pulsePath');
+    const voltageSelect = document.getElementById('voltageSelect');
+    const pacingSelect = document.getElementById('pacingSelect');
+    const angleSlider = document.getElementById('angleSlider');
+    const targetSliderLabel = document.getElementById('targetSliderLabel');
+    const targetAngleText = document.getElementById('targetAngleText');
+    const actualAngleText = document.getElementById('actualAngleText');
+    const time090Text = document.getElementById('time090Text');
+    const pulseWidthText = document.getElementById('pulseWidthText');
+
+    // Math & Code Inspector DOM
+    const mathSpecLine = document.getElementById('mathSpecLine');
+    const mathCalcLine = document.getElementById('mathCalcLine');
+    const codeAngleVal = document.getElementById('codeAngleVal');
+    const codeSleepVal = document.getElementById('codeSleepVal');
+    const codeSleepMsVal = document.getElementById('codeSleepMsVal');
+
+    const btn0 = document.getElementById('btn0');
+    const btn90 = document.getElementById('btn90');
+    const btn180 = document.getElementById('btn180');
+    const step090 = document.getElementById('step090');
+
+    function drawPulseWave(pulseMs) {
+      const highWidthPx = pulseMs * 20; // 20ms mapped to 400px -> 1ms = 20px
+      let d = '';
+      for (let period = 0; period < 2; period++) {
+        const startX = period * 200;
+        const highEnd = startX + highWidthPx;
+        const periodEnd = startX + 200;
+        d += `M ${startX} 50 L ${startX} 20 L ${highEnd} 20 L ${highEnd} 50 L ${periodEnd} 50 `;
+      }
+      pulsePath.setAttribute('d', d);
+    }
+
+    function updateCalculations() {
+      const secPer60 = specTable[voltage];
+      const timeFor90Sec = (90 / 60) * secPer60;
+      const timeFor90Ms = Math.round(timeFor90Sec * 1000);
+      const speedDegPerSec = Math.round(60 / secPer60);
+
+      const pulseMs = 0.5 + (targetAngle / 180.0) * 2.0;
+      const u16Val = Math.round((pulseMs / 20.0) * 65535);
+
+      // Update Text Displays
+      targetSliderLabel.innerText = `${targetAngle}°`;
+      targetAngleText.innerText = `${targetAngle}°`;
+      actualAngleText.innerText = `${currentActualAngle.toFixed(1)}°`;
+      time090Text.innerText = `${timeFor90Sec.toFixed(3)} seconds (${timeFor90Ms} ms)`;
+      pulseWidthText.innerText = `${pulseMs.toFixed(2)} ms (${u16Val} duty_u16)`;
+
+      // Update Math Inspector
+      mathSpecLine.innerText = `• Rating @ ${voltage}V = ${secPer60} sec / 60° (Max Speed: ~${speedDegPerSec}°/sec)`;
+      mathCalcLine.innerHTML = `• Time (0° → 90°) = (90° / 60°) × ${secPer60}s = <strong>${timeFor90Sec.toFixed(3)} sec (${timeFor90Ms} ms)</strong>`;
+
+      // Update Code Inspector
+      codeAngleVal.innerText = targetAngle;
+      codeSleepVal.innerText = `${timeFor90Ms} ms`;
+      codeSleepMsVal.innerText = timeFor90Ms;
+
+      // Update SVG Ghost Target Horn
+      ghostHorn.setAttribute('transform', `translate(200, 70) rotate(${targetAngle - 90})`);
+      
+      // Update Pulse Waveform
+      drawPulseWave(pulseMs);
+    }
+
+    function setTargetAngle(val) {
+      targetAngle = parseInt(val);
+      angleSlider.value = targetAngle;
+      updateCalculations();
+    }
+
+    // Physics Animation Loop: Smooth Movement at Physical Speed Limit
+    function physicsLoop(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const dt = (timestamp - lastTimestamp) / 1000; // delta time in seconds
+      lastTimestamp = timestamp;
+
+      const secPer60 = specTable[voltage];
+      const maxSpeedDegPerSec = 60 / secPer60; // Max speed allowed by power supply
+
+      if (currentActualAngle !== targetAngle) {
+        const angleDiff = targetAngle - currentActualAngle;
+        const step = Math.sign(angleDiff) * maxSpeedDegPerSec * dt;
+
+        if (Math.abs(angleDiff) <= Math.abs(step)) {
+          currentActualAngle = targetAngle;
+        } else {
+          currentActualAngle += step;
+        }
+
+        // Rotate SVG Actual Horn
+        actualHorn.setAttribute('transform', `translate(200, 70) rotate(${currentActualAngle - 90})`);
+        
+        angleDisplaySvg.innerText = `POS: ${Math.round(currentActualAngle)}° | TARGET: ${targetAngle}°`;
+        actualAngleText.innerText = `${currentActualAngle.toFixed(1)}°`;
+      }
+
+      requestAnimationFrame(physicsLoop);
+    }
+
+    // Event Listeners
+    voltageSelect.addEventListener('change', (e) => {
+      voltage = parseFloat(e.target.value);
+      updateCalculations();
+    });
+
+    angleSlider.addEventListener('input', (e) => {
+      setTargetAngle(e.target.value);
+    });
+
+    btn0.addEventListener('click', () => setTargetAngle(0));
+    btn90.addEventListener('click', () => setTargetAngle(90));
+    btn180.addEventListener('click', () => setTargetAngle(180));
+
+    step090.addEventListener('click', () => {
+      currentActualAngle = 0;
+      actualHorn.setAttribute('transform', 'translate(200, 70) rotate(-90)');
+      setTargetAngle(90);
+    });
+
+    // Initial Setup & Start Loop
+    setTargetAngle(0);
+    requestAnimationFrame(physicsLoop);
+  </script>
+</body>
+</html>
