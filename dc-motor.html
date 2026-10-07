@@ -10,27 +10,44 @@
     header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
     .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
     .nav-link:hover { text-decoration: underline; }
-    .content-wrapper { padding: 30px 20px; width: 100%; max-width: 680px; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1000px; }
     h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
     p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; text-align: center; }
-    .container { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; align-items: center; }
     
-    /* SVG Visualizer Containers */
-    .vis-box { width: 100%; max-width: 400px; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+    /* Layout Grid: Simulator on Left, Code Inspector on Right */
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 850px) { .grid-container { grid-template-columns: 1fr; } }
+
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+    
+    /* Visualizer Boxes */
+    .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
     svg { display: block; width: 100%; height: auto; }
 
-    .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; width: 100%; }
-    button { background: #89b4fa; color: #11111b; border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; }
+    /* Code Inspector Styling */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 15px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 2px 8px; border-radius: 4px; color: #a6adc8; transition: background 0.15s ease, color 0.15s ease; }
+    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 4px solid #a6e3a1; padding-left: 4px; }
+    .kw { color: #f38ba8; } /* Keyword */
+    .fn { color: #89b4fa; } /* Function */
+    .num { color: #fab387; } /* Number */
+    .cm { color: #6c7086; font-style: italic; } /* Comment */
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 15px; width: 100%; }
+    button { background: #89b4fa; color: #11111b; border: none; padding: 10px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; }
     button:hover { background: #b4befe; }
     button.danger { background: #f38ba8; color: #11111b; }
     button.danger:hover { background: #f5e0dc; }
-    .slider-group { width: 100%; display: flex; align-items: center; justify-content: space-between; background: #313244; padding: 12px 15px; border-radius: 6px; margin-top: 15px; }
-    label { font-size: 0.9rem; font-weight: 500; }
+    
+    .slider-group { width: 100%; display: flex; align-items: center; justify-content: space-between; background: #313244; padding: 10px 12px; border-radius: 6px; margin-top: 12px; }
+    label { font-size: 0.85rem; font-weight: 500; }
     input[type=range] { width: 50%; }
-    .status-panel { width: 100%; margin-top: 15px; background: #11111b; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 0.9rem; border: 1px solid #313244; }
-    .pin-status { display: flex; justify-content: space-around; margin-top: 10px; }
-    .pin-badge { padding: 6px 14px; border-radius: 4px; background: #313244; font-weight: bold; }
-    .pin-badge.active-pwm { background: #a6e3a1; color: #11111b; box-shadow: 0 0 10px #a6e3a1; }
+    
+    .status-panel { width: 100%; margin-top: 12px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.85rem; border: 1px solid #313244; }
+    .pin-status { display: flex; justify-content: space-around; margin-top: 8px; }
+    .pin-badge { padding: 4px 10px; border-radius: 4px; background: #313244; font-weight: bold; }
+    .pin-badge.active-pwm { background: #a6e3a1; color: #11111b; box-shadow: 0 0 8px #a6e3a1; }
     .pin-badge.active-high { background: #89b4fa; color: #11111b; }
     .pin-badge.active-low { background: #45475a; color: #a6adc8; }
   </style>
@@ -46,53 +63,88 @@
     <h1>DC Motor & DRV8833 Simulator</h1>
     <p class="subtitle">H-Bridge Logic & PWM Duty Cycle Speed Control</p>
 
-    <div class="container">
+    <div class="grid-container">
       
-      <!-- Motor SVG Visualizer -->
-      <div class="vis-box">
-        <svg viewBox="0 0 400 200">
-          <!-- Outer Motor Housing -->
-          <rect x="130" y="30" width="140" height="100" rx="8" fill="#313244" stroke="#45475a" stroke-width="3"/>
-          <text x="200" y="55" fill="#a6adc8" font-size="12" font-family="sans-serif" font-weight="bold" text-anchor="middle">DC MOTOR</text>
+      <!-- LEFT COLUMN: Motor & PWM Waveform Visualizers + Controls -->
+      <div class="card">
+        
+        <!-- SVG Motor Visualizer -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 180">
+            <!-- Outer Motor Housing -->
+            <rect x="130" y="20" width="140" height="95" rx="8" fill="#313244" stroke="#45475a" stroke-width="3"/>
+            <text x="200" y="42" fill="#a6adc8" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">DC MOTOR</text>
 
-          <!-- Rotating Shaft Group -->
-          <g id="shaftGroup" transform="translate(200, 100)">
-            <circle cx="0" cy="0" r="28" fill="#89b4fa" stroke="#cdd6f4" stroke-width="3"/>
-            <line x1="-22" y1="0" x2="22" y2="0" stroke="#11111b" stroke-width="4"/>
-            <line x1="0" y1="-22" x2="0" y2="22" stroke="#11111b" stroke-width="4"/>
-          </g>
+            <!-- Rotating Shaft Group -->
+            <g id="shaftGroup" transform="translate(200, 85)">
+              <circle cx="0" cy="0" r="26" fill="#89b4fa" stroke="#cdd6f4" stroke-width="3"/>
+              <line x1="-20" y1="0" x2="20" y2="0" stroke="#11111b" stroke-width="4"/>
+              <line x1="0" y1="-20" x2="0" y2="20" stroke="#11111b" stroke-width="4"/>
+            </g>
 
-          <!-- Status Indicator Text -->
-          <text id="stateText" x="200" y="175" fill="#a6e3a1" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">RUNNING: CLOCKWISE</text>
-        </svg>
-      </div>
-
-      <!-- PWM Waveform SVG Visualizer -->
-      <div class="vis-box">
-        <svg viewBox="0 0 400 90">
-          <line x1="0" y1="45" x2="400" y2="45" stroke="#313244" stroke-width="1"/>
-          <text x="10" y="20" fill="#a6adc8" font-size="10" font-family="monospace">PWM SIGNAL (IN1)</text>
-          <path id="pwmPath" d="" fill="none" stroke="#a6e3a1" stroke-width="2.5"/>
-        </svg>
-      </div>
-
-      <div class="status-panel">
-        <div>PWM Duty Cycle: <span id="dutyText" style="color:#f9e2af">50%</span> (<span id="u16Text" style="color:#89b4fa">32768 duty_u16</span>)</div>
-        <div>Estimated RPM: <span id="rpmText" style="color:#a6e3a1">150 RPM</span></div>
-        <div class="pin-status">
-          <span id="badge-in1" class="pin-badge active-pwm">IN1 (GP14): PWM 50%</span>
-          <span id="badge-in2" class="pin-badge active-low">IN2 (GP15): LOW</span>
+            <!-- Status Indicator Text -->
+            <text id="stateText" x="200" y="155" fill="#a6e3a1" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">RUNNING: CLOCKWISE</text>
+          </svg>
         </div>
+
+        <!-- SVG PWM Waveform Visualizer -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 80">
+            <line x1="0" y1="40" x2="400" y2="40" stroke="#313244" stroke-width="1"/>
+            <text x="10" y="18" fill="#a6adc8" font-size="10" font-family="monospace">PWM WAVEFORM (ACTIVE PIN)</text>
+            <path id="pwmPath" d="" fill="none" stroke="#a6e3a1" stroke-width="2.5"/>
+          </svg>
+        </div>
+
+        <div class="status-panel">
+          <div>PWM Duty Cycle: <span id="dutyText" style="color:#f9e2af">50%</span> (<span id="u16Text" style="color:#89b4fa">32768 duty_u16</span>)</div>
+          <div>Estimated RPM: <span id="rpmText" style="color:#a6e3a1">150 RPM</span></div>
+          <div class="pin-status">
+            <span id="badge-in1" class="pin-badge active-pwm">IN1 (GP14): PWM 50%</span>
+            <span id="badge-in2" class="pin-badge active-low">IN2 (GP15): LOW</span>
+          </div>
+        </div>
+
+        <div class="slider-group">
+          <label for="dutySlider">PWM Duty Cycle: <span id="sliderVal">50</span>%</label>
+          <input type="range" id="dutySlider" min="0" max="100" value="50">
+        </div>
+
+        <div class="controls">
+          <button id="dirBtn">Direction: Forward (CW)</button>
+          <button id="brakeBtn" class="danger">Short Brake</button>
+        </div>
+
       </div>
 
-      <div class="slider-group">
-        <label for="dutySlider">PWM Duty Cycle: <span id="sliderVal">50</span>%</label>
-        <input type="range" id="dutySlider" min="0" max="100" value="50">
-      </div>
-
-      <div class="controls">
-        <button id="dirBtn">Direction: Forward (CW)</button>
-        <button id="brakeBtn" class="danger">Short Brake</button>
+      <!-- RIGHT COLUMN: Real-Time MicroPython Code Inspector -->
+      <div class="card">
+        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 10px; font-size: 0.95rem;">
+          🐍 Live MicroPython Code Execution
+        </div>
+        
+        <div class="code-box">
+          <div id="code-l1" class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
+          <div id="code-l2" class="code-line"><span class="cm"># DRV8833 Pins (GP14=IN1, GP15=IN2)</span></div>
+          <div id="code-l3" class="code-line">in1 = PWM(Pin(<span class="num">14</span>), freq=<span class="num">1000</span>)</div>
+          <div id="code-l4" class="code-line">in2 = PWM(Pin(<span class="num">15</span>), freq=<span class="num">1000</span>)</div>
+          <div id="code-l5" class="code-line"><br><span class="kw">def</span> <span class="fn">drive_motor</span>():</div>
+          
+          <!-- Branch 1: Short Brake -->
+          <div id="code-branch-brake" class="code-line">&nbsp;&nbsp;<span class="kw">if</span> mode == <span class="val-highlight">"BRAKE"</span>:</div>
+          <div id="code-brake-1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in1.<span class="fn">duty_u16</span>(<span class="num">65535</span>) <span class="cm"># HIGH</span></div>
+          <div id="code-brake-2" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in2.<span class="fn">duty_u16</span>(<span class="num">65535</span>) <span class="cm"># HIGH</span></div>
+          
+          <!-- Branch 2: Forward (CW) -->
+          <div id="code-branch-fwd" class="code-line">&nbsp;&nbsp;<span class="kw">elif</span> dir == <span class="val-highlight">"FORWARD"</span>:</div>
+          <div id="code-fwd-1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in1.<span class="fn">duty_u16</span>(<span id="codeDutyFwd" class="val-highlight">32768</span>)</div>
+          <div id="code-fwd-2" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in2.<span class="fn">duty_u16</span>(<span class="num">0</span>)     <span class="cm"># LOW</span></div>
+          
+          <!-- Branch 3: Reverse (CCW) -->
+          <div id="code-branch-rev" class="code-line">&nbsp;&nbsp;<span class="kw">elif</span> dir == <span class="val-highlight">"REVERSE"</span>:</div>
+          <div id="code-rev-1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in1.<span class="fn">duty_u16</span>(<span class="num">0</span>)     <span class="cm"># LOW</span></div>
+          <div id="code-rev-2" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in2.<span class="fn">duty_u16</span>(<span id="codeDutyRev" class="val-highlight">32768</span>)</div>
+        </div>
       </div>
 
     </div>
@@ -112,16 +164,29 @@
     const dirBtn = document.getElementById('dirBtn');
     const brakeBtn = document.getElementById('brakeBtn');
 
+    // Code Inspector Elements
+    const codeDutyFwd = document.getElementById('codeDutyFwd');
+    const codeDutyRev = document.getElementById('codeDutyRev');
+    const branchBrake = document.getElementById('code-branch-brake');
+    const brakeLine1 = document.getElementById('code-brake-1');
+    const brakeLine2 = document.getElementById('code-brake-2');
+    const branchFwd = document.getElementById('code-branch-fwd');
+    const fwdLine1 = document.getElementById('code-fwd-1');
+    const fwdLine2 = document.getElementById('code-fwd-2');
+    const branchRev = document.getElementById('code-branch-rev');
+    const revLine1 = document.getElementById('code-rev-1');
+    const revLine2 = document.getElementById('code-rev-2');
+
     function drawPWMWave() {
       if (isBraking) {
-        pwmPath.setAttribute('d', 'M 0 25 L 400 25');
+        pwmPath.setAttribute('d', 'M 0 20 L 400 20');
         pwmPath.setAttribute('stroke', '#f38ba8');
         return;
       }
 
       pwmPath.setAttribute('stroke', '#a6e3a1');
       if (dutyPercent === 0) {
-        pwmPath.setAttribute('d', 'M 0 65 L 400 65');
+        pwmPath.setAttribute('d', 'M 0 60 L 400 60');
         return;
       }
 
@@ -135,7 +200,7 @@
         const highEnd = startX + highWidth;
         const cycleEnd = startX + period;
 
-        d += `M ${startX} 65 L ${startX} 25 L ${highEnd} 25 L ${highEnd} 65 L ${cycleEnd} 65 `;
+        d += `M ${startX} 60 L ${startX} 20 L ${highEnd} 20 L ${highEnd} 60 L ${cycleEnd} 60 `;
       }
       pwmPath.setAttribute('d', d);
     }
@@ -144,7 +209,29 @@
       if (isBraking || dutyPercent === 0) return;
       const speed = (dutyPercent / 100) * 8 * (isForward ? 1 : -1);
       rotationAngle = (rotationAngle + speed) % 360;
-      shaftGroup.setAttribute('transform', `translate(200, 100) rotate(${rotationAngle})`);
+      shaftGroup.setAttribute('transform', `translate(200, 85) rotate(${rotationAngle})`);
+    }
+
+    function updateCodeHighlighting(u16Val) {
+      // Clear all active highlights
+      [branchBrake, brakeLine1, brakeLine2, branchFwd, fwdLine1, fwdLine2, branchRev, revLine1, revLine2]
+        .forEach(el => el.classList.remove('active'));
+
+      if (isBraking) {
+        branchBrake.classList.add('active');
+        brakeLine1.classList.add('active');
+        brakeLine2.classList.add('active');
+      } else if (isForward) {
+        branchFwd.classList.add('active');
+        fwdLine1.classList.add('active');
+        fwdLine2.classList.add('active');
+        codeDutyFwd.innerText = u16Val;
+      } else {
+        branchRev.classList.add('active');
+        revLine1.classList.add('active');
+        revLine2.classList.add('active');
+        codeDutyRev.innerText = u16Val;
+      }
     }
 
     function updateUI() {
@@ -188,6 +275,8 @@
         badge2.className = 'pin-badge active-pwm';
         badge2.innerText = `IN2 (GP15): PWM ${dutyPercent}%`;
       }
+
+      updateCodeHighlighting(u16Val);
     }
 
     function loop() {
