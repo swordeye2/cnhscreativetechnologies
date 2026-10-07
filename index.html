@@ -3,42 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RP2040 Hardware Curriculum Hub</title>
+  <title>RP2040 Hardware Lab Hub • CNHS Creative Tech</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    h1 { color: #89b4fa; margin-bottom: 5px; }
-    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 40px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 800px; }
-    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 25px; transition: transform 0.2s ease, border-color 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; }
+    h1 { color: #89b4fa; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 35px; text-align: center; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 950px; }
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 25px; text-decoration: none; color: inherit; transition: transform 0.2s ease, border-color 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; }
     .card:hover { transform: translateY(-4px); border-color: #89b4fa; }
-    .card h2 { color: #f9e2af; margin-top: 0; font-size: 1.3rem; }
-    .card p { color: #a6adc8; font-size: 0.95rem; line-height: 1.5; }
-    .btn { display: inline-block; background: #89b4fa; color: #11111b; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; text-align: center; margin-top: 15px; }
-    .btn:hover { background: #b4befe; }
+    .card h2 { color: #89b4fa; margin-top: 0; margin-size: 1.2rem; }
+    .card p { color: #a6adc8; font-size: 0.9rem; line-height: 1.5; }
+    .badge { display: inline-block; padding: 4px 10px; background: #313244; color: #a6e3a1; font-family: monospace; border-radius: 4px; font-size: 0.8rem; margin-top: 15px; width: fit-content; }
   </style>
 </head>
 <body>
 
-  <h1>RP2040 MicroPython Lab</h1>
-  <p class="subtitle">Junior High School Hardware Curriculum & Interactive Simulators</p>
+  <h1>RP2040 MicroPython Hardware Lab</h1>
+  <p class="subtitle">Interactive MicroPython Visualizers for Junior High School Engineering</p>
 
   <div class="grid">
-    <div class="card">
+    
+    <!-- Stepper Motor -->
+    <a href="stepper.html" class="card">
       <div>
-        <h2>⚙️ Stepper Motor Simulator</h2>
-        <p>Explore 4-phase coil excitation (IN1-IN4), step delays, direction control, and rotor alignment in real time.</p>
+        <h2>⚙️ Stepper Motor</h2>
+        <p>Explore 4-phase full-step coil excitation, sequence arrays, direction toggles, and step timing.</p>
       </div>
-      <a href="stepper.html" class="btn">Launch Simulator →</a>
-    </div>
+      <span class="badge">stepper.html →</span>
+    </a>
 
-    <div class="card">
+    <!-- DC Motor Driver -->
+    <a href="dc-motor.html" class="card">
       <div>
-        <h2>🏎️ DC Motor & PWM (DRV8833)</h2>
-        <p>Demonstrate 10kHz PWM duty cycles, speed control, H-bridge direction logic, and live wave monitoring.</p>
+        <h2>🏎️ DC Motor & DRV8833</h2>
+        <p>H-Bridge logic, PWM speed control, short braking, and live square waveform visualization.</p>
       </div>
-      <a href="dc-motor.html" class="btn">Launch Simulator →</a>
-    </div>
+      <span class="badge">dc-motor.html →</span>
+    </a>
+
+    <!-- Servo Motor -->
+    <a href="servo.html" class="card">
+      <div>
+        <h2>🤖 Servo Motor</h2>
+        <p>50Hz PWM control, 0.5ms–2.5ms pulse width mapping, and exact angular horn positioning.</p>
+      </div>
+      <span class="badge">servo.html →</span>
+    </a>
+
   </div>
 
 </body>
