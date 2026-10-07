@@ -1,0 +1,214 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stepper Motor Simulator • RP2040 Lab</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+    .nav-link:hover { text-decoration: underline; }
+    .content-wrapper { padding: 30px 20px; width: 100%; max-width: 680px; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; text-align: center; }
+    .container { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    canvas { background: #11111b; border-radius: 8px; display: block; margin: 0 auto; border: 1px solid #313244; max-width: 100%; height: auto; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+    button { background: #89b4fa; color: #11111b; border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; }
+    button:hover { background: #b4befe; }
+    button.secondary { background: #313244; color: #cdd6f4; }
+    button.secondary:hover { background: #45475a; }
+    .slider-group { width: 100%; display: flex; align-items: center; justify-content: space-between; background: #313244; padding: 10px 15px; border-radius: 6px; margin-top: 15px; }
+    label { font-size: 0.9rem; font-weight: 500; }
+    input[type=range] { width: 50%; }
+    .status-panel { margin-top: 15px; background: #11111b; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 0.9rem; border: 1px solid #313244; }
+    .step-indicator { display: flex; justify-content: space-around; margin-top: 10px; }
+    .coil-badge { padding: 6px 12px; border-radius: 4px; background: #313244; font-weight: bold; }
+    .coil-badge.active { background: #a6e3a1; color: #11111b; box-shadow: 0 0 10px #a6e3a1; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 JHS Lab</span>
+  </header>
+
+  <div class="content-wrapper">
+    <h1>Stepper Motor Simulator</h1>
+    <p class="subtitle">Interactive 4-Phase Full-Step Visualizer</p>
+
+    <div class="container">
+      <canvas id="simCanvas" width="400" height="350"></canvas>
+
+      <div class="status-panel">
+        <div>Current Step Index: <span id="stepNum" style="color:#f9e2af">0</span> / 3</div>
+        <div>MicroPython Signal: <span id="arrayVal" style="color:#89b4fa">[1, 1, 0, 0]</span></div>
+        <div class="step-indicator">
+          <span id="badge-0" class="coil-badge">IN1</span>
+          <span id="badge-1" class="coil-badge">IN2</span>
+          <span id="badge-2" class="coil-badge">IN3</span>
+          <span id="badge-3" class="coil-badge">IN4</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="playBtn">Play</button>
+        <button id="stepBtn" class="secondary">Next Step</button>
+        <button id="dirBtn" class="secondary">Direction: Clockwise</button>
+      </div>
+
+      <div class="slider-group">
+        <label for="speedSlider">Step Speed Delay: <span id="speedVal">500</span> ms</label>
+        <input type="range" id="speedSlider" min="100" max="1000" step="50" value="500">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const sequence = [
+      [1, 1, 0, 0],
+      [0, 1, 1, 0],
+      [0, 0, 1, 1],
+      [1, 0, 0, 1]
+    ];
+
+    let currentStep = 0;
+    let isPlaying = false;
+    let direction = 1; // 1 = CW, -1 = CCW
+    let delay = 500;
+    let timer = null;
+
+    const coilAngles = [ -Math.PI/2, 0, Math.PI/2, Math.PI ];
+
+    function updateUI() {
+      document.getElementById('stepNum').innerText = currentStep;
+      document.getElementById('arrayVal').innerText = JSON.stringify(sequence[currentStep]);
+      
+      const activeState = sequence[currentStep];
+      for(let i = 0; i < 4; i++) {
+        const badge = document.getElementById(`badge-${i}`);
+        if(activeState[i] === 1) badge.classList.add('active');
+        else badge.classList.remove('active');
+      }
+      draw();
+    }
+
+    function getTargetAngle() {
+      const active = sequence[currentStep];
+      let xSum = 0, ySum = 0;
+      for(let i = 0; i < 4; i++) {
+        if(active[i] === 1) {
+          xSum += Math.cos(coilAngles[i]);
+          ySum += Math.sin(coilAngles[i]);
+        }
+      }
+      return Math.atan2(ySum, xSum);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const radius = 100;
+
+      // Draw Outer Stator
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius + 25, 0, Math.PI * 2);
+      ctx.strokeStyle = '#45475a';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+
+      // Draw Coils
+      const active = sequence[currentStep];
+      const coilNames = ["IN1", "IN2", "IN3", "IN4"];
+
+      for(let i = 0; i < 4; i++) {
+        const x = cx + Math.cos(coilAngles[i]) * radius;
+        const y = cy + Math.sin(coilAngles[i]) * radius;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.fillStyle = active[i] === 1 ? '#a6e3a1' : '#313244';
+        ctx.fill();
+        ctx.strokeStyle = '#cdd6f4';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = active[i] === 1 ? '#11111b' : '#cdd6f4';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(coilNames[i], x, y);
+      }
+
+      // Draw Rotor
+      const angle = getTargetAngle();
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+
+      ctx.fillStyle = '#f38ba8'; // North
+      ctx.fillRect(-8, -45, 16, 45);
+      ctx.fillStyle = '#89b4fa'; // South
+      ctx.fillRect(-8, 0, 16, 45);
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 12, 0, Math.PI * 2);
+      ctx.fillStyle = '#f9e2af';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function stepForward() {
+      if(direction === 1) {
+        currentStep = (currentStep + 1) % 4;
+      } else {
+        currentStep = (currentStep - 1 + 4) % 4;
+      }
+      updateUI();
+    }
+
+    document.getElementById('playBtn').addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      const btn = document.getElementById('playBtn');
+      if(isPlaying) {
+        btn.innerText = 'Pause';
+        btn.style.background = '#f38ba8';
+        timer = setInterval(stepForward, delay);
+      } else {
+        btn.innerText = 'Play';
+        btn.style.background = '#89b4fa';
+        clearInterval(timer);
+      }
+    });
+
+    document.getElementById('stepBtn').addEventListener('click', () => {
+      if(!isPlaying) stepForward();
+    });
+
+    document.getElementById('dirBtn').addEventListener('click', () => {
+      direction *= -1;
+      document.getElementById('dirBtn').innerText = direction === 1 ? 'Direction: Clockwise' : 'Direction: Counter-CW';
+    });
+
+    document.getElementById('speedSlider').addEventListener('input', (e) => {
+      delay = parseInt(e.target.value);
+      document.getElementById('speedVal').innerText = delay;
+      if(isPlaying) {
+        clearInterval(timer);
+        timer = setInterval(stepForward, delay);
+      }
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>

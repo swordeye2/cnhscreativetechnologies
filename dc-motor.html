@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DC Motor & DRV8833 Simulator • RP2040 Lab</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
+    .nav-link:hover { text-decoration: underline; }
+    .content-wrapper { padding: 30px 20px; width: 100%; max-width: 680px; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; text-align: center; }
+    .container { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; align-items: center; }
+    
+    /* SVG Visualizer Containers */
+    .vis-box { width: 100%; max-width: 400px; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+    svg { display: block; width: 100%; height: auto; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; width: 100%; }
+    button { background: #89b4fa; color: #11111b; border: none; padding: 10px 18px; font-size: 0.95rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; }
+    button:hover { background: #b4befe; }
+    button.danger { background: #f38ba8; color: #11111b; }
+    button.danger:hover { background: #f5e0dc; }
+    .slider-group { width: 100%; display: flex; align-items: center; justify-content: space-between; background: #313244; padding: 12px 15px; border-radius: 6px; margin-top: 15px; }
+    label { font-size: 0.9rem; font-weight: 500; }
+    input[type=range] { width: 50%; }
+    .status-panel { width: 100%; margin-top: 15px; background: #11111b; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 0.9rem; border: 1px solid #313244; }
+    .pin-status { display: flex; justify-content: space-around; margin-top: 10px; }
+    .pin-badge { padding: 6px 14px; border-radius: 4px; background: #313244; font-weight: bold; }
+    .pin-badge.active-pwm { background: #a6e3a1; color: #11111b; box-shadow: 0 0 10px #a6e3a1; }
+    .pin-badge.active-high { background: #89b4fa; color: #11111b; }
+    .pin-badge.active-low { background: #45475a; color: #a6adc8; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 JHS Lab</span>
+  </header>
+
+  <div class="content-wrapper">
+    <h1>DC Motor & DRV8833 Simulator</h1>
+    <p class="subtitle">H-Bridge Logic & PWM Duty Cycle Speed Control</p>
+
+    <div class="container">
+      
+      <!-- Motor SVG Visualizer -->
+      <div class="vis-box">
+        <svg viewBox="0 0 400 200">
+          <!-- Outer Motor Housing -->
+          <rect x="130" y="30" width="140" height="100" rx="8" fill="#313244" stroke="#45475a" stroke-width="3"/>
+          <text x="200" y="55" fill="#a6adc8" font-size="12" font-family="sans-serif" font-weight="bold" text-anchor="middle">DC MOTOR</text>
+
+          <!-- Rotating Shaft Group -->
+          <g id="shaftGroup" transform="translate(200, 100)">
+            <circle cx="0" cy="0" r="28" fill="#89b4fa" stroke="#cdd6f4" stroke-width="3"/>
+            <line x1="-22" y1="0" x2="22" y2="0" stroke="#11111b" stroke-width="4"/>
+            <line x1="0" y1="-22" x2="0" y2="22" stroke="#11111b" stroke-width="4"/>
+          </g>
+
+          <!-- Status Indicator Text -->
+          <text id="stateText" x="200" y="175" fill="#a6e3a1" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">RUNNING: CLOCKWISE</text>
+        </svg>
+      </div>
+
+      <!-- PWM Waveform SVG Visualizer -->
+      <div class="vis-box">
+        <svg viewBox="0 0 400 90">
+          <line x1="0" y1="45" x2="400" y2="45" stroke="#313244" stroke-width="1"/>
+          <text x="10" y="20" fill="#a6adc8" font-size="10" font-family="monospace">PWM SIGNAL (IN1)</text>
+          <path id="pwmPath" d="" fill="none" stroke="#a6e3a1" stroke-width="2.5"/>
+        </svg>
+      </div>
+
+      <div class="status-panel">
+        <div>PWM Duty Cycle: <span id="dutyText" style="color:#f9e2af">50%</span> (<span id="u16Text" style="color:#89b4fa">32768 duty_u16</span>)</div>
+        <div>Estimated RPM: <span id="rpmText" style="color:#a6e3a1">150 RPM</span></div>
+        <div class="pin-status">
+          <span id="badge-in1" class="pin-badge active-pwm">IN1 (GP14): PWM 50%</span>
+          <span id="badge-in2" class="pin-badge active-low">IN2 (GP15): LOW</span>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <label for="dutySlider">PWM Duty Cycle: <span id="sliderVal">50</span>%</label>
+        <input type="range" id="dutySlider" min="0" max="100" value="50">
+      </div>
+
+      <div class="controls">
+        <button id="dirBtn">Direction: Forward (CW)</button>
+        <button id="brakeBtn" class="danger">Short Brake</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let dutyPercent = 50;
+    let isForward = true;
+    let isBraking = false;
+    let rotationAngle = 0;
+    let waveOffset = 0;
+
+    const shaftGroup = document.getElementById('shaftGroup');
+    const stateText = document.getElementById('stateText');
+    const pwmPath = document.getElementById('pwmPath');
+    const dutySlider = document.getElementById('dutySlider');
+    const dirBtn = document.getElementById('dirBtn');
+    const brakeBtn = document.getElementById('brakeBtn');
+
+    function drawPWMWave() {
+      if (isBraking) {
+        pwmPath.setAttribute('d', 'M 0 25 L 400 25');
+        pwmPath.setAttribute('stroke', '#f38ba8');
+        return;
+      }
+
+      pwmPath.setAttribute('stroke', '#a6e3a1');
+      if (dutyPercent === 0) {
+        pwmPath.setAttribute('d', 'M 0 65 L 400 65');
+        return;
+      }
+
+      const period = 80;
+      const highWidth = (dutyPercent / 100) * period;
+      waveOffset = (waveOffset + (dutyPercent / 100) * 3) % period;
+
+      let d = '';
+      for (let x = -period; x < 400 + period; x += period) {
+        const startX = x - waveOffset;
+        const highEnd = startX + highWidth;
+        const cycleEnd = startX + period;
+
+        d += `M ${startX} 65 L ${startX} 25 L ${highEnd} 25 L ${highEnd} 65 L ${cycleEnd} 65 `;
+      }
+      pwmPath.setAttribute('d', d);
+    }
+
+    function updatePhysics() {
+      if (isBraking || dutyPercent === 0) return;
+      const speed = (dutyPercent / 100) * 8 * (isForward ? 1 : -1);
+      rotationAngle = (rotationAngle + speed) % 360;
+      shaftGroup.setAttribute('transform', `translate(200, 100) rotate(${rotationAngle})`);
+    }
+
+    function updateUI() {
+      const u16Val = Math.round((dutyPercent / 100) * 65535);
+      const rpm = isBraking ? 0 : Math.round((dutyPercent / 100) * 300);
+
+      document.getElementById('dutyText').innerText = `${dutyPercent}%`;
+      document.getElementById('u16Text').innerText = `${u16Val} duty_u16`;
+      document.getElementById('rpmText').innerText = `${rpm} RPM`;
+      document.getElementById('sliderVal').innerText = dutyPercent;
+
+      const badge1 = document.getElementById('badge-in1');
+      const badge2 = document.getElementById('badge-in2');
+
+      if (isBraking) {
+        stateText.innerText = 'STATE: SHORT BRAKE';
+        stateText.setAttribute('fill', '#f38ba8');
+        badge1.className = 'pin-badge active-high';
+        badge1.innerText = 'IN1 (GP14): HIGH';
+        badge2.className = 'pin-badge active-high';
+        badge2.innerText = 'IN2 (GP15): HIGH';
+      } else if (dutyPercent === 0) {
+        stateText.innerText = 'STATE: STOPPED (0% PWM)';
+        stateText.setAttribute('fill', '#f9e2af');
+        badge1.className = 'pin-badge active-low';
+        badge1.innerText = 'IN1 (GP14): LOW';
+        badge2.className = 'pin-badge active-low';
+        badge2.innerText = 'IN2 (GP15): LOW';
+      } else if (isForward) {
+        stateText.innerText = 'RUNNING: CLOCKWISE';
+        stateText.setAttribute('fill', '#a6e3a1');
+        badge1.className = 'pin-badge active-pwm';
+        badge1.innerText = `IN1 (GP14): PWM ${dutyPercent}%`;
+        badge2.className = 'pin-badge active-low';
+        badge2.innerText = 'IN2 (GP15): LOW';
+      } else {
+        stateText.innerText = 'RUNNING: COUNTER-CW';
+        stateText.setAttribute('fill', '#a6e3a1');
+        badge1.className = 'pin-badge active-low';
+        badge1.innerText = 'IN1 (GP14): LOW';
+        badge2.className = 'pin-badge active-pwm';
+        badge2.innerText = `IN2 (GP15): PWM ${dutyPercent}%`;
+      }
+    }
+
+    function loop() {
+      updatePhysics();
+      drawPWMWave();
+      requestAnimationFrame(loop);
+    }
+
+    dutySlider.addEventListener('input', (e) => {
+      dutyPercent = parseInt(e.target.value);
+      isBraking = false;
+      brakeBtn.innerText = 'Short Brake';
+      updateUI();
+    });
+
+    dirBtn.addEventListener('click', () => {
+      isForward = !isForward;
+      isBraking = false;
+      dirBtn.innerText = isForward ? 'Direction: Forward (CW)' : 'Direction: Reverse (CCW)';
+      updateUI();
+    });
+
+    brakeBtn.addEventListener('click', () => {
+      isBraking = !isBraking;
+      brakeBtn.innerText = isBraking ? 'Release Brake' : 'Short Brake';
+      updateUI();
+    });
+
+    updateUI();
+    loop();
+  </script>
+</body>
+</html>
