@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Servo Motor Simulator • RP2040 Lab</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
+    .nav-link:hover { text-decoration: underline; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1000px; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; text-align: center; }
+    
+    /* Layout Grid: Simulator on Left, Code Inspector on Right */
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 850px) { .grid-container { grid-template-columns: 1fr; } }
+
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+    
+    /* Visualizer Boxes */
+    .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+    svg { display: block; width: 100%; height: auto; }
+
+    /* Code Inspector Styling */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 15px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 2px 8px; border-radius: 4px; color: #a6adc8; transition: background 0.15s ease, color 0.15s ease; }
+    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 4px solid #a6e3a1; padding-left: 4px; }
+    .kw { color: #f38ba8; } /* Keyword */
+    .fn { color: #89b4fa; } /* Function */
+    .num { color: #fab387; } /* Number */
+    .cm { color: #6c7086; font-style: italic; } /* Comment */
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 15px; width: 100%; }
+    button { background: #89b4fa; color: #11111b; border: none; padding: 8px 14px; font-size: 0.85rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; }
+    button:hover { background: #b4befe; }
+    button.secondary { background: #313244; color: #cdd6f4; }
+    button.secondary:hover { background: #45475a; }
+    
+    .slider-group { width: 100%; display: flex; align-items: center; justify-content: space-between; background: #313244; padding: 10px 12px; border-radius: 6px; margin-top: 12px; }
+    label { font-size: 0.85rem; font-weight: 500; }
+    input[type=range] { width: 50%; }
+    
+    .status-panel { width: 100%; margin-top: 12px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.85rem; border: 1px solid #313244; }
+    .pin-status { display: flex; justify-content: space-around; margin-top: 8px; }
+    .pin-badge { padding: 4px 10px; border-radius: 4px; background: #a6e3a1; color: #11111b; font-weight: bold; box-shadow: 0 0 8px #a6e3a1; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 JHS Lab</span>
+  </header>
+
+  <div class="content-wrapper">
+    <h1>Servo Motor Simulator</h1>
+    <p class="subtitle">50Hz PWM Control, Pulse Width Modulation & Target Angle Alignment</p>
+
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN: Servo Visualizer & Controls -->
+      <div class="card">
+        
+        <!-- SVG Servo Motor Visualizer -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 200">
+            <!-- Servo Blue Body Housing (SG90 Style) -->
+            <rect x="130" y="50" width="140" height="110" rx="6" fill="#1e66f5" stroke="#89b4fa" stroke-width="2"/>
+            <rect x="110" y="90" width="180" height="12" rx="3" fill="#181825" stroke="#313244" stroke-width="1.5"/>
+            <!-- Mounting Holes -->
+            <circle cx="120" cy="96" r="3" fill="#a6adc8"/>
+            <circle cx="280" cy="96" r="3" fill="#a6adc8"/>
+            
+            <text x="200" y="145" fill="#cdd6f4" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">SG90 SERVO</text>
+
+            <!-- Angle Scale Arc (-90° to +90° relative) -->
+            <path d="M 120 70 A 80 80 0 0 1 280 70" fill="none" stroke="#313244" stroke-width="3" stroke-dasharray="4 4"/>
+
+            <!-- Rotating Servo Horn Arm Group -->
+            <g id="hornGroup" transform="translate(200, 70) rotate(0)">
+              <!-- Base Hub Ring -->
+              <circle cx="0" cy="0" r="22" fill="#cdd6f4" stroke="#a6adc8" stroke-width="2"/>
+              <!-- Arm Blade -->
+              <path d="M -10 0 L -5 -60 L 5 -60 L 10 0 Z" fill="#cdd6f4"/>
+              <!-- Arm Hole Details -->
+              <circle cx="0" cy="-20" r="2.5" fill="#11111b"/>
+              <circle cx="0" cy="-35" r="2.5" fill="#11111b"/>
+              <circle cx="0" cy="-50" r="2.5" fill="#11111b"/>
+              <circle cx="0" cy="0" r="6" fill="#45475a"/>
+            </g>
+
+            <!-- Angle Indicator Text -->
+            <text id="angleDisplaySvg" x="200" y="180" fill="#a6e3a1" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">0° (CENTER)</text>
+          </svg>
+        </div>
+
+        <!-- SVG 50Hz Pulse Width Waveform Visualizer -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 80">
+            <line x1="0" y1="55" x2="400" y2="55" stroke="#313244" stroke-width="1"/>
+            <text x="10" y="18" fill="#a6adc8" font-size="10" font-family="monospace">50Hz PWM PULSE (20ms PERIOD)</text>
+            <path id="pulsePath" d="" fill="none" stroke="#a6e3a1" stroke-width="2.5"/>
+          </svg>
+        </div>
+
+        <div class="status-panel">
+          <div>Target Angle: <span id="angleText" style="color:#f9e2af">0°</span></div>
+          <div>Pulse Width: <span id="pulseText" style="color:#89b4fa">1.50 ms</span></div>
+          <div>Duty Value: <span id="u16Text" style="color:#a6e3a1">4915 duty_u16</span> (<span id="dutyPercentText">7.5%</span>)</div>
+          <div class="pin-status">
+            <span id="pinBadge" class="pin-badge">GP16: PWM 50Hz ACTIVE</span>
+          </div>
+        </div>
+
+        <div class="slider-group">
+          <label for="angleSlider">Angle Position: <span id="sliderVal">0</span>°</label>
+          <input type="range" id="angleSlider" min="0" max="180" value="0">
+        </div>
+
+        <div class="controls">
+          <button id="btn0" class="secondary">0° (Left)</button>
+          <button id="btn90">90° (Center)</button>
+          <button id="btn180" class="secondary">180° (Right)</button>
+          <button id="sweepBtn" style="background:#f9e2af; color:#11111b;">Sweep Test</button>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Real-Time MicroPython Code Inspector -->
+      <div class="card">
+        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 10px; font-size: 0.95rem;">
+          🐍 Live MicroPython Code Execution
+        </div>
+        
+        <div class="code-box">
+          <div id="code-l1" class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
+          <div id="code-l2" class="code-line"><span class="cm"># Servos require standard 50Hz PWM frequency</span></div>
+          <div id="code-l3" class="code-line">servo = PWM(Pin(<span class="num">16</span>), freq=<span class="num">50</span>)</div>
+          <div id="code-l4" class="code-line"><br><span class="kw">def</span> <span class="fn">set_angle</span>(angle):</div>
+          <div id="code-l5" class="code-line">&nbsp;&nbsp;<span class="cm"># Map 0°-180° to 0.5ms-2.5ms (1638 to 8192 u16)</span></div>
+          <div id="code-l6" class="code-line">&nbsp;&nbsp;pulse_ms = <span class="num">0.5</span> + (angle / <span class="num">180</span>) * <span class="num">2.0</span></div>
+          <div id="code-calc" class="code-line active">&nbsp;&nbsp;<span class="cm"># Calculated pulse width: <span id="codePulseVal" class="val-highlight">1.50 ms</span></span></div>
+          <div id="code-duty" class="code-line active">&nbsp;&nbsp;duty = <span class="fn">int</span>((pulse_ms / <span class="num">20.0</span>) * <span class="num">65535</span>)</div>
+          <div id="code-exec" class="code-line active">&nbsp;&nbsp;servo.<span class="fn">duty_u16</span>(<span id="codeU16Val" class="val-highlight">4915</span>)</div>
+          <div id="code-l9" class="code-line"><br><span class="cm"># Execute move to current position</span></div>
+          <div id="code-call" class="code-line active"><span class="fn">set_angle</span>(<span id="codeAngleVal" class="val-highlight">90</span>)</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let angle = 0; // 0 to 180 degrees
+    let isSweeping = false;
+    let sweepDir = 1;
+    let timer = null;
+
+    const hornGroup = document.getElementById('hornGroup');
+    const angleDisplaySvg = document.getElementById('angleDisplaySvg');
+    const pulsePath = document.getElementById('pulsePath');
+    const angleSlider = document.getElementById('angleSlider');
+    const angleText = document.getElementById('angleText');
+    const pulseText = document.getElementById('pulseText');
+    const u16Text = document.getElementById('u16Text');
+    const dutyPercentText = document.getElementById('dutyPercentText');
+    const sliderVal = document.getElementById('sliderVal');
+
+    // Code Inspector elements
+    const codePulseVal = document.getElementById('codePulseVal');
+    const codeU16Val = document.getElementById('codeU16Val');
+    const codeAngleVal = document.getElementById('codeAngleVal');
+
+    const btn0 = document.getElementById('btn0');
+    const btn90 = document.getElementById('btn90');
+    const btn180 = document.getElementById('btn180');
+    const sweepBtn = document.getElementById('sweepBtn');
+
+    function drawPulseWave(pulseMs) {
+      // 20ms period mapped across 400px -> 1ms = 20px
+      const highWidthPx = pulseMs * 20;
+      
+      let d = '';
+      // Draw 2 full 20ms periods
+      for (let period = 0; period < 2; period++) {
+        const startX = period * 200;
+        const highEnd = startX + highWidthPx;
+        const periodEnd = startX + 200;
+
+        d += `M ${startX} 55 L ${startX} 25 L ${highEnd} 25 L ${highEnd} 55 L ${periodEnd} 55 `;
+      }
+      pulsePath.setAttribute('d', d);
+    }
+
+    function updateUI() {
+      // Servo Math: 0° = 0.5ms (2.5% duty), 90° = 1.5ms (7.5% duty), 180° = 2.5ms (12.5% duty)
+      const pulseMs = 0.5 + (angle / 180) * 2.0;
+      const dutyFraction = pulseMs / 20.0;
+      const u16Val = Math.round(dutyFraction * 65535);
+      const dutyPercent = (dutyFraction * 100).toFixed(1);
+
+      // Rotate physical horn (-90° to +90° SVG relative)
+      const svgRotation = angle - 90;
+      hornGroup.setAttribute('transform', `translate(200, 70) rotate(${svgRotation})`);
+
+      // Update Text Displays
+      angleDisplaySvg.innerText = `${angle}° (${angle === 0 ? '0° MIN' : (angle === 90 ? 'CENTER' : (angle === 180 ? '180° MAX' : 'POSITION'))})`;
+      angleText.innerText = `${angle}°`;
+      pulseText.innerText = `${pulseMs.toFixed(2)} ms`;
+      u16Text.innerText = `${u16Val} duty_u16`;
+      dutyPercentText.innerText = `${dutyPercent}%`;
+      sliderVal.innerText = angle;
+      angleSlider.value = angle;
+
+      // Update PWM Waveform
+      drawPulseWave(pulseMs);
+
+      // Update MicroPython Inspector Values
+      codePulseVal.innerText = `${pulseMs.toFixed(2)} ms`;
+      codeU16Val.innerText = u16Val;
+      codeAngleVal.innerText = angle;
+    }
+
+    function setAngleValue(val) {
+      angle = parseInt(val);
+      updateUI();
+    }
+
+    // Event Controls
+    angleSlider.addEventListener('input', (e) => {
+      if (isSweeping) stopSweep();
+      setAngleValue(e.target.value);
+    });
+
+    btn0.addEventListener('click', () => { if (isSweeping) stopSweep(); setAngleValue(0); });
+    btn90.addEventListener('click', () => { if (isSweeping) stopSweep(); setAngleValue(90); });
+    btn180.addEventListener('click', () => { if (isSweeping) stopSweep(); setAngleValue(180); });
+
+    function stopSweep() {
+      isSweeping = false;
+      clearInterval(timer);
+      sweepBtn.innerText = 'Sweep Test';
+      sweepBtn.style.background = '#f9e2af';
+    }
+
+    sweepBtn.addEventListener('click', () => {
+      isSweeping = !isSweeping;
+      if (isSweeping) {
+        sweepBtn.innerText = 'Stop Sweep';
+        sweepBtn.style.background = '#f38ba8';
+        timer = setInterval(() => {
+          angle += sweepDir * 2;
+          if (angle >= 180) { angle = 180; sweepDir = -1; }
+          if (angle <= 0) { angle = 0; sweepDir = 1; }
+          updateUI();
+        }, 30);
+      } else {
+        stopSweep();
+      }
+    });
+
+    // Initial Render (Centered at 90 degrees)
+    setAngleValue(90);
+  </script>
+</body>
+</html>
