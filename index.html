@@ -9,12 +9,13 @@
     body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
     h1 { color: #89b4fa; margin-bottom: 5px; text-align: center; }
     p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 35px; text-align: center; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 950px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1050px; }
     .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 25px; text-decoration: none; color: inherit; transition: transform 0.2s ease, border-color 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; }
     .card:hover { transform: translateY(-4px); border-color: #89b4fa; }
-    .card h2 { color: #89b4fa; margin-top: 0; margin-size: 1.2rem; }
+    .card h2 { color: #89b4fa; margin-top: 0; font-size: 1.2rem; }
     .card p { color: #a6adc8; font-size: 0.9rem; line-height: 1.5; }
     .badge { display: inline-block; padding: 4px 10px; background: #313244; color: #a6e3a1; font-family: monospace; border-radius: 4px; font-size: 0.8rem; margin-top: 15px; width: fit-content; }
+    .badge.highlight { color: #f9e2af; border: 1px solid #f9e2af; }
   </style>
 </head>
 <body>
@@ -42,13 +43,22 @@
       <span class="badge">dc-motor.html →</span>
     </a>
 
-    <!-- Servo Motor -->
+    <!-- Servo Motor Position & Timing -->
     <a href="servo.html" class="card">
       <div>
-        <h2>🤖 Servo Motor</h2>
-        <p>50Hz PWM control, 0.5ms–2.5ms pulse width mapping, and exact angular horn positioning.</p>
+        <h2>🤖 Servo Motor & PWM</h2>
+        <p>50Hz vs 100Hz PWM, angle range specs (90°–360°), target positioning, and rotation speed physics.</p>
       </div>
       <span class="badge">servo.html →</span>
+    </a>
+
+    <!-- Servo Voltage & Physics -->
+    <a href="servo_voltage.html" class="card">
+      <div>
+        <h2>⚡ Servo Voltage & Power Physics</h2>
+        <p>Datasheet transit speeds (0.12s/60°), supply voltage impact (4.8V vs 6.0V vs 7.4V), and target vs horn lag.</p>
+      </div>
+      <span class="badge highlight">servo_voltage.html →</span>
     </a>
 
   </div>
