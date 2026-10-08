@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I2C Bus & Proximity Sensor Visualizer • RP2040 Lab</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
+    .nav-link:hover { text-decoration: underline; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1050px; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; text-align: center; }
+
+    .concept-banner { background: #313244; border-left: 4px solid #89b4fa; padding: 10px 14px; border-radius: 4px; font-size: 0.85rem; margin-bottom: 15px; color: #cdd6f4; line-height: 1.4; }
+
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
+
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+
+    .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; position: relative; }
+    svg { display: block; width: 100%; height: auto; }
+
+    /* Protocol Logic Table */
+    .protocol-breakdown { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; font-family: monospace; }
+    .protocol-breakdown th, .protocol-breakdown td { border: 1px solid #313244; padding: 6px 8px; text-align: center; }
+    .protocol-breakdown th { background: #181825; color: #89b4fa; }
+    .tag-start { color: #f38ba8; font-weight: bold; }
+    .tag-addr { color: #f9e2af; font-weight: bold; }
+    .tag-rw { color: #89b4fa; font-weight: bold; }
+    .tag-ack { color: #a6e3a1; font-weight: bold; }
+    .tag-data { color: #cba6f7; font-weight: bold; }
+
+    /* Code Inspector Styling */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.82rem; line-height: 1.5; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 2px 6px; border-radius: 4px; color: #a6adc8; }
+    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 3px solid #a6e3a1; padding-left: 3px; }
+    .kw { color: #f38ba8; }
+    .fn { color: #89b4fa; }
+    .num { color: #fab387; }
+    .cm { color: #6c7086; font-style: italic; }
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    .controls { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .slider-group { background: #11111b; border: 1px solid #313244; padding: 10px 12px; border-radius: 6px; }
+    label { font-size: 0.85rem; font-weight: bold; color: #89b4fa; display: flex; justify-content: space-between; }
+    input[type=range] { width: 100%; margin-top: 8px; }
+
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
+    button { background: #89b4fa; color: #11111b; border: none; padding: 8px 12px; font-size: 0.85rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; flex-grow: 1; }
+    button:hover { background: #b4befe; }
+    button.secondary { background: #313244; color: #cdd6f4; }
+    button.secondary:hover { background: #45475a; }
+
+    .status-panel { width: 100%; margin-top: 10px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.82rem; border: 1px solid #313244; }
+    .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: #313244; color: #a6e3a1; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 JHS Lab</span>
+  </header>
+
+  <div class="content-wrapper">
+    <h1>I2C Bus & Proximity Sensor Simulator</h1>
+    <p class="subtitle">2-Wire Serial Protocol (SDA Data / SCL Clock), Device Addressing & Sensor Readings</p>
+
+    <div class="concept-banner">
+      📡 <strong>I2C Protocol Basics:</strong> Microcontrollers talk to sensors using just 2 wires: <strong>SCL (Serial Clock)</strong> keeps timing, while <strong>SDA (Serial Data)</strong> transfers bits. The RP2040 Master sends the target device address (e.g., <code style="color:#f9e2af">0x39</code>), requests Register <code style="color:#f9e2af">0x1C</code> (Proximity Data), and the Sensor responds with an ACK bit followed by the 8-bit distance byte!
+    </div>
+
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN: Physical & Waveform Visualizer -->
+      <div class="card">
+        
+        <!-- Physical Sensor Circuit Diagram SVG -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 160">
+            <!-- RP2040 Microcontroller Box -->
+            <rect x="20" y="30" width="110" height="100" rx="6" fill="#181825" stroke="#89b4fa" stroke-width="2"/>
+            <text x="75" y="52" fill="#89b4fa" font-size="11" font-weight="bold" text-anchor="middle">RP2040 MASTER</text>
+            <circle cx="110" cy="75" r="4" fill="#a6e3a1"/>
+            <text x="100" y="79" fill="#a6adc8" font-size="9" text-anchor="end">SDA (GP4)</text>
+            <circle cx="110" cy="100" r="4" fill="#fab387"/>
+            <text x="100" y="104" fill="#a6adc8" font-size="9" text-anchor="end">SCL (GP5)</text>
+
+            <!-- Wires -->
+            <!-- SDA Wire (Green) -->
+            <path d="M 110 75 L 270 75" fill="none" stroke="#a6e3a1" stroke-width="2.5"/>
+            <!-- SCL Wire (Orange) -->
+            <path d="M 110 100 L 270 100" fill="none" stroke="#fab387" stroke-width="2.5"/>
+
+            <!-- Pull-up Resistors (3.3V) -->
+            <line x1="170" y1="20" x2="170" y2="75" stroke="#a6e3a1" stroke-width="1.5" stroke-dasharray="2 2"/>
+            <line x1="210" y1="20" x2="210" y2="100" stroke="#fab387" stroke-width="1.5" stroke-dasharray="2 2"/>
+            <text x="190" y="16" fill="#f9e2af" font-size="9" text-anchor="middle">4.7kΩ Pull-ups (3.3V)</text>
+
+            <!-- APDS-9960 Pro
