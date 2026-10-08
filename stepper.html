@@ -10,7 +10,7 @@
     header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
     .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
     .nav-link:hover { text-decoration: underline; }
-    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1000px; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1050px; }
     h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
     p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; text-align: center; }
     
@@ -20,33 +20,29 @@
 
     .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
     
-    /* SVG Container */
-    .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; overflow: hidden; }
+    /* Visualizer Boxes */
+    .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
     svg { display: block; width: 100%; height: auto; }
 
     /* Code Inspector Styling */
-    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 15px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; overflow-x: auto; flex-grow: 1; }
-    .code-line { padding: 2px 8px; border-radius: 4px; color: #a6adc8; transition: background 0.15s ease, color 0.15s ease; }
-    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 4px solid #a6e3a1; padding-left: 4px; }
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.8rem; line-height: 1.5; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 2px 6px; border-radius: 4px; color: #a6adc8; transition: background 0.15s ease, color 0.15s ease; white-space: pre; }
+    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 3px solid #a6e3a1; padding-left: 3px; }
     .kw { color: #f38ba8; } /* Keyword */
     .fn { color: #89b4fa; } /* Function */
     .num { color: #fab387; } /* Number */
     .cm { color: #6c7086; font-style: italic; } /* Comment */
     .val-highlight { color: #f9e2af; font-weight: bold; }
 
-    .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 15px; }
-    button { background: #89b4fa; color: #11111b; border: none; padding: 10px 16px; font-size: 0.9rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 15px; width: 100%; }
+    button { background: #89b4fa; color: #11111b; border: none; padding: 8px 14px; font-size: 0.85rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; }
     button:hover { background: #b4befe; }
     button.secondary { background: #313244; color: #cdd6f4; }
     button.secondary:hover { background: #45475a; }
     
-    .slider-group { width: 100%; display: flex; align-items: center; justify-content: space-between; background: #313244; padding: 10px 12px; border-radius: 6px; margin-top: 12px; }
-    label { font-size: 0.85rem; font-weight: 500; }
-    input[type=range] { width: 45%; }
-    
-    .status-panel { margin-top: 12px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.85rem; border: 1px solid #313244; }
+    .status-panel { width: 100%; margin-top: 12px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.82rem; border: 1px solid #313244; }
     .pin-status { display: flex; justify-content: space-around; margin-top: 8px; }
-    .pin-badge { padding: 4px 10px; border-radius: 4px; background: #313244; font-weight: bold; }
+    .pin-badge { padding: 4px 8px; border-radius: 4px; background: #313244; color: #6c7086; font-weight: bold; font-size: 0.75rem; }
     .pin-badge.active { background: #a6e3a1; color: #11111b; box-shadow: 0 0 8px #a6e3a1; }
   </style>
 </head>
@@ -59,97 +55,108 @@
 
   <div class="content-wrapper">
     <h1>Stepper Motor Simulator</h1>
-    <p class="subtitle">Interactive 4-Phase Full-Step Visualizer & Real-Time Code Inspector</p>
+    <p class="subtitle">4-Phase Full-Step Sequence, Coil Excitation Matrix & MicroPython Inspector</p>
 
     <div class="grid-container">
       
-      <!-- LEFT COLUMN: Physical Simulation & Controls -->
+      <!-- LEFT COLUMN: Stepper Motor Visualizer & Controls -->
       <div class="card">
+        
+        <!-- SVG Stepper Visualizer -->
         <div class="vis-box">
-          <svg viewBox="0 0 400 320">
-            <!-- Outer Stator Housing -->
-            <circle cx="200" cy="160" r="125" fill="none" stroke="#45475a" stroke-width="6"/>
-
-            <!-- 4 Stator Coils (IN1, IN2, IN3, IN4) -->
-            <!-- IN1 (Top) -->
-            <g id="coil-0">
-              <circle cx="200" cy="60" r="22" fill="#313244" stroke="#cdd6f4" stroke-width="2"/>
-              <text x="200" y="64" fill="#cdd6f4" font-size="12" font-weight="bold" text-anchor="middle">IN1</text>
+          <svg viewBox="0 0 400 240">
+            <!-- Stator Ring -->
+            <circle cx="200" cy="120" r="100" fill="#181825" stroke="#313244" stroke-width="4"/>
+            
+            <!-- Coil Electromagnets -->
+            <!-- IN1 (Top - 0 deg) -->
+            <g id="coil0">
+              <rect x="185" y="30" width="30" height="35" rx="4" fill="#313244" stroke="#45475a" stroke-width="2"/>
+              <text x="200" y="52" fill="#cdd6f4" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">IN1</text>
             </g>
-            <!-- IN2 (Right) -->
-            <g id="coil-1">
-              <circle cx="300" cy="160" r="22" fill="#313244" stroke="#cdd6f4" stroke-width="2"/>
-              <text x="300" y="164" fill="#cdd6f4" font-size="12" font-weight="bold" text-anchor="middle">IN2</text>
-            </g>
-            <!-- IN3 (Bottom) -->
-            <g id="coil-2">
-              <circle cx="200" cy="260" r="22" fill="#313244" stroke="#cdd6f4" stroke-width="2"/>
-              <text x="200" y="264" fill="#cdd6f4" font-size="12" font-weight="bold" text-anchor="middle">IN3</text>
-            </g>
-            <!-- IN4 (Left) -->
-            <g id="coil-3">
-              <circle cx="100" cy="160" r="22" fill="#313244" stroke="#cdd6f4" stroke-width="2"/>
-              <text x="100" y="164" fill="#cdd6f4" font-size="12" font-weight="bold" text-anchor="middle">IN4</text>
+            
+            <!-- IN2 (Right - 90 deg) -->
+            <g id="coil1">
+              <rect x="255" y="105" width="35" height="30" rx="4" fill="#313244" stroke="#45475a" stroke-width="2"/>
+              <text x="272.5" y="124" fill="#cdd6f4" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">IN2</text>
             </g>
 
-            <!-- Rotor Magnetic Shaft Group -->
-            <g id="rotorGroup" transform="translate(200, 160)">
-              <!-- North Pole (Red) -->
-              <rect x="-8" y="-48" width="16" height="48" fill="#f38ba8" rx="2"/>
-              <text x="0" y="-25" fill="#11111b" font-size="10" font-weight="bold" text-anchor="middle">N</text>
-              <!-- South Pole (Blue) -->
-              <rect x="-8" y="0" width="16" height="48" fill="#89b4fa" rx="2"/>
-              <text x="0" y="28" fill="#11111b" font-size="10" font-weight="bold" text-anchor="middle">S</text>
-              <!-- Central Shaft Axis Pin -->
-              <circle cx="0" cy="0" r="10" fill="#f9e2af"/>
+            <!-- IN3 (Bottom - 180 deg) -->
+            <g id="coil2">
+              <rect x="185" y="175" width="30" height="35" rx="4" fill="#313244" stroke="#45475a" stroke-width="2"/>
+              <text x="200" y="197" fill="#cdd6f4" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">IN3</text>
+            </g>
+
+            <!-- IN4 (Left - 270 deg) -->
+            <g id="coil3">
+              <rect x="110" y="105" width="35" height="30" rx="4" fill="#313244" stroke="#45475a" stroke-width="2"/>
+              <text x="127.5" y="124" fill="#cdd6f4" font-size="10" font-family="sans-serif" font-weight="bold" text-anchor="middle">IN4</text>
+            </g>
+
+            <!-- Magnetic Rotor Pointer -->
+            <g id="rotorGroup" transform="translate(200, 120) rotate(22.5)">
+              <circle cx="0" cy="0" r="45" fill="#11111b" stroke="#89b4fa" stroke-width="3"/>
+              <!-- North Pole Pointer -->
+              <polygon points="0,-40 -12,0 12,0" fill="#f38ba8"/>
+              <text x="0" y="-12" fill="#ffffff" font-size="9" font-family="sans-serif" font-weight="bold" text-anchor="middle">N</text>
+              <!-- South Pole Pointer -->
+              <polygon points="0,40 -12,0 12,0" fill="#89b4fa"/>
+              <text x="0" y="18" fill="#ffffff" font-size="9" font-family="sans-serif" font-weight="bold" text-anchor="middle">S</text>
+              <circle cx="0" cy="0" r="8" fill="#45475a"/>
             </g>
           </svg>
         </div>
 
         <div class="status-panel">
           <div>Step Index: <span id="stepNum" style="color:#f9e2af">0</span> / 3</div>
-          <div>Coil Pattern: <span id="arrayVal" style="color:#89b4fa">[1, 1, 0, 0]</span></div>
+          <div>Active Sequence Row: <span id="arrayVal" style="color:#89b4fa">[1, 1, 0, 0]</span></div>
+          <div>Rotor Angle: <span id="rotorAngleText" style="color:#a6e3a1">22.5°</span></div>
           <div class="pin-status">
-            <span id="badge-0" class="pin-badge">IN1</span>
-            <span id="badge-1" class="pin-badge">IN2</span>
-            <span id="badge-2" class="pin-badge">IN3</span>
-            <span id="badge-3" class="pin-badge">IN4</span>
+            <span id="pinBadge0" class="pin-badge active">GP2 (IN1): 1</span>
+            <span id="pinBadge1" class="pin-badge active">GP3 (IN2): 1</span>
+            <span id="pinBadge2" class="pin-badge">GP4 (IN3): 0</span>
+            <span id="pinBadge3" class="pin-badge">GP5 (IN4): 0</span>
           </div>
         </div>
 
-        <div class="slider-group">
-          <label for="speedSlider">Delay: <span id="speedVal">500</span> ms</label>
-          <input type="range" id="speedSlider" min="100" max="1000" step="50" value="500">
+        <div class="controls">
+          <button id="prevBtn" class="secondary">← Single Step CCW</button>
+          <button id="nextBtn">Single Step CW →</button>
+          <button id="autoBtn" style="background:#f9e2af; color:#11111b;">Auto Run</button>
         </div>
 
-        <div class="controls">
-          <button id="playBtn">Play Animation</button>
-          <button id="stepBtn" class="secondary">Next Step</button>
-          <button id="dirBtn" class="secondary">Direction: Clockwise</button>
-        </div>
       </div>
 
-      <!-- RIGHT COLUMN: Real-Time MicroPython Code Inspector -->
+      <!-- RIGHT COLUMN: MicroPython Code Inspector -->
       <div class="card">
         <div style="font-weight: bold; color: #89b4fa; margin-bottom: 10px; font-size: 0.95rem;">
-          🐍 Live MicroPython Code Execution
+          🐍 MicroPython Code Inspector
         </div>
         
         <div class="code-box">
           <div id="code-l1" class="code-line"><span class="kw">import</span> machine, utime</div>
-          <div id="code-l2" class="code-line"><span class="cm"># GPIO Pin setup (Reversed order flips direction)</span></div>
-          <div id="code-l3" class="code-line">pins = <span id="codePinsVal" class="val-highlight">[GP2, GP3, GP4, GP5]</span></div>
-          <div id="code-l4" class="code-line"><span class="cm"># 4-Phase Full Step Matrix</span></div>
-          <div id="code-l5" class="code-line">seq = [</div>
-          <div id="code-seq-0" class="code-line">&nbsp;&nbsp;[1, 1, 0, 0], <span class="cm"># Step 0: IN1+IN2</span></div>
-          <div id="code-seq-1" class="code-line">&nbsp;&nbsp;[0, 1, 1, 0], <span class="cm"># Step 1: IN2+IN3</span></div>
-          <div id="code-seq-2" class="code-line">&nbsp;&nbsp;[0, 0, 1, 1], <span class="cm"># Step 2: IN3+IN4</span></div>
-          <div id="code-seq-3" class="code-line">&nbsp;&nbsp;[1, 0, 0, 1]  <span class="cm"># Step 3: IN4+IN1</span></div>
-          <div id="code-l6" class="code-line">]</div>
-          <div id="code-l7" class="code-line"><span class="kw">for</span> step <span class="kw">in</span> seq:</div>
-          <div id="code-l8" class="code-line">&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):</div>
-          <div id="code-exec" class="code-line active">&nbsp;&nbsp;&nbsp;&nbsp;pins[i].<span class="fn">value</span>(<span id="codeValOutput" class="val-highlight">step[i]</span>)</div>
-          <div id="code-sleep" class="code-line">&nbsp;&nbsp;utime.<span class="fn">sleep_ms</span>(<span id="codeDelayVal" class="val-highlight">500</span>)</div>
+          <div id="code-l2" class="code-line"><br><span class="cm"># Define GPIO outputs for IN1, IN2, IN3, IN4</span></div>
+          <div id="code-l3" class="code-line">pins = [</div>
+          <div id="code-l4" class="code-line">&nbsp;&nbsp;machine.<span class="fn">Pin</span>(<span class="num">2</span>, machine.Pin.OUT),  <span class="cm"># pins[0] -> IN1</span></div>
+          <div id="code-l5" class="code-line">&nbsp;&nbsp;machine.<span class="fn">Pin</span>(<span class="num">3</span>, machine.Pin.OUT),  <span class="cm"># pins[1] -> IN2</span></div>
+          <div id="code-l6" class="code-line">&nbsp;&nbsp;machine.<span class="fn">Pin</span>(<span class="num">4</span>, machine.Pin.OUT),  <span class="cm"># pins[2] -> IN3</span></div>
+          <div id="code-l7" class="code-line">&nbsp;&nbsp;machine.<span class="fn">Pin</span>(<span class="num">5</span>, machine.Pin.OUT)   <span class="cm"># pins[3] -> IN4</span></div>
+          <div id="code-l8" class="code-line">]</div>
+          <div id="code-l9" class="code-line"><br><span class="cm"># Full-Step 2-Coil Excitation Sequence Matrix</span></div>
+          <div id="code-l10" class="code-line">seq = [</div>
+          <div id="code-seq0" class="code-line active">&nbsp;&nbsp;[<span class="num">1</span>, <span class="num">1</span>, <span class="num">0</span>, <span class="num">0</span>],  <span class="cm"># Step 0: IN1+IN2 active (3.3V)</span></div>
+          <div id="code-seq1" class="code-line">&nbsp;&nbsp;[<span class="num">0</span>, <span class="num">1</span>, <span class="num">1</span>, <span class="num">0</span>],  <span class="cm"># Step 1: IN2+IN3 active (3.3V)</span></div>
+          <div id="code-seq2" class="code-line">&nbsp;&nbsp;[<span class="num">0</span>, <span class="num">0</span>, <span class="num">1</span>, <span class="num">1</span>],  <span class="cm"># Step 2: IN3+IN4 active (3.3V)</span></div>
+          <div id="code-seq3" class="code-line">&nbsp;&nbsp;[<span class="num">1</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">1</span>]   <span class="cm"># Step 3: IN4+IN1 active (3.3V)</span></div>
+          <div id="code-l15" class="code-line">]</div>
+          <div id="code-l16" class="code-line"><br><span class="cm"># Loop through sequence rows</span></div>
+          <div id="code-l17" class="code-line"><span class="kw">for</span> step <span class="kw">in</span> seq:</div>
+          <div id="code-l18" class="code-line">&nbsp;&nbsp;<span class="cm"># 'step' is current row array: <span id="codeStepRow" class="val-highlight">[1, 1, 0, 0]</span></span></div>
+          <div id="code-l19" class="code-line">&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">4</span>):</div>
+          <div id="code-l20" class="code-line active">&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># pins[i] selects pin, step[i] gets 0 or 1 value</span></div>
+          <div id="code-l21" class="code-line active">&nbsp;&nbsp;&nbsp;&nbsp;pins[i].<span class="fn">value</span>(step[i])  <span class="cm"># Sets HIGH (1) or LOW (0)</span></div>
+          <div id="code-l22" class="code-line"><br>&nbsp;&nbsp;<span class="cm"># Delay between steps (controls rotation speed)</span></div>
+          <div id="code-l23" class="code-line">&nbsp;&nbsp;utime.<span class="fn">sleep_ms</span>(<span class="num">500</span>)</div>
         </div>
       </div>
 
@@ -157,135 +164,115 @@
   </div>
 
   <script>
-    const sequence = [
-      [1, 1, 0, 0],
-      [0, 1, 1, 0],
-      [0, 0, 1, 1],
-      [1, 0, 0, 1]
-    ];
-
-    // Angles for the 4 coils in SVG coordinates:
-    // IN1 = -90° (Top), IN2 = 0° (Right), IN3 = 90° (Bottom), IN4 = 180° (Left)
-    const coilAngles = [ -Math.PI/2, 0, Math.PI/2, Math.PI ];
-
     let currentStep = 0;
-    let isPlaying = false;
-    let direction = 1; // 1 = Clockwise (GP2..GP5), -1 = CCW (GP5..GP2)
-    let delay = 500;
+    let isAutoRunning = false;
     let timer = null;
 
+    const sequence = [
+      [1, 1, 0, 0], // Step 0: 22.5 deg (between IN1 and IN2)
+      [0, 1, 1, 0], // Step 1: 112.5 deg (between IN2 and IN3)
+      [0, 0, 1, 1], // Step 2: 202.5 deg (between IN3 and IN4)
+      [1, 0, 0, 1]  // Step 3: 292.5 deg (between IN4 and IN1)
+    ];
+
+    const angles = [22.5, 112.5, 202.5, 292.5];
+
+    // DOM Elements
     const rotorGroup = document.getElementById('rotorGroup');
     const stepNum = document.getElementById('stepNum');
     const arrayVal = document.getElementById('arrayVal');
-    const playBtn = document.getElementById('playBtn');
-    const stepBtn = document.getElementById('stepBtn');
-    const dirBtn = document.getElementById('dirBtn');
-    const speedSlider = document.getElementById('speedSlider');
-    const speedVal = document.getElementById('speedVal');
-    const codePinsVal = document.getElementById('codePinsVal');
-    const codeDelayVal = document.getElementById('codeDelayVal');
-    const codeValOutput = document.getElementById('codeValOutput');
+    const rotorAngleText = document.getElementById('rotorAngleText');
+    const codeStepRow = document.getElementById('codeStepRow');
 
-    function calculateRotorAngle() {
-      const active = sequence[currentStep];
-      let xSum = 0, ySum = 0;
-      for (let i = 0; i < 4; i++) {
-        if (active[i] === 1) {
-          xSum += Math.cos(coilAngles[i]);
-          ySum += Math.sin(coilAngles[i]);
-        }
-      }
-      // Return angle in degrees; add 90° offset so rotor North points at targeted vector
-      return (Math.atan2(ySum, xSum) * (180 / Math.PI)) + 90;
-    }
+    const coils = [
+      document.getElementById('coil0').querySelector('rect'),
+      document.getElementById('coil1').querySelector('rect'),
+      document.getElementById('coil2').querySelector('rect'),
+      document.getElementById('coil3').querySelector('rect')
+    ];
+
+    const pinBadges = [
+      document.getElementById('pinBadge0'),
+      document.getElementById('pinBadge1'),
+      document.getElementById('pinBadge2'),
+      document.getElementById('pinBadge3')
+    ];
+
+    const codeSeqLines = [
+      document.getElementById('code-seq0'),
+      document.getElementById('code-seq1'),
+      document.getElementById('code-seq2'),
+      document.getElementById('code-seq3')
+    ];
 
     function updateUI() {
-      const activeState = sequence[currentStep];
+      const activePattern = sequence[currentStep];
 
-      // Update text indicators
+      // Rotate physical SVG rotor
+      rotorGroup.setAttribute('transform', `translate(200, 120) rotate(${angles[currentStep]})`);
+
+      // Update Coils & Badges
+      for (let i = 0; i < 4; i++) {
+        const isActive = activePattern[i] === 1;
+        coils[i].setAttribute('fill', isActive ? '#a6e3a1' : '#313244');
+        coils[i].setAttribute('stroke', isActive ? '#a6e3a1' : '#45475a');
+
+        pinBadges[i].className = `pin-badge ${isActive ? 'active' : ''}`;
+        pinBadges[i].innerText = `GP${i+2} (IN${i+1}): ${activePattern[i]}`;
+      }
+
+      // Update Text Displays
       stepNum.innerText = currentStep;
-      arrayVal.innerText = JSON.stringify(activeState);
-      codeValOutput.innerText = JSON.stringify(activeState);
+      arrayVal.innerText = JSON.stringify(activePattern);
+      rotorAngleText.innerText = `${angles[currentStep]}°`;
+      codeStepRow.innerText = JSON.stringify(activePattern);
 
-      // Update Coil Colors and Pin Badges
-      for (let i = 0; i < 4; i++) {
-        const coilGroup = document.getElementById(`coil-${i}`);
-        const badge = document.getElementById(`badge-${i}`);
-        const circle = coilGroup.querySelector('circle');
-        const text = coilGroup.querySelector('text');
-
-        if (activeState[i] === 1) {
-          circle.setAttribute('fill', '#a6e3a1');
-          text.setAttribute('fill', '#11111b');
-          badge.className = 'pin-badge active';
+      // Highlight corresponding sequence line in MicroPython Inspector
+      codeSeqLines.forEach((line, index) => {
+        if (index === currentStep) {
+          line.classList.add('active');
         } else {
-          circle.setAttribute('fill', '#313244');
-          text.setAttribute('fill', '#cdd6f4');
-          badge.className = 'pin-badge';
+          line.classList.remove('active');
         }
-      }
-
-      // Rotate Physical Rotor
-      const angle = calculateRotorAngle();
-      rotorGroup.setAttribute('transform', `translate(200, 160) rotate(${angle})`);
-
-      // Highlight active line in Code Inspector
-      for (let i = 0; i < 4; i++) {
-        const seqLine = document.getElementById(`code-seq-${i}`);
-        if (i === currentStep) {
-          seqLine.classList.add('active');
-        } else {
-          seqLine.classList.remove('active');
-        }
-      }
+      });
     }
 
-    function stepForward() {
-      if (direction === 1) {
-        currentStep = (currentStep + 1) % 4;
-      } else {
-        currentStep = (currentStep - 1 + 4) % 4;
-      }
+    function nextStep() {
+      currentStep = (currentStep + 1) % 4;
       updateUI();
     }
 
-    // Event Controls
-    playBtn.addEventListener('click', () => {
-      isPlaying = !isPlaying;
-      if (isPlaying) {
-        playBtn.innerText = 'Pause Animation';
-        playBtn.style.background = '#f38ba8';
-        timer = setInterval(stepForward, delay);
-      } else {
-        playBtn.innerText = 'Play Animation';
-        playBtn.style.background = '#89b4fa';
-        clearInterval(timer);
-      }
-    });
-
-    stepBtn.addEventListener('click', () => {
-      if (!isPlaying) stepForward();
-    });
-
-    dirBtn.addEventListener('click', () => {
-      direction *= -1;
-      if (direction === 1) {
-        dirBtn.innerText = 'Direction: Clockwise';
-        codePinsVal.innerText = '[GP2, GP3, GP4, GP5]';
-      } else {
-        dirBtn.innerText = 'Direction: Counter-CW';
-        codePinsVal.innerText = '[GP5, GP4, GP3, GP2]';
-      }
+    function prevStep() {
+      currentStep = (currentStep - 1 + 4) % 4;
       updateUI();
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (isAutoRunning) stopAuto();
+      nextStep();
     });
 
-    speedSlider.addEventListener('input', (e) => {
-      delay = parseInt(e.target.value);
-      speedVal.innerText = delay;
-      codeDelayVal.innerText = delay;
-      if (isPlaying) {
-        clearInterval(timer);
-        timer = setInterval(stepForward, delay);
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (isAutoRunning) stopAuto();
+      prevStep();
+    });
+
+    const autoBtn = document.getElementById('autoBtn');
+    function stopAuto() {
+      isAutoRunning = false;
+      clearInterval(timer);
+      autoBtn.innerText = 'Auto Run';
+      autoBtn.style.background = '#f9e2af';
+    }
+
+    autoBtn.addEventListener('click', () => {
+      isAutoRunning = !isAutoRunning;
+      if (isAutoRunning) {
+        autoBtn.innerText = 'Stop Auto';
+        autoBtn.style.background = '#f38ba8';
+        timer = setInterval(nextStep, 600);
+      } else {
+        stopAuto();
       }
     });
 
