@@ -3,65 +3,290 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RP2040 Hardware Lab Hub • CNHS Creative Tech</title>
+  <title>I2C Bus & Proximity Sensor Visualizer • RP2040 Lab</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    h1 { color: #89b4fa; margin-bottom: 5px; text-align: center; }
-    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 35px; text-align: center; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1050px; }
-    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 25px; text-decoration: none; color: inherit; transition: transform 0.2s ease, border-color 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; }
-    .card:hover { transform: translateY(-4px); border-color: #89b4fa; }
-    .card h2 { color: #89b4fa; margin-top: 0; font-size: 1.2rem; }
-    .card p { color: #a6adc8; font-size: 0.9rem; line-height: 1.5; }
-    .badge { display: inline-block; padding: 4px 10px; background: #313244; color: #a6e3a1; font-family: monospace; border-radius: 4px; font-size: 0.8rem; margin-top: 15px; width: fit-content; }
-    .badge.highlight { color: #f9e2af; border: 1px solid #f9e2af; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
+    .nav-link:hover { text-decoration: underline; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1050px; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; text-align: center; }
+
+    .concept-banner { background: #313244; border-left: 4px solid #89b4fa; padding: 10px 14px; border-radius: 4px; font-size: 0.85rem; margin-bottom: 15px; color: #cdd6f4; line-height: 1.4; }
+
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
+
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+
+    .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; position: relative; }
+    svg { display: block; width: 100%; height: auto; }
+
+    /* Protocol Logic Table */
+    .protocol-breakdown { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; font-family: monospace; }
+    .protocol-breakdown th, .protocol-breakdown td { border: 1px solid #313244; padding: 6px 8px; text-align: center; }
+    .protocol-breakdown th { background: #181825; color: #89b4fa; }
+    .tag-start { color: #f38ba8; font-weight: bold; }
+    .tag-addr { color: #f9e2af; font-weight: bold; }
+    .tag-rw { color: #89b4fa; font-weight: bold; }
+    .tag-ack { color: #a6e3a1; font-weight: bold; }
+    .tag-data { color: #cba6f7; font-weight: bold; }
+
+    /* Code Inspector Styling */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.82rem; line-height: 1.5; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 2px 6px; border-radius: 4px; color: #a6adc8; }
+    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 3px solid #a6e3a1; padding-left: 3px; }
+    .kw { color: #f38ba8; }
+    .fn { color: #89b4fa; }
+    .num { color: #fab387; }
+    .cm { color: #6c7086; font-style: italic; }
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    .controls { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .slider-group { background: #11111b; border: 1px solid #313244; padding: 10px 12px; border-radius: 6px; }
+    label { font-size: 0.85rem; font-weight: bold; color: #89b4fa; display: flex; justify-content: space-between; }
+    input[type=range] { width: 100%; margin-top: 8px; }
+
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
+    button { background: #89b4fa; color: #11111b; border: none; padding: 8px 12px; font-size: 0.85rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; flex-grow: 1; }
+    button:hover { background: #b4befe; }
+    button.secondary { background: #313244; color: #cdd6f4; }
+    button.secondary:hover { background: #45475a; }
+
+    .status-panel { width: 100%; margin-top: 10px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.82rem; border: 1px solid #313244; }
+    .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: #313244; color: #a6e3a1; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <h1>RP2040 MicroPython Hardware Lab</h1>
-  <p class="subtitle">Interactive MicroPython Visualizers for Junior High School Engineering</p>
+  <header>
+    <a href="index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 JHS Lab</span>
+  </header>
 
-  <div class="grid">
-    
-    <!-- Stepper Motor -->
-    <a href="stepper.html" class="card">
-      <div>
-        <h2>⚙️ Stepper Motor</h2>
-        <p>Explore 4-phase full-step coil excitation, sequence arrays, direction toggles, and step timing.</p>
+  <div class="content-wrapper">
+    <h1>I2C Bus & Proximity Sensor Simulator</h1>
+    <p class="subtitle">2-Wire Serial Protocol (SDA Data / SCL Clock), Device Addressing & Sensor Readings</p>
+
+    <div class="concept-banner">
+      📡 <strong>I2C Protocol Basics:</strong> Microcontrollers talk to sensors using just 2 wires: <strong>SCL (Serial Clock)</strong> keeps timing, while <strong>SDA (Serial Data)</strong> transfers bits. The RP2040 Master sends the target device address (e.g., <code style="color:#f9e2af">0x39</code>), requests Register <code style="color:#f9e2af">0x1C</code> (Proximity Data), and the Sensor responds with an ACK bit followed by the 8-bit distance byte!
+    </div>
+
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN: Physical & Waveform Visualizer -->
+      <div class="card">
+        
+        <!-- Physical Sensor Circuit Diagram SVG -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 160">
+            <!-- RP2040 Microcontroller Box -->
+            <rect x="20" y="30" width="110" height="100" rx="6" fill="#181825" stroke="#89b4fa" stroke-width="2"/>
+            <text x="75" y="52" fill="#89b4fa" font-size="11" font-weight="bold" text-anchor="middle">RP2040 MASTER</text>
+            <circle cx="110" cy="75" r="4" fill="#a6e3a1"/>
+            <text x="100" y="79" fill="#a6adc8" font-size="9" text-anchor="end">SDA (GP4)</text>
+            <circle cx="110" cy="100" r="4" fill="#fab387"/>
+            <text x="100" y="104" fill="#a6adc8" font-size="9" text-anchor="end">SCL (GP5)</text>
+
+            <!-- Wires -->
+            <!-- SDA Wire (Green) -->
+            <path d="M 110 75 L 270 75" fill="none" stroke="#a6e3a1" stroke-width="2.5"/>
+            <!-- SCL Wire (Orange) -->
+            <path d="M 110 100 L 270 100" fill="none" stroke="#fab387" stroke-width="2.5"/>
+
+            <!-- Pull-up Resistors (3.3V) -->
+            <line x1="170" y1="20" x2="170" y2="75" stroke="#a6e3a1" stroke-width="1.5" stroke-dasharray="2 2"/>
+            <line x1="210" y1="20" x2="210" y2="100" stroke="#fab387" stroke-width="1.5" stroke-dasharray="2 2"/>
+            <text x="190" y="16" fill="#f9e2af" font-size="9" text-anchor="middle">4.7kΩ Pull-ups (3.3V)</text>
+
+            <!-- APDS-9960 Proximity Sensor Module -->
+            <rect x="270" y="30" width="110" height="100" rx="6" fill="#181825" stroke="#cba6f7" stroke-width="2"/>
+            <text x="325" y="52" fill="#cba6f7" font-size="11" font-weight="bold" text-anchor="middle">APDS-9960 SLAVE</text>
+            <text x="325" y="66" fill="#6c7086" font-size="9" text-anchor="middle">ADDR: 0x39</text>
+            <circle cx="270" cy="75" r="4" fill="#a6e3a1"/>
+            <circle cx="270" cy="100" r="4" fill="#fab387"/>
+
+            <!-- IR LED & Optical Sensor Emitter -->
+            <circle cx="325" cy="95" r="12" fill="#313244" stroke="#f38ba8" stroke-width="1.5"/>
+            <circle id="irEmitter" cx="325" cy="95" r="5" fill="#f38ba8"/>
+          </svg>
+        </div>
+
+        <!-- Real-Time Logic Analyzer SDA/SCL Waveform SVG -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 100">
+            <text x="10" y="15" fill="#a6adc8" font-size="10" font-family="monospace">I2C BUS LOGIC ANALYZER</text>
+
+            <!-- Bus Line Labels -->
+            <text x="10" y="42" fill="#fab387" font-size="10" font-family="monospace" font-weight="bold">SCL</text>
+            <text x="10" y="77" fill="#a6e3a1" font-size="10" font-family="monospace" font-weight="bold">SDA</text>
+
+            <!-- Clock Line SCL (Square Pulses) -->
+            <path d="M 40 30 H 60 V 50 H 75 V 30 H 90 V 50 H 105 V 30 H 120 V 50 H 135 V 30 H 150 V 50 H 165 V 30 H 180 V 50 H 195 V 30 H 210 V 50 H 225 V 30 H 240 V 50 H 255 V 30 H 270 V 50 H 285 V 30 H 300 V 50 H 315 V 30 H 330 V 50 H 380" fill="none" stroke="#fab387" stroke-width="2"/>
+
+            <!-- Data Line SDA (Dynamic based on Byte value) -->
+            <path id="sdaWaveform" d="" fill="none" stroke="#a6e3a1" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <!-- Dynamic Controls -->
+        <div class="controls">
+          <div class="slider-group">
+            <label>
+              <span>🖐️ Object Distance from Sensor:</span>
+              <span id="distValText" style="color:#f9e2af">5 cm (NEAR)</span>
+            </label>
+            <input type="range" id="distSlider" min="1" max="25" value="5">
+          </div>
+
+          <div class="btn-group">
+            <button id="btnNear" class="secondary">1 cm (Very Close)</button>
+            <button id="btnMid">8 cm (Mid Range)</button>
+
+            <button id="btnFar" class="secondary">20 cm (Far Away)</button>
+          </div>
+        </div>
+
+        <div class="status-panel">
+          <div class="stat-row"><span>Sensor 8-bit Raw Value:</span> <span id="rawHexText" style="color:#f9e2af">215 (0xD7)</span></div>
+          <div class="stat-row"><span>Binary Transmitted on SDA:</span> <span id="binValText" style="color:#a6e3a1">1101 0111</span></div>
+          <div class="stat-row"><span>Bus State:</span> <span class="badge">TRANSMISSION OK (ACK RECEIVED)</span></div>
+        </div>
+
       </div>
-      <span class="badge">stepper.html →</span>
-    </a>
 
-    <!-- DC Motor Driver -->
-    <a href="dc-motor.html" class="card">
-      <div>
-        <h2>🏎️ DC Motor & DRV8833</h2>
-        <p>H-Bridge logic, PWM speed control, short braking, and live square waveform visualization.</p>
+      <!-- RIGHT COLUMN: Protocol Packet Matrix & MicroPython Inspector -->
+      <div class="card">
+        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
+          📦 I2C Frame Packet Breakdown
+        </div>
+
+        <!-- Protocol Packet Step Table -->
+        <table class="protocol-breakdown">
+          <thead>
+            <tr>
+              <th>Start</th>
+              <th>Slave Addr (7-bit)</th>
+              <th>R/W</th>
+              <th>ACK</th>
+              <th>Sensor Data Byte</th>
+              <th>Stop</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="tag-start">S</td>
+              <td class="tag-addr">0x39 (0111001)</td>
+              <td class="tag-rw">1 (READ)</td>
+              <td class="tag-ack">0 (ACK)</td>
+              <td id="tableDataByte" class="tag-data">11010111</td>
+              <td class="tag-start">P</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="font-weight: bold; color: #89b4fa; margin-top: 15px; margin-bottom: 8px; font-size: 0.95rem;">
+          🐍 MicroPython Master Code Inspector
+        </div>
+        
+        <div class="code-box">
+          <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, I2C</div>
+          <div class="code-line"><span class="kw">import</span> utime</div>
+          <div class="code-line"><br><span class="cm"># Initialize I2C Bus on RP2040 (SDA=GP4, SCL=GP5, 100kHz)</span></div>
+          <div class="code-line">i2c = I2C(<span class="num">0</span>, sda=Pin(<span class="num">4</span>), scl=Pin(<span class="num">5</span>), freq=<span class="num">100000</span>)</div>
+          <div class="code-line"><br><span class="cm"># APDS-9960 I2C Slave Address = 0x39</span></div>
+          <div class="code-line">SENSOR_ADDR = <span class="num">0x39</span></div>
+          <div class="code-line">PROX_REG = <span class="num">0x1C</span>  <span class="cm"># Proximity Data Register</span></div>
+          <div class="code-line"><br><span class="kw">def</span> <span class="fn">read_proximity</span>():</div>
+          <div class="code-line">&nbsp;&nbsp;<span class="cm"># Request 1 byte of proximity data from register 0x1C</span></div>
+          <div id="codeRead" class="code-line active">&nbsp;&nbsp;data = i2c.<span class="fn">readfrom_mem</span>(SENSOR_ADDR, PROX_REG, <span class="num">1</span>)</div>
+          <div id="codeVal" class="code-line active">&nbsp;&nbsp;val = data[<span class="num">0</span>]  <span class="cm"># Raw value: <span id="codeValText" class="val-highlight">215</span></span></div>
+          <div class="code-line">&nbsp;&nbsp;<span class="kw">return</span> val</div>
+          <div class="code-line"><br><span class="cm"># Continuously query sensor over I2C bus</span></div>
+          <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
+          <div class="code-line">&nbsp;&nbsp;prox = <span class="fn">read_proximity</span>()</div>
+          <div class="code-line">&nbsp;&nbsp;<span class="fn">print</span>(<span class="s2">"Proximity Raw:"</span>, prox)</div>
+          <div class="code-line">&nbsp;&nbsp;utime.<span class="fn">sleep_ms</span>(<span class="num">200</span>)</div>
+        </div>
       </div>
-      <span class="badge">dc-motor.html →</span>
-    </a>
 
-    <!-- Servo Motor Position & Timing -->
-    <a href="servo.html" class="card">
-      <div>
-        <h2>🤖 Servo Motor & PWM</h2>
-        <p>50Hz vs 100Hz PWM, angle range specs (90°–360°), target positioning, and rotation speed physics.</p>
-      </div>
-      <span class="badge">servo.html →</span>
-    </a>
-
-    <!-- Servo Voltage & Physics -->
-    <a href="servo_voltage.html" class="card">
-      <div>
-        <h2>⚡ Servo Voltage & Power Physics</h2>
-        <p>Datasheet transit speeds (0.12s/60°), supply voltage impact (4.8V vs 6.0V vs 7.4V), and target vs horn lag.</p>
-      </div>
-      <span class="badge highlight">servo_voltage.html →</span>
-    </a>
-
+    </div>
   </div>
 
+  <script>
+    // Distance (1 cm to 25 cm) mapped inversely to 8-bit Proximity Sensor Value (255 to 0)
+    let distanceCm = 5;
+
+    // DOM Elements
+    const distSlider = document.getElementById('distSlider');
+    const distValText = document.getElementById('distValText');
+    const rawHexText = document.getElementById('rawHexText');
+    const binValText = document.getElementById('binValText');
+    const sdaWaveform = document.getElementById('sdaWaveform');
+    const irEmitter = document.getElementById('irEmitter');
+    const tableDataByte = document.getElementById('tableDataByte');
+    const codeValText = document.getElementById('codeValText');
+
+    const btnNear = document.getElementById('btnNear');
+    const btnMid = document.getElementById('btnMid');
+    const btnFar = document.getElementById('btnFar');
+
+    function updateSimulation() {
+      // Calculate inverse raw sensor reading (Closer object = higher reflected IR = higher raw reading)
+      // 1 cm -> ~250, 25 cm -> ~10
+      const rawVal = Math.max(0, Math.min(255, Math.round(255 - (distanceCm - 1) * (245 / 24))));
+      const binStr = rawVal.toString(2).padStart(8, '0');
+      const hexStr = '0x' + rawVal.toString(16).toUpperCase().padStart(2, '0');
+
+      // Update Text Displays
+      distValText.innerText = `${distanceCm} cm (${distanceCm < 6 ? 'VERY CLOSE' : (distanceCm < 15 ? 'MID RANGE' : 'FAR / NO OBJECT')})`;
+      rawHexText.innerText = `${rawVal} (${hexStr})`;
+      binValText.innerText = `${binStr.slice(0, 4)} ${binStr.slice(4)}`;
+      tableDataByte.innerText = binStr;
+      codeValText.innerText = rawVal;
+
+      // Pulse IR Emitter brightness proportional to reflection
+      const opacity = Math.min(1.0, 0.2 + (rawVal / 255) * 0.8);
+      irEmitter.setAttribute('opacity', opacity);
+
+      // Generate SDA Waveform Path based on binary bit pattern
+      generateSDAWaveform(binStr);
+    }
+
+    function generateSDAWaveform(binStr) {
+      // Draw Start Condition, Slave Address (0x39 = 0111001), Read bit (1), ACK (0), Data Bits, Stop Condition
+      let d = "M 40 30 L 50 30 L 50 75 "; // START Condition: SDA pulled LOW while SCL is HIGH
+
+      // Address 0x39 (0111001) + R/W (1) = 8 bits
+      const frameBits = "01110011" + "0" + binStr; // FrameBits + ACK (0) + Data Byte
+
+      let x = 60;
+      for (let i = 0; i < frameBits.length; i++) {
+        const bit = frameBits[i];
+        const y = bit === '1' ? 60 : 85;
+        d += `L ${x} ${y} L ${x + 12} ${y} `;
+        x += 15;
+      }
+
+      d += `L ${x} 85 L ${x + 10} 60 L 380 60`; // STOP Condition: SDA released HIGH while SCL is HIGH
+      sdaWaveform.setAttribute('d', d);
+    }
+
+    // Event Controls
+    distSlider.addEventListener('input', (e) => {
+      distanceCm = parseInt(e.target.value);
+      updateSimulation();
+    });
+
+    btnNear.addEventListener('click', () => { distanceCm = 1; distSlider.value = 1; updateSimulation(); });
+    btnMid.addEventListener('click', () => { distanceCm = 8; distSlider.value = 8; updateSimulation(); });
+    btnFar.addEventListener('click', () => { distanceCm = 20; distSlider.value = 20; updateSimulation(); });
+
+    // Initial Render
+    updateSimulation();
+  </script>
 </body>
 </html>
