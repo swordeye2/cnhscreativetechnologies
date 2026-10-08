@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I2C Proximity & Hardware Interrupt (.irq) Visualizer • RP2040 Lab</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
+    .nav-link:hover { text-decoration: underline; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1050px; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; text-align: center; }
+
+    .concept-banner { background: #313244; border-left: 4px solid #a6e3a1; padding: 10px 14px; border-radius: 4px; font-size: 0.85rem; margin-bottom: 15px; color: #cdd6f4; line-height: 1.4; }
+
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
+
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+
+    .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; position: relative; }
+    svg { display: block; width: 100%; height: auto; }
+
+    /* Code Inspector Styling */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.81rem; line-height: 1.5; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 2px 6px; border-radius: 4px; color: #a6adc8; }
+    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 3px solid #a6e3a1; padding-left: 3px; }
+    .code-line.isr-flash { background: #45475a; color: #f38ba8; font-weight: bold; border-left: 3px solid #f38ba8; }
+    .kw { color: #f38ba8; }
+    .fn { color: #89b4fa; }
+    .num { color: #fab387; }
+    .cm { color: #6c7086; font-style: italic; }
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    .controls { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .slider-group { background: #11111b; border: 1px solid #313244; padding: 10px 12px; border-radius: 6px; }
+    label { font-size: 0.85rem; font-weight: bold; color: #89b4fa; display: flex; justify-content: space-between; }
+    input[type=range] { width: 100%; margin-top: 8px; }
+
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px; }
+    button { background: #89b4fa; color: #11111b; border: none; padding: 8px 12px; font-size: 0.85rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; flex-grow: 1; }
+    button:hover { background: #b4befe; }
+    button.secondary { background: #313244; color: #cdd6f4; }
+    button.secondary:hover { background: #45475a; }
+
+    .status-panel { width: 100%; margin-top: 10px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.82rem; border: 1px solid #313244; }
+    .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: #313244; color: #6c7086; font-weight: bold; }
+    .badge.active { background: #f38ba8; color: #11111b; box-shadow: 0 0 8px #f38ba8; }
+    .badge.idle { background: #a6e3a1; color: #11111b; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 JHS Lab</span>
+  </header>
+
+  <div class="content-wrapper">
+    <h1>I2C Proximity & Hardware Interrupt (.irq) Simulator</h1>
+    <p class="subtitle">Active-Low INT Line, Falling Edge Triggers & MicroPython ISR Callback</p>
+
+    <div class="concept-banner">
+      ⚡ <strong>Polling vs. Interrupts:</strong> Instead of continuously querying the sensor over I2C in a <code style="color:#f9e2af">while True</code> loop (Polling), the sensor's physical <strong>INT pin</strong> pulls LOW when distance crosses the threshold (&lt; 8 cm). The RP2040 detects the <strong>FALLING edge</strong> on GP14 and immediately pauses main code to execute the <strong>ISR Callback Function</strong>!
+    </div>
+
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN: Physical & Waveform Visualizer -->
+      <div class="card">
+        
+        <!-- Physical Sensor Circuit Diagram with INT Pin SVG -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 170">
+            <!-- RP2040 Microcontroller Box -->
+            <rect x="20" y="25" width="110" height="120" rx="6" fill="#181825" stroke="#89b4fa" stroke-width="2"/>
+            <text x="75" y="45" fill="#89b4fa" font-size="11" font-weight="bold" text-anchor="middle">RP2040 MASTER</text>
+            
+            <circle cx="110" cy="65" r="4" fill="#a6e3a1"/>
+            <text x="100" y="69" fill="#a6adc8" font-size="9" text-anchor="end">SDA (GP4)</text>
+            
+            <circle cx="110" cy="88" r="4" fill="#fab387"/>
+            <text x="100" y="92" fill="#a6adc8" font-size="9" text-anchor="end">SCL (GP5)</text>
+
+            <circle id="intPinDotRp" cx="110" cy="118" r="4" fill="#a6e3a1"/>
+            <text x="100" y="122" fill="#f38ba8" font-size="9" font-weight="bold" text-anchor="end">INT (GP14)</text>
+
+            <!-- Bus Wires -->
+            <!-- SDA Wire (Green) -->
+            <path d="M 110 65 L 270 65" fill="none" stroke="#a6e3a1" stroke-width="2"/>
+            <!-- SCL Wire (Orange) -->
+            <path d="M 110 88 L 270 88" fill="none" stroke="#fab387" stroke-width="2"/>
+            <!-- INT Wire (Red/Active) -->
+            <path id="intWirePath" d="M 110 118 L 270 118" fill="none" stroke="#a6e3a1" stroke-width="2.5"/>
+
+            <!-- APDS-9960 Proximity Sensor Module -->
+            <rect x="270" y="25" width="110" height="120" rx="6" fill="#181825" stroke="#cba6f7" stroke-width="2"/>
+            <text x="325" y="45" fill="#cba6f7" font-size="11" font-weight="bold" text-anchor="middle">APDS-9960 SLAVE</text>
+            
+            <circle cx="270" cy="65" r="4" fill="#a6e3a1"/>
+            <circle cx="270" cy="88" r="4" fill="#fab387"/>
+            <circle id="intPinDotSensor" cx="270" cy="118" r="4" fill="#a6e3a1"/>
+            <text x="280" y="122" fill="#f38ba8" font-size="9" font-weight="bold">INT Pin</text>
+
+            <!-- IR LED Emitter -->
+            <circle cx="325" cy="80" r="12" fill="#313244" stroke="#f38ba8" stroke-width="1.5"/>
+            <circle id="irEmitter" cx="325" cy="80" r="5" fill="#f38ba8"/>
+          </svg>
+        </div>
+
+        <!-- Logic Analyzer Waveform (INT Pin & I2C Burst) SVG -->
+        <div class="vis-box">
+          <svg viewBox="0 0 400 95">
+            <text x="10" y="15" fill="#a6adc8" font-size="10" font-family="monospace">HARDWARE INTERRUPT TIMING (GP14)</text>
+
+            <text x="10" y="42" fill="#f38ba8" font-size="10" font-family="monospace" font-weight="bold">INT</text>
+            <text x="10" y="75" fill="#89b4fa" font-size="10" font-family="monospace" font-weight="bold">I2C</text>
+
+            <!-- INT Signal Line (Active Low: HIGH 3.3V until object < 8cm, then drops LOW 0V) -->
+            <path id="intWaveform" d="M 40 30 L 380 30" fill="none" stroke="#a6e3a1" stroke-width="2.5"/>
+
+            <!-- I2C Read Burst Line (Triggered only after INT drops LOW) -->
+            <path id="i2cBurstWaveform" d="M 40 75 L 180 75" fill="none" stroke="#313244" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <!-- Dynamic Distance Slider -->
+        <div class="controls">
+          <div class="slider-group">
+            <label>
+              <span>🖐️ Target Distance:</span>
+              <span id="distValText" style="color:#f9e2af">12 cm (SAFE)</span>
+            </label>
+            <input type="range" id="distSlider" min="1" max="20" value="12">
+          </div>
+
+          <div class="btn-group">
+            <button id="btnOutside" class="secondary">15 cm (Outside Threshold)</button>
+            <button id="btnTrigger" style="background:#f38ba8; color:#11111b;">4 cm (Cross Threshold &lt; 8cm)</button>
+          </div>
+        </div>
+
+        <div class="status-panel">
+          <div class="stat-row"><span>Proximity Threshold Setting:</span> <span style="color:#f9e2af">&lt; 8 cm (Raw &gt; 180)</span></div>
+          <div class="stat-row"><span>GP14 Pin State:</span> <span id="intPinState" class="badge idle">HIGH (3.3V - IDLE)</span></div>
+          <div class="stat-row"><span>ISR Executed Count:</span> <span id="isrCountText" style="color:#a6e3a1">0 times</span></div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: MicroPython Code Inspector -->
+      <div class="card">
+        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
+          🐍 MicroPython Hardware IRQ Code Inspector
+        </div>
+        
+        <div class="code-box">
+          <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, I2C</div>
+          <div class="code-line"><span class="kw">import</span> utime</div>
+          <div class="code-line"><br><span class="cm"># 1. Setup I2C Bus & Interrupt Pin (GP14)</span></div>
+          <div class="code-line">i2c = I2C(<span class="num">0</span>, sda=Pin(<span class="num">4</span>), scl=Pin(<span class="num">5</span>))</div>
+          <div class="code-line">int_pin = Pin(<span class="num">14</span>, Pin.IN, Pin.PULL_UP)</div>
+          <div class="code-line"><br><span class="cm"># 2. Configure Sensor Threshold Registers (&lt; 8 cm)</span></div>
+          <div class="code-line">i2c.writeto_mem(<span class="num">0x39</span>, <span class="num">0x89</span>, <span class="num">b'\xB4'</span>)  <span class="cm"># High threshold = 180</span></div>
+          <div class="code-line"><br><span class="cm"># 3. Interrupt Service Routine (ISR Callback Function)</span></div>
+          <div id="codeIsrDef" class="code-line"><span class="kw">def</span> <span class="fn">proximity_isr</span>(pin):</div>
+          <div id="codeIsrBody1" class="code-line">&nbsp;&nbsp;<span class="cm"># Executed instantly when INT pin drops LOW!</span></div>
+          <div id="codeIsrBody2" class="code-line">&nbsp;&nbsp;val = i2c.readfrom_mem(<span class="num">0x39</span>, <span class="num">0x1C</span>, <span class="num">1</span>)[<span class="num">0</span>]</div>
+          <div id="codeIsrBody3" class="code-line">&nbsp;&nbsp;<span class="fn">print</span>(<span class="s2">"⚠️ ALERT: Object Detected!"</span>, val)</div>
+          <div class="code-line"><br><span class="cm"># 4. Attach IRQ handler on FALLING edge (HIGH -> LOW)</span></div>
+          <div id="codeIrqAttach" class="code-line active">int_pin.<span class="fn">irq</span>(handler=<span class="fn">proximity_isr</span>, trigger=Pin.IRQ_FALLING)</div>
+          <div class="code-line"><br><span class="cm"># 5. Main application loop runs smoothly with NO I2C lag</span></div>
+          <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
+          <div class="code-line">&nbsp;&nbsp;<span class="cm"># RP2040 CPU is free to run other tasks...</span></div>
+          <div class="code-line">&nbsp;&nbsp;utime.<span class="fn">sleep_ms</span>(<span class="num">1000</span>)</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let distanceCm = 12;
+    let isrTriggerCount = 0;
+    let wasBelowThreshold = false;
+
+    // DOM Elements
+    const distSlider = document.getElementById('distSlider');
+    const distValText = document.getElementById('distValText');
+    const intPinState = document.getElementById('intPinState');
+    const isrCountText = document.getElementById('isrCountText');
+    const irEmitter = document.getElementById('irEmitter');
+    const intWirePath = document.getElementById('intWirePath');
+    const intPinDotRp = document.getElementById('intPinDotRp');
+    const intPinDotSensor = document.getElementById('intPinDotSensor');
+
+    const intWaveform = document.getElementById('intWaveform');
+    const i2cBurstWaveform = document.getElementById('i2cBurstWaveform');
+
+    const codeIsrDef = document.getElementById('codeIsrDef');
+    const codeIsrBody1 = document.getElementById('codeIsrBody1');
+    const codeIsrBody2 = document.getElementById('codeIsrBody2');
+    const codeIsrBody3 = document.getElementById('codeIsrBody3');
+
+    const btnOutside = document.getElementById('btnOutside');
+    const btnTrigger = document.getElementById('btnTrigger');
+
+    function flashISRCode() {
+      // Flash ISR code block in code inspector
+      codeIsrDef.classList.add('isr-flash');
+      codeIsrBody1.classList.add('isr-flash');
+      codeIsrBody2.classList.add('isr-flash');
+      codeIsrBody3.classList.add('isr-flash');
+
+      setTimeout(() => {
+        codeIsrDef.classList.remove('isr-flash');
+        codeIsrBody1.classList.remove('isr-flash');
+        codeIsrBody2.classList.remove('isr-flash');
+        codeIsrBody3.classList.remove('isr-flash');
+      }, 700);
+    }
+
+    function updateSimulation() {
+      const isTriggered = distanceCm < 8; // Threshold distance is 8 cm
+
+      distValText.innerText = `${distanceCm} cm (${isTriggered ? 'TRIGGERED < 8cm' : 'SAFE > 8cm'})`;
+
+      // Check for FALLING Edge Transition (HIGH -> LOW)
+      if (isTriggered && !wasBelowThreshold) {
+        isrTriggerCount++;
+        isrCountText.innerText = `${isrTriggerCount} times`;
+        flashISRCode();
+      }
+      wasBelowThreshold = isTriggered;
+
+      // Update INT Pin visuals (Active LOW)
+      if (isTriggered) {
+        intPinState.className = "badge active";
+        intPinState.innerText = "LOW (0V - INTERRUPT ACTIVE)";
+        intWirePath.setAttribute('stroke', '#f38ba8');
+        intPinDotRp.setAttribute('fill', '#f38ba8');
+        intPinDotSensor.setAttribute('fill', '#f38ba8');
+
+        // Waveform: INT pulls down LOW (y=55) and triggers I2C Read burst
+        intWaveform.setAttribute('d', "M 40 30 L 180 30 L 180 55 L 380 55");
+        i2cBurstWaveform.setAttribute('d', "M 40 75 L 180 75 L 185 65 L 195 85 L 205 65 L 215 85 L 225 75 L 380 75");
+        i2cBurstWaveform.setAttribute('stroke', '#89b4fa');
+      } else {
+        intPinState.className = "badge idle";
+        intPinState.innerText = "HIGH (3.3V - IDLE)";
+        intWirePath.setAttribute('stroke', '#a6e3a1');
+        intPinDotRp.setAttribute('fill', '#a6e3a1');
+        intPinDotSensor.setAttribute('fill', '#a6e3a1');
+
+        // Waveform: INT remains HIGH (y=30) and I2C line stays quiet
+        intWaveform.setAttribute('d', "M 40 30 L 380 30");
+        i2cBurstWaveform.setAttribute('d', "M 40 75 L 380 75");
+        i2cBurstWaveform.setAttribute('stroke', '#313244');
+      }
+
+      // Emitter brightness
+      const rawVal = Math.max(0, Math.min(255, Math.round(255 - (distanceCm - 1) * (245 / 24))));
+      irEmitter.setAttribute('opacity', 0.2 + (rawVal / 255) * 0.8);
+    }
+
+    // Event Controls
+    distSlider.addEventListener('input', (e) => {
+      distanceCm = parseInt(e.target.value);
+      updateSimulation();
+    });
+
+    btnOutside.addEventListener('click', () => { distanceCm = 15; distSlider.value = 15; updateSimulation(); });
+    btnTrigger.addEventListener('click', () => { distanceCm = 4; distSlider.value = 4; updateSimulation(); });
+
+    // Initial Render
+    updateSimulation();
+  </script>
+</body>
+</html>
