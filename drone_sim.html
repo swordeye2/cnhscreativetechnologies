@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quadcopter Motor Physics & Force Vector Simulator • RP2040 Lab</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
+    .nav-link:hover { text-decoration: underline; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1100px; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 20px; font-size: 0.95rem; text-align: center; }
+
+    /* Concept Banner */
+    .concept-banner { background: #313244; border-left: 4px solid #f9e2af; padding: 10px 14px; border-radius: 4px; font-size: 0.85rem; margin-bottom: 14px; color: #cdd6f4; line-height: 1.4; }
+
+    /* PID Explanation Card */
+    .pid-explain-card { background: #181825; border: 1px solid #313244; border-radius: 8px; padding: 14px; margin-bottom: 18px; font-size: 0.83rem; line-height: 1.5; color: #cdd6f4; }
+    .pid-explain-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .pid-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .pid-pill { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+    .pill-p { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
+    .pill-d { background: #1e3a5f; color: #89b4fa; border: 1px solid #89b4fa; }
+    .pill-loop { background: #421e25; color: #f38ba8; border: 1px solid #f38ba8; }
+
+    /* Vector Legend Bar */
+    .vector-legend { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 0.78rem; font-weight: bold; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+    /* Grid Layout */
+    .grid-container { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
+    @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
+
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+
+    /* Visualizer Canvas Box */
+    .canvas-container { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; overflow: hidden; position: relative; margin-bottom: 12px; }
+    canvas { display: block; width: 100%; height: auto; }
+
+    /* Controls Styling */
+    .control-panel { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .control-group { margin-bottom: 10px; }
+    .control-group:last-child { margin-bottom: 0; }
+    .slider-header { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: bold; color: #89b4fa; margin-bottom: 4px; }
+    input[type=range] { width: 100%; background: #313244; accent-color: #89b4fa; border-radius: 4px; height: 6px; cursor: pointer; }
+
+    .btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 8px; }
+    button { background: #89b4fa; color: #11111b; border: none; padding: 8px 10px; font-size: 0.8rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
+    button:hover { background: #b4befe; }
+    button.secondary { background: #313244; color: #cdd6f4; }
+    button.secondary:hover { background: #45475a; }
+    button.action { background: #f9e2af; color: #11111b; }
+    button.action:hover { background: #f5e0dc; }
+    button.danger { background: #f38ba8; color: #11111b; }
+    button.danger:hover { background: #f5c2e7; }
+
+    /* Telemetry Panel */
+    .status-panel { width: 100%; background: #11111b; border-radius: 6px; padding: 10px; font-family: 'Consolas', monospace; font-size: 0.8rem; border: 1px solid #313244; }
+    .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+
+    /* Code Inspector Styling */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 2px 6px; border-radius: 4px; color: #a6adc8; white-space: pre; }
+    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 3px solid #a6e3a1; padding-left: 3px; }
+    .kw { color: #f38ba8; }
+    .fn { color: #89b4fa; }
+    .num { color: #fab387; }
+    .cm { color: #6c7086; font-style: italic; }
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    /* Quiz Panel Styling */
+    .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; margin-top: 8px; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="../index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 MicroPython Flight Lab</span>
+  </header>
+
+  <div class="content-wrapper">
+    <h1>Quadcopter Motor Physics & PID Stabilizer Simulator</h1>
+    <p class="subtitle">MicroPython PWM Control, Essential Force Vectors, and PID Feedback Loop</p>
+
+    <div class="concept-banner">
+      🏹 <strong>Force Vector Physics:</strong> 
+      <strong>Total Thrust ($\vec{T}$)</strong> acts perpendicular to the frame. 
+      <strong>Gravity ($\vec{F}_g$)</strong> acts straight down. 
+      The <strong>Net Vector ($\vec{F}_{\text{net}} = \vec{T} + \vec{F}_g$)</strong> drives physical movement!
+    </div>
+
+    <!-- PID Role Explanation Card -->
+    <div class="pid-explain-card">
+      <div class="pid-explain-title">
+        🛡️ The Crucial Role of PID Auto-Stabilization: Human vs. Closed-Loop Control
+      </div>
+      <div>
+        A quadcopter is inherently unstable. Without feedback control, tiny motor inaccuracies or wind gusts create uncommanded torque moments ($\tau = r \times F$). Because human nervous reaction times (~200ms) are far too slow, the <strong>RP2040 MicroPython PID controller</strong> acts as a digital inner ear executing 500 times per second ($500\text{Hz}$) to recalculate motor PWM adjustments ($\Delta \text{PWM}$) before human error causes a crash!
+      </div>
+      <div class="pid-pills">
+        <span class="pid-pill pill-p">P (Proportional): Restores angle error</span>
+        <span class="pid-pill pill-d">D (Derivative): Damps rotation speed</span>
+        <span class="pid-pill pill-loop">Open-Loop (PID OFF): Unstable rotational drift</span>
+      </div>
+    </div>
+
+    <!-- Live Vector Color Key Legend -->
+    <div class="vector-legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#a6e3a1;"></span> Total Propeller Thrust ($\vec{T}$)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#f38ba8;"></span> Gravity Force ($\vec{F}_g = m \cdot g$)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#f9e2af;"></span> Net Resultant Motion ($\vec{F}_{\text{net}}$)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#89b4fa;"></span> Front Pair Thrust ($F_{\text{front}}$)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#fab387;"></span> Rear Pair Thrust ($F_{\text{rear}}$)</div>
+    </div>
+
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN: Drone Canvas Visualizer & Physics Controls -->
+      <div class="card">
+        
+        <!-- Canvas Visualizer -->
+        <div class="canvas-container">
+          <canvas id="droneCanvas" width="540" height="290"></canvas>
+        </div>
+
+        <!-- Interactive Physics Controls -->
+        <div class="control-panel">
+          
+          <!-- Main Throttle Slider -->
+          <div class="control-group">
+            <div class="slider-header">
+              <span>Main Throttle Base PWM (All Motors):</span>
+              <span id="throttleVal" style="color:#f9e2af;">32768 u16 (50% Hover)</span>
+            </div>
+            <input type="range" id="throttleSlider" min="10000" max="60000" value="32768" step="256">
+          </div>
+
+          <!-- Target Pitch Angle Slider -->
+          <div class="control-group">
+            <div class="slider-header">
+              <span>Target Pitch Angle Command:</span>
+              <span id="pitchCmdVal" style="color:#89b4fa;">0.0° (Level)</span>
+            </div>
+            <input type="range" id="pitchSlider" min="-20" max="20" value="0" step="0.5">
+          </div>
+
+          <!-- Quick Action Preset Buttons -->
+          <div class="btn-grid">
+            <button id="btnHover" class="action">🎯 Reset Hover (0°)</button>
+            <button id="btnPitchFwd" class="secondary">📉 Pitch Forward (-10°)</button>
+            <button id="btnPitchBack" class="secondary">📈 Pitch Backward (+10°)</button>
+            <button id="btnWind" class="danger">💨 Wind Gust Pulse</button>
+            <button id="btnPidToggle" class="action">🛡️ PID Stabilizer: ON</button>
+          </div>
+        </div>
+
+        <!-- Real-Time Telemetry Readouts -->
+        <div class="status-panel">
+          <div class="stat-row"><span>Front Motors PWM (M1, M4):</span> <span id="telemetryFrontPwm" style="color:#89b4fa">32768 u16</span></div>
+          <div class="stat-row"><span>Rear Motors PWM (M2, M3):</span> <span id="telemetryRearPwm" style="color:#fab387">32768 u16</span></div>
+          <div class="stat-row"><span>Total Thrust Force ($\vec{T}$):</span> <span id="telemetryTotalThrust" style="color:#a6e3a1">2.45 N</span></div>
+          <div class="stat-row"><span>Net Pitch Torque (Moment):</span> <span id="telemetryTorque" style="color:#f9e2af">0.00 Nm</span></div>
+          <div class="stat-row"><span>Current Pitch Angle:</span> <span id="telemetryPitch" style="color:#cdd6f4">0.0°</span></div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Code Inspector & Formative Quiz -->
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+
+        <!-- MicroPython Flight Controller Code Inspector -->
+        <div class="card">
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.92rem;">
+            🐍 MicroPython Flight Controller Inspector
+          </div>
+
+          <div class="code-box">
+            <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
+            <div class="code-line"><span class="kw">import</span> utime</div>
+            <div class="code-line"><br><span class="cm"># RP2040 500Hz PWM Motor Driver Outputs</span></div>
+            <div class="code-line">m_front = PWM(Pin(<span class="num">18</span>), freq=<span class="num">500</span>) <span class="cm"># Front (M1, M4)</span></div>
+            <div class="code-line">m_rear  = PWM(Pin(<span class="num">19</span>), freq=<span class="num">500</span>) <span class="cm"># Rear  (M2, M3)</span></div>
+            <div class="code-line"><br><span class="cm"># PID Auto-Stabilization Loop</span></div>
+            <div class="code-line"><span class="kw">def</span> <span class="fn">update_pitch_control</span>(base_pwm, target_deg, current_deg):</div>
+            <div id="codeErrLine" class="code-line active">&nbsp;&nbsp;error = target_deg - current_deg <span class="cm"># Err: <span id="codeErrVal" class="val-highlight">0.0°</span></span></div>
+            <div id="codePidLine" class="code-line active">&nbsp;&nbsp;pid_adj = <span class="num">350.0</span> * error - <span class="num">80.0</span> * gyro_rate</div>
+            <div class="code-line">&nbsp;&nbsp;<span class="cm"># Apply Motor Mixing Matrix</span></div>
+            <div id="codeMixLine" class="code-line active">&nbsp;&nbsp;pwm_f = <span class="fn">int</span>(base_pwm - pid_adj)</div>
+            <div class="code-line">&nbsp;&nbsp;pwm_r = <span class="fn">int</span>(base_pwm + pid_adj)</div>
+            <div class="code-line">&nbsp;&nbsp;<span class="cm"># Write duty_u16 to RP2040 registers</span></div>
+            <div id="codeOutLine" class="code-line active">&nbsp;&nbsp;m_front.<span class="fn">duty_u16</span>(<span id="codeFrontVal" class="val-highlight">32768</span>)</div>
+            <div class="code-line">&nbsp;&nbsp;m_rear.<span class="fn">duty_u16</span>(<span id="codeRearVal" class="val-highlight">32768</span>)</div>
+          </div>
+        </div>
+
+        <!-- Concept Check Quiz Panel -->
+        <div class="card">
+          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-question" id="quiz-question">
+            Why is an active PID feedback loop required for quadcopter stability rather than setting constant motor speeds?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+          <div id="quiz-feedback"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // State & Physics Variables
+    let baseThrottlePwm = 32768;
+    let targetPitchDeg = 0.0;
+    let currentPitchDeg = 0.0;
+    let pitchRateDegSec = 0.0;
+    
+    let droneX = 270;
+    let droneY = 145; // Center Canvas Hover
+    let velocityX = 0.0;
+    let velocityY = 0.0;
+
+    let isPidActive = true;
+    let lastTime = performance.now();
+
+    // Balanced Drone Constants
+    const DRONE_MASS = 0.25; // kg (Gravity = 2.45 N)
+    const INERTIA_Y = 0.008; // kg*m^2
+    const ARM_LENGTH = 0.18; // meters
+
+    // DOM Elements
+    const canvas = document.getElementById('droneCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const throttleSlider = document.getElementById('throttleSlider');
+    const pitchSlider = document.getElementById('pitchSlider');
+    const throttleVal = document.getElementById('throttleVal');
+    const pitchCmdVal = document.getElementById('pitchCmdVal');
+
+    const btnHover = document.getElementById('btnHover');
+    const btnPitchFwd = document.getElementById('btnPitchFwd');
+    const btnPitchBack = document.getElementById('btnPitchBack');
+    const btnWind = document.getElementById('btnWind');
+    const btnPidToggle = document.getElementById('btnPidToggle');
+
+    const telemetryFrontPwm = document.getElementById('telemetryFrontPwm');
+    const telemetryRearPwm = document.getElementById('telemetryRearPwm');
+    const telemetryTotalThrust = document.getElementById('telemetryTotalThrust');
+    const telemetryTorque = document.getElementById('telemetryTorque');
+    const telemetryPitch = document.getElementById('telemetryPitch');
+
+    const codeErrVal = document.getElementById('codeErrVal');
+    const codeFrontVal = document.getElementById('codeFrontVal');
+    const codeRearVal = document.getElementById('codeRearVal');
+
+    // Quiz Data
+    const quizData = {
+      question: "Why is an active PID feedback loop required for quadcopter stability rather than setting constant motor speeds?",
+      options: [
+        { text: "A. Minor motor differences and wind disturbances create torque moments that human reaction times (~200ms) are too slow to correct.", correct: true },
+        { text: "B. DC brushless motors cannot spin without receiving continuous PID signals from the micro-controller.", correct: false },
+        { text: "C. PID controllers increase battery efficiency by reducing total voltage delivered to the motors.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! Quadcopters are dynamically unstable. The PID loop reads IMU gyro data 500 times per second to automatically adjust motor PWM outputs before rotational drift causes a crash!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Think about how fast rotational drift accelerates when motor thrust is unbalanced versus human reaction speed!';
+      }
+    }
+
+    // Convert PWM to Thrust Force per pair: At 50% PWM (32768 u16), Thrust = 1.226 N (Total = 2.45 N = Gravity!)
+    function pwmToThrust(pwm) {
+      const norm = Math.max(0, Math.min(65535, pwm)) / 65535.0;
+      return 4.905 * Math.pow(norm, 2); 
+    }
+
+    // Helper Function to Draw Arrow Vectors
+    function drawArrow(startX, startY, endX, endY, color, width = 3, label = '') {
+      const headLen = 8;
+      const dx = endX - startX;
+      const dy = endY - startY;
+      const angle = Math.atan2(dy, dx);
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = width;
+
+      // Arrow Body Line
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      // Arrow Head
+      ctx.beginPath();
+      ctx.moveTo(endX, endY);
+      ctx.lineTo(endX - headLen * Math.cos(angle - Math.PI / 6), endY - headLen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(endX - headLen * Math.cos(angle + Math.PI / 6), endY - headLen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      // Vector Label Text
+      if (label) {
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText(label, endX + 6, endY + 2);
+      }
+      ctx.restore();
+    }
+
+    // Reset Function to force rock-steady center hover state
+    function resetHover() {
+      targetPitchDeg = 0.0;
+      currentPitchDeg = 0.0;
+      pitchRateDegSec = 0.0;
+      baseThrottlePwm = 32768;
+      droneX = 270;
+      droneY = 145;
+      velocityX = 0.0;
+      velocityY = 0.0;
+
+      pitchSlider.value = 0;
+      throttleSlider.value = 32768;
+
+      pitchCmdVal.textContent = "0.0° (Level)";
+      throttleVal.textContent = "32768 u16 (50% Hover)";
+    }
+
+    // Event Listeners
+    throttleSlider.addEventListener('input', (e) => {
+      baseThrottlePwm = parseInt(e.target.value);
+      const pct = Math.round((baseThrottlePwm / 65535) * 100);
+      throttleVal.textContent = `${baseThrottlePwm} u16 (${pct}%)`;
+    });
+
+    pitchSlider.addEventListener('input', (e) => {
+      targetPitchDeg = parseFloat(e.target.value);
+      pitchCmdVal.textContent = `${targetPitchDeg.toFixed(1)}°`;
+    });
+
+    btnHover.addEventListener('click', resetHover);
+
+    btnPitchFwd.addEventListener('click', () => {
+      targetPitchDeg = -10.0;
+      pitchSlider.value = -10.0;
+      pitchCmdVal.textContent = "-10.0°";
+    });
+
+    btnPitchBack.addEventListener('click', () => {
+      targetPitchDeg = 10.0;
+      pitchSlider.value = 10.0;
+      pitchCmdVal.textContent = "+10.0°";
+    });
+
+    btnWind.addEventListener('click', () => {
+      pitchRateDegSec += (Math.random() > 0.5 ? 1 : -1) * 35.0; // Sudden wind pulse
+    });
+
+    btnPidToggle.addEventListener('click', () => {
+      isPidActive = !isPidActive;
+      btnPidToggle.textContent = `🛡️ PID Stabilizer: ${isPidActive ? 'ON' : 'OFF'}`;
+      btnPidToggle.style.background = isPidActive ? '#f9e2af' : '#f38ba8';
+    });
+
+    // Render Graphics Frame
+    function drawDrone(frontPwm, rearPwm, fFront, fRear, totalThrust, gravityForce, fxNet, fyNet) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Background grid line
+      ctx.strokeStyle = '#181825';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 30) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 30) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      ctx.save();
+      ctx.translate(droneX, droneY);
+
+      // 1. Draw Global Fixed Vectors (Gravity & Net Motion Vector)
+      // Gravity Vector (Red - Straight Down)
+      const gravityLen = gravityForce * 22.0;
+      drawArrow(0, 0, 0, gravityLen, '#f38ba8', 2.5, 'Fg');
+
+      // Net Resultant Acceleration Vector (Yellow)
+      const netFxPx = fxNet * 35.0;
+      const netFyPx = -fyNet * 35.0; // Invert for Canvas Y
+      if (Math.hypot(netFxPx, netFyPx) > 3) {
+        drawArrow(0, 0, netFxPx, netFyPx, '#f9e2af', 3, 'Fnet');
+      }
+
+      // Rotate canvas for local body frame (Drone & Thrusts)
+      ctx.rotate((currentPitchDeg * Math.PI) / 180);
+
+      // Total Propeller Thrust Vector (Green - Perpendicular to body frame)
+      const totalThrustLen = totalThrust * 22.0;
+      drawArrow(0, 0, 0, -totalThrustLen, '#a6e3a1', 3.5, 'T_total');
+
+      // Drone Frame / Arm Body
+      ctx.strokeStyle = '#89b4fa';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(-110, 0);
+      ctx.lineTo(110, 0);
+      ctx.stroke();
+
+      // Center Hub Body
+      ctx.fillStyle = '#313244';
+      ctx.strokeStyle = '#cdd6f4';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Front Motor Hub & Propeller (Left on screen)
+      ctx.fillStyle = '#89b4fa';
+      ctx.fillRect(-120, -12, 16, 24);
+      // Front Propeller Blur
+      ctx.fillStyle = 'rgba(137, 180, 250, 0.4)';
+      ctx.beginPath();
+      ctx.ellipse(-112, -16, 35, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Rear Motor Hub & Propeller (Right on screen)
+      ctx.fillStyle = '#fab387';
+      ctx.fillRect(104, -12, 16, 24);
+      // Rear Propeller Blur
+      ctx.fillStyle = 'rgba(250, 179, 135, 0.4)';
+      ctx.beginPath();
+      ctx.ellipse(112, -16, 35, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Front & Rear Individual Thrust Arrows
+      const frontArrowLen = fFront * 28;
+      const rearArrowLen = fRear * 28;
+
+      drawArrow(-112, -16, -112, -16 - frontArrowLen, '#89b4fa', 2.5, 'F_front');
+      drawArrow(112, -16, 112, -16 - rearArrowLen, '#fab387', 2.5, 'F_rear');
+
+      ctx.restore();
+
+      // Text Labels
+      ctx.fillStyle = '#a6adc8';
+      ctx.font = '10px monospace';
+      ctx.fillText('FRONT (M1, M4)', Math.max(20, droneX - 145), Math.min(270, droneY + 45));
+      ctx.fillText('REAR (M2, M3)', Math.min(430, droneX + 75), Math.min(270, droneY + 45));
+    }
+
+    // Main Physics Loop
+    function physicsLoop(timestamp) {
+      const dt = Math.min((timestamp - lastTime) / 1000.0, 0.05);
+      lastTime = timestamp;
+
+      // Calculate Error & PID Adjustment
+      const pitchError = targetPitchDeg - currentPitchDeg;
+      let pidAdjustment = 0.0;
+
+      if (isPidActive) {
+        const kp = 350.0;
+        const kd = 80.0;
+        pidAdjustment = (kp * pitchError) - (kd * pitchRateDegSec);
+      }
+
+      // Calculate Front and Rear Motor PWMs
+      let frontPwm = Math.round(baseThrottlePwm - pidAdjustment);
+      let rearPwm  = Math.round(baseThrottlePwm + pidAdjustment);
+
+      frontPwm = Math.max(0, Math.min(65535, frontPwm));
+      rearPwm  = Math.max(0, Math.min(65535, rearPwm));
+
+      // Compute Individual Thrust Forces
+      const fFront = pwmToThrust(frontPwm);
+      const fRear  = pwmToThrust(rearPwm);
+      const totalThrust = fFront + fRear;
+
+      // Pitch Torque (Moment): Torque = (F_rear - F_front) * arm_length
+      const netTorque = (fRear - fFront) * ARM_LENGTH;
+
+      // Angular Acceleration (alpha = Torque / Inertia)
+      const angularAccelRad = netTorque / INERTIA_Y;
+      const angularAccelDeg = (angularAccelRad * 180.0) / Math.PI;
+
+      // Integrate Angular Velocity & Pitch Angle
+      pitchRateDegSec += angularAccelDeg * dt;
+      pitchRateDegSec *= 0.95; // Aerodynamic pitch damping
+      currentPitchDeg += pitchRateDegSec * dt;
+
+      // Vector Forces Resolution along World Axes
+      const pitchRad = (currentPitchDeg * Math.PI) / 180.0;
+      const gravity = DRONE_MASS * 9.81; // 2.45 N
+
+      // Horizontal Force Component: Fixed direction math (pitchRad < 0 moves left toward front)
+      const fxNet = totalThrust * Math.sin(pitchRad); 
+
+      // Vertical Force Component: Thrust * cos(pitch) - Gravity
+      const fyNet = (totalThrust * Math.cos(pitchRad)) - gravity;
+
+      // Horizontal Velocity & Position Integration
+      const accelX = fxNet / DRONE_MASS;
+      velocityX += accelX * dt * 4.0;
+      velocityX *= 0.94; // Air resistance drag
+      droneX += velocityX * dt;
+
+      // Vertical Velocity & Position Integration
+      const accelY = fyNet / DRONE_MASS;
+      velocityY -= accelY * dt * 4.0; 
+      velocityY *= 0.92; // Vertical air resistance drag
+      droneY += velocityY * dt;
+
+      // Canvas Boundary Clamping
+      if (droneX < 80) { droneX = 80; velocityX = 0; }
+      if (droneX > 460) { droneX = 460; velocityX = 0; }
+      if (droneY < 50) { droneY = 50; velocityY = 0; }
+      if (droneY > 230) { droneY = 230; velocityY = 0; }
+
+      // Update Real-Time Telemetry Panel
+      telemetryFrontPwm.textContent    = `${frontPwm} u16`;
+      telemetryRearPwm.textContent     = `${rearPwm} u16`;
+      telemetryTotalThrust.textContent = `${totalThrust.toFixed(2)} N`;
+      telemetryTorque.textContent      = `${netTorque.toFixed(3)} Nm`;
+      telemetryPitch.textContent       = `${currentPitchDeg.toFixed(1)}°`;
+
+      // Update Code Inspector Live Values
+      codeErrVal.textContent   = `${pitchError.toFixed(1)}°`;
+      codeFrontVal.textContent = frontPwm;
+      codeRearVal.textContent  = rearPwm;
+
+      // Render Graphics Frame
+      drawDrone(frontPwm, rearPwm, fFront, fRear, totalThrust, gravity, fxNet, fyNet);
+
+      requestAnimationFrame(physicsLoop);
+    }
+
+    // Initialize App
+    initQuiz();
+    requestAnimationFrame(physicsLoop);
+  </script>
+</body>
+</html>
