@@ -3,7 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RP2040 MicroPython Interactive Physics & Robotics Hub</title>
+  <title>RP2040 MicroPython Interactive Physics & Hardware Hub</title>
+  
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="publisher" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+  <meta name="description" content="RP2040 MicroPython Educational Simulations created and authored by Jorge Victor M. Sales (swordeye/thearbiter). Proprietary interactive learning assets for physics and embedded hardware.">
+
+  <!-- Open Graph Metadata (Social Link Previews) -->
+  <meta property="og:title" content="RP2040 MicroPython Interactive Physics & Hardware Hub">
+  <meta property="og:type" content="website">
+  <meta property="og:description" content="Interactive RP2040 hardware and flight physics simulators created by Jorge Victor M. Sales.">
+  <meta property="og:article:author" content="Jorge Victor M. Sales">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
@@ -16,6 +32,7 @@
       --accent-green: #a6e3a1;
       --accent-yellow: #f9e2af;
       --accent-mauve: #cba6f7;
+      --accent-peach: #fab387;
       --text-main: #cdd6f4;
       --text-sub: #a6adc8;
     }
@@ -45,10 +62,6 @@
       border-color: var(--accent-blue);
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
     }
-
-    .code-font {
-      font-family: 'Fira Code', monospace;
-    }
   </style>
 </head>
 <body class="p-4 md:p-8">
@@ -57,66 +70,29 @@
   <header class="max-w-6xl mx-auto w-full mb-10 text-center">
     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#313244] text-xs font-mono text-[#a6e3a1] mb-3">
       <span class="w-2 h-2 rounded-full bg-[#a6e3a1] animate-pulse"></span>
-      RP2040 MicroPython Curriculum
+      RP2040 MicroPython Curriculum Hub
     </div>
     <h1 class="text-3xl md:text-5xl font-extrabold text-[#89b4fa] tracking-tight mb-3">
-      Interactive Physics & Hardware Lab Hub
+      Interactive Hardware & Physics Simulation Hub
     </h1>
     <p class="text-base text-[#a6adc8] max-w-2xl mx-auto leading-relaxed">
-      Explore real-time simulations bridging MicroPython register programming, hardware driver excitation, force vector dynamics, and digital PID stabilization loops.
+      Bridge MicroPython register code with real-world physical dynamics: PWM generation, motor torque, sensor interrupts, I2C protocol, and quadcopter PID flight stabilization.
     </p>
+
+    <!-- Creator & IP Protection Badge -->
+    <div class="mt-4 inline-flex items-center gap-2 bg-[#181825] border border-[#89b4fa]/40 px-4 py-1.5 rounded-full text-xs font-mono text-[#cdd6f4]">
+      <span class="text-[#f9e2af]">💡 Creator & Legal Author:</span>
+      <span class="font-bold text-[#89b4fa]">Jorge Victor M. Sales</span>
+      <span class="text-[#6c7086]">(swordeye / thearbiter)</span>
+      <span class="text-[#6c7086]">|</span>
+      <span class="text-[#a6adc8]">© 2026 All Educational IP Reserved</span>
+    </div>
   </header>
 
   <!-- Main Modules Grid -->
   <main class="max-w-6xl mx-auto w-full space-y-10">
 
-    <!-- CATEGORY 1: ACTUATORS & ROTATIONAL MECHANICS -->
-    <section>
-      <div class="flex items-center gap-3 mb-4 border-b border-[#313244] pb-2">
-        <span class="text-xl">⚙️</span>
-        <h2 class="text-xl font-bold text-[#f9e2af]">Actuators & Rotational Motion</h2>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <!-- Servo PWM Lab -->
-        <a href="labs/motors/servo.html" class="glass-card rounded-xl p-6 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[#89b4fa] bg-[#11111b] px-2.5 py-1 rounded border border-[#313244]">
-              Lab Module 01
-            </span>
-            <span class="text-xs font-mono text-[#a6e3a1]">PWM Mapping</span>
-          </div>
-          <h3 class="text-lg font-bold text-[#cdd6f4] mb-2">Servo Motor & Voltage Physics</h3>
-          <p class="text-sm text-[#a6adc8] mb-4 leading-relaxed">
-            Examine 50Hz vs 100Hz PWM timing ($0.5\text{ms} \to 2.5\text{ms}$ pulse width mapping), 16-bit register calculations, and external supply voltage ($V_s$) impact on horn transit speed.
-          </p>
-          <div class="flex items-center text-xs font-mono text-[#89b4fa] font-semibold">
-            Launch Simulator →
-          </div>
-        </a>
-
-        <!-- Stepper Motor Lab -->
-        <a href="labs/motors/stepper.html" class="glass-card rounded-xl p-6 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[#89b4fa] bg-[#11111b] px-2.5 py-1 rounded border border-[#313244]">
-              Lab Module 02
-            </span>
-            <span class="text-xs font-mono text-[#cba6f7]">Full-Step Matrix</span>
-          </div>
-          <h3 class="text-lg font-bold text-[#cdd6f4] mb-2">Stepper Motor & Coil Excitation</h3>
-          <p class="text-sm text-[#a6adc8] mb-4 leading-relaxed">
-            Visualize 4-phase 2-coil full-step excitation matrix sequencing, vector addition of adjacent electromagnetic flux, and MicroPython list-driven pin toggles.
-          </p>
-          <div class="flex items-center text-xs font-mono text-[#89b4fa] font-semibold">
-            Launch Simulator →
-          </div>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- CATEGORY 2: FLIGHT DYNAMICS & CONTROL SYSTEMS -->
+    <!-- CATEGORY 1: FLIGHT DYNAMICS & CLOSED-LOOP CONTROL -->
     <section>
       <div class="flex items-center gap-3 mb-4 border-b border-[#313244] pb-2">
         <span class="text-xl">🚁</span>
@@ -126,21 +102,178 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         <!-- Quadcopter Drone Simulator -->
-        <a href="labs/flight/drone_sim.html" class="glass-card rounded-xl p-6 block text-left md:col-span-2">
+        <a href="./drone_sim.html" class="glass-card rounded-xl p-6 block text-left md:col-span-2">
           <div class="flex justify-between items-start mb-3">
             <span class="text-xs font-mono font-bold uppercase tracking-wider text-[#89b4fa] bg-[#11111b] px-2.5 py-1 rounded border border-[#313244]">
-              Lab Module 03
+              drone_sim.html
             </span>
-            <span class="text-xs font-mono text-[#fab387]">PID Closed-Loop</span>
+            <span class="text-xs font-mono text-[#fab387]">PID Closed-Loop Flight</span>
           </div>
           <h3 class="text-xl font-bold text-[#cdd6f4] mb-2">Quadcopter Motor Physics & PID Simulator</h3>
           <p class="text-sm text-[#a6adc8] mb-4 leading-relaxed max-w-3xl">
-            Analyze differential motor thrust ($F \propto \text{RPM}^2$), force vector resolutions ($\vec{T}_{\text{net}}$ vs $\vec{F}_g$), moment torques ($\tau_y$), and why MicroPython closed-loop PID controllers ($500\text{Hz}$) are required to prevent human reaction delays and wind gust instabilities.
+            Analyze differential motor thrust ($F \propto \text{RPM}^2$), essential force vector resolutions ($\vec{T}_{\text{total}}$ vs $\vec{F}_g$), pitch torque moments ($\tau_y$), and how MicroPython PID feedback loops ($500\text{Hz}$) stabilize the drone against human error and wind gusts.
           </p>
           <div class="flex items-center justify-between pt-2 border-t border-[#313244]/50">
-            <span class="text-xs font-mono text-[#f9e2af]">Key Focus: Vector Resolution & PID Auto-Correction</span>
-            <span class="text-xs font-mono text-[#89b4fa] font-semibold">Launch Flight Simulator →</span>
+            <span class="text-xs font-mono text-[#f9e2af]">Core Concept: Force Resolution & Closed-Loop PID</span>
+            <span class="text-xs font-mono text-[#89b4fa] font-semibold">Launch Drone Flight Lab →</span>
           </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- CATEGORY 2: PWM, MOTORS & ACTUATORS -->
+    <section>
+      <div class="flex items-center gap-3 mb-4 border-b border-[#313244] pb-2">
+        <span class="text-xl">⚙️</span>
+        <h2 class="text-xl font-bold text-[#f9e2af]">PWM Signals, DC & Stepper Motors</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- PWM Visualizer & Bit Conversion -->
+        <a href="./pwm_visualizer.html" class="glass-card rounded-xl p-5 block text-left">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold text-[#89b4fa] bg-[#11111b] px-2 py-0.5 rounded border border-[#313244]">
+              pwm_visualizer.html
+            </span>
+            <span class="text-xs font-mono text-[#a6e3a1]">16-bit to 8-bit</span>
+          </div>
+          <h3 class="text-base font-bold text-[#cdd6f4] mb-1">PWM & Resolution Converter</h3>
+          <p class="text-xs text-[#a6adc8] mb-3">
+            Observe duty cycle waveforms, 16-bit to 8-bit conversion scaling (`u16 >> 8`), and RP2040 bidirectional GPIO PWM capture/output.
+          </p>
+          <div class="text-xs font-mono text-[#89b4fa] font-semibold">Open Lab →</div>
+        </a>
+
+        <!-- DC Motor Control -->
+        <a href="./dc-motor.html" class="glass-card rounded-xl p-5 block text-left">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold text-[#89b4fa] bg-[#11111b] px-2 py-0.5 rounded border border-[#313244]">
+              dc-motor.html
+            </span>
+            <span class="text-xs font-mono text-[#f9e2af]">H-Bridge Driver</span>
+          </div>
+          <h3 class="text-base font-bold text-[#cdd6f4] mb-1">DC Motor H-Bridge Control</h3>
+          <p class="text-xs text-[#a6adc8] mb-3">
+            Explore PWM duty cycle speed scaling, H-bridge directional switching logic (IN1/IN2), back-EMF, and motor load dynamics.
+          </p>
+          <div class="text-xs font-mono text-[#89b4fa] font-semibold">Open Lab →</div>
+        </a>
+
+        <!-- 2WD Robot Motor Control -->
+        <a href="./2WD_motor.html" class="glass-card rounded-xl p-5 block text-left">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold text-[#89b4fa] bg-[#11111b] px-2 py-0.5 rounded border border-[#313244]">
+              2WD_motor.html
+            </span>
+            <span class="text-xs font-mono text-[#fab387]">Differential Drive</span>
+          </div>
+          <h3 class="text-base font-bold text-[#cdd6f4] mb-1">2WD Differential Drive Robot</h3>
+          <p class="text-xs text-[#a6adc8] mb-3">
+            Simulate dual-wheel differential thrust vectoring, turn steering radius equations, and skid-steer MicroPython logic.
+          </p>
+          <div class="text-xs font-mono text-[#89b4fa] font-semibold">Open Lab →</div>
+        </a>
+
+        <!-- Servo Motor Standard -->
+        <a href="./servo.html" class="glass-card rounded-xl p-5 block text-left">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold text-[#89b4fa] bg-[#11111b] px-2 py-0.5 rounded border border-[#313244]">
+              servo.html
+            </span>
+            <span class="text-xs font-mono text-[#cba6f7]">50Hz Pulse Width</span>
+          </div>
+          <h3 class="text-base font-bold text-[#cdd6f4] mb-1">Servo Motor Timing Physics</h3>
+          <p class="text-xs text-[#a6adc8] mb-3">
+            Learn 50Hz PWM pulse width control ($0.5\text{ms} \to 2.5\text{ms}$), 180° horn angular positioning, and register duty calculations.
+          </p>
+          <div class="text-xs font-mono text-[#89b4fa] font-semibold">Open Lab →</div>
+        </a>
+
+        <!-- Servo Voltage Dependent -->
+        <a href="./servo_voltage.html" class="glass-card rounded-xl p-5 block text-left">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold text-[#89b4fa] bg-[#11111b] px-2 py-0.5 rounded border border-[#313244]">
+              servo_voltage.html
+            </span>
+            <span class="text-xs font-mono text-[#f38ba8]">Supply Voltage</span>
+          </div>
+          <h3 class="text-base font-bold text-[#cdd6f4] mb-1">Servo Supply Voltage Impact</h3>
+          <p class="text-xs text-[#a6adc8] mb-3">
+            Observe how supply voltage ($V_s$: 4.8V vs 6.0V) directly influences motor horn transit speed, current draw, and stall torque.
+          </p>
+          <div class="text-xs font-mono text-[#89b4fa] font-semibold">Open Lab →</div>
+        </a>
+
+        <!-- Stepper Motor Matrix -->
+        <a href="./stepper.html" class="glass-card rounded-xl p-5 block text-left">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold text-[#89b4fa] bg-[#11111b] px-2 py-0.5 rounded border border-[#313244]">
+              stepper.html
+            </span>
+            <span class="text-xs font-mono text-[#a6e3a1]">Full-Step Coils</span>
+          </div>
+          <h3 class="text-base font-bold text-[#cdd6f4] mb-1">Stepper Motor Phase Excitation</h3>
+          <p class="text-xs text-[#a6adc8] mb-3">
+            Visualize 4-phase coil excitation sequence matrices, electromagnetic vector addition, and precise micro-stepping rotation.
+          </p>
+          <div class="text-xs font-mono text-[#89b4fa] font-semibold">Open Lab →</div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- CATEGORY 3: SENSORS, INTERRUPTS & I2C PROTOCOL -->
+    <section>
+      <div class="flex items-center gap-3 mb-4 border-b border-[#313244] pb-2">
+        <span class="text-xl">📡</span>
+        <h2 class="text-xl font-bold text-[#cba6f7]">Sensors, Hardware Interrupts & I2C Communication</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <!-- PIR Sensor Interrupt -->
+        <a href="./pir_interrupt.html" class="glass-card rounded-xl p-5 block text-left">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold text-[#89b4fa] bg-[#11111b] px-1.5 py-0.5 rounded border border-[#313244]">
+              pir_interrupt.html
+            </span>
+          </div>
+          <h3 class="text-sm font-bold text-[#cdd6f4] mb-1">PIR Hardware Interrupts</h3>
+          <p class="text-xs text-[#a6adc8] mb-3">
+            Connect motion detection events to MicroPython `Pin.IRQ_RISING` callbacks for zero-polling efficiency.
+          </p>
+          <div class="text-xs font-mono text-[#89b4fa] font-semibold">Open Lab →</div>
+        </a>
+
+        <!-- I2C Sensor Communication -->
+        <a href="./i2c_sensor.html" class="glass-card rounded-xl p-5 block text-left">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold text-[#89b4fa] bg-[#11111b] px-1.5 py-0.5 rounded border border-[#313244]">
+              i2c_sensor.html
+            </span>
+          </div>
+          <h3 class="text-sm font-bold text-[#cdd6f4] mb-1">I2C Sensor Register Protocol</h3>
+          <p class="text-xs text-[#a6adc8] mb-3">
+            Trace SDA/SCL serial timing, start/stop conditions, device 7-bit addressing, and register byte reading.
+          </p>
+          <div class="text-xs font-mono text-[#89b4fa] font-semibold">Open Lab →</div>
+        </a>
+
+        <!-- I2C Interrupt Integration -->
+        <a href="./i2c_interrupt.html" class="glass-card rounded-xl p-5 block text-left lg:col-span-2">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold text-[#89b4fa] bg-[#11111b] px-2 py-0.5 rounded border border-[#313244]">
+              i2c_interrupt.html
+            </span>
+            <span class="text-xs font-mono text-[#cba6f7]">Asynchronous Sensing</span>
+          </div>
+          <h3 class="text-sm font-bold text-[#cdd6f4] mb-1">I2C Communication with Interrupt Alerts</h3>
+          <p class="text-xs text-[#a6adc8] mb-3">
+            Simulate asynchronous sensor alert pins triggering hardware interrupts on the RP2040 to initiate targeted I2C register reads.
+          </p>
+          <div class="text-xs font-mono text-[#89b4fa] font-semibold">Open Lab →</div>
         </a>
 
       </div>
@@ -148,11 +281,16 @@
 
   </main>
 
-  <!-- Recommended Directory Reference Footer -->
+  <!-- Copyright & IP Protection Footer -->
   <footer class="max-w-6xl mx-auto w-full mt-16 pt-6 border-t border-[#313244] text-center text-xs font-mono text-[#6c7086]">
-    <p class="mb-2">Organized Directory Structure:</p>
-    <code class="text-[#a6adc8] bg-[#11111b] px-3 py-1.5 rounded border border-[#313244] inline-block">
-      index.html | labs/motors/servo.html | labs/motors/stepper.html | labs/flight/drone_sim.html
+    <p class="text-[#cdd6f4] font-bold mb-1">
+      © 2026 Designed & Authored by <span class="text-[#89b4fa]">Jorge Victor M. Sales</span> (<span class="text-[#f9e2af]">swordeye / thearbiter</span>). All Rights Reserved.
+    </p>
+    <p class="text-[#a6adc8] mb-3">
+      Educational curriculum assets, interactive simulation architectures, and MicroPython physics mappings.
+    </p>
+    <code class="text-[#a6adc8] bg-[#11111b] px-3 py-1.5 rounded border border-[#313244] inline-block max-w-full overflow-x-auto">
+      index.html | drone_sim.html | pwm_visualizer.html | dc-motor.html | 2WD_motor.html | servo.html | servo_voltage.html | stepper.html | pir_interrupt.html | i2c_sensor.html | i2c_interrupt.html
     </code>
   </footer>
 
