@@ -51,6 +51,15 @@
     .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: #313244; color: #6c7086; font-weight: bold; }
     .badge.active { background: #f38ba8; color: #11111b; box-shadow: 0 0 8px #f38ba8; }
     .badge.idle { background: #a6e3a1; color: #11111b; }
+
+    /* Quiz Panel Styling */
+    .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -152,32 +161,46 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: MicroPython Code Inspector -->
-      <div class="card">
-        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
-          🐍 MicroPython Hardware IRQ Code Inspector
+      <!-- RIGHT COLUMN: MicroPython Code Inspector + Formative Concept Check -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+
+        <div class="card">
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
+            🐍 MicroPython Hardware IRQ Code Inspector
+          </div>
+          
+          <div class="code-box">
+            <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, I2C</div>
+            <div class="code-line"><span class="kw">import</span> utime</div>
+            <div class="code-line"><br><span class="cm"># 1. Setup I2C Bus & Interrupt Pin (GP14)</span></div>
+            <div class="code-line">i2c = I2C(<span class="num">0</span>, sda=Pin(<span class="num">4</span>), scl=Pin(<span class="num">5</span>))</div>
+            <div class="code-line">int_pin = Pin(<span class="num">14</span>, Pin.IN, Pin.PULL_UP)</div>
+            <div class="code-line"><br><span class="cm"># 2. Configure Sensor Threshold Registers (&lt; 8 cm)</span></div>
+            <div class="code-line">i2c.writeto_mem(<span class="num">0x39</span>, <span class="num">0x89</span>, <span class="num">b'\xB4'</span>)  <span class="cm"># High threshold = 180</span></div>
+            <div class="code-line"><br><span class="cm"># 3. Interrupt Service Routine (ISR Callback Function)</span></div>
+            <div id="codeIsrDef" class="code-line"><span class="kw">def</span> <span class="fn">proximity_isr</span>(pin):</div>
+            <div id="codeIsrBody1" class="code-line">&nbsp;&nbsp;<span class="cm"># Executed instantly when INT pin drops LOW!</span></div>
+            <div id="codeIsrBody2" class="code-line">&nbsp;&nbsp;val = i2c.readfrom_mem(<span class="num">0x39</span>, <span class="num">0x1C</span>, <span class="num">1</span>)[<span class="num">0</span>]</div>
+            <div id="codeIsrBody3" class="code-line">&nbsp;&nbsp;<span class="fn">print</span>(<span class="s2">"⚠️ ALERT: Object Detected!"</span>, val)</div>
+            <div class="code-line"><br><span class="cm"># 4. Attach IRQ handler on FALLING edge (HIGH -> LOW)</span></div>
+            <div id="codeIrqAttach" class="code-line active">int_pin.<span class="fn">irq</span>(handler=<span class="fn">proximity_isr</span>, trigger=Pin.IRQ_FALLING)</div>
+            <div class="code-line"><br><span class="cm"># 5. Main application loop runs smoothly with NO I2C lag</span></div>
+            <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
+            <div class="code-line">&nbsp;&nbsp;<span class="cm"># RP2040 CPU is free to run other tasks...</span></div>
+            <div class="code-line">&nbsp;&nbsp;utime.<span class="fn">sleep_ms</span>(<span class="num">1000</span>)</div>
+          </div>
         </div>
-        
-        <div class="code-box">
-          <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, I2C</div>
-          <div class="code-line"><span class="kw">import</span> utime</div>
-          <div class="code-line"><br><span class="cm"># 1. Setup I2C Bus & Interrupt Pin (GP14)</span></div>
-          <div class="code-line">i2c = I2C(<span class="num">0</span>, sda=Pin(<span class="num">4</span>), scl=Pin(<span class="num">5</span>))</div>
-          <div class="code-line">int_pin = Pin(<span class="num">14</span>, Pin.IN, Pin.PULL_UP)</div>
-          <div class="code-line"><br><span class="cm"># 2. Configure Sensor Threshold Registers (&lt; 8 cm)</span></div>
-          <div class="code-line">i2c.writeto_mem(<span class="num">0x39</span>, <span class="num">0x89</span>, <span class="num">b'\xB4'</span>)  <span class="cm"># High threshold = 180</span></div>
-          <div class="code-line"><br><span class="cm"># 3. Interrupt Service Routine (ISR Callback Function)</span></div>
-          <div id="codeIsrDef" class="code-line"><span class="kw">def</span> <span class="fn">proximity_isr</span>(pin):</div>
-          <div id="codeIsrBody1" class="code-line">&nbsp;&nbsp;<span class="cm"># Executed instantly when INT pin drops LOW!</span></div>
-          <div id="codeIsrBody2" class="code-line">&nbsp;&nbsp;val = i2c.readfrom_mem(<span class="num">0x39</span>, <span class="num">0x1C</span>, <span class="num">1</span>)[<span class="num">0</span>]</div>
-          <div id="codeIsrBody3" class="code-line">&nbsp;&nbsp;<span class="fn">print</span>(<span class="s2">"⚠️ ALERT: Object Detected!"</span>, val)</div>
-          <div class="code-line"><br><span class="cm"># 4. Attach IRQ handler on FALLING edge (HIGH -> LOW)</span></div>
-          <div id="codeIrqAttach" class="code-line active">int_pin.<span class="fn">irq</span>(handler=<span class="fn">proximity_isr</span>, trigger=Pin.IRQ_FALLING)</div>
-          <div class="code-line"><br><span class="cm"># 5. Main application loop runs smoothly with NO I2C lag</span></div>
-          <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
-          <div class="code-line">&nbsp;&nbsp;<span class="cm"># RP2040 CPU is free to run other tasks...</span></div>
-          <div class="code-line">&nbsp;&nbsp;utime.<span class="fn">sleep_ms</span>(<span class="num">1000</span>)</div>
+
+        <!-- Concept Check Quiz Panel -->
+        <div class="card">
+          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-question" id="quiz-question">
+            Why is trigger=Pin.IRQ_FALLING used for the active-LOW INT pin instead of Pin.IRQ_RISING?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+          <div id="quiz-feedback" style="margin-top: 8px;"></div>
         </div>
+
       </div>
 
     </div>
@@ -208,6 +231,45 @@
 
     const btnOutside = document.getElementById('btnOutside');
     const btnTrigger = document.getElementById('btnTrigger');
+
+    // Quiz Data
+    const quizData = {
+      question: "Why is trigger=Pin.IRQ_FALLING used for the active-LOW INT pin instead of Pin.IRQ_RISING?",
+      options: [
+        { text: "A. Because the sensor holds INT at 3.3V (HIGH) and pulls it down to 0V (LOW) when triggered, creating a HIGH-to-LOW transition.", correct: true },
+        { text: "B. Because falling edge interrupts use less CPU power than rising edge interrupts on the RP2040.", correct: false },
+        { text: "C. Because the I2C bus requires voltage to fall to zero before sending start bits.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! Active-LOW pins idle HIGH (3.3V) and drop LOW (0V) upon trigger, which is physically a FALLING signal edge.';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Consider the default resting state (PULL_UP = HIGH 3.3V) and the active state (0V LOW).';
+      }
+    }
 
     function flashISRCode() {
       // Flash ISR code block in code inspector
@@ -263,7 +325,7 @@
       }
 
       // Emitter brightness
-      const rawVal = Math.max(0, Math.min(255, Math.round(255 - (distanceCm - 1) * (245 / 24))));
+      const rawVal = Math.max(0, Math.min(255, Math.round(255 - (distanceCm - 1) * (245 / 19))));
       irEmitter.setAttribute('opacity', 0.2 + (rawVal / 255) * 0.8);
     }
 
@@ -277,6 +339,7 @@
     btnTrigger.addEventListener('click', () => { distanceCm = 4; distSlider.value = 4; updateSimulation(); });
 
     // Initial Render
+    initQuiz();
     updateSimulation();
   </script>
 </body>
