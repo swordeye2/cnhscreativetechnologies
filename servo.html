@@ -93,6 +93,15 @@
       backdrop-filter: blur(8px);
       border: 1px solid var(--border-color);
     }
+
+    /* Quiz Panel Styling */
+    .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
   </style>
 </head>
 <body class="p-3 md:p-6">
@@ -286,7 +295,7 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: MicroPython Code & Math Breakdown (5 Cols) -->
+      <!-- RIGHT COLUMN: MicroPython Code, Math Breakdown & Formative Quiz (5 Cols) -->
       <div class="lg:col-span-5 flex flex-col gap-5">
         
         <!-- Interactive Calculations Breakdown Card -->
@@ -330,13 +339,13 @@
         </div>
 
         <!-- Live MicroPython Code Inspector -->
-        <div class="glass-card rounded-xl p-5 shadow-xl flex flex-col flex-grow">
+        <div class="glass-card rounded-xl p-5 shadow-xl flex flex-col">
           <div class="flex justify-between items-center border-b border-[#313244] pb-2 mb-3">
             <span class="text-xs font-mono font-bold uppercase tracking-wider text-[#89b4fa]">🐍 Live MicroPython Driver Code</span>
             <span class="text-[10px] font-mono text-[#a6e3a1] bg-[#11111b] px-2 py-0.5 rounded border border-[#313244]">RP2040 Executing</span>
           </div>
 
-          <div class="code-box bg-[#11111b] border border-[#313244] rounded-lg p-3 code-font text-xs leading-relaxed overflow-x-auto flex-grow">
+          <div class="code-box bg-[#11111b] border border-[#313244] rounded-lg p-3 code-font text-xs leading-relaxed overflow-x-auto">
             <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
             <div class="code-line"><span class="kw">import</span> time</div>
             <div class="code-line"><br><span class="cm"># Configure PWM pin GP16</span></div>
@@ -351,6 +360,16 @@
             <div class="code-line"><br><span class="cm"># Command current target</span></div>
             <div class="code-line active"><span class="fn">set_servo_angle</span>(<span id="codeTargetVal" class="val-highlight">90</span>, <span id="codeMaxAngle2" class="val-highlight">180</span>)</div>
           </div>
+        </div>
+
+        <!-- Concept Check Quiz Panel -->
+        <div class="glass-card rounded-xl p-5 shadow-xl flex flex-col">
+          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-question mt-2" id="quiz-question">
+            Why does a standard servo motor care about the absolute pulse width (e.g. 1.5ms) rather than the raw duty cycle percentage when determining its angle?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;"></div>
+          <div id="quiz-feedback" style="margin-top: 10px;"></div>
         </div>
 
       </div>
@@ -422,6 +441,45 @@
     const btnMax = document.getElementById('btnMax');
     const sweepBtn = document.getElementById('sweepBtn');
 
+    // Quiz Data
+    const quizData = {
+      question: "Why does a standard servo motor decode the absolute pulse width (e.g. 1.5ms) rather than the duty cycle percentage when positioning its horn?",
+      options: [
+        { text: "A. Internal RC timing circuits convert HIGH pulse duration directly to a target control voltage, regardless of period length.", correct: true },
+        { text: "B. Because duty cycle percentage only works for AC voltage sources, not DC microcontrollers.", correct: false },
+        { text: "C. Servo internal potentiometers require higher duty cycles to generate physical torque.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! The servo internal decoder evaluates absolute pulse HIGH time (0.5ms–2.5ms). Changing PWM frequency from 50Hz to 100Hz doubles the duty %, but 1.5ms still points to center!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Think about how changing frequency alters duty % while keeping the HIGH time pulse duration identical!';
+      }
+    }
+
     // Calculate Pulse Width (ms) for a given angle & max range
     function getPulseWidthMs(angle, maxAngle) {
       return 0.5 + (angle / maxAngle) * 2.0;
@@ -429,9 +487,8 @@
 
     // Update SVG Range Arc visual guide
     function updateRangeArc(maxAngle) {
-      // Map angle to arc path
       const startAngleDeg = -90;
-      const endAngleDeg = -90 + (maxAngle / 180) * 180; // normalized rotation range
+      const endAngleDeg = -90 + (maxAngle / 180) * 180;
       
       const r = 85;
       const cx = 200, cy = 80;
@@ -451,8 +508,6 @@
 
     // Update Waveform Display
     function updateWaveform(pulseMs, periodMs) {
-      // 1 Period width in SVG pixels = 200px
-      // So Scale: 1ms = (200 / periodMs) pixels
       const pxPerMs = 200 / periodMs;
       const highWidthPx = Math.min(pulseMs * pxPerMs, 195);
 
@@ -519,7 +574,7 @@
     // Smooth Physics Simulation Loop (requestAnimationFrame)
     function animationLoop(timestamp) {
       if (!lastTimestamp) lastTimestamp = timestamp;
-      const deltaTime = (timestamp - lastTimestamp) / 1000; // in seconds
+      const deltaTime = (timestamp - lastTimestamp) / 1000;
       lastTimestamp = timestamp;
 
       // Auto Sweep Logic
@@ -549,7 +604,7 @@
         currentAngle = targetAngle;
       }
 
-      // Render physical horn rotation (-90 deg offset base)
+      // Render physical horn rotation
       const currentRotation = -90 + (currentAngle / maxAngleSpec) * 180;
       hornGroup.setAttribute('transform', `translate(200, 80) rotate(${currentRotation})`);
 
@@ -581,7 +636,6 @@
     maxAngleSelect.addEventListener('change', (e) => {
       maxAngleSpec = parseInt(e.target.value);
       
-      // Update Slider limits
       angleSlider.max = maxAngleSpec;
       if (targetAngle > maxAngleSpec) {
         targetAngle = maxAngleSpec;
@@ -638,6 +692,7 @@
     });
 
     // Initialize App State
+    initQuiz();
     updateRangeArc(180);
     updateCalculations();
     requestAnimationFrame(animationLoop);
