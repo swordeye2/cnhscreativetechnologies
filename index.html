@@ -3,102 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RP2040 Hardware Lab Hub • CNHS Creative Tech</title>
+  <title>RP2040 MicroPython Interactive Physics & Robotics Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    h1 { color: #89b4fa; margin-bottom: 5px; text-align: center; }
-    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 35px; text-align: center; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1050px; }
-    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 25px; text-decoration: none; color: inherit; transition: transform 0.2s ease, border-color 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; }
-    .card:hover { transform: translateY(-4px); border-color: #89b4fa; }
-    .card h2 { color: #89b4fa; margin-top: 0; font-size: 1.2rem; }
-    .card p { color: #a6adc8; font-size: 0.9rem; line-height: 1.5; }
-    .badge { display: inline-block; padding: 4px 10px; background: #313244; color: #a6e3a1; font-family: monospace; border-radius: 4px; font-size: 0.8rem; margin-top: 15px; width: fit-content; }
-    .badge.highlight { color: #f9e2af; border: 1px solid #f9e2af; }
-    .badge.new { color: #89dceb; border: 1px solid #89dceb; }
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --bg-dark: #1e1e2e;
+      --card-bg: #181825;
+      --border-color: #313244;
+      --accent-blue: #89b4fa;
+      --accent-green: #a6e3a1;
+      --accent-yellow: #f9e2af;
+      --accent-mauve: #cba6f7;
+      --text-main: #cdd6f4;
+      --text-sub: #a6adc8;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .glass-card {
+      background: rgba(24, 24, 37, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-blue);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .code-font {
+      font-family: 'Fira Code', monospace;
+    }
   </style>
 </head>
-<body>
+<body class="p-4 md:p-8">
 
-  <h1>RP2040 MicroPython Hardware Lab</h1>
-  <p class="subtitle">Interactive MicroPython Visualizers for Junior High School Engineering</p>
+  <!-- Header Section -->
+  <header class="max-w-6xl mx-auto w-full mb-10 text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#313244] text-xs font-mono text-[#a6e3a1] mb-3">
+      <span class="w-2 h-2 rounded-full bg-[#a6e3a1] animate-pulse"></span>
+      RP2040 MicroPython Curriculum
+    </div>
+    <h1 class="text-3xl md:text-5xl font-extrabold text-[#89b4fa] tracking-tight mb-3">
+      Interactive Physics & Hardware Lab Hub
+    </h1>
+    <p class="text-base text-[#a6adc8] max-w-2xl mx-auto leading-relaxed">
+      Explore real-time simulations bridging MicroPython register programming, hardware driver excitation, force vector dynamics, and digital PID stabilization loops.
+    </p>
+  </header>
 
-  <div class="grid">
-    
-    <!-- 2WD Robot Motor Driver Simulation -->
-    <a href="2WD_motor.html" class="card">
-      <div>
-        <h2>🤖 2WD Robot & Dual H-Bridge</h2>
-        <p>Differential steering arena, DRV8833/L298N truth tables, IN1–IN4 PWM signal logic, and WASD flight deck.</p>
+  <!-- Main Modules Grid -->
+  <main class="max-w-6xl mx-auto w-full space-y-10">
+
+    <!-- CATEGORY 1: ACTUATORS & ROTATIONAL MECHANICS -->
+    <section>
+      <div class="flex items-center gap-3 mb-4 border-b border-[#313244] pb-2">
+        <span class="text-xl">⚙️</span>
+        <h2 class="text-xl font-bold text-[#f9e2af]">Actuators & Rotational Motion</h2>
       </div>
-      <span class="badge new">2WD_motor.html →</span>
-    </a>
 
-    <!-- PWM Signal & Beat Visualizer -->
-    <a href="pwm_visualizer.html" class="card">
-      <div>
-        <h2>🌊 PWM Beat & Signal Visualizer</h2>
-        <p>16-bit <code>duty_u16</code> conversion, 8-bit bit-shift math, heartbeat/breathing wave beats, duty trace, and live scope.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Servo PWM Lab -->
+        <a href="labs/motors/servo.html" class="glass-card rounded-xl p-6 block text-left">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[#89b4fa] bg-[#11111b] px-2.5 py-1 rounded border border-[#313244]">
+              Lab Module 01
+            </span>
+            <span class="text-xs font-mono text-[#a6e3a1]">PWM Mapping</span>
+          </div>
+          <h3 class="text-lg font-bold text-[#cdd6f4] mb-2">Servo Motor & Voltage Physics</h3>
+          <p class="text-sm text-[#a6adc8] mb-4 leading-relaxed">
+            Examine 50Hz vs 100Hz PWM timing ($0.5\text{ms} \to 2.5\text{ms}$ pulse width mapping), 16-bit register calculations, and external supply voltage ($V_s$) impact on horn transit speed.
+          </p>
+          <div class="flex items-center text-xs font-mono text-[#89b4fa] font-semibold">
+            Launch Simulator →
+          </div>
+        </a>
+
+        <!-- Stepper Motor Lab -->
+        <a href="labs/motors/stepper.html" class="glass-card rounded-xl p-6 block text-left">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[#89b4fa] bg-[#11111b] px-2.5 py-1 rounded border border-[#313244]">
+              Lab Module 02
+            </span>
+            <span class="text-xs font-mono text-[#cba6f7]">Full-Step Matrix</span>
+          </div>
+          <h3 class="text-lg font-bold text-[#cdd6f4] mb-2">Stepper Motor & Coil Excitation</h3>
+          <p class="text-sm text-[#a6adc8] mb-4 leading-relaxed">
+            Visualize 4-phase 2-coil full-step excitation matrix sequencing, vector addition of adjacent electromagnetic flux, and MicroPython list-driven pin toggles.
+          </p>
+          <div class="flex items-center text-xs font-mono text-[#89b4fa] font-semibold">
+            Launch Simulator →
+          </div>
+        </a>
+
       </div>
-      <span class="badge">pwm_visualizer.html →</span>
-    </a>
+    </section>
 
-    <!-- DC Motor Driver -->
-    <a href="dc-motor.html" class="card">
-      <div>
-        <h2>🏎️ DC Motor & DRV8833</h2>
-        <p>H-Bridge logic, PWM speed control, short braking, and live square waveform visualization.</p>
+    <!-- CATEGORY 2: FLIGHT DYNAMICS & CONTROL SYSTEMS -->
+    <section>
+      <div class="flex items-center gap-3 mb-4 border-b border-[#313244] pb-2">
+        <span class="text-xl">🚁</span>
+        <h2 class="text-xl font-bold text-[#a6e3a1]">Flight Dynamics & Feedback Stabilization</h2>
       </div>
-      <span class="badge">dc-motor.html →</span>
-    </a>
 
-    <!-- Servo Motor Position & Timing -->
-    <a href="servo.html" class="card">
-      <div>
-        <h2>🤖 Servo Motor & PWM</h2>
-        <p>50Hz vs 100Hz PWM, angle range specs (90°–360°), target positioning, and rotation speed physics.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Quadcopter Drone Simulator -->
+        <a href="labs/flight/drone_sim.html" class="glass-card rounded-xl p-6 block text-left md:col-span-2">
+          <div class="flex justify-between items-start mb-3">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[#89b4fa] bg-[#11111b] px-2.5 py-1 rounded border border-[#313244]">
+              Lab Module 03
+            </span>
+            <span class="text-xs font-mono text-[#fab387]">PID Closed-Loop</span>
+          </div>
+          <h3 class="text-xl font-bold text-[#cdd6f4] mb-2">Quadcopter Motor Physics & PID Simulator</h3>
+          <p class="text-sm text-[#a6adc8] mb-4 leading-relaxed max-w-3xl">
+            Analyze differential motor thrust ($F \propto \text{RPM}^2$), force vector resolutions ($\vec{T}_{\text{net}}$ vs $\vec{F}_g$), moment torques ($\tau_y$), and why MicroPython closed-loop PID controllers ($500\text{Hz}$) are required to prevent human reaction delays and wind gust instabilities.
+          </p>
+          <div class="flex items-center justify-between pt-2 border-t border-[#313244]/50">
+            <span class="text-xs font-mono text-[#f9e2af]">Key Focus: Vector Resolution & PID Auto-Correction</span>
+            <span class="text-xs font-mono text-[#89b4fa] font-semibold">Launch Flight Simulator →</span>
+          </div>
+        </a>
+
       </div>
-      <span class="badge">servo.html →</span>
-    </a>
+    </section>
 
-    <!-- Stepper Motor -->
-    <a href="stepper.html" class="card">
-      <div>
-        <h2>⚙️ Stepper Motor</h2>
-        <p>Explore 4-phase full-step coil excitation, sequence arrays, direction toggles, and step timing.</p>
-      </div>
-      <span class="badge">stepper.html →</span>
-    </a>
+  </main>
 
-    <!-- PIR Motion Sensor (Direct GPIO Interrupt) -->
-    <a href="pir_interrupt.html" class="card">
-      <div>
-        <h2>🏃 PIR Motion Sensor (.irq)</h2>
-        <p>Direct GPIO digital input (GP16), dual-edge trigger (RISING | FALLING), and onboard LED status feedback.</p>
-      </div>
-      <span class="badge highlight">pir_interrupt.html →</span>
-    </a>
-
-    <!-- I2C Bus & Proximity Sensor -->
-    <a href="i2c_sensor.html" class="card">
-      <div>
-        <h2>📡 I2C Bus & Proximity</h2>
-        <p>2-wire protocol (SDA/SCL), 7-bit addressing (0x39), START/STOP conditions, and raw distance bytes.</p>
-      </div>
-      <span class="badge">i2c_sensor.html →</span>
-    </a>
-
-    <!-- I2C Interrupts -->
-    <a href="i2c_interrupt.html" class="card">
-      <div>
-        <h2>⚡ I2C Interrupts (.irq)</h2>
-        <p>Active-LOW INT pin, falling-edge triggering, threshold comparison (&lt; 8cm), and MicroPython ISR callbacks.</p>
-      </div>
-      <span class="badge">i2c_interrupt.html →</span>
-    </a>
-
-  </div>
+  <!-- Recommended Directory Reference Footer -->
+  <footer class="max-w-6xl mx-auto w-full mt-16 pt-6 border-t border-[#313244] text-center text-xs font-mono text-[#6c7086]">
+    <p class="mb-2">Organized Directory Structure:</p>
+    <code class="text-[#a6adc8] bg-[#11111b] px-3 py-1.5 rounded border border-[#313244] inline-block">
+      index.html | labs/motors/servo.html | labs/motors/stepper.html | labs/flight/drone_sim.html
+    </code>
+  </footer>
 
 </body>
 </html>
