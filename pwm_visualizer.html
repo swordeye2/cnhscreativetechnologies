@@ -3,478 +3,340 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PWM Signal & Motor Beat Visualizer • CNHS Creative Tech</title>
+  <title>PWM Signal, Bit-Conversion & RP2040 Hardware Simulator</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
+    .nav-link:hover { text-decoration: underline; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1100px; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 20px; font-size: 0.95rem; text-align: center; }
+
+    /* Concept & Hardware Banner */
+    .concept-card { background: #181825; border: 1px solid #313244; border-radius: 8px; padding: 16px; margin-bottom: 18px; font-size: 0.85rem; line-height: 1.5; color: #cdd6f4; }
+    .concept-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     
-    header { text-align: center; margin-bottom: 20px; max-width: 1100px; width: 100%; }
-    header h1 { color: #89b4fa; margin: 0 0 5px 0; font-size: 1.8rem; }
-    header p { color: #a6adc8; margin: 0; font-size: 0.95rem; }
-    .back-link { display: inline-block; margin-bottom: 10px; color: #89b4fa; text-decoration: none; font-size: 0.9rem; font-weight: bold; }
-    .back-link:hover { text-decoration: underline; }
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; }
+    .badge-16 { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
+    .badge-8 { background: #1e3a5f; color: #89b4fa; border: 1px solid #89b4fa; }
+    .badge-io { background: #421e25; color: #f38ba8; border: 1px solid #f38ba8; }
 
-    .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; width: 100%; max-width: 1100px; }
-    
-    .panel { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-    .panel h2 { color: #89b4fa; font-size: 1.1rem; margin: 0; border-bottom: 1px solid #313244; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    /* Grid Layout */
+    .grid-container { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
+    @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
 
-    /* Controls */
-    .control-group { display: flex; flex-direction: column; gap: 6px; }
-    .control-group label { font-size: 0.85rem; color: #a6adc8; font-weight: bold; display: flex; justify-content: space-between; }
-    .control-group input[type="range"] { accent-color: #89b4fa; cursor: pointer; }
-    
-    .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
-    .btn { background: #313244; color: #cdd6f4; border: 1px solid #45475a; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s ease; }
-    .btn:hover { background: #45475a; border-color: #89b4fa; }
-    .btn.active { background: #89b4fa; color: #11111b; font-weight: bold; border-color: #89b4fa; }
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
 
-    /* Bit Width Selector Pill Buttons */
-    .bit-selector { display: flex; background: #11111b; padding: 4px; border-radius: 8px; border: 1px solid #313244; gap: 4px; }
-    .bit-btn { flex: 1; text-align: center; padding: 6px 4px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; color: #a6adc8; font-weight: bold; transition: all 0.2s ease; border: none; background: transparent; }
-    .bit-btn.active { background: #89b4fa; color: #11111b; }
+    /* Canvas Box */
+    .canvas-container { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; overflow: hidden; position: relative; margin-bottom: 12px; }
+    canvas { display: block; width: 100%; height: auto; }
 
-    /* Display Boxes & Math Callouts */
-    .math-card { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.82rem; color: #a6e3a1; line-height: 1.5; }
-    .math-card .highlight { color: #f9e2af; font-weight: bold; }
-    .math-card .val { color: #89dceb; }
+    /* Controls Styling */
+    .control-panel { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+    .control-group { margin-bottom: 12px; }
+    .control-group:last-child { margin-bottom: 0; }
+    .slider-header { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: bold; color: #89b4fa; margin-bottom: 4px; }
+    input[type=range] { width: 100%; background: #313244; accent-color: #89b4fa; border-radius: 4px; height: 6px; cursor: pointer; }
 
-    /* Code Inspector */
-    pre.code-block { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; color: #cdd6f4; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.8rem; line-height: 1.45; overflow-x: auto; margin: 0; max-height: 220px; }
-    .code-keyword { color: #cba6f7; }
-    .code-func { color: #89b4fa; }
-    .code-comment { color: #6c7086; font-style: italic; }
-    .code-num { color: #fab387; }
+    /* Conversion Calculator Table */
+    .conversion-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; margin-top: 10px; font-family: monospace; font-size: 0.8rem; }
+    .conv-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #181825; }
+    .conv-row:last-child { border-bottom: none; }
 
-    /* Canvas Elements */
-    canvas { background: #11111b; border: 1px solid #313244; border-radius: 8px; width: 100%; height: 140px; display: block; }
+    /* Code Inspector Styling */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 2px 6px; border-radius: 4px; color: #a6adc8; white-space: pre; }
+    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 3px solid #a6e3a1; padding-left: 3px; }
+    .kw { color: #f38ba8; }
+    .fn { color: #89b4fa; }
+    .num { color: #fab387; }
+    .cm { color: #6c7086; font-style: italic; }
+    .val-highlight { color: #f9e2af; font-weight: bold; }
 
-    /* Motor & Hardware Visuals */
-    .hardware-stage { display: flex; align-items: center; justify-content: space-around; background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 15px; }
-    .motor-container { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-    .motor-body { width: 70px; height: 70px; border-radius: 50%; border: 4px solid #45475a; background: #1e1e2e; position: relative; display: flex; align-items: center; justify-content: center; }
-    .motor-shaft { width: 10px; height: 10px; background: #89b4fa; border-radius: 50%; z-index: 2; }
-    .motor-blade { position: absolute; width: 54px; height: 8px; background: #f38ba8; border-radius: 4px; transform-origin: center center; }
-    .led-container { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-    .led-bulb { width: 36px; height: 36px; border-radius: 50%; background: #313244; border: 2px solid #45475a; transition: background 0.05s ease, box-shadow 0.05s ease; }
-
-    .stage-label { font-size: 0.75rem; color: #a6adc8; font-weight: bold; }
-
-    /* Quiz Panel */
-    .quiz-question { font-size: 0.85rem; color: #cdd6f4; margin-bottom: 8px; font-weight: bold; }
-    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
-    .quiz-opt:hover { border-color: #89b4fa; }
+    /* Quiz Panel Styling */
+    .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; margin-top: 8px; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
     .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
     .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
-    #quiz-feedback { font-size: 0.8rem; margin-top: 6px; font-weight: bold; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; margin-top: 8px; }
   </style>
 </head>
 <body>
 
   <header>
-    <a href="index.html" class="back-link">← Back to Hardware Hub</a>
-    <h1>MicroPython PWM Beat & Bit-Width Visualizer</h1>
-    <p>Explore resolution bit depth math, pulse-width modulation signals, and physical hardware output dynamics</p>
+    <a href="../../index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 MicroPython Actuator Lab</span>
   </header>
 
-  <div class="grid-container">
+  <div class="content-wrapper">
+    <h1>PWM Signal, Bit-Conversion & RP2040 Hardware Simulator</h1>
+    <p class="subtitle">16-bit to 8-bit Resolution Conversion, Timing Equations, and Bidirectional PWM Ports</p>
 
-    <!-- PANEL 1: Controls & Bit Width -->
-    <div class="panel">
-      <h2>1. Signal Configuration</h2>
+    <!-- RP2040 Hardware & Bit Conversion Banner -->
+    <div class="concept-card">
+      <div class="concept-title">
+        ⚡ RP2040 Bidirectional PWM Ports & Multi-Resolution Conversions
+      </div>
+      <div>
+        <strong>Bidirectional Ports:</strong> The RP2040 microcontroller contains 8 hardware PWM slices (16 total channels). <strong>All 30 GPIO pins are bidirectional</strong>—they can output PWM signals to actuators (e.g., ESCs, servos, LEDs) or capture incoming PWM signals from external sensors (e.g., ultrasonic sensors, RC receivers) using high-speed hardware counter clocks.
+        <br><br>
+        <strong>Bit Resolution Mapping:</strong> The RP2040 uses 16-bit registers (0 to 65,535). When communicating with 8-bit hardware devices (0 to 255) or 10-bit ADCs (0 to 1,023), values are converted using bit-shift operations or ratio scaling:
+        <span class="badge badge-16">16-Bit: 0 – 65,535</span>
+        <span class="badge badge-8">8-Bit: 0 – 255</span>
+        <span class="badge badge-io">Bidirectional: Input Capture & Output</span>
+      </div>
+    </div>
+
+    <div class="grid-container">
       
-      <!-- Bit Width Selector -->
-      <div class="control-group">
-        <label>PWM Resolution Bit Depth (N-Bit)</label>
-        <div class="bit-selector">
-          <button class="bit-btn" onclick="setBitWidth(8)">8-Bit</button>
-          <button class="bit-btn" onclick="setBitWidth(10)">10-Bit</button>
-          <button class="bit-btn" onclick="setBitWidth(12)">12-Bit</button>
-          <button class="bit-btn active" onclick="setBitWidth(16)">16-Bit</button>
+      <!-- LEFT COLUMN: Oscilloscope & Control Sliders -->
+      <div class="card">
+        
+        <!-- Canvas Oscilloscope Box -->
+        <div class="canvas-container">
+          <canvas id="pwmCanvas" width="540" height="240"></canvas>
         </div>
-      </div>
 
-      <!-- Sliders -->
-      <div class="control-group">
-        <label>Duty Cycle Percentage <span id="duty-pct-label" class="highlight">50%</span></label>
-        <input type="range" id="duty-slider" min="0" max="100" value="50" oninput="onDutySliderChange(this.value)">
-      </div>
-
-      <div class="control-group">
-        <label>Frequency (Hz) <span id="freq-label" class="highlight">1000 Hz</span></label>
-        <input type="range" id="freq-slider" min="50" max="5000" step="50" value="1000" oninput="onFreqSliderChange(this.value)">
-      </div>
-
-      <!-- Presets -->
-      <div class="control-group">
-        <label>Motor "Beat" Pattern Presets</label>
-        <div class="btn-group">
-          <button class="btn active" id="btn-static" onclick="setPreset('static')">Static</button>
-          <button class="btn" id="btn-heartbeat" onclick="setPreset('heartbeat')">Heartbeat</button>
-          <button class="btn" id="btn-breathing" onclick="setPreset('breathing')">Breathing Wave</button>
-          <button class="btn" id="btn-ramp" onclick="setPreset('ramp')">Accel Ramp</button>
-          <button class="btn" id="btn-march" onclick="setPreset('march')">Staccato March</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PANEL 2: Bit Math & Conversions -->
-    <div class="panel">
-      <h2>2. Resolution Math & Bit Scaling</h2>
-      <div class="math-card" id="math-breakdown">
-        <!-- Dynamic Math Content Inserted Here -->
-      </div>
-      
-      <!-- Live Trace Canvas -->
-      <div class="control-group">
-        <label>Live Duty Trace Graph (Duty vs Time)</label>
-        <canvas id="traceCanvas" height="110"></canvas>
-      </div>
-    </div>
-
-    <!-- PANEL 3: Oscilloscope Scope -->
-    <div class="panel">
-      <h2>3. PWM Oscilloscope Waveform</h2>
-      <canvas id="scopeCanvas" height="140"></canvas>
-      <div style="display:flex; justify-scale:space-between; font-size:0.8rem; color:#a6adc8; font-family:monospace;">
-        <span>Period (T): <b id="period-val" style="color:#89dceb;">1.00 ms</b></span>
-        <span>HIGH Time (t_h): <b id="high-val" style="color:#a6e3a1;">0.50 ms</b></span>
-        <span>Avg Voltage: <b id="volt-val" style="color:#f9e2af;">1.65 V</b></span>
-      </div>
-    </div>
-
-    <!-- PANEL 4: MicroPython Inspector -->
-    <div class="panel">
-      <h2>4. Dynamic MicroPython Code Inspector</h2>
-      <pre class="code-block" id="code-preview"></pre>
-    </div>
-
-    <!-- PANEL 5: Hardware Simulation -->
-    <div class="panel">
-      <h2>5. Hardware Actuator Output</h2>
-      <div class="hardware-stage">
-        <!-- DC Motor Shaft -->
-        <div class="motor-container">
-          <div class="motor-body">
-            <div class="motor-shaft"></div>
-            <div class="motor-blade" id="motor-blade"></div>
+        <!-- Interactive Sliders -->
+        <div class="control-panel">
+          
+          <!-- Duty Cycle Slider -->
+          <div class="control-group">
+            <div class="slider-header">
+              <span>Duty Cycle (16-Bit Register Value):</span>
+              <span id="dutyLabel" style="color:#a6e3a1;">32,768 u16 (50.0%)</span>
+            </div>
+            <input type="range" id="dutySlider" min="0" max="65535" value="32768" step="256">
           </div>
-          <span class="stage-label">DC Motor Speed</span>
+
+          <!-- Frequency Slider -->
+          <div class="control-group">
+            <div class="slider-header">
+              <span>Signal Frequency (Hz):</span>
+              <span id="freqLabel" style="color:#89b4fa;">1,000 Hz (Period: 1.00 ms)</span>
+            </div>
+            <input type="range" id="freqSlider" min="100" max="5000" value="1000" step="100">
+          </div>
+
         </div>
 
-        <!-- Dimming LED -->
-        <div class="led-container">
-          <div class="led-bulb" id="led-bulb"></div>
-          <span class="stage-label">LED Brightness</span>
+        <!-- Live Bit Conversion Calculator -->
+        <div class="conversion-box">
+          <div style="font-weight:bold; color:#89b4fa; margin-bottom:6px; border-bottom:1px solid #313244; padding-bottom:4px;">
+            📊 Live Resolution Conversion Table
+          </div>
+          <div class="conv-row"><span>16-Bit Duty (u16):</span> <span id="conv16" style="color:#a6e3a1;">32,768 / 65,535</span></div>
+          <div class="conv-row"><span>8-Bit Duty (u8 = u16 >> 8):</span> <span id="conv8" style="color:#89b4fa;">128 / 255</span></div>
+          <div class="conv-row"><span>10-Bit Duty (u10 = u16 >> 6):</span> <span id="conv10" style="color:#fab387;">512 / 1,023</span></div>
+          <div class="conv-row"><span>Equivalent Voltage Output (at 3.3V):</span> <span id="convVolt" style="color:#f9e2af;">1.65 V</span></div>
         </div>
-      </div>
-      <p style="font-size:0.78rem; color:#a6adc8; margin:0; text-align:center;">
-        Simulation responds dynamically to active duty cycle and frequency modulation parameters.
-      </p>
-    </div>
 
-    <!-- PANEL 6: Concept Quiz -->
-    <div class="panel">
-      <h2>6. Interactive Concept Check</h2>
-      <div class="quiz-question">
-        How does MicroPython map an 8-bit duty value (0–255) to its 16-bit <code>duty_u16</code> register (0–65535)?
       </div>
-      <div class="quiz-opt" onclick="checkAnswer(this, false)">A. It multiplies by 255 directly without bit scaling.</div>
-      <div class="quiz-opt" onclick="checkAnswer(this, true)">B. It performs bit-shifting <code>(val &lt;&lt; 8) | val</code> or multiplies by 257.</div>
-      <div class="quiz-opt" onclick="checkAnswer(this, false)">C. It divides by 65535 and rounds down.</div>
-      <div id="quiz-feedback"></div>
-    </div>
 
+      <!-- RIGHT COLUMN: Code Inspector & Formative Quiz -->
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+
+        <!-- MicroPython Bidirectional Code Inspector -->
+        <div class="card">
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.92rem;">
+            🐍 MicroPython Code: Bidirectional PWM & Conversion
+          </div>
+
+          <div class="code-box">
+            <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
+            <div class="code-line"><br><span class="cm"># 1. OUTPUT: PWM Generator (16-bit u16)</span></div>
+            <div class="code-line">pwm_out = PWM(Pin(<span class="num">15</span>))</div>
+            <div class="code-line">pwm_out.freq(<span id="codeFreqVal" class="val-highlight">1000</span>)</div>
+            <div class="code-line">pwm_out.duty_u16(<span id="codeDutyVal" class="val-highlight">32768</span>)</div>
+            <div class="code-line"><br><span class="cm"># 2. CONVERSION: Scale 8-bit sensor (0-255) to 16-bit</span></div>
+            <div class="code-line"><span class="kw">def</span> <span class="fn">write_8bit_to_pwm</span>(val_8bit):</div>
+            <div class="code-line">&nbsp;&nbsp;val_16bit = (val_8bit &lt;&lt; <span class="num">8</span>) | val_8bit <span class="cm"># Scale 8->16 bit</span></div>
+            <div class="code-line">&nbsp;&nbsp;pwm_out.duty_u16(val_16bit)</div>
+            <div class="code-line"><br><span class="cm"># 3. INPUT: Read incoming PWM signal from pin</span></div>
+            <div class="code-line"><span class="kw">def</span> <span class="fn">read_8bit_from_pwm16</span>(u16_val):</div>
+            <div class="code-line">&nbsp;&nbsp;<span class="kw">return</span> u16_val &gt;&gt; <span class="num">8</span> <span class="cm"># Shift right 8 bits: <span id="codeConvVal" class="val-highlight">128</span></span></div>
+          </div>
+        </div>
+
+        <!-- Concept Check Quiz Panel -->
+        <div class="card">
+          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-question" id="quiz-question">
+            How can an RP2040 GPIO pin act bidirectionally with PWM signals, and how are 16-bit register values converted for an 8-bit device?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+          <div id="quiz-feedback"></div>
+        </div>
+
+      </div>
+
+    </div>
   </div>
 
   <script>
-    // State Variables
-    let bitWidth = 16;
-    let maxBitVal = 65535;
-    let dutyPct = 50;
-    let freqHz = 1000;
-    let activePreset = 'static';
-    let motorAngle = 0; // Persistent motor rotation angle
-    
-    // Animation & Trace
-    let traceData = new Array(150).fill(50);
-    let animTime = 0;
+    // State & Variables
+    let dutyU16 = 32768;
+    let frequencyHz = 1000;
 
-    // Element References
-    const traceCanvas = document.getElementById('traceCanvas');
-    const traceCtx = traceCanvas.getContext('2d');
-    const scopeCanvas = document.getElementById('scopeCanvas');
-    const scopeCtx = scopeCanvas.getContext('2d');
-    
-    // Initialize
-    window.addEventListener('load', () => {
-      resizeCanvases();
-      updateAll();
-      requestAnimationFrame(loop);
+    // DOM Elements
+    const canvas = document.getElementById('pwmCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const dutySlider = document.getElementById('dutySlider');
+    const freqSlider = document.getElementById('freqSlider');
+    const dutyLabel = document.getElementById('dutyLabel');
+    const freqLabel = document.getElementById('freqLabel');
+
+    const conv16 = document.getElementById('conv16');
+    const conv8 = document.getElementById('conv8');
+    const conv10 = document.getElementById('conv10');
+    const convVolt = document.getElementById('convVolt');
+
+    const codeFreqVal = document.getElementById('codeFreqVal');
+    const codeDutyVal = document.getElementById('codeDutyVal');
+    const codeConvVal = document.getElementById('codeConvVal');
+
+    // Quiz Data
+    const quizData = {
+      question: "Why can RP2040 GPIO pins handle both PWM input and output, and how are 16-bit duty cycles scaled to 8-bit values?",
+      options: [
+        { text: "A. Hardware PWM slices are bidirectional counter blocks; bit-shifting right by 8 (u16 >> 8) converts 16-bit registers to 8-bit values.", correct: true },
+        { text: "B. PWM pins can only output signals; bit-shifting left by 8 converts 16-bit registers to 8-bit values.", correct: false },
+        { text: "C. An external analog-to-digital converter chip is required to switch pins between input and output mode.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! All RP2040 GPIO pins connect to hardware counter slices that measure or generate PWM. Bit-shifting (u16 >> 8) scales 65535 down to 255!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Consider how bit-shift operators (>> 8) drop lower bytes to convert 16-bit registers down to 8 bits.';
+      }
+    }
+
+    // Event Listeners
+    dutySlider.addEventListener('input', (e) => {
+      dutyU16 = parseInt(e.target.value);
+      updateDisplay();
     });
 
-    function resizeCanvases() {
-      traceCanvas.width = traceCanvas.clientWidth;
-      traceCanvas.height = traceCanvas.clientHeight;
-      scopeCanvas.width = scopeCanvas.clientWidth;
-      scopeCanvas.height = scopeCanvas.clientHeight;
+    freqSlider.addEventListener('input', (e) => {
+      frequencyHz = parseInt(e.target.value);
+      updateDisplay();
+    });
+
+    function updateDisplay() {
+      const dutyPct = (dutyU16 / 65535.0) * 100.0;
+      const periodMs = 1000.0 / frequencyHz;
+      const val8Bit = dutyU16 >> 8;
+      const val10Bit = dutyU16 >> 6;
+      const equivVolt = (dutyU16 / 65535.0) * 3.3;
+
+      // Update Labels
+      dutyLabel.textContent = `${dutyU16.toLocaleString()} u16 (${dutyPct.toFixed(1)}%)`;
+      freqLabel.textContent = `${frequencyHz.toLocaleString()} Hz (Period: ${periodMs.toFixed(2)} ms)`;
+
+      // Update Conversion Table
+      conv16.textContent = `${dutyU16.toLocaleString()} / 65,535`;
+      conv8.textContent = `${val8Bit} / 255`;
+      conv10.textContent = `${val10Bit} / 1,023`;
+      convVolt.textContent = `${equivVolt.toFixed(2)} V`;
+
+      // Update Code Inspector
+      codeFreqVal.textContent = frequencyHz;
+      codeDutyVal.textContent = dutyU16;
+      codeConvVal.textContent = val8Bit;
+
+      drawOscilloscope(dutyPct);
     }
 
-    function setBitWidth(bits) {
-      bitWidth = bits;
-      maxBitVal = Math.pow(2, bits) - 1;
-      
-      document.querySelectorAll('.bit-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent.includes(bits + '-Bit'));
-      });
+    // Draw Oscilloscope Signal
+    function drawOscilloscope(dutyPct) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      updateAll();
-    }
-
-    function onDutySliderChange(val) {
-      dutyPct = parseFloat(val);
-      if (activePreset !== 'static') setPreset('static');
-      else updateAll();
-    }
-
-    function onFreqSliderChange(val) {
-      freqHz = parseInt(val);
-      updateAll();
-    }
-
-    function setPreset(preset) {
-      activePreset = preset;
-      document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(`btn-${preset}`).classList.add('active');
-      updateAll();
-    }
-
-    function updateAll() {
-      calculatePresetState();
-
-      // UI Text updates
-      document.getElementById('duty-pct-label').textContent = `${Math.round(dutyPct)}%`;
-      document.getElementById('freq-label').textContent = `${freqHz} Hz`;
-
-      const periodMs = (1000 / freqHz).toFixed(2);
-      const highMs = (periodMs * (dutyPct / 100)).toFixed(2);
-      const avgVolt = (3.3 * (dutyPct / 100)).toFixed(2);
-
-      document.getElementById('period-val').textContent = `${periodMs} ms`;
-      document.getElementById('high-val').textContent = `${highMs} ms`;
-      document.getElementById('volt-val').textContent = `${avgVolt} V`;
-
-      updateMathBreakdown();
-      updateCodeInspector();
-    }
-
-    function calculatePresetState() {
-      if (activePreset === 'static') return;
-
-      const t = animTime * 0.05;
-      if (activePreset === 'heartbeat') {
-        const beatCycle = t % 3;
-        if (beatCycle < 0.2) dutyPct = 90;
-        else if (beatCycle < 0.4) dutyPct = 10;
-        else if (beatCycle < 0.6) dutyPct = 80;
-        else dutyPct = 5;
-      } else if (activePreset === 'breathing') {
-        dutyPct = (Math.sin(t * 2) + 1) * 50;
-      } else if (activePreset === 'ramp') {
-        dutyPct = (t * 20) % 100;
-      } else if (activePreset === 'march') {
-        const step = Math.floor(t * 3) % 4;
-        dutyPct = [10, 40, 80, 100][step];
+      // Background Grid
+      ctx.strokeStyle = '#181825';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 30) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
       }
-    }
-
-    function updateMathBreakdown() {
-      const scaledVal = Math.round((dutyPct / 100) * maxBitVal);
-      const duty8 = Math.round((dutyPct / 100) * 255);
-      const bitShiftVal = (duty8 << 8) | duty8;
-
-      document.getElementById('math-breakdown').innerHTML = `
-        <div>Resolution: <span class="highlight">${bitWidth}-Bit</span> (Max Register Value: <span class="val">${maxBitVal}</span>)</div>
-        <div>Current Duty: <span class="highlight">${dutyPct.toFixed(1)}%</span></div>
-        <div>Calculated Duty Value: <span class="val">${scaledVal}</span></div>
-        <hr style="border:0; border-top:1px solid #313244; margin:8px 0;">
-        <div><b>16-bit Scaling Math:</b></div>
-        <div>Formula: round((${dutyPct.toFixed(1)} / 100) * ${maxBitVal}) = <span class="val">${scaledVal}</span></div>
-        <div>8-bit to 16-bit Bit-Shift Math: <code>(${duty8} &lt;&lt; 8) | ${duty8}</code> = <span class="highlight">${bitShiftVal}</span></div>
-      `;
-    }
-
-    function updateCodeInspector() {
-      let code = '';
-
-      if (activePreset === 'static') {
-        code = `<span class="code-keyword">from</span> machine <span class="code-keyword">import</span> Pin, PWM
-
-<span class="code-comment"># Initialize PWM on GP15 at ${freqHz}Hz</span>
-pwm = PWM(Pin(<span class="code-num">15</span>))
-pwm.freq(<span class="code-num">${freqHz}</span>)
-
-<span class="code-comment"># Set duty cycle for ${bitWidth}-bit resolution (${dutyPct.toFixed(1)}%)</span>
-<span class="code-comment"># Register value max: ${maxBitVal}</span>
-pwm.duty_u16(<span class="code-num">${Math.round((dutyPct/100)*65535)}</span>) <span class="code-comment"># Scaled to MicroPython 16-bit u16</span>`;
-      } else if (activePreset === 'heartbeat') {
-        code = `<span class="code-keyword">from</span> machine <span class="code-keyword">import</span> Pin, PWM
-<span class="code-keyword">import</span> time
-
-pwm = PWM(Pin(<span class="code-num">15</span>))
-pwm.freq(<span class="code-num">${freqHz}</span>)
-
-<span class="code-comment"># Heartbeat Double Pulse Simulation</span>
-<span class="code-keyword">while</span> <span class="code-keyword">True</span>:
-    pwm.duty_u16(<span class="code-num">58981</span>) <span class="code-comment"># Pulse 1 (~90%)</span>
-    time.sleep_ms(<span class="code-num">100</span>)
-    pwm.duty_u16(<span class="code-num">6553</span>)  <span class="code-comment"># Pause</span>
-    time.sleep_ms(<span class="code-num">100</span>)
-    pwm.duty_u16(<span class="code-num">52428</span>) <span class="code-comment"># Pulse 2 (~80%)</span>
-    time.sleep_ms(<span class="code-num">150</span>)
-    pwm.duty_u16(<span class="code-num">3276</span>)  <span class="code-comment"># Rest</span>
-    time.sleep_ms(<span class="code-num">600</span>)`;
-      } else if (activePreset === 'breathing') {
-        code = `<span class="code-keyword">from</span> machine <span class="code-keyword">import</span> Pin, PWM
-<span class="code-keyword">import</span> math, time
-
-pwm = PWM(Pin(<span class="code-num">15</span>))
-pwm.freq(<span class="code-num">${freqHz}</span>)
-
-<span class="code-comment"># Smooth Breathing Sine Wave Curve</span>
-t = <span class="code-num">0</span>
-<span class="code-keyword">while</span> <span class="code-keyword">True</span>:
-    duty_pct = (math.sin(t) + <span class="code-num">1</span>) / <span class="code-num">2</span>
-    val = int(duty_pct * <span class="code-num">65535</span>)
-    pwm.duty_u16(val)
-    t += <span class="code-num">0.05</span>
-    time.sleep_ms(<span class="code-num">20</span>)`;
-      } else if (activePreset === 'ramp') {
-        code = `<span class="code-keyword">from</span> machine <span class="code-keyword">import</span> Pin, PWM
-<span class="code-keyword">import</span> time
-
-pwm = PWM(Pin(<span class="code-num">15</span>))
-pwm.freq(<span class="code-num">${freqHz}</span>)
-
-<span class="code-comment"># Acceleration Ramp Loop</span>
-<span class="code-keyword">for</span> step <span class="code-keyword">in</span> range(<span class="code-num">0</span>, <span class="code-num">65536</span>, <span class="code-num">1000</span>):
-    pwm.duty_u16(step)
-    time.sleep_ms(<span class="code-num">30</span>)`;
-      } else if (activePreset === 'march') {
-        code = `<span class="code-keyword">from</span> machine <span class="code-keyword">import</span> Pin, PWM
-<span class="code-keyword">import</span> time
-
-pwm = PWM(Pin(<span class="code-num">15</span>))
-pwm.freq(<span class="code-num">${freqHz}</span>)
-
-steps = [<span class="code-num">6553</span>, <span class="code-num">26214</span>, <span class="code-num">52428</span>, <span class="code-num">65535</span>]
-<span class="code-keyword">while</span> <span class="code-keyword">True</span>:
-    <span class="code-keyword">for</span> val <span class="code-keyword">in</span> steps:
-        pwm.duty_u16(val)
-        time.sleep_ms(<span class="code-num">250</span>)`;
+      for (let y = 0; y < canvas.height; y += 30) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
       }
 
-      document.getElementById('code-preview').innerHTML = code;
-    }
+      // Voltage Axes Lines (0V and 3.3V)
+      const yHigh = 50;
+      const yLow = 190;
 
-    function updateHardwareVisuals() {
-      // 1. Continuous Motor Spin
-      const speed = (dutyPct / 100) * 15; // Rotational velocity
-      motorAngle = (motorAngle + speed) % 360;
+      ctx.strokeStyle = '#313244';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(30, yHigh); ctx.lineTo(canvas.width - 20, yHigh); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(30, yLow); ctx.lineTo(canvas.width - 20, yLow); ctx.stroke();
+      ctx.setLineDash([]);
 
-      const blade = document.getElementById('motor-blade');
-      blade.style.transform = `rotate(${motorAngle}deg)`;
+      ctx.fillStyle = '#a6adc8';
+      ctx.font = '10px monospace';
+      ctx.fillText('3.3V (HIGH)', 35, yHigh - 8);
+      ctx.fillText('0.0V (LOW)', 35, yLow + 15);
 
-      // 2. LED Brightness & Glow Effect
-      const led = document.getElementById('led-bulb');
-      const alpha = dutyPct / 100;
-      led.style.background = `rgba(249, 226, 175, ${alpha})`;
-      led.style.boxShadow = `0 0 ${alpha * 25}px rgba(249, 226, 175, ${alpha})`;
-    }
+      // Draw Square Wave Cycles
+      const numCycles = 3;
+      const cycleWidth = (canvas.width - 80) / numCycles;
+      const highWidth = (dutyPct / 100.0) * cycleWidth;
 
-    function drawTrace() {
-      traceData.push(dutyPct);
-      traceData.shift();
+      ctx.strokeStyle = '#a6e3a1';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
 
-      traceCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
-      traceCtx.strokeStyle = '#89b4fa';
-      traceCtx.lineWidth = 2;
-      traceCtx.beginPath();
-
-      const step = traceCanvas.width / (traceData.length - 1);
-      for (let i = 0; i < traceData.length; i++) {
-        const x = i * step;
-        const y = traceCanvas.height - (traceData[i] / 100) * (traceCanvas.height - 20) - 10;
-        if (i === 0) traceCtx.moveTo(x, y);
-        else traceCtx.lineTo(x, y);
-      }
-      traceCtx.stroke();
-    }
-
-    function drawOscilloscope() {
-      scopeCtx.clearRect(0, 0, scopeCanvas.width, scopeCanvas.height);
-      
-      // Grid Lines
-      scopeCtx.strokeStyle = '#1e1e2e';
-      scopeCtx.lineWidth = 1;
-      for (let x = 0; x < scopeCanvas.width; x += 30) {
-        scopeCtx.beginPath(); scopeCtx.moveTo(x, 0); scopeCtx.lineTo(x, scopeCanvas.height); scopeCtx.stroke();
-      }
-      for (let y = 0; y < scopeCanvas.height; y += 20) {
-        scopeCtx.beginPath(); scopeCtx.moveTo(0, y); scopeCtx.lineTo(scopeCanvas.width, y); scopeCtx.stroke();
-      }
-
-      // Signal Wave
-      scopeCtx.strokeStyle = '#a6e3a1';
-      scopeCtx.lineWidth = 2.5;
-      scopeCtx.beginPath();
-
-      const numCycles = Math.max(2, Math.min(10, freqHz / 500));
-      const cycleWidth = scopeCanvas.width / numCycles;
-      const highWidth = cycleWidth * (dutyPct / 100);
-      const yHigh = 25;
-      const yLow = scopeCanvas.height - 25;
+      let startX = 60;
+      ctx.moveTo(startX, yLow);
 
       for (let i = 0; i < numCycles; i++) {
-        const xStart = i * cycleWidth;
-        scopeCtx.moveTo(xStart, yLow);
-        scopeCtx.lineTo(xStart, yHigh);
-        scopeCtx.lineTo(xStart + highWidth, yHigh);
-        scopeCtx.lineTo(xStart + highWidth, yLow);
-        scopeCtx.lineTo(xStart + cycleWidth, yLow);
+        const xPulseEnd = startX + highWidth;
+        const xCycleEnd = startX + cycleWidth;
+
+        // Vertical Rise
+        ctx.lineTo(startX, yHigh);
+        // Pulse High
+        ctx.lineTo(xPulseEnd, yHigh);
+        // Vertical Fall
+        ctx.lineTo(xPulseEnd, yLow);
+        // Pulse Low
+        ctx.lineTo(xCycleEnd, yLow);
+
+        startX = xCycleEnd;
       }
-      scopeCtx.stroke();
+      ctx.stroke();
     }
 
-    function checkAnswer(el, isCorrect) {
-      const fb = document.getElementById('quiz-feedback');
-      document.querySelectorAll('.quiz-opt').forEach(opt => opt.classList.remove('correct', 'wrong'));
-      
-      if (isCorrect) {
-        el.classList.add('correct');
-        fb.style.color = '#a6e3a1';
-        fb.textContent = 'Correct! Bit-shifting (val << 8) | val maps 8-bit (0-255) seamlessly to 16-bit (0-65535).';
-      } else {
-        el.classList.add('wrong');
-        fb.style.color = '#f38ba8';
-        fb.textContent = 'Incorrect. Try again!';
-      }
-    }
-
-    function loop() {
-      animTime += 1;
-      
-      if (activePreset !== 'static') {
-        updateAll();
-      }
-
-      // Continuous 60fps rendering for motor, LED, trace graph, and scope
-      updateHardwareVisuals();
-      drawTrace();
-      drawOscilloscope();
-      
-      requestAnimationFrame(loop);
-    }
+    // Initialize
+    initQuiz();
+    updateDisplay();
   </script>
 </body>
 </html>
