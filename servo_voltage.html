@@ -53,6 +53,15 @@
     .status-panel { width: 100%; margin-top: 10px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.82rem; border: 1px solid #313244; }
     .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
     .pin-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; background: #a6e3a1; color: #11111b; font-weight: bold; font-size: 0.75rem; margin-top: 6px; }
+
+    /* Quiz Panel Styling */
+    .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -160,40 +169,54 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: Code Inspector & Calculation Engine -->
-      <div class="card">
-        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
-          🧮 Hardware Specs & Live Calculations
-        </div>
+      <!-- RIGHT COLUMN: Code Inspector, Calculation Engine & Formative Quiz -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
 
-        <!-- Transit Time Math Breakdown Box -->
-        <div class="code-box" style="background:#181825; border-color:#45475a;">
-          <div><strong>1. Datasheet Transit Speed Rating:</strong></div>
-          <div id="mathSpecLine" style="color:#f9e2af; margin-top:2px;">• Rating @ 6.0V = 0.10 sec / 60°</div>
-          <div style="margin-top:6px;"><strong>2. Travel Time Calculation (0° → 90°):</strong></div>
-          <div id="mathCalcLine" style="color:#89b4fa; margin-top:2px;">
-            • Time = (90° / 60°) × 0.10s = <strong>0.150 sec (150 ms)</strong>
+        <div class="card">
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
+            🧮 Hardware Specs & Live Calculations
+          </div>
+
+          <!-- Transit Time Math Breakdown Box -->
+          <div class="code-box" style="background:#181825; border-color:#45475a;">
+            <div><strong>1. Datasheet Transit Speed Rating:</strong></div>
+            <div id="mathSpecLine" style="color:#f9e2af; margin-top:2px;">• Rating @ 6.0V = 0.10 sec / 60°</div>
+            <div style="margin-top:6px;"><strong>2. Travel Time Calculation (0° → 90°):</strong></div>
+            <div id="mathCalcLine" style="color:#89b4fa; margin-top:2px;">
+              • Time = (90° / 60°) × 0.10s = <strong>0.150 sec (150 ms)</strong>
+            </div>
+          </div>
+
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
+            🐍 MicroPython Signal Code
+          </div>
+          
+          <div class="code-box">
+            <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
+            <div class="code-line"><span class="kw">import</span> utime</div>
+            <div class="code-line"><br><span class="cm"># RP2040 sends target position PWM</span></div>
+            <div class="code-line">servo = PWM(Pin(<span class="num">16</span>), freq=<span class="num">50</span>)</div>
+            <div class="code-line"><br><span class="kw">def</span> <span class="fn">set_target_angle</span>(deg):</div>
+            <div class="code-line">&nbsp;&nbsp;pulse_ms = <span class="num">0.5</span> + (deg / <span class="num">180.0</span>) * <span class="num">2.0</span></div>
+            <div class="code-line">&nbsp;&nbsp;duty = <span class="fn">int</span>((pulse_ms / <span class="num">20.0</span>) * <span class="num">65535</span>)</div>
+            <div class="code-line">&nbsp;&nbsp;servo.<span class="fn">duty_u16</span>(duty)</div>
+            <div class="code-line"><br><span class="cm"># Request angle move to RP2040</span></div>
+            <div id="codeExecLine" class="code-line active">set_target_angle(<span id="codeAngleVal" class="val-highlight">0</span>)</div>
+            <div id="codeSleepLine" class="code-line"><span class="cm"># Sleep at least <span id="codeSleepVal" class="val-highlight">150 ms</span> for physical movement!</span></div>
+            <div class="code-line">utime.<span class="fn">sleep_ms</span>(<span id="codeSleepMsVal" class="val-highlight">150</span>)</div>
           </div>
         </div>
 
-        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
-          🐍 MicroPython Signal Code
+        <!-- Concept Check Quiz Panel -->
+        <div class="card">
+          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-question" id="quiz-question">
+            Why must a MicroPython program include a sleep delay (e.g. utime.sleep_ms(150)) immediately after setting a new servo target angle?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+          <div id="quiz-feedback" style="margin-top: 8px;"></div>
         </div>
-        
-        <div class="code-box" style="flex-grow:1;">
-          <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
-          <div class="code-line"><span class="kw">import</span> utime</div>
-          <div class="code-line"><br><span class="cm"># RP2040 sends target position PWM</span></div>
-          <div class="code-line">servo = PWM(Pin(<span class="num">16</span>), freq=<span class="num">50</span>)</div>
-          <div class="code-line"><br><span class="kw">def</span> <span class="fn">set_target_angle</span>(deg):</div>
-          <div class="code-line">&nbsp;&nbsp;pulse_ms = <span class="num">0.5</span> + (deg / <span class="num">180.0</span>) * <span class="num">2.0</span></div>
-          <div class="code-line">&nbsp;&nbsp;duty = <span class="fn">int</span>((pulse_ms / <span class="num">20.0</span>) * <span class="num">65535</span>)</div>
-          <div class="code-line">&nbsp;&nbsp;servo.<span class="fn">duty_u16</span>(duty)</div>
-          <div class="code-line"><br><span class="cm"># Request angle move to RP2040</span></div>
-          <div id="codeExecLine" class="code-line active">set_target_angle(<span id="codeAngleVal" class="val-highlight">0</span>)</div>
-          <div id="codeSleepLine" class="code-line"><span class="cm"># Sleep at least <span id="codeSleepVal" class="val-highlight">150 ms</span> for physical movement!</span></div>
-          <div class="code-line">utime.<span class="fn">sleep_ms</span>(<span id="codeSleepMsVal" class="val-highlight">150</span>)</div>
-        </div>
+
       </div>
 
     </div>
@@ -238,6 +261,45 @@
     const btn90 = document.getElementById('btn90');
     const btn180 = document.getElementById('btn180');
     const step090 = document.getElementById('step090');
+
+    // Quiz Data
+    const quizData = {
+      question: "Why must a MicroPython script include a sleep delay (e.g. utime.sleep_ms(150)) immediately after changing a servo angle in code?",
+      options: [
+        { text: "A. To allow physical motor gear transit time; otherwise, subsequent code commands may execute before the horn physically arrives.", correct: true },
+        { text: "B. Because RP2040 PWM hardware registers take 150 ms to update internal duty cycle values.", correct: false },
+        { text: "C. To prevent the servo internal motor driver from triggering an over-voltage protection lock.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! MicroPython executes code at megahertz speed, but mechanical motors need physical time (dictated by supply voltage) to move the gear train!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Consider the physical speed limits of DC motor gears vs. software execution speed!';
+      }
+    }
 
     function drawPulseWave(pulseMs) {
       const highWidthPx = pulseMs * 20; // 20ms mapped to 400px -> 1ms = 20px
@@ -339,6 +401,7 @@
     });
 
     // Initial Setup & Start Loop
+    initQuiz();
     setTargetAngle(0);
     requestAnimationFrame(physicsLoop);
   </script>
