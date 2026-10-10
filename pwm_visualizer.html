@@ -138,7 +138,7 @@
       <canvas id="scopeCanvas" height="140"></canvas>
       <div style="display:flex; justify-scale:space-between; font-size:0.8rem; color:#a6adc8; font-family:monospace;">
         <span>Period (T): <b id="period-val" style="color:#89dceb;">1.00 ms</b></span>
-        <span>HIGH Time ($t_h$): <b id="high-val" style="color:#a6e3a1;">0.50 ms</b></span>
+        <span>HIGH Time (t_h): <b id="high-val" style="color:#a6e3a1;">0.50 ms</b></span>
         <span>Avg Voltage: <b id="volt-val" style="color:#f9e2af;">1.65 V</b></span>
       </div>
     </div>
@@ -180,7 +180,7 @@
         How does MicroPython map an 8-bit duty value (0–255) to its 16-bit <code>duty_u16</code> register (0–65535)?
       </div>
       <div class="quiz-opt" onclick="checkAnswer(this, false)">A. It multiplies by 255 directly without bit scaling.</div>
-      <div class="quiz-opt" onclick="checkAnswer(this, true)">B. It performs bit-shifting <code>(val << 8) | val</code> or multiplies by 257.</div>
+      <div class="quiz-opt" onclick="checkAnswer(this, true)">B. It performs bit-shifting <code>(val &lt;&lt; 8) | val</code> or multiplies by 257.</div>
       <div class="quiz-opt" onclick="checkAnswer(this, false)">C. It divides by 65535 and rounds down.</div>
       <div id="quiz-feedback"></div>
     </div>
@@ -194,9 +194,9 @@
     let dutyPct = 50;
     let freqHz = 1000;
     let activePreset = 'static';
+    let motorAngle = 0; // Persistent motor rotation angle
     
     // Animation & Trace
-    let animFrameId = null;
     let traceData = new Array(150).fill(50);
     let animTime = 0;
 
@@ -250,7 +250,6 @@
     }
 
     function updateAll() {
-      // Calculate current duty based on preset if not static
       calculatePresetState();
 
       // UI Text updates
@@ -265,14 +264,8 @@
       document.getElementById('high-val').textContent = `${highMs} ms`;
       document.getElementById('volt-val').textContent = `${avgVolt} V`;
 
-      // Update Math Panel
       updateMathBreakdown();
-
-      // Update Code Inspector
       updateCodeInspector();
-
-      // Update Hardware Visuals
-      updateHardwareVisuals(avgVolt);
     }
 
     function calculatePresetState() {
@@ -297,7 +290,6 @@
 
     function updateMathBreakdown() {
       const scaledVal = Math.round((dutyPct / 100) * maxBitVal);
-      const duty16 = Math.round((dutyPct / 100) * 65535);
       const duty8 = Math.round((dutyPct / 100) * 255);
       const bitShiftVal = (duty8 << 8) | duty8;
 
@@ -306,14 +298,13 @@
         <div>Current Duty: <span class="highlight">${dutyPct.toFixed(1)}%</span></div>
         <div>Calculated Duty Value: <span class="val">${scaledVal}</span></div>
         <hr style="border:0; border-top:1px solid #313244; margin:8px 0;">
-        <div><b>16-bit Scale Scaling:</b></div>
+        <div><b>16-bit Scaling Math:</b></div>
         <div>Formula: round((${dutyPct.toFixed(1)} / 100) * ${maxBitVal}) = <span class="val">${scaledVal}</span></div>
-        <div>8-bit to 16-bit Bit-Shift Math: <code>(${duty8} << 8) | ${duty8}</code> = <span class="highlight">${bitShiftVal}</span></div>
+        <div>8-bit to 16-bit Bit-Shift Math: <code>(${duty8} &lt;&lt; 8) | ${duty8}</code> = <span class="highlight">${bitShiftVal}</span></div>
       `;
     }
 
     function updateCodeInspector() {
-      const scaledVal = Math.round((dutyPct / 100) * maxBitVal);
       let code = '';
 
       if (activePreset === 'static') {
@@ -386,17 +377,19 @@ steps = [<span class="code-num">6553</span>, <span class="code-num">26214</span>
       document.getElementById('code-preview').innerHTML = code;
     }
 
-    function updateHardwareVisuals(avgVolt) {
-      // Motor Spin
-      const blade = document.getElementById('motor-blade');
-      const speed = (dutyPct / 100) * 20;
-      blade.style.transform = `rotate(${(animTime * speed) % 360}deg)`;
+    function updateHardwareVisuals() {
+      // 1. Continuous Motor Spin
+      const speed = (dutyPct / 100) * 15; // Rotational velocity
+      motorAngle = (motorAngle + speed) % 360;
 
-      // LED Brightness
+      const blade = document.getElementById('motor-blade');
+      blade.style.transform = `rotate(${motorAngle}deg)`;
+
+      // 2. LED Brightness & Glow Effect
       const led = document.getElementById('led-bulb');
       const alpha = dutyPct / 100;
       led.style.background = `rgba(249, 226, 175, ${alpha})`;
-      led.style.boxShadow = `0 0 ${alpha * 20}px rgba(249, 226, 175, ${alpha})`;
+      led.style.boxShadow = `0 0 ${alpha * 25}px rgba(249, 226, 175, ${alpha})`;
     }
 
     function drawTrace() {
@@ -470,11 +463,16 @@ steps = [<span class="code-num">6553</span>, <span class="code-num">26214</span>
 
     function loop() {
       animTime += 1;
+      
       if (activePreset !== 'static') {
         updateAll();
       }
+
+      // Continuous 60fps rendering for motor, LED, trace graph, and scope
+      updateHardwareVisuals();
       drawTrace();
       drawOscilloscope();
+      
       requestAnimationFrame(loop);
     }
   </script>
