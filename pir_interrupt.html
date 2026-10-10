@@ -57,6 +57,15 @@
     
     /* Terminal Output Box */
     .terminal-box { background: #000; border: 1px solid #313244; border-radius: 6px; padding: 10px; font-family: 'Consolas', monospace; font-size: 0.8rem; height: 70px; overflow-y: auto; margin-top: 8px; color: #a6e3a1; }
+
+    /* Quiz Panel Styling */
+    .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -162,36 +171,50 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: Reference MicroPython Code Inspector -->
-      <div class="card">
-        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
-          🐍 MicroPython Reference Code Inspector
+      <!-- RIGHT COLUMN: Code Inspector & Formative Quiz -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+
+        <div class="card">
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
+            🐍 MicroPython Reference Code Inspector
+          </div>
+          
+          <div class="code-box">
+            <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin</div>
+            <div class="code-line"><span class="kw">import</span> time</div>
+            <div class="code-line"><br><span class="cm"># Declare onboard LED to display status</span></div>
+            <div id="codeLineLed" class="code-line">led = Pin(<span class="num">25</span>, Pin.OUT)</div>
+            <div class="code-line"><br><span class="cm"># PIR Signal Pin connected to GP16</span></div>
+            <div class="code-line"><span class="cm"># Note: HC-SR501 drives active HIGH/LOW outputs, so Pin.PULL_DOWN</span></div>
+            <div class="code-line">pir = Pin(<span class="num">16</span>, Pin.IN, Pin.PULL_DOWN)</div>
+            <div class="code-line"><br><span class="cm"># Interrupt Handler Function (ISR)</span></div>
+            <div id="codeLineIsrDef" class="code-line"><span class="kw">def</span> <span class="fn">pir_handler</span>(pin):</div>
+            <div class="code-line">&nbsp;&nbsp;<span class="cm"># Check simple logic 1 or 0</span></div>
+            <div id="codeLineIf" class="code-line">&nbsp;&nbsp;<span class="kw">if</span> pin.value() == <span class="num">1</span>:</div>
+            <div id="codeLineLedOn" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;led.value(<span class="num">1</span>) &nbsp;<span class="cm"># Turn LED ON</span></div>
+            <div id="codeLinePrint1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">" [LOGIC 1] Motion Detected!"</span>)</div>
+            <div id="codeLineElse" class="code-line">&nbsp;&nbsp;<span class="kw">else</span>:</div>
+            <div id="codeLineLedOff" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;led.value(<span class="num">0</span>) &nbsp;<span class="cm"># Turn LED OFF</span></div>
+            <div id="codeLinePrint0" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">" [LOGIC 0] Area Clear."</span>)</div>
+            <div class="code-line"><br><span class="cm"># Attach IRQ for BOTH RISING (1) and FALLING (0) edges</span></div>
+            <div id="codeLineIrq" class="code-line active">pir.irq(handler=pir_handler, trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING)</div>
+            <div class="code-line"><br><span class="cm"># Main loop is completely free</span></div>
+            <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
+            <div class="code-line">&nbsp;&nbsp;<span class="cm"># CPU does not need to poll the PIR sensor here</span></div>
+            <div class="code-line">&nbsp;&nbsp;time.sleep(<span class="num">1</span>)</div>
+          </div>
         </div>
-        
-        <div class="code-box">
-          <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin</div>
-          <div class="code-line"><span class="kw">import</span> time</div>
-          <div class="code-line"><br><span class="cm"># Declare onboard LED to display status</span></div>
-          <div id="codeLineLed" class="code-line">led = Pin(<span class="num">25</span>, Pin.OUT)</div>
-          <div class="code-line"><br><span class="cm"># PIR Signal Pin connected to GP16</span></div>
-          <div class="code-line"><span class="cm"># Note: HC-SR501 drives active HIGH/LOW outputs, so Pin.PULL_DOWN</span></div>
-          <div class="code-line">pir = Pin(<span class="num">16</span>, Pin.IN, Pin.PULL_DOWN)</div>
-          <div class="code-line"><br><span class="cm"># Interrupt Handler Function (ISR)</span></div>
-          <div id="codeLineIsrDef" class="code-line"><span class="kw">def</span> <span class="fn">pir_handler</span>(pin):</div>
-          <div class="code-line">&nbsp;&nbsp;<span class="cm"># Check simple logic 1 or 0</span></div>
-          <div id="codeLineIf" class="code-line">&nbsp;&nbsp;<span class="kw">if</span> pin.value() == <span class="num">1</span>:</div>
-          <div id="codeLineLedOn" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;led.value(<span class="num">1</span>) &nbsp;<span class="cm"># Turn LED ON</span></div>
-          <div id="codeLinePrint1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">" [LOGIC 1] Motion Detected!"</span>)</div>
-          <div id="codeLineElse" class="code-line">&nbsp;&nbsp;<span class="kw">else</span>:</div>
-          <div id="codeLineLedOff" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;led.value(<span class="num">0</span>) &nbsp;<span class="cm"># Turn LED OFF</span></div>
-          <div id="codeLinePrint0" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">" [LOGIC 0] Area Clear."</span>)</div>
-          <div class="code-line"><br><span class="cm"># Attach IRQ for BOTH RISING (1) and FALLING (0) edges</span></div>
-          <div id="codeLineIrq" class="code-line active">pir.irq(handler=pir_handler, trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING)</div>
-          <div class="code-line"><br><span class="cm"># Main loop is completely free</span></div>
-          <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
-          <div class="code-line">&nbsp;&nbsp;<span class="cm"># CPU does not need to poll the PIR sensor here</span></div>
-          <div class="code-line">&nbsp;&nbsp;time.sleep(<span class="num">1</span>)</div>
+
+        <!-- Concept Check Quiz Panel -->
+        <div class="card">
+          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-question" id="quiz-question">
+            Why is trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING used for the PIR sensor instead of only Pin.IRQ_RISING?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+          <div id="quiz-feedback" style="margin-top: 8px;"></div>
         </div>
+
       </div>
 
     </div>
@@ -229,7 +252,46 @@
     const codeLinePrint1 = document.getElementById('codeLinePrint1');
     const codeLineElse = document.getElementById('codeLineElse');
     const codeLineLedOff = document.getElementById('codeLineLedOff');
-    codeLinePrint0 = document.getElementById('codeLinePrint0');
+    const codeLinePrint0 = document.getElementById('codeLinePrint0');
+
+    // Quiz Data
+    const quizData = {
+      question: "Why is trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING used for the PIR sensor instead of only Pin.IRQ_RISING?",
+      options: [
+        { text: "A. It allows the ISR to run both when motion begins (0V→3.3V) and when motion stops (3.3V→0V) to reset the system.", correct: true },
+        { text: "B. The RP2040 microcontroller requires bitwise OR operations to enable hardware interrupts on digital pins.", correct: false },
+        { text: "C. It doubles the sampling rate of the PIR sensor to prevent false triggers from ambient room heat.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! Combining RISING and FALLING triggers lets a single interrupt handler catch both motion onset and area clearing events!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Consider what happens when the object moves away and the PIR pin drops back from 3.3V to 0V.';
+      }
+    }
 
     function logTerminal(msg) {
       terminalLog.innerHTML += `&gt; ${msg}<br>`;
@@ -237,7 +299,6 @@
     }
 
     function updateSimulation() {
-      // Calculate SVG object position based on distance (1 cm = x: 310, 15 cm = x: 390)
       const objX = 300 + (distanceCm * 6);
       movingObject.setAttribute('transform', `translate(${objX}, 85)`);
 
@@ -250,7 +311,6 @@
         motionActive = false;
         setMotionState(false);
       } else {
-        // Just update distance text
         distValText.innerText = `${distanceCm} cm (${inZone ? 'TRIGGERED < 6cm' : 'CLEAR > 6cm'})`;
         distValText.style.color = inZone ? '#a6e3a1' : '#a6adc8';
       }
@@ -365,6 +425,7 @@
     });
 
     // Initial setup on load
+    initQuiz();
     updateSimulation();
   </script>
 </body>
