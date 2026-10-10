@@ -16,6 +16,7 @@
     .card p { color: #a6adc8; font-size: 0.9rem; line-height: 1.5; }
     .badge { display: inline-block; padding: 4px 10px; background: #313244; color: #a6e3a1; font-family: monospace; border-radius: 4px; font-size: 0.8rem; margin-top: 15px; width: fit-content; }
     .badge.highlight { color: #f9e2af; border: 1px solid #f9e2af; }
+    .badge.new { color: #89dceb; border: 1px solid #89dceb; }
   </style>
 </head>
 <body>
@@ -25,13 +26,13 @@
 
   <div class="grid">
     
-    <!-- Stepper Motor -->
-    <a href="stepper.html" class="card">
+    <!-- PWM Signal & Beat Visualizer -->
+    <a href="pwm_visualizer.html" class="card">
       <div>
-        <h2>⚙️ Stepper Motor</h2>
-        <p>Explore 4-phase full-step coil excitation, sequence arrays, direction toggles, and step timing.</p>
+        <h2>🌊 PWM Beat & Signal Visualizer</h2>
+        <p>16-bit <code>duty_u16</code> conversion, 8-bit bit-shift math, heartbeat/breathing wave beats, duty trace, and live scope.</p>
       </div>
-      <span class="badge">stepper.html →</span>
+      <span class="badge new">pwm_visualizer.html →</span>
     </a>
 
     <!-- DC Motor Driver -->
@@ -50,6 +51,15 @@
         <p>50Hz vs 100Hz PWM, angle range specs (90°–360°), target positioning, and rotation speed physics.</p>
       </div>
       <span class="badge">servo.html →</span>
+    </a>
+
+    <!-- Stepper Motor -->
+    <a href="stepper.html" class="card">
+      <div>
+        <h2>⚙️ Stepper Motor</h2>
+        <p>Explore 4-phase full-step coil excitation, sequence arrays, direction toggles, and step timing.</p>
+      </div>
+      <span class="badge">stepper.html →</span>
     </a>
 
     <!-- PIR Motion Sensor (Direct GPIO Interrupt) -->
