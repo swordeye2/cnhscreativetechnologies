@@ -58,6 +58,15 @@
     .status-panel { width: 100%; margin-top: 10px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.82rem; border: 1px solid #313244; }
     .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
     .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; background: #313244; color: #a6e3a1; font-weight: bold; }
+
+    /* Quiz Panel Styling */
+    .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -145,7 +154,6 @@
           <div class="btn-group">
             <button id="btnNear" class="secondary">1 cm (Very Close)</button>
             <button id="btnMid">8 cm (Mid Range)</button>
-
             <button id="btnFar" class="secondary">20 cm (Far Away)</button>
           </div>
         </div>
@@ -158,59 +166,73 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: Protocol Packet Matrix & MicroPython Inspector -->
-      <div class="card">
-        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
-          📦 I2C Frame Packet Breakdown
-        </div>
-
-        <!-- Protocol Packet Step Table -->
-        <table class="protocol-breakdown">
-          <thead>
-            <tr>
-              <th>Start</th>
-              <th>Slave Addr (7-bit)</th>
-              <th>R/W</th>
-              <th>ACK</th>
-              <th>Sensor Data Byte</th>
-              <th>Stop</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="tag-start">S</td>
-              <td class="tag-addr">0x39 (0111001)</td>
-              <td class="tag-rw">1 (READ)</td>
-              <td class="tag-ack">0 (ACK)</td>
-              <td id="tableDataByte" class="tag-data">11010111</td>
-              <td class="tag-start">P</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div style="font-weight: bold; color: #89b4fa; margin-top: 15px; margin-bottom: 8px; font-size: 0.95rem;">
-          🐍 MicroPython Master Code Inspector
-        </div>
+      <!-- RIGHT COLUMN: Protocol Packet Matrix, Code Inspector & Formative Quiz -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
         
-        <div class="code-box">
-          <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, I2C</div>
-          <div class="code-line"><span class="kw">import</span> utime</div>
-          <div class="code-line"><br><span class="cm"># Initialize I2C Bus on RP2040 (SDA=GP4, SCL=GP5, 100kHz)</span></div>
-          <div class="code-line">i2c = I2C(<span class="num">0</span>, sda=Pin(<span class="num">4</span>), scl=Pin(<span class="num">5</span>), freq=<span class="num">100000</span>)</div>
-          <div class="code-line"><br><span class="cm"># APDS-9960 I2C Slave Address = 0x39</span></div>
-          <div class="code-line">SENSOR_ADDR = <span class="num">0x39</span></div>
-          <div class="code-line">PROX_REG = <span class="num">0x1C</span>  <span class="cm"># Proximity Data Register</span></div>
-          <div class="code-line"><br><span class="kw">def</span> <span class="fn">read_proximity</span>():</div>
-          <div class="code-line">&nbsp;&nbsp;<span class="cm"># Request 1 byte of proximity data from register 0x1C</span></div>
-          <div id="codeRead" class="code-line active">&nbsp;&nbsp;data = i2c.<span class="fn">readfrom_mem</span>(SENSOR_ADDR, PROX_REG, <span class="num">1</span>)</div>
-          <div id="codeVal" class="code-line active">&nbsp;&nbsp;val = data[<span class="num">0</span>]  <span class="cm"># Raw value: <span id="codeValText" class="val-highlight">215</span></span></div>
-          <div class="code-line">&nbsp;&nbsp;<span class="kw">return</span> val</div>
-          <div class="code-line"><br><span class="cm"># Continuously query sensor over I2C bus</span></div>
-          <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
-          <div class="code-line">&nbsp;&nbsp;prox = <span class="fn">read_proximity</span>()</div>
-          <div class="code-line">&nbsp;&nbsp;<span class="fn">print</span>(<span class="s2">"Proximity Raw:"</span>, prox)</div>
-          <div class="code-line">&nbsp;&nbsp;utime.<span class="fn">sleep_ms</span>(<span class="num">200</span>)</div>
+        <div class="card">
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
+            📦 I2C Frame Packet Breakdown
+          </div>
+
+          <!-- Protocol Packet Step Table -->
+          <table class="protocol-breakdown">
+            <thead>
+              <tr>
+                <th>Start</th>
+                <th>Slave Addr (7-bit)</th>
+                <th>R/W</th>
+                <th>ACK</th>
+                <th>Sensor Data Byte</th>
+                <th>Stop</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="tag-start">S</td>
+                <td class="tag-addr">0x39 (0111001)</td>
+                <td class="tag-rw">1 (READ)</td>
+                <td class="tag-ack">0 (ACK)</td>
+                <td id="tableDataByte" class="tag-data">11010111</td>
+                <td class="tag-start">P</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="font-weight: bold; color: #89b4fa; margin-top: 15px; margin-bottom: 8px; font-size: 0.95rem;">
+            🐍 MicroPython Master Code Inspector
+          </div>
+          
+          <div class="code-box">
+            <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, I2C</div>
+            <div class="code-line"><span class="kw">import</span> utime</div>
+            <div class="code-line"><br><span class="cm"># Initialize I2C Bus on RP2040 (SDA=GP4, SCL=GP5, 100kHz)</span></div>
+            <div class="code-line">i2c = I2C(<span class="num">0</span>, sda=Pin(<span class="num">4</span>), scl=Pin(<span class="num">5</span>), freq=<span class="num">100000</span>)</div>
+            <div class="code-line"><br><span class="cm"># APDS-9960 I2C Slave Address = 0x39</span></div>
+            <div class="code-line">SENSOR_ADDR = <span class="num">0x39</span></div>
+            <div class="code-line">PROX_REG = <span class="num">0x1C</span>  <span class="cm"># Proximity Data Register</span></div>
+            <div class="code-line"><br><span class="kw">def</span> <span class="fn">read_proximity</span>():</div>
+            <div class="code-line">&nbsp;&nbsp;<span class="cm"># Request 1 byte of proximity data from register 0x1C</span></div>
+            <div id="codeRead" class="code-line active">&nbsp;&nbsp;data = i2c.<span class="fn">readfrom_mem</span>(SENSOR_ADDR, PROX_REG, <span class="num">1</span>)</div>
+            <div id="codeVal" class="code-line active">&nbsp;&nbsp;val = data[<span class="num">0</span>]  <span class="cm"># Raw value: <span id="codeValText" class="val-highlight">215</span></span></div>
+            <div class="code-line">&nbsp;&nbsp;<span class="kw">return</span> val</div>
+            <div class="code-line"><br><span class="cm"># Continuously query sensor over I2C bus</span></div>
+            <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
+            <div class="code-line">&nbsp;&nbsp;prox = <span class="fn">read_proximity</span>()</div>
+            <div class="code-line">&nbsp;&nbsp;<span class="fn">print</span>(<span class="s2">"Proximity Raw:"</span>, prox)</div>
+            <div class="code-line">&nbsp;&nbsp;utime.<span class="fn">sleep_ms</span>(<span class="num">200</span>)</div>
+          </div>
         </div>
+
+        <!-- Concept Check Quiz Panel -->
+        <div class="card">
+          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-question" id="quiz-question">
+            Why are 4.7kΩ pull-up resistors required on both SDA and SCL lines in an I2C bus setup?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+          <div id="quiz-feedback" style="margin-top: 8px;"></div>
+        </div>
+
       </div>
 
     </div>
@@ -233,6 +255,45 @@
     const btnNear = document.getElementById('btnNear');
     const btnMid = document.getElementById('btnMid');
     const btnFar = document.getElementById('btnFar');
+
+    // Quiz Data
+    const quizData = {
+      question: "Why are pull-up resistors required on both SDA and SCL lines in an I2C bus setup?",
+      options: [
+        { text: "A. I2C uses open-drain outputs, so pull-ups hold the default idle bus state at HIGH (3.3V) when no device is pulling it LOW.", correct: true },
+        { text: "B. Pull-up resistors convert digital square waves into analog voltage levels for sensor readings.", correct: false },
+        { text: "C. They limit the current to prevent the RP2040 from burning out the APDS-9960 IR LED emitter.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! I2C bus lines are open-drain (passive high), relying on pull-ups to pull the line back to 3.3V when devices release the bus.';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Consider how open-drain bus architecture handles default voltage levels!';
+      }
+    }
 
     function updateSimulation() {
       // Calculate inverse raw sensor reading (Closer object = higher reflected IR = higher raw reading)
@@ -286,6 +347,7 @@
     btnFar.addEventListener('click', () => { distanceCm = 20; distSlider.value = 20; updateSimulation(); });
 
     // Initial Render
+    initQuiz();
     updateSimulation();
   </script>
 </body>
