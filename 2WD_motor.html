@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2WD Robot & H-Bridge Motor Driver Visualizer • CNHS Creative Tech</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    
+    header { text-align: center; margin-bottom: 20px; max-width: 1200px; width: 100%; }
+    header h1 { color: #89b4fa; margin: 0 0 5px 0; font-size: 1.8rem; }
+    header p { color: #a6adc8; margin: 0; font-size: 0.95rem; }
+    .back-link { display: inline-block; margin-bottom: 10px; color: #89b4fa; text-decoration: none; font-size: 0.9rem; font-weight: bold; }
+    .back-link:hover { text-decoration: underline; }
+
+    .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; }
+    
+    .panel { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+    .panel h2 { color: #89b4fa; font-size: 1.1rem; margin: 0; border-bottom: 1px solid #313244; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+    /* Controls */
+    .control-group { display: flex; flex-direction: column; gap: 6px; }
+    .control-group label { font-size: 0.85rem; color: #a6adc8; font-weight: bold; display: flex; justify-content: space-between; }
+    .control-group input[type="range"] { accent-color: #89b4fa; cursor: pointer; }
+    
+    .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn { background: #313244; color: #cdd6f4; border: 1px solid #45475a; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+    .btn:hover { background: #45475a; border-color: #89b4fa; }
+    .btn.active { background: #89b4fa; color: #11111b; border-color: #89b4fa; }
+    .btn-danger { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    .btn-danger:hover { background: #f38ba8; color: #11111b; }
+
+    /* Mode Pill Selector */
+    .mode-selector { display: flex; background: #11111b; padding: 4px; border-radius: 8px; border: 1px solid #313244; gap: 4px; }
+    .mode-btn { flex: 1; text-align: center; padding: 6px 4px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; color: #a6adc8; font-weight: bold; transition: all 0.2s ease; border: none; background: transparent; }
+    .mode-btn.active { background: #89b4fa; color: #11111b; }
+
+    /* DPAD Control layout */
+    .dpad-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 240px; margin: 0 auto; width: 100%; }
+    .dpad-cell { aspect-ratio: 1; min-height: 48px; }
+
+    /* Canvas Elements */
+    canvas { background: #11111b; border: 1px solid #313244; border-radius: 8px; width: 100%; display: block; }
+
+    /* Motor Stats & Truth Table Display */
+    .motor-status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .motor-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 10px; font-size: 0.8rem; }
+    .motor-box h3 { margin: 0 0 6px 0; font-size: 0.85rem; color: #f9e2af; border-bottom: 1px solid #313244; padding-bottom: 4px; }
+    .pin-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.75rem; font-weight: bold; }
+    .pin-high { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
+    .pin-low { background: #313244; color: #a6adc8; border: 1px solid #45475a; }
+    .pin-pwm { background: #423522; color: #f9e2af; border: 1px solid #f9e2af; }
+
+    /* MicroPython Code Block */
+    pre.code-block { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; color: #cdd6f4; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; margin: 0; max-height: 240px; }
+    .code-keyword { color: #cba6f7; }
+    .code-func { color: #89b4fa; }
+    .code-comment { color: #6c7086; font-style: italic; }
+    .code-num { color: #fab387; }
+
+    /* Truth Table Display */
+    table.truth-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; font-family: monospace; }
+    table.truth-table th, table.truth-table td { border: 1px solid #313244; padding: 6px; text-align: center; }
+    table.truth-table th { background: #11111b; color: #89b4fa; }
+    table.truth-table tr.active-row { background: rgba(137, 180, 250, 0.15); border-color: #89b4fa; }
+
+    /* Quiz Styling */
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; margin-bottom: 8px; font-weight: bold; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; margin-top: 6px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="back-link">← Back to Hardware Hub</a>
+    <h1>2WD Robot & H-Bridge Motor Driver Simulator</h1>
+    <p>Explore differential drive kinematics, DRV8833/L298N logic pin states, and RP2040 MicroPython motor control</p>
+  </header>
+
+  <div class="grid-container">
+
+    <!-- PANEL 1: Robot Arena & Kinematics -->
+    <div class="panel" style="grid-column: span 1;">
+      <h2>
+        1. 2WD Differential Arena
+        <button class="btn" onclick="resetRobotPosition()" style="padding:2px 8px; font-size:0.75rem;">Reset Arena</button>
+      </h2>
+      <canvas id="arenaCanvas" height="320"></canvas>
+      <div style="display:flex; justify-scale:space-between; font-size:0.8rem; color:#a6adc8; font-family:monospace;">
+        <span>Pos: (<b id="pos-x" style="color:#89b4fa;">0</b>, <b id="pos-y" style="color:#89b4fa;">0</b>)</span>
+        <span>Heading: <b id="heading-deg" style="color:#f9e2af;">0°</b></span>
+        <span>State: <b id="motion-state" style="color:#a6e3a1;">STOPPED</b></span>
+      </div>
+    </div>
+
+    <!-- PANEL 2: Interactive Controls & Presets -->
+    <div class="panel">
+      <h2>2. Flight Deck & Steering Controls</h2>
+
+      <div class="control-group">
+        <label>Turning Style Mode</label>
+        <div class="mode-selector">
+          <button class="mode-btn active" id="turn-tank" onclick="setTurnStyle('tank')">Tank/Pivot Turn (Opposite Spin)</button>
+          <button class="mode-btn" id="turn-soft" onclick="setTurnStyle('soft')">Soft Turn (One Motor Idle)</button>
+        </div>
+      </div>
+
+      <!-- Direction DPAD -->
+      <div class="dpad-container">
+        <div></div>
+        <button class="btn dpad-cell" id="cmd-fwd" onclick="setCommand('FORWARD')">▲<br>FWD</button>
+        <div></div>
+        <button class="btn dpad-cell" id="cmd-left" onclick="setCommand('LEFT')">◄<br>LEFT</button>
+        <button class="btn btn-danger dpad-cell" id="cmd-stop" onclick="setCommand('STOP')">■<br>STOP</button>
+        <button class="btn dpad-cell" id="cmd-right" onclick="setCommand('RIGHT')">►<br>RIGHT</button>
+        <div></div>
+        <button class="btn dpad-cell" id="cmd-rev" onclick="setCommand('BACKWARD')">▼<br>REV</button>
+        <div></div>
+      </div>
+
+      <!-- Speed Sliders -->
+      <div class="control-group">
+        <label>Base Speed Limit <span id="base-speed-label" style="color:#89b4fa;">75%</span></label>
+        <input type="range" id="speed-slider" min="10" max="100" value="75" oninput="updateSpeedSetting(this.value)">
+      </div>
+
+      <p style="font-size:0.75rem; color:#a6adc8; margin:0; text-align:center;">
+        <b>Keyboard Controls:</b> Use <kbd style="background:#313244; padding:2px 4px; border-radius:4px;">W</kbd> <kbd style="background:#313244; padding:2px 4px; border-radius:4px;">A</kbd> <kbd style="background:#313244; padding:2px 4px; border-radius:4px;">S</kbd> <kbd style="background:#313244; padding:2px 4px; border-radius:4px;">D</kbd> or <kbd style="background:#313244; padding:2px 4px; border-radius:4px;">Arrow Keys</kbd> to drive in real time!
+      </p>
+    </div>
+
+    <!-- PANEL 3: Logic Pin & H-Bridge Status -->
+    <div class="panel">
+      <h2>3. H-Bridge Signal Monitor (DRV8833/L298N)</h2>
+
+      <div class="motor-status-grid">
+        <!-- Motor A (Left) -->
+        <div class="motor-box">
+          <h3>Left Motor (Motor A)</h3>
+          <div style="margin-bottom: 4px;">Duty: <b id="left-duty-label" style="color:#a6e3a1;">0%</b></div>
+          <div style="margin-bottom: 4px;">Dir: <b id="left-dir-label" style="color:#89b4fa;">STOP</b></div>
+          <div>GP14 (IN1): <span id="pin-in1" class="pin-badge pin-low">LOW (0V)</span></div>
+          <div style="margin-top: 4px;">GP15 (IN2): <span id="pin-in2" class="pin-badge pin-low">LOW (0V)</span></div>
+        </div>
+
+        <!-- Motor B (Right) -->
+        <div class="motor-box">
+          <h3>Right Motor (Motor B)</h3>
+          <div style="margin-bottom: 4px;">Duty: <b id="right-duty-label" style="color:#a6e3a1;">0%</b></div>
+          <div style="margin-bottom: 4px;">Dir: <b id="right-dir-label" style="color:#89b4fa;">STOP</b></div>
+          <div>GP12 (IN3): <span id="pin-in3" class="pin-badge pin-low">LOW (0V)</span></div>
+          <div style="margin-top: 4px;">GP13 (IN4): <span id="pin-in4" class="pin-badge pin-low">LOW (0V)</span></div>
+        </div>
+      </div>
+
+      <!-- Truth Table -->
+      <table class="truth-table">
+        <thead>
+          <tr>
+            <th>IN1 / IN3</th>
+            <th>IN2 / IN4</th>
+            <th>H-Bridge Mode</th>
+            <th>Motor Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="row-fwd">
+            <td>PWM / HIGH</td>
+            <td>LOW</td>
+            <td>Forward Direction</td>
+            <td>Spin Clockwise</td>
+          </tr>
+          <tr id="row-rev">
+            <td>LOW</td>
+            <td>PWM / HIGH</td>
+            <td>Reverse Direction</td>
+            <td>Spin Counter-CW</td>
+          </tr>
+          <tr id="row-brake">
+            <td>HIGH</td>
+            <td>HIGH</td>
+            <td>Active Fast Brake</td>
+            <td>Locked Coil Stop</td>
+          </tr>
+          <tr id="row-coast" class="active-row">
+            <td>LOW</td>
+            <td>LOW</td>
+            <td>Coast / Standby</td>
+            <td>Freewheel Inertia Stop</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PANEL 4: Logic Pin Pulse Visualizer -->
+    <div class="panel">
+      <h2>4. Real-Time Pin Oscilloscope</h2>
+      <canvas id="pinScopeCanvas" height="150"></canvas>
+      <p style="font-size:0.75rem; color:#a6adc8; margin:0; text-align:center;">
+        Displays relative PWM digital waveforms sent to H-Bridge Control Pins IN1–IN4.
+      </p>
+    </div>
+
+    <!-- PANEL 5: Dynamic MicroPython Code Inspector -->
+    <div class="panel">
+      <h2>5. Dynamic MicroPython Code</h2>
+      <pre class="code-block" id="code-preview"></pre>
+    </div>
+
+    <!-- PANEL 6: Interactive Quiz -->
+    <div class="panel">
+      <h2>6. Differential Drive Quiz</h2>
+      <div class="quiz-question">
+        To make a 2WD differential robot execute a tight <b>Pivot (Tank) Turn to the Left</b> in place, how should the motors be driven?
+      </div>
+      <div class="quiz-opt" onclick="checkAnswer(this, false)">A. Left Motor Forward 100%, Right Motor Forward 100%.</div>
+      <div class="quiz-opt" onclick="checkAnswer(this, true)">B. Left Motor Reverse (-100%), Right Motor Forward (+100%).</div>
+      <div class="quiz-opt" onclick="checkAnswer(this, false)">C. Left Motor Stopped (0%), Right Motor Reverse (-100%).</div>
+      <div class="quiz-opt" onclick="checkAnswer(this, false)">D. Both Left and Right Motors set to 0% Duty Cycle.</div>
+      <div id="quiz-feedback"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // Simulation State
+    let robotX = 0;
+    let robotY = 0;
+    let robotAngle = -Math.PI / 2; // Facing UP (-90deg)
+    let leftMotorSpeed = 0;   // -1.0 to +1.0
+    let rightMotorSpeed = 0;  // -1.0 to +1.0
+    let baseSpeed = 0.75;
+    let turnStyle = 'tank';   // 'tank' or 'soft'
+    let activeCmd = 'STOP';
+
+    // Breadcrumb Trail
+    let trail = [];
+
+    // Canvas References
+    const arenaCanvas = document.getElementById('arenaCanvas');
+    const arenaCtx = arenaCanvas.getContext('2d');
+    const pinScopeCanvas = document.getElementById('pinScopeCanvas');
+    const scopeCtx = pinScopeCanvas.getContext('2d');
+
+    // Keydown state
+    const keysPressed = {};
+
+    window.addEventListener('load', () => {
+      resizeCanvases();
+      resetRobotPosition();
+      setupKeyboardListeners();
+      updateCodeInspector();
+      requestAnimationFrame(loop);
+    });
+
+    function resizeCanvases() {
+      arenaCanvas.width = arenaCanvas.clientWidth;
+      arenaCanvas.height = arenaCanvas.clientHeight;
+      pinScopeCanvas.width = pinScopeCanvas.clientWidth;
+      pinScopeCanvas.height = pinScopeCanvas.clientHeight;
+    }
+
+    function resetRobotPosition() {
+      robotX = arenaCanvas.width / 2;
+      robotY = arenaCanvas.height / 2;
+      robotAngle = -Math.PI / 2;
+      trail = [];
+    }
+
+    function setTurnStyle(style) {
+      turnStyle = style;
+      document.getElementById('turn-tank').classList.toggle('active', style === 'tank');
+      document.getElementById('turn-soft').classList.toggle('active', style === 'soft');
+      setCommand(activeCmd); // Refresh motor speeds under new style
+    }
+
+    function updateSpeedSetting(val) {
+      baseSpeed = parseInt(val) / 100;
+      document.getElementById('base-speed-label').textContent = `${val}%`;
+      setCommand(activeCmd);
+    }
+
+    function setCommand(cmd) {
+      activeCmd = cmd;
+
+      // Reset active button highlights
+      document.querySelectorAll('.dpad-container .btn').forEach(b => b.classList.remove('active'));
+
+      if (cmd === 'FORWARD') {
+        leftMotorSpeed = baseSpeed;
+        rightMotorSpeed = baseSpeed;
+        document.getElementById('cmd-fwd').classList.add('active');
+      } else if (cmd === 'BACKWARD') {
+        leftMotorSpeed = -baseSpeed;
+        rightMotorSpeed = -baseSpeed;
+        document.getElementById('cmd-rev').classList.add('active');
+      } else if (cmd === 'LEFT') {
+        if (turnStyle === 'tank') {
+          leftMotorSpeed = -baseSpeed;
+          rightMotorSpeed = baseSpeed;
+        } else {
+          leftMotorSpeed = 0;
+          rightMotorSpeed = baseSpeed;
+        }
+        document.getElementById('cmd-left').classList.add('active');
+      } else if (cmd === 'RIGHT') {
+        if (turnStyle === 'tank') {
+          leftMotorSpeed = baseSpeed;
+          rightMotorSpeed = -baseSpeed;
+        } else {
+          leftMotorSpeed = baseSpeed;
+          rightMotorSpeed = 0;
+        }
+        document.getElementById('cmd-right').classList.add('active');
+      } else { // STOP
+        leftMotorSpeed = 0;
+        rightMotorSpeed = 0;
+        document.getElementById('cmd-stop').classList.add('active');
+      }
+
+      updatePinMonitor();
+      updateCodeInspector();
+    }
+
+    function setupKeyboardListeners() {
+      window.addEventListener('keydown', (e) => {
+        if (e.repeat) return;
+        const key = e.key.toLowerCase();
+        keysPressed[key] = true;
+        evaluateKeyboardDrive();
+      });
+
+      window.addEventListener('keyup', (e) => {
+        const key = e.key.toLowerCase();
+        keysPressed[key] = false;
+        evaluateKeyboardDrive();
+      });
+    }
+
+    function evaluateKeyboardDrive() {
+      if (keysPressed['w'] || keysPressed['arrowup']) {
+        setCommand('FORWARD');
+      } else if (keysPressed['s'] || keysPressed['arrowdown']) {
+        setCommand('BACKWARD');
+      } else if (keysPressed['a'] || keysPressed['arrowleft']) {
+        setCommand('LEFT');
+      } else if (keysPressed['d'] || keysPressed['arrowright']) {
+        setCommand('RIGHT');
+      } else {
+        setCommand('STOP');
+      }
+    }
+
+    function updatePinMonitor() {
+      const lDuty = Math.round(Math.abs(leftMotorSpeed) * 100);
+      const rDuty = Math.round(Math.abs(rightMotorSpeed) * 100);
+
+      document.getElementById('left-duty-label').textContent = `${lDuty}%`;
+      document.getElementById('right-duty-label').textContent = `${rDuty}%`;
+
+      document.getElementById('left-dir-label').textContent = leftMotorSpeed > 0 ? 'FORWARD' : leftMotorSpeed < 0 ? 'REVERSE' : 'STOP';
+      document.getElementById('right-dir-label').textContent = rightMotorSpeed > 0 ? 'FORWARD' : rightMotorSpeed < 0 ? 'REVERSE' : 'STOP';
+
+      // Pin Badges IN1 / IN2
+      const pinIN1 = document.getElementById('pin-in1');
+      const pinIN2 = document.getElementById('pin-in2');
+      if (leftMotorSpeed > 0) {
+        pinIN1.className = 'pin-badge pin-pwm'; pinIN1.textContent = `PWM (${lDuty}%)`;
+        pinIN2.className = 'pin-badge pin-low'; pinIN2.textContent = 'LOW (0V)';
+      } else if (leftMotorSpeed < 0) {
+        pinIN1.className = 'pin-badge pin-low'; pinIN1.textContent = 'LOW (0V)';
+        pinIN2.className = 'pin-badge pin-pwm'; pinIN2.textContent = `PWM (${lDuty}%)`;
+      } else {
+        pinIN1.className = 'pin-badge pin-low'; pinIN1.textContent = 'LOW (0V)';
+        pinIN2.className = 'pin-badge pin-low'; pinIN2.textContent = 'LOW (0V)';
+      }
+
+      // Pin Badges IN3 / IN4
+      const pinIN3 = document.getElementById('pin-in3');
+      const pinIN4 = document.getElementById('pin-in4');
+      if (rightMotorSpeed > 0) {
+        pinIN3.className = 'pin-badge pin-pwm'; pinIN3.textContent = `PWM (${rDuty}%)`;
+        pinIN4.className = 'pin-badge pin-low'; pinIN4.textContent = 'LOW (0V)';
+      } else if (rightMotorSpeed < 0) {
+        pinIN3.className = 'pin-badge pin-low'; pinIN3.textContent = 'LOW (0V)';
+        pinIN4.className = 'pin-badge pin-pwm'; pinIN4.textContent = `PWM (${rDuty}%)`;
+      } else {
+        pinIN3.className = 'pin-badge pin-low'; pinIN3.textContent = 'LOW (0V)';
+        pinIN4.className = 'pin-badge pin-low'; pinIN4.textContent = 'LOW (0V)';
+      }
+
+      // Truth table highlighting
+      document.querySelectorAll('.truth-table tr').forEach(r => r.classList.remove('active-row'));
+      if (activeCmd === 'FORWARD') document.getElementById('row-fwd').classList.add('active-row');
+      else if (activeCmd === 'BACKWARD') document.getElementById('row-rev').classList.add('active-row');
+      else if (activeCmd === 'STOP') document.getElementById('row-coast').classList.add('active-row');
+    }
+
+    function updateCodeInspector() {
+      const u16Val = Math.round(baseSpeed * 65535);
+
+      const code = `<span class="code-keyword">from</span> machine <span class="code-keyword">import</span> Pin, PWM
+
+<span class="code-comment"># Define RP2040 H-Bridge Pins for DRV8833 / L298N</span>
+in1 = PWM(Pin(<span class="code-num">14</span>)) <span class="code-comment"># Left Motor A IN1</span>
+in2 = PWM(Pin(<span class="code-num">15</span>)) <span class="code-comment"># Left Motor A IN2</span>
+in3 = PWM(Pin(<span class="code-num">12</span>)) <span class="code-comment"># Right Motor B IN3</span>
+in4 = PWM(Pin(<span class="code-num">13</span>)) <span class="code-comment"># Right Motor B IN4</span>
+
+<span class="code-comment"># Set PWM Carrier Frequencies (1kHz)</span>
+<span class="code-keyword">for</span> p <span class="code-keyword">in</span> (in1, in2, in3, in4): p.freq(<span class="code-num">1000</span>)
+
+<span class="code-keyword">def</span> <span class="code-func">move_robot</span>(cmd):
+    <span class="code-keyword">if</span> cmd == <span class="code-string">"${activeCmd}"</span>:
+        <span class="code-comment"># Active Command Execution</span>
+        in1.duty_u16(<span class="code-num">${leftMotorSpeed > 0 ? u16Val : 0}</span>)
+        in2.duty_u16(<span class="code-num">${leftMotorSpeed < 0 ? u16Val : 0}</span>)
+        in3.duty_u16(<span class="code-num">${rightMotorSpeed > 0 ? u16Val : 0}</span>)
+        in4.duty_u16(<span class="code-num">${rightMotorSpeed < 0 ? u16Val : 0}</span>)
+
+move_robot(<span class="code-string">"${activeCmd}"</span>)`;
+
+      document.getElementById('code-preview').innerHTML = code;
+    }
+
+    function updatePhysics() {
+      // Differential Kinematics physics formula
+      const wheelBase = 32; // Distance between wheels in pixels
+      const speedScale = 2.2;
+
+      const vL = leftMotorSpeed * speedScale;
+      const vR = rightMotorSpeed * speedScale;
+
+      const vLinear = (vL + vR) / 2;
+      const omega = (vR - vL) / wheelBase; // Angular velocity
+
+      robotAngle += omega;
+      robotX += Math.cos(robotAngle) * vLinear;
+      robotY += Math.sin(robotAngle) * vLinear;
+
+      // Arena Wall Bouncing Bounds
+      const pad = 20;
+      if (robotX < pad) robotX = pad;
+      if (robotX > arenaCanvas.width - pad) robotX = arenaCanvas.width - pad;
+      if (robotY < pad) robotY = pad;
+      if (robotY > arenaCanvas.height - pad) robotY = arenaCanvas.height - pad;
+
+      // Update trail breadcrumbs
+      if (Math.abs(vLinear) > 0.1 || Math.abs(omega) > 0.01) {
+        trail.push({ x: robotX, y: robotY });
+        if (trail.length > 250) trail.shift();
+      }
+
+      // Update stats labels
+      document.getElementById('pos-x').textContent = Math.round(robotX);
+      document.getElementById('pos-y').textContent = Math.round(robotY);
+      
+      let deg = Math.round((robotAngle * 180 / Math.PI) % 360);
+      if (deg < 0) deg += 360;
+      document.getElementById('heading-deg').textContent = `${deg}°`;
+      document.getElementById('motion-state').textContent = activeCmd;
+    }
+
+    function drawArena() {
+      arenaCtx.clearRect(0, 0, arenaCanvas.width, arenaCanvas.height);
+
+      // Grid Pattern
+      arenaCtx.strokeStyle = '#1e1e2e';
+      arenaCtx.lineWidth = 1;
+      for (let x = 0; x < arenaCanvas.width; x += 30) {
+        arenaCtx.beginPath(); arenaCtx.moveTo(x, 0); arenaCtx.lineTo(x, arenaCanvas.height); arenaCtx.stroke();
+      }
+      for (let y = 0; y < arenaCanvas.height; y += 30) {
+        arenaCtx.beginPath(); arenaCtx.moveTo(0, y); arenaCtx.lineTo(arenaCanvas.width, y); arenaCtx.stroke();
+      }
+
+      // Draw Trail Breadcrumbs
+      if (trail.length > 1) {
+        arenaCtx.strokeStyle = 'rgba(137, 180, 250, 0.4)';
+        arenaCtx.lineWidth = 3;
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(trail[0].x, trail[0].y);
+        for (let i = 1; i < trail.length; i++) {
+          arenaCtx.lineTo(trail[i].x, trail[i].y);
+        }
+        arenaCtx.stroke();
+      }
+
+      // Draw Robot Chassis
+      arenaCtx.save();
+      arenaCtx.translate(robotX, robotY);
+      arenaCtx.rotate(robotAngle);
+
+      // Main Body Box
+      arenaCtx.fillStyle = '#313244';
+      arenaCtx.strokeStyle = '#89b4fa';
+      arenaCtx.lineWidth = 2;
+      arenaCtx.beginPath();
+      arenaCtx.roundRect(-18, -14, 36, 28, 6);
+      arenaCtx.fill();
+      arenaCtx.stroke();
+
+      // Heading Direction Arrow/Nose
+      arenaCtx.fillStyle = '#f9e2af';
+      arenaCtx.beginPath();
+      arenaCtx.moveTo(18, 0);
+      arenaCtx.lineTo(10, -6);
+      arenaCtx.lineTo(10, 6);
+      arenaCtx.closePath();
+      arenaCtx.fill();
+
+      // Left Wheel (Top in rotated view)
+      arenaCtx.fillStyle = leftMotorSpeed !== 0 ? '#a6e3a1' : '#f38ba8';
+      arenaCtx.fillRect(-12, -18, 24, 5);
+
+      // Right Wheel (Bottom in rotated view)
+      arenaCtx.fillStyle = rightMotorSpeed !== 0 ? '#a6e3a1' : '#f38ba8';
+      arenaCtx.fillRect(-12, 13, 24, 5);
+
+      arenaCtx.restore();
+    }
+
+    let scopePhase = 0;
+    function drawPinOscilloscope() {
+      scopeCtx.clearRect(0, 0, pinScopeCanvas.width, pinScopeCanvas.height);
+      scopePhase += 0.1;
+
+      const channels = [
+        { label: 'IN1 (GP14)', speed: leftMotorSpeed > 0 ? leftMotorSpeed : 0, y: 30, color: '#a6e3a1' },
+        { label: 'IN2 (GP15)', speed: leftMotorSpeed < 0 ? Math.abs(leftMotorSpeed) : 0, y: 65, color: '#f9e2af' },
+        { label: 'IN3 (GP12)', speed: rightMotorSpeed > 0 ? rightMotorSpeed : 0, y: 100, color: '#89b4fa' },
+        { label: 'IN4 (GP13)', speed: rightMotorSpeed < 0 ? Math.abs(rightMotorSpeed) : 0, y: 135, color: '#cba6f7' }
+      ];
+
+      channels.forEach(ch => {
+        scopeCtx.fillStyle = ch.color;
+        scopeCtx.font = '10px monospace';
+        scopeCtx.fillText(ch.label, 10, ch.y - 12);
+
+        scopeCtx.strokeStyle = ch.color;
+        scopeCtx.lineWidth = 2;
+        scopeCtx.beginPath();
+
+        const width = pinScopeCanvas.width - 100;
+        const xOffset = 90;
+
+        if (ch.speed === 0) {
+          // Flat LOW signal
+          scopeCtx.moveTo(xOffset, ch.y);
+          scopeCtx.lineTo(xOffset + width, ch.y);
+        } else {
+          // PWM Square Wave
+          const period = 30;
+          const highWidth = period * ch.speed;
+          
+          for (let x = 0; x < width; x += 1) {
+            const cycleX = (x + scopePhase * 20) % period;
+            const isHigh = cycleX < highWidth;
+            const waveY = isHigh ? ch.y - 10 : ch.y;
+
+            if (x === 0) scopeCtx.moveTo(xOffset + x, waveY);
+            else scopeCtx.lineTo(xOffset + x, waveY);
+          }
+        }
+        scopeCtx.stroke();
+      });
+    }
+
+    function checkAnswer(el, isCorrect) {
+      const fb = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(opt => opt.classList.remove('correct', 'wrong'));
+      
+      if (isCorrect) {
+        el.classList.add('correct');
+        fb.style.color = '#a6e3a1';
+        fb.textContent = 'Correct! Spinning opposite wheels in reverse/forward turns the robot on its center axis (Pivot/Tank turn).';
+      } else {
+        el.classList.add('wrong');
+        fb.style.color = '#f38ba8';
+        fb.textContent = 'Incorrect. Review tank turning mechanics!';
+      }
+    }
+
+    function loop() {
+      updatePhysics();
+      drawArena();
+      drawPinOscilloscope();
+      requestAnimationFrame(loop);
+    }
+  </script>
+</body>
+</html>
