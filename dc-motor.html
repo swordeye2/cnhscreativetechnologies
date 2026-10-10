@@ -18,7 +18,7 @@
     .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 850px) { .grid-container { grid-template-columns: 1fr; } }
 
-    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; }
     
     /* Visualizer Boxes */
     .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
@@ -50,6 +50,15 @@
     .pin-badge.active-pwm { background: #a6e3a1; color: #11111b; box-shadow: 0 0 8px #a6e3a1; }
     .pin-badge.active-high { background: #89b4fa; color: #11111b; }
     .pin-badge.active-low { background: #45475a; color: #a6adc8; }
+
+    /* Quiz Panel Styling */
+    .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -117,34 +126,48 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: Real-Time MicroPython Code Inspector -->
-      <div class="card">
-        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 10px; font-size: 0.95rem;">
-          🐍 Live MicroPython Code Execution
-        </div>
+      <!-- RIGHT COLUMN: Real-Time Code Inspector + Formative Concept Check -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
         
-        <div class="code-box">
-          <div id="code-l1" class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
-          <div id="code-l2" class="code-line"><span class="cm"># DRV8833 Pins (GP14=IN1, GP15=IN2)</span></div>
-          <div id="code-l3" class="code-line">in1 = PWM(Pin(<span class="num">14</span>), freq=<span class="num">1000</span>)</div>
-          <div id="code-l4" class="code-line">in2 = PWM(Pin(<span class="num">15</span>), freq=<span class="num">1000</span>)</div>
-          <div id="code-l5" class="code-line"><br><span class="kw">def</span> <span class="fn">drive_motor</span>():</div>
+        <div class="card">
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 5px; font-size: 0.95rem;">
+            🐍 Live MicroPython Code Execution
+          </div>
           
-          <!-- Branch 1: Short Brake -->
-          <div id="code-branch-brake" class="code-line">&nbsp;&nbsp;<span class="kw">if</span> mode == <span class="val-highlight">"BRAKE"</span>:</div>
-          <div id="code-brake-1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in1.<span class="fn">duty_u16</span>(<span class="num">65535</span>) <span class="cm"># HIGH</span></div>
-          <div id="code-brake-2" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in2.<span class="fn">duty_u16</span>(<span class="num">65535</span>) <span class="cm"># HIGH</span></div>
-          
-          <!-- Branch 2: Forward (CW) -->
-          <div id="code-branch-fwd" class="code-line">&nbsp;&nbsp;<span class="kw">elif</span> dir == <span class="val-highlight">"FORWARD"</span>:</div>
-          <div id="code-fwd-1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in1.<span class="fn">duty_u16</span>(<span id="codeDutyFwd" class="val-highlight">32768</span>)</div>
-          <div id="code-fwd-2" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in2.<span class="fn">duty_u16</span>(<span class="num">0</span>)     <span class="cm"># LOW</span></div>
-          
-          <!-- Branch 3: Reverse (CCW) -->
-          <div id="code-branch-rev" class="code-line">&nbsp;&nbsp;<span class="kw">elif</span> dir == <span class="val-highlight">"REVERSE"</span>:</div>
-          <div id="code-rev-1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in1.<span class="fn">duty_u16</span>(<span class="num">0</span>)     <span class="cm"># LOW</span></div>
-          <div id="code-rev-2" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in2.<span class="fn">duty_u16</span>(<span id="codeDutyRev" class="val-highlight">32768</span>)</div>
+          <div class="code-box">
+            <div id="code-l1" class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
+            <div id="code-l2" class="code-line"><span class="cm"># DRV8833 Pins (GP14=IN1, GP15=IN2)</span></div>
+            <div id="code-l3" class="code-line">in1 = PWM(Pin(<span class="num">14</span>), freq=<span class="num">1000</span>)</div>
+            <div id="code-l4" class="code-line">in2 = PWM(Pin(<span class="num">15</span>), freq=<span class="num">1000</span>)</div>
+            <div id="code-l5" class="code-line"><br><span class="kw">def</span> <span class="fn">drive_motor</span>():</div>
+            
+            <!-- Branch 1: Short Brake -->
+            <div id="code-branch-brake" class="code-line">&nbsp;&nbsp;<span class="kw">if</span> mode == <span class="val-highlight">"BRAKE"</span>:</div>
+            <div id="code-brake-1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in1.<span class="fn">duty_u16</span>(<span class="num">65535</span>) <span class="cm"># HIGH</span></div>
+            <div id="code-brake-2" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in2.<span class="fn">duty_u16</span>(<span class="num">65535</span>) <span class="cm"># HIGH</span></div>
+            
+            <!-- Branch 2: Forward (CW) -->
+            <div id="code-branch-fwd" class="code-line">&nbsp;&nbsp;<span class="kw">elif</span> dir == <span class="val-highlight">"FORWARD"</span>:</div>
+            <div id="code-fwd-1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in1.<span class="fn">duty_u16</span>(<span id="codeDutyFwd" class="val-highlight">32768</span>)</div>
+            <div id="code-fwd-2" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in2.<span class="fn">duty_u16</span>(<span class="num">0</span>)     <span class="cm"># LOW</span></div>
+            
+            <!-- Branch 3: Reverse (CCW) -->
+            <div id="code-branch-rev" class="code-line">&nbsp;&nbsp;<span class="kw">elif</span> dir == <span class="val-highlight">"REVERSE"</span>:</div>
+            <div id="code-rev-1" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in1.<span class="fn">duty_u16</span>(<span class="num">0</span>)     <span class="cm"># LOW</span></div>
+            <div id="code-rev-2" class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;in2.<span class="fn">duty_u16</span>(<span id="codeDutyRev" class="val-highlight">32768</span>)</div>
+          </div>
         </div>
+
+        <!-- Concept Check Quiz Panel -->
+        <div class="card">
+          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-question" id="quiz-question">
+            Why does setting both DRV8833 input pins to maximum PWM (IN1=HIGH, IN2=HIGH) trigger a "Short Brake" instead of driving the motor at 100% speed?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px;"></div>
+          <div id="quiz-feedback"></div>
+        </div>
+
       </div>
 
     </div>
@@ -176,6 +199,45 @@
     const branchRev = document.getElementById('code-branch-rev');
     const revLine1 = document.getElementById('code-rev-1');
     const revLine2 = document.getElementById('code-rev-2');
+
+    // Quiz Data
+    const quizData = {
+      question: "Why does setting both DRV8833 input pins to HIGH (IN1=65535, IN2=65535) trigger a 'Short Brake' instead of driving the motor at 100% speed?",
+      options: [
+        { text: "A. It shorts both motor leads to GND/VM, consuming back-EMF energy to rapidly resist rotation.", correct: true },
+        { text: "B. It doubles the voltage across the motor windings, causing the internal safety cut-off to trigger.", correct: false },
+        { text: "C. It turns off the internal H-bridge MOSFETs, allowing the shaft to freewheel silently.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! Shorting both terminals creates a magnetic braking force using back-EMF generated by the spinning armature.';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Think about how an H-bridge bridges the motor terminals to ground/power to collapse the magnetic field!';
+      }
+    }
 
     function drawPWMWave() {
       if (isBraking) {
@@ -213,7 +275,6 @@
     }
 
     function updateCodeHighlighting(u16Val) {
-      // Clear all active highlights
       [branchBrake, brakeLine1, brakeLine2, branchFwd, fwdLine1, fwdLine2, branchRev, revLine1, revLine2]
         .forEach(el => el.classList.remove('active'));
 
@@ -305,6 +366,7 @@
       updateUI();
     });
 
+    initQuiz();
     updateUI();
     loop();
   </script>
