@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RP2040 Direct 3.3V Digital I/O & LED Switch Simulator</title>
+  
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
+    .nav-link:hover { text-decoration: underline; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1100px; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 20px; font-size: 0.95rem; text-align: center; }
+
+    /* Concept & Hardware Banner */
+    .concept-card { background: #181825; border: 1px solid #313244; border-radius: 8px; padding: 16px; margin-bottom: 18px; font-size: 0.85rem; line-height: 1.5; color: #cdd6f4; }
+    .concept-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; }
+    .badge-3v3 { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
+
+    /* Grid Layout */
+    .grid-container { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
+    @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
+
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+
+    /* Canvas Box */
+    .canvas-container { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; overflow: hidden; position: relative; margin-bottom: 12px; }
+    canvas { display: block; width: 100%; height: auto; }
+
+    /* Switch Matrix Controls */
+    .switch-matrix { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    .switch-row { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+    .switch-label { font-size: 0.82rem; font-weight: bold; font-family: monospace; }
+    
+    .btn-signal { padding: 8px 16px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; border: 1px solid #313244; background: #181825; color: #a6adc8; }
+    .btn-signal.active-red { background: #f38ba8; color: #11111b; border-color: #f38ba8; box-shadow: 0 0 12px rgba(243,139,168,0.6); }
+    .btn-signal.active-green { background: #a6e3a1; color: #11111b; border-color: #a6e3a1; box-shadow: 0 0 12px rgba(166,227,161,0.6); }
+    .btn-signal.active-blue { background: #89b4fa; color: #11111b; border-color: #89b4fa; box-shadow: 0 0 12px rgba(137,180,250,0.6); }
+
+    /* Code Inspector Styling */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 3px 6px; border-radius: 4px; color: #a6adc8; white-space: pre; transition: all 0.3s ease; }
+    .code-line.active-red-line { background: rgba(243, 139, 168, 0.2); border-left: 3px solid #f38ba8; color: #f38ba8; }
+    .code-line.active-grn-line { background: rgba(166, 227, 161, 0.2); border-left: 3px solid #a6e3a1; color: #a6e3a1; }
+    .code-line.active-blu-line { background: rgba(137, 180, 250, 0.2); border-left: 3px solid #89b4fa; color: #89b4fa; }
+
+    .kw { color: #f38ba8; }
+    .fn { color: #89b4fa; }
+    .num { color: #fab387; }
+    .cm { color: #6c7086; font-style: italic; }
+    .val-highlight { font-weight: bold; padding: 1px 4px; border-radius: 3px; }
+    .val-active-red { color: #11111b; background: #f38ba8; font-weight: bold; }
+    .val-active-grn { color: #11111b; background: #a6e3a1; font-weight: bold; }
+    .val-active-blu { color: #11111b; background: #89b4fa; font-weight: bold; }
+    .val-inactive { color: #f9e2af; }
+
+    /* Quiz Panel Styling */
+    .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; margin-top: 8px; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; margin-top: 8px; }
+
+    footer { margin-top: 25px; border-top: 1px solid #313244; padding-top: 15px; width: 100%; text-align: center; font-size: 0.75rem; color: #6c7086; font-family: monospace; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="./index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 MicroPython Digital I/O Lab</span>
+  </header>
+
+  <div class="content-wrapper">
+    <h1>Direct 3.3V Digital Input & Output LED Simulator</h1>
+    <p class="subtitle">RP2040 Pin-Number Level Visualization & Direct Input-to-Output Signal Mapping</p>
+
+    <!-- Banner Description -->
+    <div class="concept-card">
+      <div class="concept-title">
+        ⚡ RP2040 Direct Pin Assignment & 3.3V Digital Signals
+      </div>
+      <div>
+        <strong>Logic HIGH vs Logic LOW:</strong> The RP2040 microcontroller reads 3.3V as a digital <code>1</code> (HIGH) and 0.0V as a digital <code>0</code> (LOW).
+        When a direct 3.3V signal is assigned to an input pin (e.g., <strong>GP14</strong>, <strong>GP16</strong>, <strong>GP18</strong>), MicroPython reads the state and sets the corresponding output pin (e.g., <strong>GP15</strong>, <strong>GP17</strong>, <strong>GP19</strong>) HIGH to light up the LED circuit.
+        <br><br>
+        <strong>Mapped Channel Matrix:</strong> 
+        <span class="badge badge-3v3">Channel 1: GP14 (3.3V In) → GP15 (Red LED)</span>
+        <span class="badge badge-3v3">Channel 2: GP16 (3.3V In) → GP17 (Green LED)</span>
+        <span class="badge badge-3v3">Channel 3: GP18 (3.3V In) → GP19 (Blue LED)</span>
+      </div>
+    </div>
+
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN: Microcontroller Visualizer & Interactive Switches -->
+      <div class="card">
+        
+        <!-- Canvas Circuit Graphic -->
+        <div class="canvas-container">
+          <canvas id="gpioCanvas" width="540" height="300"></canvas>
+        </div>
+
+        <!-- 3.3V Input Switch Controls -->
+        <div class="switch-matrix">
+          
+          <!-- Channel 1: Red -->
+          <div class="switch-row">
+            <div class="switch-label" style="color: #f38ba8;">
+              🔴 Channel 1: Pin GP14 (In) → Pin GP15 (Red LED)
+            </div>
+            <button class="btn-signal" id="btnCh1" onclick="toggleChannel(1)">
+              Apply 3.3V to GP14 [OFF]
+            </button>
+          </div>
+
+          <!-- Channel 2: Green -->
+          <div class="switch-row">
+            <div class="switch-label" style="color: #a6e3a1;">
+              🟢 Channel 2: Pin GP16 (In) → Pin GP17 (Green LED)
+            </div>
+            <button class="btn-signal" id="btnCh2" onclick="toggleChannel(2)">
+              Apply 3.3V to GP16 [OFF]
+            </button>
+          </div>
+
+          <!-- Channel 3: Blue -->
+          <div class="switch-row">
+            <div class="switch-label" style="color: #89b4fa;">
+              🔵 Channel 3: Pin GP18 (In) → Pin GP19 (Blue LED)
+            </div>
+            <button class="btn-signal" id="btnCh3" onclick="toggleChannel(3)">
+              Apply 3.3V to GP18 [OFF]
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Code Inspector & Quiz -->
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+
+        <!-- MicroPython Direct Polling Code -->
+        <div class="card">
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.92rem;">
+            🐍 MicroPython Code: Live Pin State Inspector
+          </div>
+
+          <div class="code-box">
+            <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin</div>
+            <div class="code-line"><span class="kw">import</span> time</div>
+            <div class="code-line"><br><span class="cm"># Explicit RP2040 GPIO Pin Assignments</span></div>
+            <div class="code-line">pin_gp14 = Pin(<span class="num">14</span>, Pin.IN)  <span class="cm"># Input Channel 1</span></div>
+            <div class="code-line">pin_gp15 = Pin(<span class="num">15</span>, Pin.OUT) <span class="cm"># Red LED Output</span></div>
+            <div class="code-line">pin_gp16 = Pin(<span class="num">16</span>, Pin.IN)  <span class="cm"># Input Channel 2</span></div>
+            <div class="code-line">pin_gp17 = Pin(<span class="num">17</span>, Pin.OUT) <span class="cm"># Green LED Output</span></div>
+            <div class="code-line">pin_gp18 = Pin(<span class="num">18</span>, Pin.IN)  <span class="cm"># Input Channel 3</span></div>
+            <div class="code-line">pin_gp19 = Pin(<span class="num">19</span>, Pin.OUT) <span class="cm"># Blue LED Output</span></div>
+            <div class="code-line"><br><span class="cm"># Direct Polling & Pin State Loop</span></div>
+            <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
+            
+            <!-- Dynamic Reactive Lines -->
+            <div class="code-line" id="lineRed">
+              &nbsp;&nbsp;pin_gp15.value(pin_gp14.value()) <span class="cm"># GP14->GP15: </span><span id="codeValRed" class="val-highlight val-inactive">0 (0.0V)</span>
+            </div>
+            <div class="code-line" id="lineGrn">
+              &nbsp;&nbsp;pin_gp17.value(pin_gp16.value()) <span class="cm"># GP16->GP17: </span><span id="codeValGrn" class="val-highlight val-inactive">0 (0.0V)</span>
+            </div>
+            <div class="code-line" id="lineBlu">
+              &nbsp;&nbsp;pin_gp19.value(pin_gp18.value()) <span class="cm"># GP18->GP19: </span><span id="codeValBlu" class="val-highlight val-inactive">0 (0.0V)</span>
+            </div>
+            
+            <div class="code-line">&nbsp;&nbsp;time.sleep_ms(<span class="num">20</span>)</div>
+          </div>
+        </div>
+
+        <!-- Concept Check Quiz Panel -->
+        <div class="card">
+          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-question" id="quiz-question">
+            Why is it necessary to specify exact GPIO pin numbers (like Pin(14) and Pin(15)) in MicroPython code?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+          <div id="quiz-feedback"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    © 2026 Designed & Authored by <strong style="color:#cdd6f4;">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
+  </footer>
+
+  <script>
+    // State
+    const channels = {
+      1: { active: false, inPin: 'GP14', outPin: 'GP15', color: '#f38ba8', name: 'Red' },
+      2: { active: false, inPin: 'GP16', outPin: 'GP17', color: '#a6e3a1', name: 'Green' },
+      3: { active: false, inPin: 'GP18', outPin: 'GP19', color: '#89b4fa', name: 'Blue' }
+    };
+
+    // DOM Elements
+    const canvas = document.getElementById('gpioCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const lineRed = document.getElementById('lineRed');
+    const lineGrn = document.getElementById('lineGrn');
+    const lineBlu = document.getElementById('lineBlu');
+
+    const codeValRed = document.getElementById('codeValRed');
+    const codeValGrn = document.getElementById('codeValGrn');
+    const codeValBlu = document.getElementById('codeValBlu');
+
+    function toggleChannel(chNum) {
+      channels[chNum].active = !channels[chNum].active;
+      const btn = document.getElementById(`btnCh${chNum}`);
+      const ch = channels[chNum];
+
+      if (ch.active) {
+        btn.textContent = `3.3V HIGH to ${ch.inPin} [ON]`;
+        if (chNum === 1) btn.className = 'btn-signal active-red';
+        if (chNum === 2) btn.className = 'btn-signal active-green';
+        if (chNum === 3) btn.className = 'btn-signal active-blue';
+      } else {
+        btn.textContent = `Apply 3.3V to ${ch.inPin} [OFF]`;
+        btn.className = 'btn-signal';
+      }
+
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      // Update Red Line Code Inspector
+      if (channels[1].active) {
+        codeValRed.textContent = '1 (3.3V HIGH)';
+        codeValRed.className = 'val-highlight val-active-red';
+        lineRed.className = 'code-line active-red-line';
+      } else {
+        codeValRed.textContent = '0 (0.0V LOW)';
+        codeValRed.className = 'val-highlight val-inactive';
+        lineRed.className = 'code-line';
+      }
+
+      // Update Green Line Code Inspector
+      if (channels[2].active) {
+        codeValGrn.textContent = '1 (3.3V HIGH)';
+        codeValGrn.className = 'val-highlight val-active-grn';
+        lineGrn.className = 'code-line active-grn-line';
+      } else {
+        codeValGrn.textContent = '0 (0.0V LOW)';
+        codeValGrn.className = 'val-highlight val-inactive';
+        lineGrn.className = 'code-line';
+      }
+
+      // Update Blue Line Code Inspector
+      if (channels[3].active) {
+        codeValBlu.textContent = '1 (3.3V HIGH)';
+        codeValBlu.className = 'val-highlight val-active-blu';
+        lineBlu.className = 'code-line active-blu-line';
+      } else {
+        codeValBlu.textContent = '0 (0.0V LOW)';
+        codeValBlu.className = 'val-highlight val-inactive';
+        lineBlu.className = 'code-line';
+      }
+
+      drawCircuitGraphic();
+    }
+
+    function drawCircuitGraphic() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Draw RP2040 Microcontroller Chip
+      const chipX = 170;
+      const chipY = 35;
+      const chipW = 200;
+      const chipH = 230;
+
+      ctx.fillStyle = '#181825';
+      ctx.strokeStyle = '#313244';
+      ctx.lineWidth = 3;
+      ctx.fillRect(chipX, chipY, chipW, chipH);
+      ctx.strokeRect(chipX, chipY, chipW, chipH);
+
+      // Chip Header & Branding
+      ctx.fillStyle = '#89b4fa';
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('RP2040 Microcontroller', chipX + chipW / 2, chipY + 22);
+
+      ctx.fillStyle = '#a6adc8';
+      ctx.font = '10px monospace';
+      ctx.fillText('Pin-Level Digital Logic Bus', chipX + chipW / 2, chipY + 38);
+
+      // Config Array for Vertical Pins
+      const config = [
+        { ch: channels[1], y: 85, inPinNum: 'GP14', outPinNum: 'GP15' },
+        { ch: channels[2], y: 145, inPinNum: 'GP16', outPinNum: 'GP17' },
+        { ch: channels[3], y: 205, inPinNum: 'GP18', outPinNum: 'GP19' }
+      ];
+
+      config.forEach((item) => {
+        const { ch, y, inPinNum, outPinNum } = item;
+
+        // LEFT SIDE: Signal Wire -> Input Pin Number
+        const inPinX = chipX;
+        const sourceX = 35;
+
+        // Draw Wire
+        ctx.strokeStyle = ch.active ? ch.color : '#313244';
+        ctx.lineWidth = ch.active ? 3 : 2;
+        ctx.beginPath();
+        ctx.moveTo(sourceX, y);
+        ctx.lineTo(inPinX, y);
+        ctx.stroke();
+
+        // 3.3V Source Node
+        ctx.fillStyle = ch.active ? ch.color : '#313244';
+        ctx.beginPath();
+        ctx.arc(sourceX, y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = ch.active ? ch.color : '#a6adc8';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(ch.active ? '3.3V' : '0.0V', sourceX - 8, y + 3);
+
+        // Input Pin Box & Text on Chip Border
+        ctx.fillStyle = ch.active ? ch.color : '#313244';
+        ctx.fillRect(inPinX - 4, y - 8, 8, 16);
+
+        // Input Pin Number Label
+        ctx.fillStyle = ch.active ? ch.color : '#a6adc8';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`[Pin ${inPinNum}]`, inPinX + 8, y + 3);
+
+        // Internal Logic Wire inside RP2040
+        ctx.strokeStyle = ch.active ? ch.color : '#313244';
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(inPinX + 70, y);
+        ctx.lineTo(chipX + chipW - 70, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // RIGHT SIDE: Output Pin Number -> Resistor -> LED
+        const outPinX = chipX + chipW;
+        const ledX = canvas.width - 40;
+
+        ctx.strokeStyle = ch.active ? ch.color : '#313244';
+        ctx.lineWidth = ch.active ? 3 : 2;
+        ctx.beginPath();
+        ctx.moveTo(outPinX, y);
+        ctx.lineTo(ledX, y);
+        ctx.stroke();
+
+        // Output Pin Box & Label
+        ctx.fillStyle = ch.active ? ch.color : '#313244';
+        ctx.fillRect(outPinX - 4, y - 8, 8, 16);
+
+        ctx.fillStyle = ch.active ? ch.color : '#a6adc8';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`[Pin ${outPinNum}]`, outPinX - 8, y + 3);
+
+        // Draw Series Resistor (220 Ohm)
+        const resX = chipX + chipW + 40;
+        ctx.fillStyle = '#181825';
+        ctx.strokeStyle = ch.active ? ch.color : '#313244';
+        ctx.fillRect(resX, y - 8, 22, 16);
+        ctx.strokeRect(resX, y - 8, 22, 16);
+
+        ctx.fillStyle = '#a6adc8';
+        ctx.font = '8px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('220Ω', resX + 11, y + 3);
+
+        // Draw LED Bulb with Glowing Effect
+        if (ch.active) {
+          ctx.shadowColor = ch.color;
+          ctx.shadowBlur = 15;
+        }
+
+        ctx.fillStyle = ch.active ? ch.color : '#313244';
+        ctx.strokeStyle = '#313244';
+        ctx.beginPath();
+        ctx.arc(ledX, y, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.shadowBlur = 0; // Reset Shadow
+
+        ctx.fillStyle = ch.active ? '#11111b' : '#a6adc8';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(ch.name, ledX, y + 3);
+      });
+    }
+
+    // Quiz Data
+    const quizData = {
+      question: "Why is it necessary to specify exact GPIO pin numbers (like Pin(14) and Pin(15)) in MicroPython code?",
+      options: [
+        { text: "A. The RP2040 hardware multiplexer routes internal silicon registers directly to physical package pins based on pin numbers.", correct: true },
+        { text: "B. Pin numbers determine the supply voltage of the board automatically.", correct: false },
+        { text: "C. MicroPython automatically assigns random pin numbers if none are specified.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! Physical GPIO pin numbers link MicroPython code instructions directly to hardware silicon pin drivers on the RP2040 chip!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Think about how software code connects to physical copper traces and pins on the microcontroller.';
+      }
+    }
+
+    // Initialize
+    initQuiz();
+    updateDisplay();
+  </script>
+</body>
+</html>
