@@ -65,7 +65,10 @@
   <header>
     <a href="./index.html" class="nav-link">← Back to Lab Hub</a>
     <span style="font-weight: bold; color: #a6adc8;">RP2040 Analog Signal Processing Lab</span>
-  </header>
+  <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+    <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+  </button>
+</header>
 
   <div class="content-wrapper">
     <h1>Analog Input (ADC) to PWM Output Signal Processing</h1>
