@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PWM Signal, Bit-Conversion & RP2040 Hardware Simulator</title>
+  <title>RP2040 PWM & Dynamic Multi-Bit Converter Visualizer</title>
+  
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+  
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
@@ -20,7 +28,7 @@
     
     .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; }
     .badge-16 { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
-    .badge-8 { background: #1e3a5f; color: #89b4fa; border: 1px solid #89b4fa; }
+    .badge-dyn { background: #1e3a5f; color: #89b4fa; border: 1px solid #89b4fa; }
     .badge-io { background: #421e25; color: #f38ba8; border: 1px solid #f38ba8; }
 
     /* Grid Layout */
@@ -40,15 +48,21 @@
     .slider-header { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: bold; color: #89b4fa; margin-bottom: 4px; }
     input[type=range] { width: 100%; background: #313244; accent-color: #89b4fa; border-radius: 4px; height: 6px; cursor: pointer; }
 
+    /* Bit Selection Buttons */
+    .btn-group { display: flex; gap: 8px; margin-top: 6px; }
+    .bit-btn { flex: 1; padding: 6px 10px; background: #181825; border: 1px solid #313244; color: #a6adc8; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; text-align: center; }
+    .bit-btn:hover { border-color: #89b4fa; color: #cdd6f4; }
+    .bit-btn.active { background: #89b4fa; color: #11111b; border-color: #89b4fa; font-weight: bold; }
+
     /* Conversion Calculator Table */
     .conversion-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; margin-top: 10px; font-family: monospace; font-size: 0.8rem; }
     .conv-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #181825; }
     .conv-row:last-child { border-bottom: none; }
+    .conv-row.active-row { background: rgba(137, 180, 250, 0.1); border-radius: 4px; padding-left: 4px; padding-right: 4px; }
 
     /* Code Inspector Styling */
     .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
     .code-line { padding: 2px 6px; border-radius: 4px; color: #a6adc8; white-space: pre; }
-    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 3px solid #a6e3a1; padding-left: 3px; }
     .kw { color: #f38ba8; }
     .fn { color: #89b4fa; }
     .num { color: #fab387; }
@@ -63,31 +77,36 @@
     .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
     .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
     #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; margin-top: 8px; }
+
+    /* Footer Copyright */
+    footer { margin-top: 25px; border-top: 1px solid #313244; padding-top: 15px; width: 100%; text-align: center; font-size: 0.75rem; color: #6c7086; font-family: monospace; }
   </style>
 </head>
 <body>
 
   <header>
-    <a href="../../index.html" class="nav-link">← Back to Lab Hub</a>
+    <a href="./index.html" class="nav-link">← Back to Lab Hub</a>
     <span style="font-weight: bold; color: #a6adc8;">RP2040 MicroPython Actuator Lab</span>
   </header>
 
   <div class="content-wrapper">
-    <h1>PWM Signal, Bit-Conversion & RP2040 Hardware Simulator</h1>
-    <p class="subtitle">16-bit to 8-bit Resolution Conversion, Timing Equations, and Bidirectional PWM Ports</p>
+    <h1>PWM Signal & Dynamic Bit-Width Converter</h1>
+    <p class="subtitle">16-bit RP2040 Hardware Registers to 8-bit, 10-bit, 12-bit & 14-bit Multi-Resolution Conversion</p>
 
     <!-- RP2040 Hardware & Bit Conversion Banner -->
     <div class="concept-card">
       <div class="concept-title">
-        ⚡ RP2040 Bidirectional PWM Ports & Multi-Resolution Conversions
+        ⚡ RP2040 Hardware Registers & Dynamic Bit-Resolution Bit-Shifting
       </div>
       <div>
-        <strong>Bidirectional Ports:</strong> The RP2040 microcontroller contains 8 hardware PWM slices (16 total channels). <strong>All 30 GPIO pins are bidirectional</strong>—they can output PWM signals to actuators (e.g., ESCs, servos, LEDs) or capture incoming PWM signals from external sensors (e.g., ultrasonic sensors, RC receivers) using high-speed hardware counter clocks.
+        <strong>RP2040 PWM Register Architecture:</strong> The RP2040 microcontroller utilizes 16-bit registers (0 to 65,535 via <code>duty_u16</code>). However, external sensors, DACs, ADCs, and communication protocols operate at various bit depths:
+        <strong>8-bit</strong> (0–255), <strong>10-bit</strong> (0–1,023 RP2040 ADC default), <strong>12-bit</strong> (0–4,095 high-res DAC/sensors), and <strong>14-bit</strong> (0–16,383 precision sensors).
         <br><br>
-        <strong>Bit Resolution Mapping:</strong> The RP2040 uses 16-bit registers (0 to 65,535). When communicating with 8-bit hardware devices (0 to 255) or 10-bit ADCs (0 to 1,023), values are converted using bit-shift operations or ratio scaling:
-        <span class="badge badge-16">16-Bit: 0 – 65,535</span>
-        <span class="badge badge-8">8-Bit: 0 – 255</span>
-        <span class="badge badge-io">Bidirectional: Input Capture & Output</span>
+        <strong>Bit-Shift Formula:</strong> To scale a 16-bit RP2040 value down to an <i>N</i>-bit target, perform a right bit-shift: 
+        <code>target_val = duty_u16 >> (16 - N)</code>.
+        <span class="badge badge-16">16-Bit Register: 0–65,535</span>
+        <span class="badge badge-dyn" id="badgeTarget">Target: 8-Bit (>> 8)</span>
+        <span class="badge badge-io">Bidirectional PWM Pins</span>
       </div>
     </div>
 
@@ -101,20 +120,34 @@
           <canvas id="pwmCanvas" width="540" height="240"></canvas>
         </div>
 
-        <!-- Interactive Sliders -->
+        <!-- Interactive Controls Panel -->
         <div class="control-panel">
           
           <!-- Duty Cycle Slider -->
           <div class="control-group">
             <div class="slider-header">
-              <span>Duty Cycle (16-Bit Register Value):</span>
+              <span>Duty Cycle (16-Bit RP2040 Register):</span>
               <span id="dutyLabel" style="color:#a6e3a1;">32,768 u16 (50.0%)</span>
             </div>
-            <input type="range" id="dutySlider" min="0" max="65535" value="32768" step="256">
+            <input type="range" id="dutySlider" min="0" max="65535" value="32768" step="128">
+          </div>
+
+          <!-- Target Bit-Width Selector Buttons -->
+          <div class="control-group">
+            <div class="slider-header">
+              <span>Select Target Bit-Width Resolution (N-bit):</span>
+              <span id="bitShiftLabel" style="color:#89b4fa;">Shift: >> 8 bits</span>
+            </div>
+            <div class="btn-group">
+              <div class="bit-btn active" onclick="setTargetBits(8)">8-bit</div>
+              <div class="bit-btn" onclick="setTargetBits(10)">10-bit</div>
+              <div class="bit-btn" onclick="setTargetBits(12)">12-bit</div>
+              <div class="bit-btn" onclick="setTargetBits(14)">14-bit</div>
+            </div>
           </div>
 
           <!-- Frequency Slider -->
-          <div class="control-group">
+          <div class="control-group" style="margin-top: 10px;">
             <div class="slider-header">
               <span>Signal Frequency (Hz):</span>
               <span id="freqLabel" style="color:#89b4fa;">1,000 Hz (Period: 1.00 ms)</span>
@@ -126,13 +159,19 @@
 
         <!-- Live Bit Conversion Calculator -->
         <div class="conversion-box">
-          <div style="font-weight:bold; color:#89b4fa; margin-bottom:6px; border-bottom:1px solid #313244; padding-bottom:4px;">
-            📊 Live Resolution Conversion Table
+          <div style="font-weight:bold; color:#89b4fa; margin-bottom:6px; border-bottom:1px solid #313244; padding-bottom:4px; display:flex; justify-between;">
+            <span>📊 Multi-Resolution Conversion Table</span>
+            <span id="targetNotice" style="color:#f9e2af; font-size:0.75rem;">Selected Target: 8-Bit</span>
           </div>
-          <div class="conv-row"><span>16-Bit Duty (u16):</span> <span id="conv16" style="color:#a6e3a1;">32,768 / 65,535</span></div>
-          <div class="conv-row"><span>8-Bit Duty (u8 = u16 >> 8):</span> <span id="conv8" style="color:#89b4fa;">128 / 255</span></div>
-          <div class="conv-row"><span>10-Bit Duty (u10 = u16 >> 6):</span> <span id="conv10" style="color:#fab387;">512 / 1,023</span></div>
-          <div class="conv-row"><span>Equivalent Voltage Output (at 3.3V):</span> <span id="convVolt" style="color:#f9e2af;">1.65 V</span></div>
+          <div class="conv-row"><span>16-Bit Source Value (u16):</span> <span id="conv16" style="color:#a6e3a1;">32,768 / 65,535</span></div>
+          <div class="conv-row" id="row8"><span>8-Bit Value (u16 >> 8):</span> <span id="conv8" style="color:#89b4fa;">128 / 255</span></div>
+          <div class="conv-row" id="row10"><span>10-Bit Value (u16 >> 6):</span> <span id="conv10" style="color:#fab387;">512 / 1,023</span></div>
+          <div class="conv-row" id="row12"><span>12-Bit Value (u16 >> 4):</span> <span id="conv12" style="color:#cba6f7;">2,048 / 4,095</span></div>
+          <div class="conv-row" id="row14"><span>14-Bit Value (u16 >> 2):</span> <span id="conv14" style="color:#f38ba8;">8,192 / 16,383</span></div>
+          <div class="conv-row" style="margin-top:4px; border-top:1px dashed #313244; padding-top:4px;">
+            <span>Equivalent Analog Voltage (3.3V Pin):</span> 
+            <span id="convVolt" style="color:#f9e2af; font-weight:bold;">1.65 V</span>
+          </div>
         </div>
 
       </div>
@@ -140,33 +179,34 @@
       <!-- RIGHT COLUMN: Code Inspector & Formative Quiz -->
       <div style="display: flex; flex-direction: column; gap: 18px;">
 
-        <!-- MicroPython Bidirectional Code Inspector -->
+        <!-- MicroPython Dynamic Code Inspector -->
         <div class="card">
           <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.92rem;">
-            🐍 MicroPython Code: Bidirectional PWM & Conversion
+            🐍 MicroPython Code: Dynamic Bit Conversion Functions
           </div>
 
           <div class="code-box">
             <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
-            <div class="code-line"><br><span class="cm"># 1. OUTPUT: PWM Generator (16-bit u16)</span></div>
+            <div class="code-line"><br><span class="cm"># 1. RP2040 PWM Output Setup (16-bit u16)</span></div>
             <div class="code-line">pwm_out = PWM(Pin(<span class="num">15</span>))</div>
             <div class="code-line">pwm_out.freq(<span id="codeFreqVal" class="val-highlight">1000</span>)</div>
             <div class="code-line">pwm_out.duty_u16(<span id="codeDutyVal" class="val-highlight">32768</span>)</div>
-            <div class="code-line"><br><span class="cm"># 2. CONVERSION: Scale 8-bit sensor (0-255) to 16-bit</span></div>
-            <div class="code-line"><span class="kw">def</span> <span class="fn">write_8bit_to_pwm</span>(val_8bit):</div>
-            <div class="code-line">&nbsp;&nbsp;val_16bit = (val_8bit &lt;&lt; <span class="num">8</span>) | val_8bit <span class="cm"># Scale 8->16 bit</span></div>
-            <div class="code-line">&nbsp;&nbsp;pwm_out.duty_u16(val_16bit)</div>
-            <div class="code-line"><br><span class="cm"># 3. INPUT: Read incoming PWM signal from pin</span></div>
-            <div class="code-line"><span class="kw">def</span> <span class="fn">read_8bit_from_pwm16</span>(u16_val):</div>
-            <div class="code-line">&nbsp;&nbsp;<span class="kw">return</span> u16_val &gt;&gt; <span class="num">8</span> <span class="cm"># Shift right 8 bits: <span id="codeConvVal" class="val-highlight">128</span></span></div>
+            <div class="code-line"><br><span class="cm"># 2. Convert Any N-Bit Sensor Input to 16-bit u16</span></div>
+            <div class="code-line"><span class="kw">def</span> <span class="fn">scale_to_u16</span>(sensor_val, bits):</div>
+            <div class="code-line">&nbsp;&nbsp;shift = <span class="num">16</span> - bits</div>
+            <div class="code-line">&nbsp;&nbsp;<span class="kw">return</span> sensor_val &lt;&lt; shift</div>
+            <div class="code-line"><br><span class="cm"># 3. Convert 16-Bit u16 Register to Target N-Bit</span></div>
+            <div class="code-line"><span class="kw">def</span> <span class="fn">scale_from_u16</span>(u16_val, target_bits):</div>
+            <div class="code-line">&nbsp;&nbsp;shift = <span class="num">16</span> - target_bits <span class="cm"># <span id="codeShiftFormula" class="val-highlight">16 - 8 = 8</span></span></div>
+            <div class="code-line">&nbsp;&nbsp;<span class="kw">return</span> u16_val &gt;&gt; shift   <span class="cm"># Result: <span id="codeTargetVal" class="val-highlight">128</span></span></div>
           </div>
         </div>
 
         <!-- Concept Check Quiz Panel -->
         <div class="card">
-          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-title">📝 Dynamic Bit-Conversion Quiz</div>
           <div class="quiz-question" id="quiz-question">
-            How can an RP2040 GPIO pin act bidirectionally with PWM signals, and how are 16-bit register values converted for an 8-bit device?
+            If an RP2040 receives a 12-bit sensor value (range 0 to 4095), how do we scale it up to a 16-bit `duty_u16` register, and what shift operator is used?
           </div>
           <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
           <div id="quiz-feedback"></div>
@@ -177,10 +217,15 @@
     </div>
   </div>
 
+  <footer>
+    © 2026 Designed & Authored by <strong style="color:#cdd6f4;">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
+  </footer>
+
   <script>
     // State & Variables
     let dutyU16 = 32768;
     let frequencyHz = 1000;
+    let targetBits = 8; // Default 8-bit
 
     // DOM Elements
     const canvas = document.getElementById('pwmCanvas');
@@ -190,53 +235,32 @@
     const freqSlider = document.getElementById('freqSlider');
     const dutyLabel = document.getElementById('dutyLabel');
     const freqLabel = document.getElementById('freqLabel');
+    const bitShiftLabel = document.getElementById('bitShiftLabel');
+    const badgeTarget = document.getElementById('badgeTarget');
+    const targetNotice = document.getElementById('targetNotice');
 
     const conv16 = document.getElementById('conv16');
     const conv8 = document.getElementById('conv8');
     const conv10 = document.getElementById('conv10');
+    const conv12 = document.getElementById('conv12');
+    const conv14 = document.getElementById('conv14');
     const convVolt = document.getElementById('convVolt');
 
     const codeFreqVal = document.getElementById('codeFreqVal');
     const codeDutyVal = document.getElementById('codeDutyVal');
-    const codeConvVal = document.getElementById('codeConvVal');
+    const codeShiftFormula = document.getElementById('codeShiftFormula');
+    const codeTargetVal = document.getElementById('codeTargetVal');
 
-    // Quiz Data
-    const quizData = {
-      question: "Why can RP2040 GPIO pins handle both PWM input and output, and how are 16-bit duty cycles scaled to 8-bit values?",
-      options: [
-        { text: "A. Hardware PWM slices are bidirectional counter blocks; bit-shifting right by 8 (u16 >> 8) converts 16-bit registers to 8-bit values.", correct: true },
-        { text: "B. PWM pins can only output signals; bit-shifting left by 8 converts 16-bit registers to 8-bit values.", correct: false },
-        { text: "C. An external analog-to-digital converter chip is required to switch pins between input and output mode.", correct: false }
-      ]
-    };
-
-    function initQuiz() {
-      document.getElementById('quiz-question').innerText = quizData.question;
-      const container = document.getElementById('quiz-options');
-      container.innerHTML = '';
-
-      quizData.options.forEach((opt) => {
-        const div = document.createElement('div');
-        div.className = 'quiz-opt';
-        div.innerText = opt.text;
-        div.onclick = () => checkQuiz(div, opt.correct);
-        container.appendChild(div);
+    // Set Target Bits
+    function setTargetBits(bits) {
+      targetBits = bits;
+      document.querySelectorAll('.bit-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.innerText.includes(bits + '-bit')) {
+          btn.classList.add('active');
+        }
       });
-    }
-
-    function checkQuiz(selectedEl, isCorrect) {
-      const feedback = document.getElementById('quiz-feedback');
-      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
-
-      if (isCorrect) {
-        selectedEl.classList.add('correct');
-        feedback.style.color = '#a6e3a1';
-        feedback.textContent = 'Correct! All RP2040 GPIO pins connect to hardware counter slices that measure or generate PWM. Bit-shifting (u16 >> 8) scales 65535 down to 255!';
-      } else {
-        selectedEl.classList.add('wrong');
-        feedback.style.color = '#f38ba8';
-        feedback.textContent = 'Incorrect. Consider how bit-shift operators (>> 8) drop lower bytes to convert 16-bit registers down to 8 bits.';
-      }
+      updateDisplay();
     }
 
     // Event Listeners
@@ -251,26 +275,45 @@
     });
 
     function updateDisplay() {
+      const shiftAmount = 16 - targetBits;
+      const targetVal = dutyU16 >> shiftAmount;
+      const maxTargetVal = Math.pow(2, targetBits) - 1;
       const dutyPct = (dutyU16 / 65535.0) * 100.0;
       const periodMs = 1000.0 / frequencyHz;
-      const val8Bit = dutyU16 >> 8;
-      const val10Bit = dutyU16 >> 6;
       const equivVolt = (dutyU16 / 65535.0) * 3.3;
 
-      // Update Labels
+      // Update Header Labels & Badges
       dutyLabel.textContent = `${dutyU16.toLocaleString()} u16 (${dutyPct.toFixed(1)}%)`;
       freqLabel.textContent = `${frequencyHz.toLocaleString()} Hz (Period: ${periodMs.toFixed(2)} ms)`;
+      bitShiftLabel.textContent = `Shift: >> ${shiftAmount} bits`;
+      badgeTarget.textContent = `Target: ${targetBits}-Bit (>> ${shiftAmount})`;
+      targetNotice.textContent = `Selected Target: ${targetBits}-Bit (${targetVal} / ${maxTargetVal})`;
 
-      // Update Conversion Table
+      // Calculate All Resolutions
+      const val8 = dutyU16 >> 8;
+      const val10 = dutyU16 >> 6;
+      const val12 = dutyU16 >> 4;
+      const val14 = dutyU16 >> 2;
+
       conv16.textContent = `${dutyU16.toLocaleString()} / 65,535`;
-      conv8.textContent = `${val8Bit} / 255`;
-      conv10.textContent = `${val10Bit} / 1,023`;
+      conv8.textContent = `${val8} / 255`;
+      conv10.textContent = `${val10.toLocaleString()} / 1,023`;
+      conv12.textContent = `${val12.toLocaleString()} / 4,095`;
+      conv14.textContent = `${val14.toLocaleString()} / 16,383`;
       convVolt.textContent = `${equivVolt.toFixed(2)} V`;
 
-      // Update Code Inspector
+      // Highlight Active Row
+      document.querySelectorAll('.conv-row').forEach(row => row.classList.remove('active-row'));
+      if (targetBits === 8) document.getElementById('row8').classList.add('active-row');
+      if (targetBits === 10) document.getElementById('row10').classList.add('active-row');
+      if (targetBits === 12) document.getElementById('row12').classList.add('active-row');
+      if (targetBits === 14) document.getElementById('row14').classList.add('active-row');
+
+      // Update MicroPython Code Inspector
       codeFreqVal.textContent = frequencyHz;
       codeDutyVal.textContent = dutyU16;
-      codeConvVal.textContent = val8Bit;
+      codeShiftFormula.textContent = `16 - ${targetBits} = ${shiftAmount}`;
+      codeTargetVal.textContent = targetVal.toLocaleString();
 
       drawOscilloscope(dutyPct);
     }
@@ -304,7 +347,7 @@
       ctx.fillText('3.3V (HIGH)', 35, yHigh - 8);
       ctx.fillText('0.0V (LOW)', 35, yLow + 15);
 
-      // Draw Square Wave Cycles
+      // Draw Waveform Cycles
       const numCycles = 3;
       const cycleWidth = (canvas.width - 80) / numCycles;
       const highWidth = (dutyPct / 100.0) * cycleWidth;
@@ -320,18 +363,53 @@
         const xPulseEnd = startX + highWidth;
         const xCycleEnd = startX + cycleWidth;
 
-        // Vertical Rise
         ctx.lineTo(startX, yHigh);
-        // Pulse High
         ctx.lineTo(xPulseEnd, yHigh);
-        // Vertical Fall
         ctx.lineTo(xPulseEnd, yLow);
-        // Pulse Low
         ctx.lineTo(xCycleEnd, yLow);
 
         startX = xCycleEnd;
       }
       ctx.stroke();
+    }
+
+    // Quiz Data & Logic
+    const quizData = {
+      question: "If an RP2040 receives a 12-bit sensor input (0 to 4095), how do we scale it to a 16-bit duty_u16 register?",
+      options: [
+        { text: "A. Bit-shift left by 4 (val << 4), because 16 - 12 = 4 bits.", correct: true },
+        { text: "B. Bit-shift right by 4 (val >> 4), because 12 is smaller than 16.", correct: false },
+        { text: "C. Divide by 4095 and multiply by 255.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! To scale a smaller N-bit integer up to 16 bits, we bit-shift left by (16 - N). For 12-bit: 4095 << 4 = 65,520!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Remember: shifting LEFT (<<) increases bit resolution up to 16 bits, while shifting RIGHT (>>) decreases resolution.';
+      }
     }
 
     // Initialize
