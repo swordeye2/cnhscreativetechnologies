@@ -21,7 +21,7 @@ function applyTheme(theme) {
   }
 }
 
-// Auto-apply stored theme immediately on page load
+// Auto-apply saved theme when any page loads
 (function() {
   const savedTheme = localStorage.getItem('cnhs_theme') || 'dark';
   applyTheme(savedTheme);
