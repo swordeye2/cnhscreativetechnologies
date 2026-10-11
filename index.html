@@ -1,31 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RP2040 MicroPython & Mechatronics Interactive Visualizer Suite</title>
-  <link rel="stylesheet" href="theme.css">
-  <script src="theme.js" defer></script>
-  <style>
-    :root {
-      --bg-primary: #1e1e2e;
-      --bg-secondary: #181825;
-      --card-bg: #2b2b3d;
-      --accent-color: #a6e3a1;
-      --text-main: #cdd6f4;
-      --text-muted: #a6adc8;
-      --border-color: #45475a;
-      --blue-color: #89b4fa;
-      --warning-color: #f9e2af;
-      --purple-color: #cba6f7;
-    }
+  <title>RP2040 MicroPython & Mechatronics Suite | CNHS Creative Technologies</title>
+  
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
 
+  <link rel="stylesheet" href="./theme.css">
+  <style>
     body {
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-primary);
-      color: var(--text-main);
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
     }
 
     .container {
@@ -36,37 +30,58 @@
 
     header {
       padding: 25px 20px;
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border-color);
+      background: var(--header-bg, #181825);
+      border-bottom: 1px solid var(--card-border, #313244);
       border-radius: 8px;
       margin-bottom: 25px;
-      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    header h1 {
-      margin: 0 0 10px 0;
+    .header-content h1 {
+      margin: 0 0 5px 0;
       font-size: 1.8rem;
-      color: var(--accent-color);
+      color: var(--accent, #89b4fa);
     }
 
-    header p {
+    .header-content p {
       margin: 0;
-      color: var(--text-muted);
+      color: var(--text-sub, #a6adc8);
       font-size: 0.95rem;
     }
 
     .author-badge {
-      margin-top: 15px;
+      margin-top: 10px;
       font-size: 0.85rem;
-      color: var(--text-muted);
+      color: var(--text-sub, #a6adc8);
+    }
+
+    .theme-toggle-btn {
+      background: var(--card-border, #313244);
+      color: var(--text-main, #cdd6f4);
+      border: 1px solid var(--card-border, #313244);
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--btn-hover, #b4befe);
+      color: #11111b;
     }
 
     .category-title {
       font-size: 1.3rem;
-      color: var(--blue-color);
+      color: var(--accent, #89b4fa);
       margin: 30px 0 15px 0;
       padding-bottom: 5px;
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--card-border, #313244);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -79,8 +94,8 @@
     }
 
     .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
       border-radius: 8px;
       padding: 20px;
       display: flex;
@@ -91,12 +106,12 @@
 
     .card:hover {
       transform: translateY(-3px);
-      border-color: var(--accent-color);
+      border-color: var(--accent, #89b4fa);
     }
 
     .card h3 {
       margin: 0 0 10px 0;
-      color: var(--accent-color);
+      color: var(--accent, #89b4fa);
       font-size: 1.15rem;
       display: flex;
       align-items: center;
@@ -104,7 +119,7 @@
     }
 
     .card p {
-      color: var(--text-muted);
+      color: var(--text-sub, #a6adc8);
       font-size: 0.88rem;
       line-height: 1.4;
       margin-bottom: 15px;
@@ -119,18 +134,18 @@
     }
 
     .tag {
-      background: var(--bg-secondary);
-      color: var(--purple-color);
+      background: var(--inner-box, #11111b);
+      color: var(--tag-color, #fab387);
       font-size: 0.75rem;
       padding: 3px 8px;
       border-radius: 4px;
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--card-border, #313244);
     }
 
     .card-btn {
       display: block;
       text-align: center;
-      background: var(--accent-color);
+      background: var(--accent, #89b4fa);
       color: #11111b;
       text-decoration: none;
       font-weight: bold;
@@ -148,8 +163,8 @@
       padding: 20px;
       text-align: center;
       font-size: 0.85rem;
-      color: var(--text-muted);
-      border-top: 1px solid var(--border-color);
+      color: var(--text-sub, #a6adc8);
+      border-top: 1px solid var(--card-border, #313244);
     }
   </style>
 </head>
@@ -157,40 +172,62 @@
 
   <div class="container">
     <header>
-      <h1>⚙️ RP2040 MicroPython & Mechatronics Suite</h1>
-      <p>Interactive Physics Visualizers, MicroPython Registers, and Closed-Loop Control Simulations</p>
-      <div class="author-badge">
-        Author: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
+      <div class="header-content">
+        <h1>⚙️ RP2040 MicroPython Laboratory Suite</h1>
+        <p>Interactive Mechatronics Visualizers, Motor Dynamics, and Embedded Physics Curriculum</p>
+        <div class="author-badge">
+          Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
+        </div>
       </div>
+      <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+      </button>
     </header>
 
-    <!-- Section 1: Actuators & Motor Control -->
+    <!-- Section 1: Actuators & Motor Dynamics -->
     <div class="category-title">⚡ Actuators & Motor Dynamics</div>
     <div class="card-grid">
 
-      <!-- Stepper Motor Card -->
+      <!-- Stepper Motor Matrix Card -->
       <div class="card">
         <div>
-          <h3>⚙️ Stepper Motor & Torque</h3>
+          <h3>⚙️ Stepper Phase Excitation & Matrix</h3>
           <p>
-            Simulate 4-phase stator coils, salient-pole tooth rotor geometry, holding torque limits, vector superposition, and MicroPython sequence timing.
+            Explore 4-phase stator sequences, Full-Step vs Wave Drive, MicroPython step index logic, and 1.8° angle stepping calculations.
           </p>
           <div class="tag-container">
             <span class="tag">Wave Drive</span>
-            <span class="tag">Full Step</span>
-            <span class="tag">Salient Rotor</span>
-            <span class="tag">Torque Deflection</span>
+            <span class="tag">Full-Step</span>
+            <span class="tag">while True</span>
+            <span class="tag">range(len(pins))</span>
           </div>
         </div>
-        <a href="stepper_torque.html" class="card-btn">Launch Simulator →</a>
+        <a href="./stepper.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- Stepper Motor Torque & Physics Card -->
+      <div class="card">
+        <div>
+          <h3>🧲 Stepper Torque & Rotor Vector Physics</h3>
+          <p>
+            Simulate salient-pole tooth rotor geometry, flux lines, load torque stalling limits, and vector superposition.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Salient Rotor</span>
+            <span class="tag">Magnetic Vectors</span>
+            <span class="tag">Holding Torque</span>
+            <span class="tag">Stall Jitter</span>
+          </div>
+        </div>
+        <a href="./stepper_torque.html" class="card-btn">Launch Simulator →</a>
       </div>
 
       <!-- DC Motor Card -->
       <div class="card">
         <div>
-          <h3>🏎️ DC Motor & H-Bridge (DRV8833)</h3>
+          <h3>🏎️ DC Motor & DRV8833 H-Bridge</h3>
           <p>
-            Explore H-Bridge directional logic, PWM speed scaling, back-EMF, and active braking vs coasting mechanics.
+            Explore directional H-Bridge logic, PWM duty cycle speed scaling, back-EMF, and active braking vs coasting mechanics.
           </p>
           <div class="tag-container">
             <span class="tag">DRV8833</span>
@@ -199,15 +236,15 @@
             <span class="tag">H-Bridge</span>
           </div>
         </div>
-        <a href="dc-motor.html" class="card-btn">Launch Simulator →</a>
+        <a href="./dc-motor.html" class="card-btn">Launch Simulator →</a>
       </div>
 
-      <!-- Servo Motor Card -->
+      <!-- Servo Angle Mapping Card -->
       <div class="card">
         <div>
           <h3>🎯 Servo PWM & Angle Mapping</h3>
           <p>
-            Visualize 50Hz PWM signal timing (1ms–2ms pulse widths) mapped directly to MicroPython 16-bit register duty cycles.
+            Visualize 50Hz PWM signal timing (1ms–2ms pulse widths) mapped directly to RP2040 16-bit MicroPython duty_u16 registers.
           </p>
           <div class="tag-container">
             <span class="tag">50 Hz PWM</span>
@@ -215,10 +252,26 @@
             <span class="tag">Position Control</span>
           </div>
         </div>
-        <a href="servo.html" class="card-btn">Launch Simulator →</a>
+        <a href="./servo.html" class="card-btn">Launch Simulator →</a>
       </div>
 
-      <!-- 2WD Differential Drive Card -->
+      <!-- Servo Voltage Dynamics Card -->
+      <div class="card">
+        <div>
+          <h3>🔋 Servo Supply Voltage & Stall Current</h3>
+          <p>
+            Analyze voltage drops, power rail sag under high load, stall currents, and power decoupling strategies in robotics.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Voltage Sag</span>
+            <span class="tag">Stall Current</span>
+            <span class="tag">Power Decoupling</span>
+          </div>
+        </div>
+        <a href="./servo_voltage.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- 2WD Mobile Robot Card -->
       <div class="card">
         <div>
           <h3>🤖 2WD Differential Mobile Robot</h3>
@@ -231,14 +284,46 @@
             <span class="tag">Differential Drive</span>
           </div>
         </div>
-        <a href="2WD_motor.html" class="card-btn">Launch Simulator →</a>
+        <a href="./2WD_motor.html" class="card-btn">Launch Simulator →</a>
       </div>
 
     </div>
 
-    <!-- Section 2: Sensors, Signals & Logic -->
-    <div class="category-title">📡 Sensors, Interrupts & Bus Protocols</div>
+    <!-- Section 2: Digital, Analog & Protocols -->
+    <div class="category-title">📡 Signals, Protocols & Logic</div>
     <div class="card-grid">
+
+      <!-- Analog Processing Card -->
+      <div class="card">
+        <div>
+          <h3>🎛️ Analog Processing (ADC to PWM)</h3>
+          <p>
+            Visualize RP2040 12-bit ADC reading (0–4095) remapped to 16-bit PWM duty cycles (0–65535) for smooth speed control.
+          </p>
+          <div class="tag-container">
+            <span class="tag">ADC.read_u16()</span>
+            <span class="tag">PWM.duty_u16()</span>
+            <span class="tag">Signal Scaling</span>
+          </div>
+        </div>
+        <a href="./analog_processing.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- Pull Resistors Card -->
+      <div class="card">
+        <div>
+          <h3>🔘 GPIO Pull-Up / Pull-Down Resistors</h3>
+          <p>
+            Master Active-HIGH vs Active-LOW GPIO inputs, internal RP2040 pulls, and floating state noise suppression.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Pin.PULL_UP</span>
+            <span class="tag">Active-LOW</span>
+            <span class="tag">Digital Logic</span>
+          </div>
+        </div>
+        <a href="./pull_resistor_visualizer.html" class="card-btn">Launch Simulator →</a>
+      </div>
 
       <!-- PIR Interrupt Card -->
       <div class="card">
@@ -253,10 +338,10 @@
             <span class="tag">Power Efficiency</span>
           </div>
         </div>
-        <a href="pir_interrupt.html" class="card-btn">Launch Simulator →</a>
+        <a href="./pir_interrupt.html" class="card-btn">Launch Simulator →</a>
       </div>
 
-      <!-- I2C Bus & Proximity Card -->
+      <!-- I2C Bus Sensor Card -->
       <div class="card">
         <div>
           <h3>🌐 I2C Bus & Proximity Reading</h3>
@@ -269,23 +354,23 @@
             <span class="tag">Register Read</span>
           </div>
         </div>
-        <a href="i2c_sensor.html" class="card-btn">Launch Simulator →</a>
+        <a href="./i2c_sensor.html" class="card-btn">Launch Simulator →</a>
       </div>
 
-      <!-- Pull Resistor Card -->
+      <!-- I2C Interrupt Card -->
       <div class="card">
         <div>
-          <h3>🔘 GPIO Pull-Up / Pull-Down Resistors</h3>
+          <h3>⚡ I2C Event Interrupts</h3>
           <p>
-            Master Active-HIGH vs Active-LOW GPIO inputs, internal RP2040 pulls, and floating state noise suppression.
+            Simulate interrupt-driven I2C bus communications for real-time sensor processing without blocking main CPU loops.
           </p>
           <div class="tag-container">
-            <span class="tag">Pin.PULL_UP</span>
-            <span class="tag">Active-LOW</span>
-            <span class="tag">Digital Logic</span>
+            <span class="tag">I2C IRQ</span>
+            <span class="tag">Bus Events</span>
+            <span class="tag">Non-blocking</span>
           </div>
         </div>
-        <a href="pull_resistor_visualizer.html" class="card-btn">Launch Simulator →</a>
+        <a href="./i2c_interrupt.html" class="card-btn">Launch Simulator →</a>
       </div>
 
       <!-- Drone Flight Dynamics Card -->
@@ -293,7 +378,7 @@
         <div>
           <h3>🚁 6-DoF Flight Dynamics & Moments</h3>
           <p>
-            Apply rotational mechanics, moments of inertia, and thrust vectors to simulated 2D/3D flight controls.
+            Apply rotational mechanics, moments of inertia, and motor thrust vectors to simulated drone flight controls.
           </p>
           <div class="tag-container">
             <span class="tag">Pitch & Roll</span>
@@ -301,15 +386,16 @@
             <span class="tag">Inertia Matrix</span>
           </div>
         </div>
-        <a href="drone_sim.html" class="card-btn">Launch Simulator →</a>
+        <a href="./drone_sim.html" class="card-btn">Launch Simulator →</a>
       </div>
 
     </div>
 
     <footer>
-      RP2040 MicroPython Visualizers for Junior High School Engineering | © 2026 Jorge Victor M. Sales
+      RP2040 MicroPython Visualizers for CNHS Creative Technologies | © 2026 Jorge Victor M. Sales
     </footer>
   </div>
 
+  <script src="./theme.js"></script>
 </body>
 </html>
