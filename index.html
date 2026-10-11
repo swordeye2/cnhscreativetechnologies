@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,46 +13,87 @@
   <meta name="alias" content="swordeye, thearbiter">
 
   <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    /* Theme CSS Variables */
+    :root[data-theme="dark"] {
+      --bg-color: #1e1e2e;
+      --header-bg: #181825;
+      --card-bg: #181825;
+      --card-border: #313244;
+      --text-main: #cdd6f4;
+      --text-sub: #a6adc8;
+      --accent: #89b4fa;
+      --tag-color: #fab387;
+      --badge-license-bg: #274029;
+      --badge-license-txt: #a6e3a1;
+      --badge-ip-bg: #1e3a5f;
+      --btn-hover: #b4befe;
+    }
+
+    :root[data-theme="light"] {
+      --bg-color: #eff1f5;
+      --header-bg: #e6e9ef;
+      --card-bg: #e6e9ef;
+      --card-border: #bcc0cc;
+      --text-main: #4c4f69;
+      --text-sub: #6c6f85;
+      --accent: #1e66f5;
+      --tag-color: #fe640b;
+      --badge-license-bg: #dce7d3;
+      --badge-license-txt: #40a02b;
+      --badge-ip-bg: #d0e1f9;
+      --btn-hover: #2a75ff;
+    }
+
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; }
+    body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
     
-    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 25px 30px; text-align: center; }
-    h1 { color: #89b4fa; margin: 0 0 8px 0; font-size: 1.8rem; }
-    p.subtitle { color: #a6adc8; margin: 0; font-size: 0.95rem; }
+    header { width: 100%; background: var(--header-bg); border-bottom: 1px solid var(--card-border); padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .header-title-box { text-align: left; }
+    h1 { color: var(--accent); margin: 0 0 4px 0; font-size: 1.6rem; }
+    p.subtitle { color: var(--text-sub); margin: 0; font-size: 0.9rem; }
+
+    /* Theme Toggle Button */
+    .theme-toggle-btn { background: var(--card-border); color: var(--text-main); border: 1px solid var(--card-border); padding: 8px 14px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .theme-toggle-btn:hover { border-color: var(--accent); }
 
     .content-wrapper { padding: 30px 20px; width: 100%; max-width: 1100px; flex-grow: 1; }
 
     /* Concept & Legal Card */
-    .info-card { background: #181825; border: 1px solid #313244; border-radius: 10px; padding: 18px 22px; margin-bottom: 25px; line-height: 1.5; font-size: 0.88rem; }
-    .info-title { font-weight: bold; color: #89b4fa; font-size: 1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .info-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 18px 22px; margin-bottom: 25px; line-height: 1.5; font-size: 0.88rem; }
+    .info-title { font-weight: bold; color: var(--accent); font-size: 1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     
-    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; }
-    .badge-license { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
-    .badge-ip { background: #1e3a5f; color: #89b4fa; border: 1px solid #89b4fa; }
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; margin-right: 6px; }
+    .badge-license { background: var(--badge-license-bg); color: var(--badge-license-txt); border: 1px solid var(--badge-license-txt); }
+    .badge-ip { background: var(--badge-ip-bg); color: var(--accent); border: 1px solid var(--accent); }
 
     /* Module Grid Layout */
-    .section-title { font-size: 1.2rem; font-weight: bold; color: #89b4fa; border-bottom: 2px solid #313244; padding-bottom: 8px; margin-top: 25px; margin-bottom: 18px; }
+    .section-title { font-size: 1.2rem; font-weight: bold; color: var(--accent); border-bottom: 2px solid var(--card-border); padding-bottom: 8px; margin-top: 25px; margin-bottom: 18px; }
     
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
     
-    .module-card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; transition: all 0.25s ease; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
-    .module-card:hover { border-color: #89b4fa; transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); }
+    .module-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; transition: all 0.25s ease; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+    .module-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
 
-    .card-tag { font-size: 0.72rem; font-weight: bold; font-family: monospace; color: #fab387; text-transform: uppercase; margin-bottom: 6px; }
-    .card-title { font-size: 1.1rem; font-weight: bold; color: #cdd6f4; margin-bottom: 10px; }
-    .card-desc { font-size: 0.83rem; color: #a6adc8; line-height: 1.45; margin-bottom: 16px; flex-grow: 1; }
+    .card-tag { font-size: 0.72rem; font-weight: bold; font-family: monospace; color: var(--tag-color); text-transform: uppercase; margin-bottom: 6px; }
+    .card-title { font-size: 1.1rem; font-weight: bold; color: var(--text-main); margin-bottom: 10px; }
+    .card-desc { font-size: 0.83rem; color: var(--text-sub); line-height: 1.45; margin-bottom: 16px; flex-grow: 1; }
 
-    .btn-launch { display: inline-block; width: 100%; text-align: center; background: #89b4fa; color: #11111b; font-weight: bold; font-size: 0.85rem; padding: 10px 14px; border-radius: 6px; text-decoration: none; transition: background 0.2s ease; }
-    .btn-launch:hover { background: #b4befe; }
+    .btn-launch { display: inline-block; width: 100%; text-align: center; background: var(--accent); color: #ffffff; font-weight: bold; font-size: 0.85rem; padding: 10px 14px; border-radius: 6px; text-decoration: none; transition: background 0.2s ease; }
+    .btn-launch:hover { background: var(--btn-hover); }
 
-    footer { width: 100%; background: #181825; border-top: 1px solid #313244; padding: 20px; text-align: center; font-size: 0.78rem; color: #6c7086; font-family: monospace; margin-top: 40px; }
+    footer { width: 100%; background: var(--header-bg); border-top: 1px solid var(--card-border); padding: 20px; text-align: center; font-size: 0.78rem; color: var(--text-sub); font-family: monospace; margin-top: 40px; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>RP2040 MicroPython Physics & Hardware Lab Suite</h1>
-    <p class="subtitle">Interactive Web-Based Microcontroller Simulations & Live Code Inspectors</p>
+    <div class="header-title-box">
+      <h1>RP2040 MicroPython Physics & Hardware Lab Suite</h1>
+      <p class="subtitle">CNHS Creative Technologies - Interactive Mechatronics Suite</p>
+    </div>
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
   </header>
 
   <div class="content-wrapper">
@@ -65,7 +106,7 @@
       <div>
         All software architecture, visual simulation engines, MicroPython hardware abstractions, and educational physics models contained in this lab suite are copyrighted and authored by <strong>Jorge Victor M. Sales</strong> (<code>swordeye</code> / <code>thearbiter</code>).
         <br><br>
-        Distributed under the <strong>Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</strong> license. Free for non-commercial educational use. Commercial distribution, unauthorized mirroring, or course monetization without prior consent is prohibited.
+        Distributed under the <strong>Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</strong> license. Free for non-commercial educational use.
         <br><br>
         <span class="badge badge-license">CC BY-NC-SA 4.0 Licensed</span>
         <span class="badge badge-ip">Author: Jorge Victor M. Sales</span>
@@ -76,62 +117,47 @@
     <div class="section-title">⚡ Signal Processing, Digital Logic & Interrupts</div>
     <div class="grid">
 
-      <!-- Analog Processing (Potentiometer to PWM) -->
       <div class="module-card">
         <div>
           <div class="card-tag">Analog Processing & ADC</div>
           <div class="card-title">Potentiometer ADC to PWM Signal Conversion</div>
-          <div class="card-desc">
-            Simulate smooth analog input voltage (0.0V–3.3V) on GP26, converting to 16-bit registers (`0–65535`) and driving PWM duty cycles on GP15 with live input/output signal graphs.
-          </div>
+          <div class="card-desc">Simulate smooth analog input voltage (0.0V–3.3V) on GP26, converting to 16-bit registers (`0–65535`) and driving PWM duty cycles on GP15.</div>
         </div>
         <a href="./analog_processing.html" class="btn-launch">Launch Analog Processing Lab →</a>
       </div>
 
-      <!-- Direct 3.3V GPIO Visualizer -->
       <div class="module-card">
         <div>
           <div class="card-tag">GPIO & Digital Logic</div>
           <div class="card-title">Direct 3.3V Input & Output LED Simulator</div>
-          <div class="card-desc">
-            Visualize direct 3.3V digital signal inputs on assigned RP2040 GPIO pins driving LED output circuits with pin-level glowing and live reactive MicroPython code inspection.
-          </div>
+          <div class="card-desc">Visualize direct 3.3V digital signal inputs on assigned RP2040 GPIO pins driving LED output circuits with pin-level glowing.</div>
         </div>
         <a href="./gpio_switch_visualizer.html" class="btn-launch">Launch Digital I/O Lab →</a>
       </div>
 
-      <!-- Pull-Up / Pull-Down Resistor Simulator -->
       <div class="module-card">
         <div>
           <div class="card-tag">Electronics Physics</div>
           <div class="card-title">Internal Pull-Up vs Pull-Down Resistor Lab</div>
-          <div class="card-desc">
-            Explore default idle voltages (0.0V LOW for Pull-Down vs 3.3V HIGH for Pull-Up) and active-LOW logic, visualizing the internal ~50kΩ resistor bus inside the RP2040 chip.
-          </div>
+          <div class="card-desc">Explore default idle voltages (0.0V LOW for Pull-Down vs 3.3V HIGH for Pull-Up) and active-LOW logic.</div>
         </div>
         <a href="./pull_resistor_visualizer.html" class="btn-launch">Launch Pull-Resistor Lab →</a>
       </div>
 
-      <!-- PWM & Bit Converter Visualizer -->
       <div class="module-card">
         <div>
           <div class="card-tag">PWM & Data Conversion</div>
           <div class="card-title">PWM Signal & Dynamic Bit-Width Converter</div>
-          <div class="card-desc">
-            Simulate RP2040 16-bit PWM hardware registers (`duty_u16`) and master bit-shifting arithmetic (`>>`) down to 8-bit, 10-bit, 12-bit, and 14-bit targets.
-          </div>
+          <div class="card-desc">Simulate RP2040 16-bit PWM hardware registers (`duty_u16`) and bit-shifting arithmetic (`>>`) down to 8-bit, 10-bit, 12-bit, and 14-bit targets.</div>
         </div>
         <a href="./pwm_visualizer.html" class="btn-launch">Launch PWM Converter Lab →</a>
       </div>
 
-      <!-- PIR Interrupt Sensor -->
       <div class="module-card">
         <div>
           <div class="card-tag">Hardware Interrupts</div>
           <div class="card-title">PIR Motion Sensor & IRQ Interrupt Lab</div>
-          <div class="card-desc">
-            Simulate asynchronous hardware interrupt requests (`Pin.IRQ_RISING`) triggered by motion detection to execute instant MicroPython callback handlers.
-          </div>
+          <div class="card-desc">Simulate asynchronous hardware interrupt requests (`Pin.IRQ_RISING`) triggered by motion detection to execute callback handlers.</div>
         </div>
         <a href="./pir_interrupt.html" class="btn-launch">Launch PIR Interrupt Lab →</a>
       </div>
@@ -142,74 +168,56 @@
     <div class="section-title">🧲 Actuators, Motors & Servo Power Physics</div>
     <div class="grid">
 
-      <!-- Stepper Motor Matrix Simulator -->
       <div class="module-card">
         <div>
           <div class="card-tag">Motor Control & Electromagnetics</div>
           <div class="card-title">Stepper Motor Phase Excitation & Step Matrix</div>
-          <div class="card-desc">
-            Simulate 4-phase stator coil excitation sequences, compare Full-Step holding torque vs Wave Drive power consumption, and inspect the live output matrix.
-          </div>
+          <div class="card-desc">Simulate 4-phase stator coil excitation sequences, compare Full-Step holding torque vs Wave Drive power consumption.</div>
         </div>
         <a href="./stepper.html" class="btn-launch">Launch Stepper Matrix Lab →</a>
       </div>
 
-      <!-- DC Motor Control -->
       <div class="module-card">
         <div>
           <div class="card-tag">DC Actuation & H-Bridge</div>
           <div class="card-title">DC Motor Direction & Speed Simulator</div>
-          <div class="card-desc">
-            Simulate H-bridge motor driver direction control and PWM speed regulation.
-          </div>
+          <div class="card-desc">Simulate H-bridge motor driver direction control and PWM speed regulation.</div>
         </div>
         <a href="./dc-motor.html" class="btn-launch">Launch DC Motor Lab →</a>
       </div>
 
-      <!-- Servo Control -->
       <div class="module-card">
         <div>
           <div class="card-tag">Position Control</div>
           <div class="card-title">Servo Motor Angular Pulse Width Lab</div>
-          <div class="card-desc">
-            Explore 50Hz PWM pulse width timing (0.5ms to 2.5ms) for standard servo positioning.
-          </div>
+          <div class="card-desc">Explore 50Hz PWM pulse width timing (0.5ms to 2.5ms) for standard servo positioning.</div>
         </div>
         <a href="./servo.html" class="btn-launch">Launch Servo Lab →</a>
       </div>
 
-      <!-- Servo Voltage Dynamics -->
       <div class="module-card">
         <div>
           <div class="card-tag">Power Engineering</div>
           <div class="card-title">Servo Supply Voltage & Stall Current Lab</div>
-          <div class="card-desc">
-            Simulate power supply voltage drops, peak stall current spikes under high load, and brownout conditions on microcontroller power rails.
-          </div>
+          <div class="card-desc">Simulate power supply voltage drops, peak stall current spikes under high load, and brownout conditions on power rails.</div>
         </div>
         <a href="./servo_voltage.html" class="btn-launch">Launch Servo Voltage Lab →</a>
       </div>
 
-      <!-- 2WD Robot Platform -->
       <div class="module-card">
         <div>
           <div class="card-tag">Robotics Drive Base</div>
           <div class="card-title">2WD Mobile Robot Kinematics Simulator</div>
-          <div class="card-desc">
-            Differential drive steering kinematics, wheel velocity vectors, and chassis control.
-          </div>
+          <div class="card-desc">Differential drive steering kinematics, wheel velocity vectors, and chassis control.</div>
         </div>
         <a href="./2WD_motor.html" class="btn-launch">Launch 2WD Robot Lab →</a>
       </div>
 
-      <!-- Drone Simulation -->
       <div class="module-card">
         <div>
           <div class="card-tag">Multirotor Dynamics</div>
           <div class="card-title">Quadrotor Flight Dynamics & ESC Simulator</div>
-          <div class="card-desc">
-            4-channel ESC motor mixing, thrust calculations, and roll/pitch/yaw balance logic.
-          </div>
+          <div class="card-desc">4-channel ESC motor mixing, thrust calculations, and roll/pitch/yaw balance logic.</div>
         </div>
         <a href="./drone_sim.html" class="btn-launch">Launch Drone Lab →</a>
       </div>
@@ -220,26 +228,20 @@
     <div class="section-title">📡 Serial Protocols & Communication Bus</div>
     <div class="grid">
 
-      <!-- I2C Communication -->
       <div class="module-card">
         <div>
           <div class="card-tag">Serial Bus Protocol</div>
           <div class="card-title">I2C Bus Sensor & Register Access Lab</div>
-          <div class="card-desc">
-            SDA/SCL serial clock framing, slave addressing, and sensor register reads.
-          </div>
+          <div class="card-desc">SDA/SCL serial clock framing, slave addressing, and sensor register reads.</div>
         </div>
         <a href="./i2c_sensor.html" class="btn-launch">Launch I2C Sensor Lab →</a>
       </div>
 
-      <!-- I2C Interrupt Driven -->
       <div class="module-card">
         <div>
           <div class="card-tag">Bus Events & IRQ</div>
           <div class="card-title">Interrupt-Driven I2C Sensor Events Lab</div>
-          <div class="card-desc">
-            Simulate hardware interrupt flags triggered by I2C sensor threshold events for real-time alerts without blocking CPU polling loops.
-          </div>
+          <div class="card-desc">Simulate hardware interrupt flags triggered by I2C sensor threshold events for real-time alerts.</div>
         </div>
         <a href="./i2c_interrupt.html" class="btn-launch">Launch I2C Interrupt Lab →</a>
       </div>
@@ -249,8 +251,36 @@
   </div>
 
   <footer>
-    Copyright © 2026 Authored & Designed by <strong style="color: #cdd6f4;">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
+    Copyright © 2026 Authored & Designed by <strong style="color: var(--text-main);">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
   </footer>
+
+  <script>
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      
+      applyTheme(newTheme);
+      localStorage.setItem('cnhs_theme', newTheme);
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      const themeIcon = document.getElementById('themeIcon');
+      const themeText = document.getElementById('themeText');
+      
+      if (theme === 'light') {
+        themeIcon.textContent = '☀️';
+        themeText.textContent = 'Light Theme';
+      } else {
+        themeIcon.textContent = '🌙';
+        themeText.textContent = 'Dark Theme';
+      }
+    }
+
+    // Initialize theme from saved preference or default to 'dark'
+    const savedTheme = localStorage.getItem('cnhs_theme') || 'dark';
+    applyTheme(savedTheme);
+  </script>
 
 </body>
 </html>
