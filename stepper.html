@@ -177,4 +177,238 @@
             <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin</div>
             <div class="code-line"><span class="kw">import</span> time</div>
             <div class="code-line"><br><span class="cm"># 4 GPIO Output Pins for H-Bridge/ULN2003</span></div>
-            <div class
+            <div class="code-line">pins = [Pin(p, Pin.OUT) <span class="kw">for</span> p <span class="kw">in</span> (<span class="num">16</span>, <span class="num">17</span>, <span class="num">18</span>, <span class="num">19</span>)]</div>
+            <div class="code-line"><br><span class="cm"># Excitation Matrix</span></div>
+            <div class="code-line" id="codeMatrixLine">FULL_STEP = [</div>
+            <div class="code-line">&nbsp;&nbsp;[<span class="num">1</span>, <span class="num">1</span>, <span class="num">0</span>, <span class="num">0</span>], [<span class="num">0</span>, <span class="num">1</span>, <span class="num">1</span>, <span class="num">0</span>],</div>
+            <div class="code-line">&nbsp;&nbsp;[<span class="num">0</span>, <span class="num">0</span>, <span class="num">1</span>, <span class="num">1</span>], [<span class="num">1</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">1</span>]</div>
+            <div class="code-line">]</div>
+            <div class="code-line"><br><span class="cm"># Active Step State</span></div>
+            <div class="code-line">step_idx = <span id="codeStepIdx" class="val-highlight">0</span></div>
+            <div class="code-line"><span class="kw">for</span> i, p <span class="kw">in</span> <span class="fn">enumerate</span>(pins):</div>
+            <div class="code-line">&nbsp;&nbsp;p.value(FULL_STEP[step_idx][i])</div>
+            <div class="code-line">time.sleep_ms(<span id="codeDelayVal" class="val-highlight">5</span>)</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="quiz-title">📝 Stepper Excitation Quiz</div>
+          <div class="quiz-question" id="quiz-question">
+            Why does Full-Step Drive (2 coils active simultaneously) provide higher holding torque compared to Wave Drive (1 coil active)?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+          <div id="quiz-feedback"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    © 2026 Designed & Authored by <strong style="color:#cdd6f4;">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
+  </footer>
+
+  <script>
+    // State
+    let driveMode = 'full'; // 'full' or 'wave'
+    let currentStep = 0;
+    let motorAngle = 0;
+    let isRunning = true;
+    let speedRPM = 60;
+    let timerId = null;
+
+    // Excitation Matrices
+    const fullStepMatrix = [
+      [1, 1, 0, 0],
+      [0, 1, 1, 0],
+      [0, 0, 1, 1],
+      [1, 0, 0, 1]
+    ];
+
+    const waveStepMatrix = [
+      [1, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1]
+    ];
+
+    // DOM Elements
+    const canvas = document.getElementById('stepperCanvas');
+    const ctx = canvas.getContext('2d');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedLabel = document.getElementById('speedLabel');
+    const modeLabel = document.getElementById('modeLabel');
+    const matrixBody = document.getElementById('matrixBody');
+    const codeStepIdx = document.getElementById('codeStepIdx');
+    const codeDelayVal = document.getElementById('codeDelayVal');
+
+    function setDriveMode(mode) {
+      driveMode = mode;
+      document.getElementById('btnFull').classList.toggle('active', mode === 'full');
+      document.getElementById('btnWave').classList.toggle('active', mode === 'wave');
+      modeLabel.textContent = mode === 'full' ? 'Full-Step (Dual Coil)' : 'Wave Drive (Single Coil)';
+      updateMatrixTable();
+      updateDisplay();
+    }
+
+    function toggleMotorRun() {
+      isRunning = !isRunning;
+      if (isRunning) startLoop(); else clearInterval(timerId);
+    }
+
+    function stepMotor(direction) {
+      currentStep = (currentStep + direction + 4) % 4;
+      motorAngle += direction * 1.8; // 1.8 deg per step
+      updateDisplay();
+    }
+
+    speedSlider.addEventListener('input', (e) => {
+      speedRPM = parseInt(e.target.value);
+      const delayMs = Math.round(60000 / (speedRPM * 200));
+      speedLabel.textContent = `Speed: ${speedRPM} RPM (${delayMs} ms step delay)`;
+      codeDelayVal.textContent = delayMs;
+      if (isRunning) startLoop();
+    });
+
+    function startLoop() {
+      clearInterval(timerId);
+      const delayMs = Math.round(60000 / (speedRPM * 200));
+      timerId = setInterval(() => {
+        stepMotor(1);
+      }, Math.max(10, delayMs));
+    }
+
+    function updateMatrixTable() {
+      const matrix = driveMode === 'full' ? fullStepMatrix : waveStepMatrix;
+      matrixBody.innerHTML = '';
+      matrix.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        if (idx === currentStep) tr.className = 'active-step';
+        tr.innerHTML = `
+          <td>Step ${idx + 1}</td>
+          <td>${row[0]}</td>
+          <td>${row[1]}</td>
+          <td>${row[2]}</td>
+          <td>${row[3]}</td>
+        `;
+        matrixBody.appendChild(tr);
+      });
+    }
+
+    function updateDisplay() {
+      updateMatrixTable();
+      codeStepIdx.textContent = currentStep;
+      drawMotorGraphic();
+    }
+
+    function drawMotorGraphic() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const matrix = driveMode === 'full' ? fullStepMatrix : waveStepMatrix;
+      const activeCoils = matrix[currentStep];
+
+      // Draw Stator Housing
+      ctx.strokeStyle = '#313244';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 95, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Coil Angles: A1 (0), A2 (PI/2), B1 (PI), B2 (3PI/2)
+      const coilAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+      const coilNames = ['IN1 (A1)', 'IN2 (A2)', 'IN3 (B1)', 'IN4 (B2)'];
+
+      // Draw 4 Coils
+      coilAngles.forEach((angle, idx) => {
+        const x = cx + Math.cos(angle) * 75;
+        const y = cy + Math.sin(angle) * 75;
+        const isActive = activeCoils[idx] === 1;
+
+        ctx.fillStyle = isActive ? '#a6e3a1' : '#313244';
+        ctx.strokeStyle = isActive ? '#274029' : '#181825';
+        ctx.beginPath();
+        ctx.arc(x, y, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = isActive ? '#11111b' : '#a6adc8';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(coilNames[idx], x, y + 3);
+      });
+
+      // Draw Rotor (Rotated Magnet)
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate((motorAngle * Math.PI) / 180);
+
+      // N-S Pole Rotor Body
+      ctx.fillStyle = '#f38ba8'; // North Pole
+      ctx.fillRect(-10, -45, 20, 45);
+      ctx.fillStyle = '#89b4fa'; // South Pole
+      ctx.fillRect(-10, 0, 20, 45);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('N', 0, -20);
+      ctx.fillText('S', 0, 25);
+
+      ctx.restore();
+
+      // Angle Counter Badge
+      ctx.fillStyle = '#89b4fa';
+      ctx.font = '12px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Rotor Angle: ${(motorAngle % 360).toFixed(1)}°`, 15, 25);
+      ctx.fillText(`Active Step: ${currentStep + 1} / 4`, 15, 42);
+    }
+
+    // Quiz Data
+    const quizData = {
+      question: "Why does Full-Step Drive (2 coils active simultaneously) produce higher holding torque than Wave Drive (1 coil active)?",
+      options: [
+        { text: "A. Vector addition of magnetic fields from two active coils increases total electromagnetic pull on the rotor.", correct: true },
+        { text: "B. Wave drive causes excessive back-EMF which reduces torque.", correct: false },
+        { text: "C. Full-step drive uses twice the frequency of wave drive.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! When two perpendicular coils are energized simultaneously, their magnetic flux vectors sum together (sqrt(2) approx 1.41x stronger field)!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Consider vector addition of magnetic forces when two coils exert magnetic pull on the rotor simultaneously.';
+      }
+    }
+
+    // Init
+    initQuiz();
+    setDriveMode('full');
+    startLoop();
+  </script>
+</body>
+</html>
