@@ -79,17 +79,17 @@
 
     footer { margin-top: 25px; border-top: 1px solid #313244; padding-top: 15px; width: 100%; text-align: center; font-size: 0.75rem; color: #6c7086; font-family: monospace; }
   </style>
-<link rel="stylesheet" href="./theme.css">
+  <link rel="stylesheet" href="./theme.css">
 </head>
 <body>
 
   <header>
     <a href="./index.html" class="nav-link">← Back to Lab Hub</a>
     <span style="font-weight: bold; color: #a6adc8;">RP2040 MicroPython Actuator Lab</span>
-  <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-    <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
-  </button>
-</header>
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
+  </header>
 
   <div class="content-wrapper">
     <h1>Stepper Motor Phase Excitation & Matrix Simulator</h1>
@@ -180,18 +180,20 @@
           <div class="code-box">
             <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin</div>
             <div class="code-line"><span class="kw">import</span> time</div>
-            <div class="code-line"><br><span class="cm"># 4 GPIO Output Pins for H-Bridge/ULN2003</span></div>
-            <div class="code-line">pins = [Pin(p, Pin.OUT) <span class="kw">for</span> p <span class="kw">in</span> (<span class="num">16</span>, <span class="num">17</span>, <span class="num">18</span>, <span class="num">19</span>)]</div>
+            <div class="code-line"><br><span class="cm"># 4 GPIO Output Pins for ULN2003 Driver</span></div>
+            <div class="code-line">pins = [Pin(<span class="num">16</span>, Pin.OUT), Pin(<span class="num">17</span>, Pin.OUT), Pin(<span class="num">18</span>, Pin.OUT), Pin(<span class="num">19</span>, Pin.OUT)]</div>
             <div class="code-line"><br><span class="cm"># Excitation Matrix</span></div>
             <div class="code-line" id="codeMatrixLine">FULL_STEP = [</div>
             <div class="code-line">&nbsp;&nbsp;[<span class="num">1</span>, <span class="num">1</span>, <span class="num">0</span>, <span class="num">0</span>], [<span class="num">0</span>, <span class="num">1</span>, <span class="num">1</span>, <span class="num">0</span>],</div>
             <div class="code-line">&nbsp;&nbsp;[<span class="num">0</span>, <span class="num">0</span>, <span class="num">1</span>, <span class="num">1</span>], [<span class="num">1</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">1</span>]</div>
             <div class="code-line">]</div>
-            <div class="code-line"><br><span class="cm"># Active Step State</span></div>
+            <div class="code-line"><br><span class="cm"># Active Step State Pointer</span></div>
             <div class="code-line">step_idx = <span id="codeStepIdx" class="val-highlight">0</span></div>
-            <div class="code-line"><span class="kw">for</span> i, p <span class="kw">in</span> <span class="fn">enumerate</span>(pins):</div>
-            <div class="code-line">&nbsp;&nbsp;p.value(FULL_STEP[step_idx][i])</div>
-            <div class="code-line">time.sleep_ms(<span id="codeDelayVal" class="val-highlight">5</span>)</div>
+            <div class="code-line"><br><span class="kw">while</span> <span class="num">True</span>:</div>
+            <div class="code-line">&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(pins)):</div>
+            <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;pins[i].value(FULL_STEP[step_idx][i])</div>
+            <div class="code-line">&nbsp;&nbsp;time.sleep_ms(<span id="codeDelayVal" class="val-highlight">5</span>)</div>
+            <div class="code-line">&nbsp;&nbsp;step_idx = (step_idx + <span class="num">1</span>) % <span class="fn">len</span>(FULL_STEP)</div>
           </div>
         </div>
 
