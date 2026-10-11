@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RP2040 Analog Signal Processing: Potentiometer to PWM Simulator</title>
+  
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales under CC BY-NC-SA 4.0.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
+    .nav-link:hover { text-decoration: underline; }
+
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1100px; flex-grow: 1; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 20px; font-size: 0.95rem; text-align: center; }
+
+    /* Concept Banner */
+    .concept-card { background: #181825; border: 1px solid #313244; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 0.86rem; line-height: 1.5; color: #cdd6f4; }
+    .concept-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; margin-right: 6px; }
+    .badge-adc { background: #1e3a5f; color: #89b4fa; border: 1px solid #89b4fa; }
+    .badge-pwm { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
+
+    /* Grid Layout */
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
+    
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+
+    /* Interactive Knob / Controls */
+    .control-panel { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center; }
+    .knob-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 10px 0; }
+    input[type=range] { width: 80%; height: 8px; border-radius: 5px; background: #313244; outline: none; accent-color: #89b4fa; cursor: pointer; }
+
+    /* Graphs Canvas */
+    .canvas-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 10px; margin-bottom: 12px; }
+    canvas { display: block; width: 100%; height: auto; }
+
+    /* Code Inspector */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 3px 6px; border-radius: 4px; color: #a6adc8; white-space: pre; transition: all 0.2s ease; }
+    .code-line.active-line { background: rgba(137, 180, 250, 0.2); border-left: 3px solid #89b4fa; color: #cdd6f4; }
+    .kw { color: #f38ba8; }
+    .fn { color: #89b4fa; }
+    .num { color: #fab387; }
+    .cm { color: #6c7086; font-style: italic; }
+    .val-highlight { font-weight: bold; padding: 1px 4px; border-radius: 3px; background: #313244; color: #a6e3a1; }
+
+    footer { width: 100%; background: #181825; border-top: 1px solid #313244; padding: 15px; text-align: center; font-size: 0.75rem; color: #6c7086; font-family: monospace; margin-top: 25px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="./index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 Analog Signal Processing Lab</span>
+  </header>
+
+  <div class="content-wrapper">
+    <h1>Analog Input (ADC) to PWM Output Signal Processing</h1>
+    <p class="subtitle">Converting Continuous Voltage (0.0V - 3.3V) to 16-Bit Register Values & PWM Output</p>
+
+    <div class="concept-card">
+      <div class="concept-title">⚡ Mechatronic Signal Flow & Conversion Principles</div>
+      <div>
+        <strong>1. Analog Sensing (ADC):</strong> The potentiometer acts as a variable voltage divider, supplying a smooth analog voltage between <strong>0.0V and 3.3V</strong> to RP2040 pin ADC0 (GP26). MicroPython converts this to a 16-bit register value (`0` to `65535`).
+        <br>
+        <strong>2. PWM Output Modulation:</strong> The software reads the ADC register and directly feeds that 16-bit value into `pwm.duty_u16(val)`, driving an output device (like an LED or motor driver) on GP15.
+        <br><br>
+        <span class="badge badge-adc">ADC In (GP26): 0 - 3.3V → 0 - 65535</span>
+        <span class="badge badge-pwm">PWM Out (GP15): duty_u16(val) → 0% - 100%</span>
+      </div>
+    </div>
+
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN: CONTROLS & DYNAMIC GRAPHS -->
+      <div class="card">
+        <div class="control-panel">
+          <div style="font-size: 0.9rem; font-weight: bold; color: #89b4fa;">🎛️ Potentiometer Hardware Control</div>
+          <div class="knob-container">
+            <input type="range" id="potSlider" min="0" max="3.3" step="0.01" value="1.65" oninput="updateSimulation()">
+            <div style="font-family: monospace; font-size: 0.85rem; color: #cdd6f4;">
+              Analog Input Voltage: <strong id="voltageText" style="color: #fab387;">1.65 V</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="canvas-box">
+          <div style="font-size: 0.8rem; font-weight: bold; color: #89b4fa; margin-bottom: 4px;">📈 Analog Input Voltage Trace (ADC In - GP26)</div>
+          <canvas id="adcGraph" width="480" height="110"></canvas>
+        </div>
+
+        <div class="canvas-box">
+          <div style="font-size: 0.8rem; font-weight: bold; color: #a6e3a1; margin-bottom: 4px;">📉 Output Duty Cycle Waveform (PWM Out - GP15)</div>
+          <canvas id="pwmGraph" width="480" height="110"></canvas>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: CODE INSPECTOR & DATA READOUT -->
+      <div class="card">
+        <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
+          🐍 Live MicroPython Signal Processing Loop
+        </div>
+        <div class="code-box">
+          <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> ADC, PWM, Pin</div>
+          <div class="code-line"><span class="kw">import</span> time</div>
+          <div class="code-line"><br><span class="cm"># Configure ADC Input and PWM Output Pins</span></div>
+          <div class="code-line">pot = ADC(Pin(<span class="num">26</span>))       <span class="cm"># GP26 / ADC0</span></div>
+          <div class="code-line">led = PWM(Pin(<span class="num">15</span>))       <span class="cm"># GP15 Output</span></div>
+          <div class="code-line">led.freq(<span class="num">1000</span>)           <span class="cm"># Set 1 kHz PWM Frequency</span></div>
+          <div class="code-line"><br><span class="cm"># Processing Loop</span></div>
+          <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
+          <div class="code-line active-line">&nbsp;&nbsp;raw_adc = pot.read_u16()  <span class="cm"># Read 16-bit register</span></div>
+          <div class="code-line active-line">&nbsp;&nbsp;led.duty_u16(raw_adc)    <span class="cm"># Set PWM Duty Cycle</span></div>
+          <div class="code-line">&nbsp;&nbsp;time.sleep_ms(<span class="num">10</span>)</div>
+          <div class="code-line"><br><span class="cm"># Live Register Status:</span></div>
+          <div class="code-line">&nbsp;&nbsp;<span class="cm">Raw ADC Register: </span><span id="regAdc" class="val-highlight">32768</span></div>
+          <div class="code-line">&nbsp;&nbsp;<span class="cm">PWM Duty Cycle:   </span><span id="regPwm" class="val-highlight">50.0%</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    © 2026 Designed & Authored by <strong style="color: #cdd6f4;">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
+  </footer>
+
+  <script>
+    const slider = document.getElementById('potSlider');
+    const voltageText = document.getElementById('voltageText');
+    const regAdc = document.getElementById('regAdc');
+    const regPwm = document.getElementById('regPwm');
+
+    const adcCanvas = document.getElementById('adcGraph');
+    const adcCtx = adcCanvas.getContext('2d');
+    
+    const pwmCanvas = document.getElementById('pwmGraph');
+    const pwmCtx = pwmCanvas.getContext('2d');
+
+    // Buffer for time-series graph
+    let adcBuffer = new Array(80).fill(1.65);
+
+    function updateSimulation() {
+      const vIn = parseFloat(slider.value);
+      voltageText.textContent = `${vIn.toFixed(2)} V`;
+
+      // Map 0 - 3.3V to 16-bit unsigned integer (0 - 65535)
+      const rawVal = Math.round((vIn / 3.3) * 65535);
+      const dutyPercent = ((rawVal / 65535) * 100).toFixed(1);
+
+      regAdc.textContent = rawVal;
+      regPwm.textContent = `${dutyPercent}%`;
+
+      // Update trace buffer
+      adcBuffer.push(vIn);
+      adcBuffer.shift();
+
+      drawADCGraph();
+      drawPWMGraph(vIn / 3.3);
+    }
+
+    function drawADCGraph() {
+      adcCtx.clearRect(0, 0, adcCanvas.width, adcCanvas.height);
+      
+      // Grid lines
+      adcCtx.strokeStyle = '#313244';
+      adcCtx.lineWidth = 1;
+      adcCtx.beginPath();
+      adcCtx.moveTo(0, 20); adcCtx.lineTo(adcCanvas.width, 20); // 3.3V line
+      adcCtx.moveTo(0, 90); adcCtx.lineTo(adcCanvas.width, 90); // 0.0V line
+      adcCtx.stroke();
+
+      // Labels
+      adcCtx.fillStyle = '#6c7086';
+      adcCtx.font = '9px monospace';
+      adcCtx.fillText('3.3V', 5, 15);
+      adcCtx.fillText('0.0V', 5, 105);
+
+      // Plot trace
+      adcCtx.strokeStyle = '#fab387';
+      adcCtx.lineWidth = 2;
+      adcCtx.beginPath();
+      const step = adcCanvas.width / (adcBuffer.length - 1);
+      
+      for (let i = 0; i < adcBuffer.length; i++) {
+        const val = adcBuffer[i];
+        const y = 90 - (val / 3.3) * 70;
+        if (i === 0) adcCtx.moveTo(0, y);
+        else adcCtx.lineTo(i * step, y);
+      }
+      adcCtx.stroke();
+    }
+
+    function drawPWMGraph(dutyRatio) {
+      pwmCtx.clearRect(0, 0, pwmCanvas.width, pwmCanvas.height);
+      
+      // Plot PWM Square Wave Cycles
+      pwmCtx.strokeStyle = '#a6e3a1';
+      pwmCtx.lineWidth = 2;
+      pwmCtx.beginPath();
+
+      const numCycles = 5;
+      const cycleWidth = pwmCanvas.width / numCycles;
+      const highY = 20;
+      const lowY = 90;
+
+      for (let i = 0; i < numCycles; i++) {
+        const startX = i * cycleWidth;
+        const highWidth = cycleWidth * dutyRatio;
+
+        pwmCtx.moveTo(startX, lowY);
+        pwmCtx.lineTo(startX, highY);
+        pwmCtx.lineTo(startX + highWidth, highY);
+        pwmCtx.lineTo(startX + highWidth, lowY);
+        pwmCtx.lineTo(startX + cycleWidth, lowY);
+      }
+      pwmCtx.stroke();
+    }
+
+    // Initialize loop
+    setInterval(updateSimulation, 50);
+  </script>
+</body>
+</html>
