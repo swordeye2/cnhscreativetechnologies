@@ -1,0 +1,39 @@
+/* Shared Catppuccin Theme Variables */
+:root[data-theme="dark"] {
+  --bg-color: #1e1e2e;
+  --header-bg: #181825;
+  --card-bg: #181825;
+  --card-border: #313244;
+  --inner-box: #11111b;
+  --text-main: #cdd6f4;
+  --text-sub: #a6adc8;
+  --accent: #89b4fa;
+  --tag-color: #fab387;
+  --badge-license-bg: #274029;
+  --badge-license-txt: #a6e3a1;
+  --badge-ip-bg: #1e3a5f;
+  --btn-hover: #b4befe;
+  --code-highlight: rgba(137, 180, 250, 0.2);
+}
+
+:root[data-theme="light"] {
+  --bg-color: #eff1f5;
+  --header-bg: #e6e9ef;
+  --card-bg: #e6e9ef;
+  --card-border: #bcc0cc;
+  --inner-box: #dce0e8;
+  --text-main: #4c4f69;
+  --text-sub: #6c6f85;
+  --accent: #1e66f5;
+  --tag-color: #fe640b;
+  --badge-license-bg: #dce7d3;
+  --badge-license-txt: #40a02b;
+  --badge-ip-bg: #d0e1f9;
+  --btn-hover: #2a75ff;
+  --code-highlight: rgba(30, 102, 245, 0.2);
+}
+
+* { 
+  box-sizing: border-box; 
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease; 
+}
