@@ -3,407 +3,178 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Servo Motor & Power Physics Simulator • RP2040 Lab</title>
+  <title>RP2040 Stepper Motor Phase Excitation & Step Matrix Simulator</title>
+  
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
     header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
     .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
     .nav-link:hover { text-decoration: underline; }
-    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1050px; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1100px; }
     h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
-    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 25px; font-size: 0.95rem; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 20px; font-size: 0.95rem; text-align: center; }
+
+    /* Concept & Hardware Banner */
+    .concept-card { background: #181825; border: 1px solid #313244; border-radius: 8px; padding: 16px; margin-bottom: 18px; font-size: 0.85rem; line-height: 1.5; color: #cdd6f4; }
+    .concept-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     
-    /* Layout Grid: Simulator on Left, Code & Math Inspector on Right */
-    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; }
+    .badge-step { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
+    .badge-coil { background: #1e3a5f; color: #89b4fa; border: 1px solid #89b4fa; }
+
+    /* Grid Layout */
+    .grid-container { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
     @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
 
-    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
-    
-    /* Visualizer Boxes */
-    .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; position: relative; }
-    svg { display: block; width: 100%; height: auto; }
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
 
-    /* Key Concept Highlight Box */
-    .concept-banner { background: #313244; border-left: 4px solid #f9e2af; padding: 10px 14px; border-radius: 4px; font-size: 0.85rem; margin-bottom: 15px; color: #cdd6f4; line-height: 1.4; }
+    /* Canvas Box */
+    .canvas-container { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; overflow: hidden; position: relative; margin-bottom: 12px; }
+    canvas { display: block; width: 100%; height: auto; }
 
-    /* Code & Math Inspector Styling */
-    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.82rem; line-height: 1.5; overflow-x: auto; margin-bottom: 12px; }
-    .code-line { padding: 2px 6px; border-radius: 4px; color: #a6adc8; }
-    .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 3px solid #a6e3a1; padding-left: 3px; }
+    /* Controls Styling */
+    .control-panel { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+    .control-group { margin-bottom: 12px; }
+    .control-group:last-child { margin-bottom: 0; }
+    .slider-header { display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: bold; color: #89b4fa; margin-bottom: 4px; }
+    input[type=range] { width: 100%; background: #313244; accent-color: #89b4fa; border-radius: 4px; height: 6px; cursor: pointer; }
+
+    .btn-group { display: flex; gap: 8px; margin-top: 6px; }
+    .mode-btn { flex: 1; padding: 6px 10px; background: #181825; border: 1px solid #313244; color: #a6adc8; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; text-align: center; }
+    .mode-btn:hover { border-color: #89b4fa; color: #cdd6f4; }
+    .mode-btn.active { background: #89b4fa; color: #11111b; border-color: #89b4fa; font-weight: bold; }
+
+    /* Coil Matrix Display Table */
+    .matrix-table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 0.8rem; margin-top: 6px; }
+    .matrix-table th { background: #181825; color: #89b4fa; padding: 6px; border: 1px solid #313244; }
+    .matrix-table td { padding: 6px; border: 1px solid #313244; text-align: center; color: #a6adc8; }
+    .matrix-table tr.active-step { background: rgba(166, 227, 161, 0.15); font-weight: bold; }
+    .matrix-table tr.active-step td { color: #a6e3a1; }
+
+    /* Code Inspector Styling */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 2px 6px; border-radius: 4px; color: #a6adc8; white-space: pre; }
     .kw { color: #f38ba8; }
     .fn { color: #89b4fa; }
     .num { color: #fab387; }
     .cm { color: #6c7086; font-style: italic; }
     .val-highlight { color: #f9e2af; font-weight: bold; }
 
-    .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-    .control-block { background: #11111b; border: 1px solid #313244; border-radius: 6px; padding: 10px; }
-    .control-block label { display: block; font-size: 0.8rem; font-weight: bold; color: #89b4fa; margin-bottom: 6px; }
-
-    select, input[type=range] { width: 100%; background: #313244; color: #cdd6f4; border: 1px solid #45475a; border-radius: 4px; padding: 6px; font-size: 0.85rem; }
-
-    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
-    button { background: #89b4fa; color: #11111b; border: none; padding: 8px 12px; font-size: 0.85rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s ease; flex-grow: 1; }
-    button:hover { background: #b4befe; }
-    button.secondary { background: #313244; color: #cdd6f4; }
-    button.secondary:hover { background: #45475a; }
-    button.action { background: #f9e2af; color: #11111b; }
-
-    .status-panel { width: 100%; margin-top: 10px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.82rem; border: 1px solid #313244; }
-    .stat-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-    .pin-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; background: #a6e3a1; color: #11111b; font-weight: bold; font-size: 0.75rem; margin-top: 6px; }
-
     /* Quiz Panel Styling */
     .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
-    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; margin-top: 8px; }
     .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
     .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
     .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
     .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
-    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; margin-top: 8px; }
+
+    footer { margin-top: 25px; border-top: 1px solid #313244; padding-top: 15px; width: 100%; text-align: center; font-size: 0.75rem; color: #6c7086; font-family: monospace; }
   </style>
 </head>
 <body>
 
   <header>
-    <a href="index.html" class="nav-link">← Back to Lab Hub</a>
-    <span style="font-weight: bold; color: #a6adc8;">RP2040 JHS Lab</span>
+    <a href="./index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 MicroPython Actuator Lab</span>
   </header>
 
   <div class="content-wrapper">
-    <h1>Servo Motor & Voltage Physics Simulator</h1>
-    <p class="subtitle">50Hz PWM Target Position vs. External Supply Voltage Transit Speed</p>
+    <h1>Stepper Motor Phase Excitation & Matrix Simulator</h1>
+    <p class="subtitle">4-Phase Electromagnetic Coil Sequences, Full-Step / Wave Drive, and Step Angle Calculations</p>
 
-    <div class="concept-banner">
-      ⚡ <strong>Core Principle:</strong> The <strong>RP2040 (GP16)</strong> sends only the target angle ($0^\circ \rightarrow 180^\circ$) via PWM pulse-width ($0.5\text{ms} \rightarrow 2.5\text{ms}$). The <strong>External Voltage ($V_S$)</strong> powers the internal motor, dictating the maximum physical movement speed ($\text{sec}/60^\circ$)!
+    <div class="concept-card">
+      <div class="concept-title">
+        🧲 Stepper Motor Coil Excitation Physics
+      </div>
+      <div>
+        <strong>Electromagnetic Torque & Step Sequence:</strong> Unipolar and bipolar stepper motors rotate by sequentially energizing internal stator coils (Coil A1, A2, B1, B2).
+        In <strong>Full-Step Drive</strong>, two adjacent coils are energized simultaneously to maximize holding torque (angle step = 1.8° for 200-step motors).
+        In <strong>Wave Drive</strong>, only one coil is active at a time for minimal power consumption.
+        <br><br>
+        <strong>Step Angle Calculation:</strong> <code>Step Angle = 360° / N_steps</code> (e.g., 360° / 200 steps = 1.8° per step).
+        <span class="badge badge-step">Standard Angle: 1.8° / Step</span>
+        <span class="badge badge-coil">4-Pin Control Matrix</span>
+      </div>
     </div>
 
     <div class="grid-container">
       
-      <!-- LEFT COLUMN: Physical Visualizer & Controls -->
+      <!-- LEFT COLUMN: Motor Graphic & Controls -->
       <div class="card">
         
-        <!-- SVG Servo Motor Visualizer -->
-        <div class="vis-box">
-          <svg viewBox="0 0 400 200">
-            <!-- Servo Body (SG90 Style) -->
-            <rect x="130" y="50" width="140" height="110" rx="6" fill="#1e66f5" stroke="#89b4fa" stroke-width="2"/>
-            <rect x="110" y="90" width="180" height="12" rx="3" fill="#181825" stroke="#313244" stroke-width="1.5"/>
-            <circle cx="120" cy="96" r="3" fill="#a6adc8"/>
-            <circle cx="280" cy="96" r="3" fill="#a6adc8"/>
-            <text x="200" y="145" fill="#cdd6f4" font-size="11" font-family="sans-serif" font-weight="bold" text-anchor="middle">SG90 SERVO</text>
-
-            <!-- Angle Scale Arc (-90° to +90°) -->
-            <path d="M 120 70 A 80 80 0 0 1 280 70" fill="none" stroke="#313244" stroke-width="3" stroke-dasharray="4 4"/>
-
-            <!-- Ghost Target Position Horn (Shows RP2040 requested target angle) -->
-            <g id="ghostHorn" transform="translate(200, 70) rotate(0)" opacity="0.35">
-              <path d="M -8 0 L -4 -55 L 4 -55 L 8 0 Z" fill="#f9e2af" stroke="#f9e2af" stroke-width="1.5" stroke-dasharray="2 2"/>
-            </g>
-
-            <!-- Real Physical Horn (Tracks movement driven by Voltage) -->
-            <g id="actualHorn" transform="translate(200, 70) rotate(0)">
-              <circle cx="0" cy="0" r="22" fill="#cdd6f4" stroke="#a6adc8" stroke-width="2"/>
-              <path d="M -10 0 L -5 -60 L 5 -60 L 10 0 Z" fill="#cdd6f4"/>
-              <circle cx="0" cy="-20" r="2.5" fill="#11111b"/>
-              <circle cx="0" cy="-35" r="2.5" fill="#11111b"/>
-              <circle cx="0" cy="-50" r="2.5" fill="#11111b"/>
-              <circle cx="0" cy="0" r="6" fill="#45475a"/>
-            </g>
-
-            <text id="angleDisplaySvg" x="200" y="180" fill="#a6e3a1" font-size="13" font-family="sans-serif" font-weight="bold" text-anchor="middle">POS: 0° | TARGET: 0°</text>
-          </svg>
+        <div class="canvas-container">
+          <canvas id="stepperCanvas" width="540" height="260"></canvas>
         </div>
 
-        <!-- SVG 50Hz PWM Waveform Visualizer -->
-        <div class="vis-box">
-          <svg viewBox="0 0 400 70">
-            <line x1="0" y1="50" x2="400" y2="50" stroke="#313244" stroke-width="1"/>
-            <text x="10" y="16" fill="#a6adc8" font-size="10" font-family="monospace">PWM TARGET SIGNAL (GP16)</text>
-            <path id="pulsePath" d="" fill="none" stroke="#a6e3a1" stroke-width="2.5"/>
-          </svg>
-        </div>
-
-        <!-- Interactive Settings Grid -->
-        <div class="controls-grid">
-          <!-- Power Supply Voltage Selector -->
-          <div class="control-block">
-            <label for="voltageSelect">🔌 Power Supply Voltage (Vs)</label>
-            <select id="voltageSelect">
-              <option value="4.8">4.8V (0.12 sec / 60°) ~500°/s</option>
-              <option value="6.0" selected>6.0V (0.10 sec / 60°) ~600°/s</option>
-              <option value="7.4">7.4V LiPo (0.08 sec / 60°) ~750°/s</option>
-            </select>
-          </div>
-
-          <!-- Software Delay / Pacing -->
-          <div class="control-block">
-            <label for="pacingSelect">🐍 MicroPython Pacing Method</label>
-            <select id="pacingSelect">
-              <option value="snap">Instant Jump (Hardware Max Speed)</option>
-              <option value="smooth">Smooth Step Sweep (2.0 sec duration)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="slider-group" style="margin-top: 10px;">
-          <label style="font-size:0.85rem;">Target Angle Position: <span id="targetSliderLabel" style="color:#f9e2af; font-weight:bold;">0°</span></label>
-          <input type="range" id="angleSlider" min="0" max="180" value="0">
-        </div>
-
-        <div class="btn-group">
-          <button id="btn0" class="secondary">0° (Left)</button>
-          <button id="btn90">90° (Center)</button>
-          <button id="btn180" class="secondary">180° (Right)</button>
-          <button id="step090" class="action">Test 0° → 90° Jump</button>
-        </div>
-
-        <div class="status-panel">
-          <div class="stat-row"><span>Target Angle (RP2040):</span> <span id="targetAngleText" style="color:#f9e2af">0°</span></div>
-          <div class="stat-row"><span>Physical Horn Angle:</span> <span id="actualAngleText" style="color:#a6e3a1">0.0°</span></div>
-          <div class="stat-row"><span>Transit Time (0° → 90°):</span> <span id="time090Text" style="color:#89b4fa">0.150 seconds (150 ms)</span></div>
-          <div class="stat-row"><span>Pulse Width (GP16):</span> <span id="pulseWidthText">0.50 ms (1638 duty_u16)</span></div>
-          <span class="pin-badge">GP16 PWM: 50Hz ACTIVE</span>
-        </div>
-
-      </div>
-
-      <!-- RIGHT COLUMN: Code Inspector, Calculation Engine & Formative Quiz -->
-      <div style="display: flex; flex-direction: column; gap: 20px;">
-
-        <div class="card">
-          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
-            🧮 Hardware Specs & Live Calculations
-          </div>
-
-          <!-- Transit Time Math Breakdown Box -->
-          <div class="code-box" style="background:#181825; border-color:#45475a;">
-            <div><strong>1. Datasheet Transit Speed Rating:</strong></div>
-            <div id="mathSpecLine" style="color:#f9e2af; margin-top:2px;">• Rating @ 6.0V = 0.10 sec / 60°</div>
-            <div style="margin-top:6px;"><strong>2. Travel Time Calculation (0° → 90°):</strong></div>
-            <div id="mathCalcLine" style="color:#89b4fa; margin-top:2px;">
-              • Time = (90° / 60°) × 0.10s = <strong>0.150 sec (150 ms)</strong>
+        <div class="control-panel">
+          
+          <div class="control-group">
+            <div class="slider-header">
+              <span>Drive Excitation Mode:</span>
+              <span id="modeLabel" style="color:#a6e3a1;">Full-Step (Dual Coil)</span>
+            </div>
+            <div class="btn-group">
+              <div class="mode-btn active" id="btnFull" onclick="setDriveMode('full')">Full-Step (2-Coil)</div>
+              <div class="mode-btn" id="btnWave" onclick="setDriveMode('wave')">Wave Drive (1-Coil)</div>
             </div>
           </div>
 
-          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.95rem;">
-            🐍 MicroPython Signal Code
+          <div class="control-group">
+            <div class="slider-header">
+              <span>Stepping Speed (RPM / Delay):</span>
+              <span id="speedLabel" style="color:#89b4fa;">Speed: 60 RPM (5 ms step delay)</span>
+            </div>
+            <input type="range" id="speedSlider" min="10" max="200" value="60" step="5">
           </div>
-          
-          <div class="code-box">
-            <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin, PWM</div>
-            <div class="code-line"><span class="kw">import</span> utime</div>
-            <div class="code-line"><br><span class="cm"># RP2040 sends target position PWM</span></div>
-            <div class="code-line">servo = PWM(Pin(<span class="num">16</span>), freq=<span class="num">50</span>)</div>
-            <div class="code-line"><br><span class="kw">def</span> <span class="fn">set_target_angle</span>(deg):</div>
-            <div class="code-line">&nbsp;&nbsp;pulse_ms = <span class="num">0.5</span> + (deg / <span class="num">180.0</span>) * <span class="num">2.0</span></div>
-            <div class="code-line">&nbsp;&nbsp;duty = <span class="fn">int</span>((pulse_ms / <span class="num">20.0</span>) * <span class="num">65535</span>)</div>
-            <div class="code-line">&nbsp;&nbsp;servo.<span class="fn">duty_u16</span>(duty)</div>
-            <div class="code-line"><br><span class="cm"># Request angle move to RP2040</span></div>
-            <div id="codeExecLine" class="code-line active">set_target_angle(<span id="codeAngleVal" class="val-highlight">0</span>)</div>
-            <div id="codeSleepLine" class="code-line"><span class="cm"># Sleep at least <span id="codeSleepVal" class="val-highlight">150 ms</span> for physical movement!</span></div>
-            <div class="code-line">utime.<span class="fn">sleep_ms</span>(<span id="codeSleepMsVal" class="val-highlight">150</span>)</div>
+
+          <div class="btn-group" style="margin-top: 10px;">
+            <div class="mode-btn" style="background:#274029; color:#a6e3a1; border-color:#a6e3a1;" onclick="toggleMotorRun()">Play / Pause</div>
+            <div class="mode-btn" onclick="stepMotor(1)">Step Forward ⏩</div>
+            <div class="mode-btn" onclick="stepMotor(-1)">Step Reverse ⏪</div>
           </div>
+
         </div>
 
-        <!-- Concept Check Quiz Panel -->
-        <div class="card">
-          <div class="quiz-title">📝 Concept Check Quiz</div>
-          <div class="quiz-question" id="quiz-question">
-            Why must a MicroPython program include a sleep delay (e.g. utime.sleep_ms(150)) immediately after setting a new servo target angle?
+        <!-- Live Step Sequence Table -->
+        <div style="background:#11111b; border:1px solid #313244; border-radius:8px; padding:12px;">
+          <div style="font-weight:bold; color:#89b4fa; margin-bottom:6px; font-family:monospace; font-size:0.8rem;">
+            📊 4-Phase GPIO Excitation Sequence Matrix
           </div>
-          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
-          <div id="quiz-feedback" style="margin-top: 8px;"></div>
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Step Index</th>
+                <th>IN1 (Coil A1)</th>
+                <th>IN2 (Coil A2)</th>
+                <th>IN3 (Coil B1)</th>
+                <th>IN4 (Coil B2)</th>
+              </tr>
+            </thead>
+            <tbody id="matrixBody"></tbody>
+          </table>
         </div>
 
       </div>
 
-    </div>
-  </div>
+      <!-- RIGHT COLUMN: Code Inspector & Quiz -->
+      <div style="display: flex; flex-direction: column; gap: 18px;">
 
-  <script>
-    // State Variables
-    let targetAngle = 0;
-    let currentActualAngle = 0;
-    let voltage = 6.0; // Volts
-    let lastTimestamp = null;
+        <div class="card">
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.92rem;">
+            🐍 MicroPython Stepper Matrix Control Code
+          </div>
 
-    // Spec Table: Voltage -> sec/60°
-    const specTable = {
-      4.8: 0.12,
-      6.0: 0.10,
-      7.4: 0.08
-    };
-
-    // DOM Elements
-    const actualHorn = document.getElementById('actualHorn');
-    const ghostHorn = document.getElementById('ghostHorn');
-    const angleDisplaySvg = document.getElementById('angleDisplaySvg');
-    const pulsePath = document.getElementById('pulsePath');
-    const voltageSelect = document.getElementById('voltageSelect');
-    const pacingSelect = document.getElementById('pacingSelect');
-    const angleSlider = document.getElementById('angleSlider');
-    const targetSliderLabel = document.getElementById('targetSliderLabel');
-    const targetAngleText = document.getElementById('targetAngleText');
-    const actualAngleText = document.getElementById('actualAngleText');
-    const time090Text = document.getElementById('time090Text');
-    const pulseWidthText = document.getElementById('pulseWidthText');
-
-    // Math & Code Inspector DOM
-    const mathSpecLine = document.getElementById('mathSpecLine');
-    const mathCalcLine = document.getElementById('mathCalcLine');
-    const codeAngleVal = document.getElementById('codeAngleVal');
-    const codeSleepVal = document.getElementById('codeSleepVal');
-    const codeSleepMsVal = document.getElementById('codeSleepMsVal');
-
-    const btn0 = document.getElementById('btn0');
-    const btn90 = document.getElementById('btn90');
-    const btn180 = document.getElementById('btn180');
-    const step090 = document.getElementById('step090');
-
-    // Quiz Data
-    const quizData = {
-      question: "Why must a MicroPython script include a sleep delay (e.g. utime.sleep_ms(150)) immediately after changing a servo angle in code?",
-      options: [
-        { text: "A. To allow physical motor gear transit time; otherwise, subsequent code commands may execute before the horn physically arrives.", correct: true },
-        { text: "B. Because RP2040 PWM hardware registers take 150 ms to update internal duty cycle values.", correct: false },
-        { text: "C. To prevent the servo internal motor driver from triggering an over-voltage protection lock.", correct: false }
-      ]
-    };
-
-    function initQuiz() {
-      document.getElementById('quiz-question').innerText = quizData.question;
-      const container = document.getElementById('quiz-options');
-      container.innerHTML = '';
-
-      quizData.options.forEach((opt) => {
-        const div = document.createElement('div');
-        div.className = 'quiz-opt';
-        div.innerText = opt.text;
-        div.onclick = () => checkQuiz(div, opt.correct);
-        container.appendChild(div);
-      });
-    }
-
-    function checkQuiz(selectedEl, isCorrect) {
-      const feedback = document.getElementById('quiz-feedback');
-      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
-
-      if (isCorrect) {
-        selectedEl.classList.add('correct');
-        feedback.style.color = '#a6e3a1';
-        feedback.textContent = 'Correct! MicroPython executes code at megahertz speed, but mechanical motors need physical time (dictated by supply voltage) to move the gear train!';
-      } else {
-        selectedEl.classList.add('wrong');
-        feedback.style.color = '#f38ba8';
-        feedback.textContent = 'Incorrect. Consider the physical speed limits of DC motor gears vs. software execution speed!';
-      }
-    }
-
-    function drawPulseWave(pulseMs) {
-      const highWidthPx = pulseMs * 20; // 20ms mapped to 400px -> 1ms = 20px
-      let d = '';
-      for (let period = 0; period < 2; period++) {
-        const startX = period * 200;
-        const highEnd = startX + highWidthPx;
-        const periodEnd = startX + 200;
-        d += `M ${startX} 50 L ${startX} 20 L ${highEnd} 20 L ${highEnd} 50 L ${periodEnd} 50 `;
-      }
-      pulsePath.setAttribute('d', d);
-    }
-
-    function updateCalculations() {
-      const secPer60 = specTable[voltage];
-      const timeFor90Sec = (90 / 60) * secPer60;
-      const timeFor90Ms = Math.round(timeFor90Sec * 1000);
-      const speedDegPerSec = Math.round(60 / secPer60);
-
-      const pulseMs = 0.5 + (targetAngle / 180.0) * 2.0;
-      const u16Val = Math.round((pulseMs / 20.0) * 65535);
-
-      // Update Text Displays
-      targetSliderLabel.innerText = `${targetAngle}°`;
-      targetAngleText.innerText = `${targetAngle}°`;
-      actualAngleText.innerText = `${currentActualAngle.toFixed(1)}°`;
-      time090Text.innerText = `${timeFor90Sec.toFixed(3)} seconds (${timeFor90Ms} ms)`;
-      pulseWidthText.innerText = `${pulseMs.toFixed(2)} ms (${u16Val} duty_u16)`;
-
-      // Update Math Inspector
-      mathSpecLine.innerText = `• Rating @ ${voltage}V = ${secPer60} sec / 60° (Max Speed: ~${speedDegPerSec}°/sec)`;
-      mathCalcLine.innerHTML = `• Time (0° → 90°) = (90° / 60°) × ${secPer60}s = <strong>${timeFor90Sec.toFixed(3)} sec (${timeFor90Ms} ms)</strong>`;
-
-      // Update Code Inspector
-      codeAngleVal.innerText = targetAngle;
-      codeSleepVal.innerText = `${timeFor90Ms} ms`;
-      codeSleepMsVal.innerText = timeFor90Ms;
-
-      // Update SVG Ghost Target Horn
-      ghostHorn.setAttribute('transform', `translate(200, 70) rotate(${targetAngle - 90})`);
-      
-      // Update Pulse Waveform
-      drawPulseWave(pulseMs);
-    }
-
-    function setTargetAngle(val) {
-      targetAngle = parseInt(val);
-      angleSlider.value = targetAngle;
-      updateCalculations();
-    }
-
-    // Physics Animation Loop: Smooth Movement at Physical Speed Limit
-    function physicsLoop(timestamp) {
-      if (!lastTimestamp) lastTimestamp = timestamp;
-      const dt = (timestamp - lastTimestamp) / 1000; // delta time in seconds
-      lastTimestamp = timestamp;
-
-      const secPer60 = specTable[voltage];
-      const maxSpeedDegPerSec = 60 / secPer60; // Max speed allowed by power supply
-
-      if (currentActualAngle !== targetAngle) {
-        const angleDiff = targetAngle - currentActualAngle;
-        const step = Math.sign(angleDiff) * maxSpeedDegPerSec * dt;
-
-        if (Math.abs(angleDiff) <= Math.abs(step)) {
-          currentActualAngle = targetAngle;
-        } else {
-          currentActualAngle += step;
-        }
-
-        // Rotate SVG Actual Horn
-        actualHorn.setAttribute('transform', `translate(200, 70) rotate(${currentActualAngle - 90})`);
-        
-        angleDisplaySvg.innerText = `POS: ${Math.round(currentActualAngle)}° | TARGET: ${targetAngle}°`;
-        actualAngleText.innerText = `${currentActualAngle.toFixed(1)}°`;
-      }
-
-      requestAnimationFrame(physicsLoop);
-    }
-
-    // Event Listeners
-    voltageSelect.addEventListener('change', (e) => {
-      voltage = parseFloat(e.target.value);
-      updateCalculations();
-    });
-
-    angleSlider.addEventListener('input', (e) => {
-      setTargetAngle(e.target.value);
-    });
-
-    btn0.addEventListener('click', () => setTargetAngle(0));
-    btn90.addEventListener('click', () => setTargetAngle(90));
-    btn180.addEventListener('click', () => setTargetAngle(180));
-
-    step090.addEventListener('click', () => {
-      currentActualAngle = 0;
-      actualHorn.setAttribute('transform', 'translate(200, 70) rotate(-90)');
-      setTargetAngle(90);
-    });
-
-    // Initial Setup & Start Loop
-    initQuiz();
-    setTargetAngle(0);
-    requestAnimationFrame(physicsLoop);
-  </script>
-</body>
-</html>
+          <div class="code-box">
+            <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin</div>
+            <div class="code-line"><span class="kw">import</span> time</div>
+            <div class="code-line"><br><span class="cm"># 4 GPIO Output Pins for H-Bridge/ULN2003</span></div>
+            <div class
