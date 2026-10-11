@@ -14,9 +14,9 @@
 
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    body { background-color: var(--bg-color, #1e1e2e); color: var(--text-main, #cdd6f4); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
     
-    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    header { width: 100%; background: var(--card-bg, #181825); border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
     .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
     .nav-link:hover { text-decoration: underline; }
 
@@ -25,7 +25,7 @@
     p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 20px; font-size: 0.95rem; text-align: center; }
 
     /* Concept Banner */
-    .concept-card { background: #181825; border: 1px solid #313244; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 0.86rem; line-height: 1.5; color: #cdd6f4; }
+    .concept-card { background: var(--card-bg, #181825); border: 1px solid #313244; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 0.86rem; line-height: 1.5; color: var(--text-main, #cdd6f4); }
     .concept-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
     .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; margin-right: 6px; }
     .badge-adc { background: #1e3a5f; color: #89b4fa; border: 1px solid #89b4fa; }
@@ -35,28 +35,28 @@
     .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
     
-    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+    .card { background: var(--card-bg, #181825); border: 1px solid #313244; border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
 
     /* Interactive Knob / Controls */
-    .control-panel { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center; }
+    .control-panel { background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center; }
     .knob-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 10px 0; }
     input[type=range] { width: 80%; height: 8px; border-radius: 5px; background: #313244; outline: none; accent-color: #89b4fa; cursor: pointer; }
 
     /* Graphs Canvas */
-    .canvas-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 10px; margin-bottom: 12px; }
+    .canvas-box { background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; padding: 10px; margin-bottom: 12px; }
     canvas { display: block; width: 100%; height: auto; }
 
     /* Code Inspector */
-    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
+    .code-box { background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
     .code-line { padding: 3px 6px; border-radius: 4px; color: #a6adc8; white-space: pre; transition: all 0.2s ease; }
-    .code-line.active-line { background: rgba(137, 180, 250, 0.2); border-left: 3px solid #89b4fa; color: #cdd6f4; }
+    .code-line.active-line { background: rgba(137, 180, 250, 0.2); border-left: 3px solid #89b4fa; color: var(--text-main, #cdd6f4); }
     .kw { color: #f38ba8; }
     .fn { color: #89b4fa; }
     .num { color: #fab387; }
     .cm { color: #6c7086; font-style: italic; }
     .val-highlight { font-weight: bold; padding: 1px 4px; border-radius: 3px; background: #313244; color: #a6e3a1; }
 
-    footer { width: 100%; background: #181825; border-top: 1px solid #313244; padding: 15px; text-align: center; font-size: 0.75rem; color: #6c7086; font-family: monospace; margin-top: 25px; }
+    footer { width: 100%; background: var(--card-bg, #181825); border-top: 1px solid #313244; padding: 15px; text-align: center; font-size: 0.75rem; color: #6c7086; font-family: monospace; margin-top: 25px; }
   </style>
 <link rel="stylesheet" href="./theme.css">
 </head>
@@ -94,7 +94,7 @@
           <div style="font-size: 0.9rem; font-weight: bold; color: #89b4fa;">🎛️ Potentiometer Hardware Control</div>
           <div class="knob-container">
             <input type="range" id="potSlider" min="0" max="3.3" step="0.01" value="1.65" oninput="updateSimulation()">
-            <div style="font-family: monospace; font-size: 0.85rem; color: #cdd6f4;">
+            <div style="font-family: monospace; font-size: 0.85rem; color: var(--text-main, #cdd6f4);">
               Analog Input Voltage: <strong id="voltageText" style="color: #fab387;">1.65 V</strong>
             </div>
           </div>
@@ -138,7 +138,7 @@
   </div>
 
   <footer>
-    © 2026 Designed & Authored by <strong style="color: #cdd6f4;">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
+    © 2026 Designed & Authored by <strong style="color: var(--text-main, #cdd6f4);">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
   </footer>
 
   <script>

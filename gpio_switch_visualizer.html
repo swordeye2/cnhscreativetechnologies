@@ -14,8 +14,8 @@
 
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    body { background-color: var(--bg-color, #1e1e2e); color: var(--text-main, #cdd6f4); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: var(--card-bg, #181825); border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
     .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
     .nav-link:hover { text-decoration: underline; }
     .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1100px; }
@@ -23,7 +23,7 @@
     p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 20px; font-size: 0.95rem; text-align: center; }
 
     /* Concept & Hardware Banner */
-    .concept-card { background: #181825; border: 1px solid #313244; border-radius: 8px; padding: 16px; margin-bottom: 18px; font-size: 0.85rem; line-height: 1.5; color: #cdd6f4; }
+    .concept-card { background: var(--card-bg, #181825); border: 1px solid #313244; border-radius: 8px; padding: 16px; margin-bottom: 18px; font-size: 0.85rem; line-height: 1.5; color: var(--text-main, #cdd6f4); }
     .concept-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     
     .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; }
@@ -33,24 +33,24 @@
     .grid-container { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
     @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
 
-    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+    .card { background: var(--card-bg, #181825); border: 1px solid #313244; border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
 
     /* Canvas Box */
-    .canvas-container { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; overflow: hidden; position: relative; margin-bottom: 12px; }
+    .canvas-container { width: 100%; background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; overflow: hidden; position: relative; margin-bottom: 12px; }
     canvas { display: block; width: 100%; height: auto; }
 
     /* Switch Matrix Controls */
     .switch-matrix { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
-    .switch-row { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+    .switch-row { background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
     .switch-label { font-size: 0.82rem; font-weight: bold; font-family: monospace; }
     
-    .btn-signal { padding: 8px 16px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; border: 1px solid #313244; background: #181825; color: #a6adc8; }
+    .btn-signal { padding: 8px 16px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; border: 1px solid #313244; background: var(--card-bg, #181825); color: #a6adc8; }
     .btn-signal.active-red { background: #f38ba8; color: #11111b; border-color: #f38ba8; box-shadow: 0 0 12px rgba(243,139,168,0.6); }
     .btn-signal.active-green { background: #a6e3a1; color: #11111b; border-color: #a6e3a1; box-shadow: 0 0 12px rgba(166,227,161,0.6); }
     .btn-signal.active-blue { background: #89b4fa; color: #11111b; border-color: #89b4fa; box-shadow: 0 0 12px rgba(137,180,250,0.6); }
 
     /* Code Inspector Styling */
-    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
+    .code-box { background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
     .code-line { padding: 3px 6px; border-radius: 4px; color: #a6adc8; white-space: pre; transition: all 0.3s ease; }
     .code-line.active-red-line { background: rgba(243, 139, 168, 0.2); border-left: 3px solid #f38ba8; color: #f38ba8; }
     .code-line.active-grn-line { background: rgba(166, 227, 161, 0.2); border-left: 3px solid #a6e3a1; color: #a6e3a1; }
@@ -68,8 +68,8 @@
 
     /* Quiz Panel Styling */
     .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
-    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; margin-top: 8px; }
-    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-question { font-size: 0.85rem; color: var(--text-main, #cdd6f4); font-weight: 600; line-height: 1.4; margin-top: 8px; }
+    .quiz-opt { background: var(--inner-box, #11111b); border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
     .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
     .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
     .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }

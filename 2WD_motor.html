@@ -6,7 +6,7 @@
   <title>2WD Robot & H-Bridge Motor Driver Visualizer • CNHS Creative Tech</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    body { background-color: var(--bg-color, #1e1e2e); color: var(--text-main, #cdd6f4); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
     
     header { text-align: center; margin-bottom: 20px; max-width: 1200px; width: 100%; }
     header h1 { color: #89b4fa; margin: 0 0 5px 0; font-size: 1.8rem; }
@@ -16,7 +16,7 @@
 
     .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; }
     
-    .panel { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+    .panel { background: var(--card-bg, #181825); border: 1px solid #313244; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
     .panel h2 { color: #89b4fa; font-size: 1.1rem; margin: 0; border-bottom: 1px solid #313244; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 
     /* Controls */
@@ -25,14 +25,14 @@
     .control-group input[type="range"] { accent-color: #89b4fa; cursor: pointer; }
     
     .btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
-    .btn { background: #313244; color: #cdd6f4; border: 1px solid #45475a; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
+    .btn { background: #313244; color: var(--text-main, #cdd6f4); border: 1px solid #45475a; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; justify-content: center; }
     .btn:hover { background: #45475a; border-color: #89b4fa; }
     .btn.active { background: #89b4fa; color: #11111b; border-color: #89b4fa; }
     .btn-danger { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
     .btn-danger:hover { background: #f38ba8; color: #11111b; }
 
     /* Mode Pill Selector */
-    .mode-selector { display: flex; background: #11111b; padding: 4px; border-radius: 8px; border: 1px solid #313244; gap: 4px; }
+    .mode-selector { display: flex; background: var(--inner-box, #11111b); padding: 4px; border-radius: 8px; border: 1px solid #313244; gap: 4px; }
     .mode-btn { flex: 1; text-align: center; padding: 6px 4px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; color: #a6adc8; font-weight: bold; transition: all 0.2s ease; border: none; background: transparent; }
     .mode-btn.active { background: #89b4fa; color: #11111b; }
 
@@ -41,11 +41,11 @@
     .dpad-cell { aspect-ratio: 1; min-height: 48px; }
 
     /* Canvas Elements */
-    canvas { background: #11111b; border: 1px solid #313244; border-radius: 8px; width: 100%; display: block; }
+    canvas { background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; width: 100%; display: block; }
 
     /* Motor Stats & Truth Table Display */
     .motor-status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .motor-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 10px; font-size: 0.8rem; }
+    .motor-box { background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; padding: 10px; font-size: 0.8rem; }
     .motor-box h3 { margin: 0 0 6px 0; font-size: 0.85rem; color: #f9e2af; border-bottom: 1px solid #313244; padding-bottom: 4px; }
     .pin-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.75rem; font-weight: bold; }
     .pin-high { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
@@ -53,7 +53,7 @@
     .pin-pwm { background: #423522; color: #f9e2af; border: 1px solid #f9e2af; }
 
     /* MicroPython Code Block */
-    pre.code-block { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; color: #cdd6f4; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; margin: 0; max-height: 240px; }
+    pre.code-block { background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; padding: 12px; color: var(--text-main, #cdd6f4); font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; margin: 0; max-height: 240px; }
     .code-keyword { color: #cba6f7; }
     .code-func { color: #89b4fa; }
     .code-comment { color: #6c7086; font-style: italic; }
@@ -62,12 +62,12 @@
     /* Truth Table Display */
     table.truth-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; font-family: monospace; }
     table.truth-table th, table.truth-table td { border: 1px solid #313244; padding: 6px; text-align: center; }
-    table.truth-table th { background: #11111b; color: #89b4fa; }
+    table.truth-table th { background: var(--inner-box, #11111b); color: #89b4fa; }
     table.truth-table tr.active-row { background: rgba(137, 180, 250, 0.15); border-color: #89b4fa; }
 
     /* Quiz Styling */
-    .quiz-question { font-size: 0.85rem; color: #cdd6f4; margin-bottom: 8px; font-weight: bold; }
-    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-question { font-size: 0.85rem; color: var(--text-main, #cdd6f4); margin-bottom: 8px; font-weight: bold; }
+    .quiz-opt { background: var(--inner-box, #11111b); border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
     .quiz-opt:hover { border-color: #89b4fa; }
     .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
     .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }

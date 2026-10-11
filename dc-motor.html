@@ -6,8 +6,8 @@
   <title>DC Motor & DRV8833 Simulator • RP2040 Lab</title>
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    body { background-color: var(--bg-color, #1e1e2e); color: var(--text-main, #cdd6f4); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    header { width: 100%; background: var(--card-bg, #181825); border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
     .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
     .nav-link:hover { text-decoration: underline; }
     .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1000px; }
@@ -18,14 +18,14 @@
     .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 850px) { .grid-container { grid-template-columns: 1fr; } }
 
-    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; }
+    .card { background: var(--card-bg, #181825); border: 1px solid #313244; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; }
     
     /* Visualizer Boxes */
-    .vis-box { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+    .vis-box { width: 100%; background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
     svg { display: block; width: 100%; height: auto; }
 
     /* Code Inspector Styling */
-    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 15px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; overflow-x: auto; flex-grow: 1; }
+    .code-box { background: var(--inner-box, #11111b); border: 1px solid #313244; border-radius: 8px; padding: 15px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; overflow-x: auto; flex-grow: 1; }
     .code-line { padding: 2px 8px; border-radius: 4px; color: #a6adc8; transition: background 0.15s ease, color 0.15s ease; }
     .code-line.active { background: #313244; color: #a6e3a1; font-weight: bold; border-left: 4px solid #a6e3a1; padding-left: 4px; }
     .kw { color: #f38ba8; } /* Keyword */
@@ -44,7 +44,7 @@
     label { font-size: 0.85rem; font-weight: 500; }
     input[type=range] { width: 50%; }
     
-    .status-panel { width: 100%; margin-top: 12px; background: #11111b; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.85rem; border: 1px solid #313244; }
+    .status-panel { width: 100%; margin-top: 12px; background: var(--inner-box, #11111b); border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.85rem; border: 1px solid #313244; }
     .pin-status { display: flex; justify-content: space-around; margin-top: 8px; }
     .pin-badge { padding: 4px 10px; border-radius: 4px; background: #313244; font-weight: bold; }
     .pin-badge.active-pwm { background: #a6e3a1; color: #11111b; box-shadow: 0 0 8px #a6e3a1; }
@@ -53,8 +53,8 @@
 
     /* Quiz Panel Styling */
     .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
-    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; }
-    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-question { font-size: 0.85rem; color: var(--text-main, #cdd6f4); font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: var(--inner-box, #11111b); border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
     .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
     .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
     .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
