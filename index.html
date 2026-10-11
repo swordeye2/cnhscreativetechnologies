@@ -72,8 +72,8 @@
       </div>
     </div>
 
-    <!-- Section 1: Digital & Analog Signal Processing -->
-    <div class="section-title">⚡ Signal Processing & Data Conversion Labs</div>
+    <!-- Section 1: Signals, ADC & Hardware Interrupts -->
+    <div class="section-title">⚡ Signal Processing, Digital Logic & Interrupts</div>
     <div class="grid">
 
       <!-- Analog Processing (Potentiometer to PWM) -->
@@ -94,7 +94,7 @@
           <div class="card-tag">GPIO & Digital Logic</div>
           <div class="card-title">Direct 3.3V Input & Output LED Simulator</div>
           <div class="card-desc">
-            Visualize direct 3.3V digital signal inputs on assigned RP2040 GPIO pins (GP14, GP16, GP18) driving LED output circuits (GP15, GP17, GP19). Features pin-level visual glowing and live reactive MicroPython code inspection.
+            Visualize direct 3.3V digital signal inputs on assigned RP2040 GPIO pins driving LED output circuits with pin-level glowing and live reactive MicroPython code inspection.
           </div>
         </div>
         <a href="./gpio_switch_visualizer.html" class="btn-launch">Launch Digital I/O Lab →</a>
@@ -106,7 +106,7 @@
           <div class="card-tag">Electronics Physics</div>
           <div class="card-title">Internal Pull-Up vs Pull-Down Resistor Lab</div>
           <div class="card-desc">
-            Explore default idle voltages (0.0V LOW for Pull-Down vs 3.3V HIGH for Pull-Up) and active-LOW logic. Visualizes the internal ~50kΩ resistor bus inside the RP2040 chip during switch actuation.
+            Explore default idle voltages (0.0V LOW for Pull-Down vs 3.3V HIGH for Pull-Up) and active-LOW logic, visualizing the internal ~50kΩ resistor bus inside the RP2040 chip.
           </div>
         </div>
         <a href="./pull_resistor_visualizer.html" class="btn-launch">Launch Pull-Resistor Lab →</a>
@@ -118,16 +118,28 @@
           <div class="card-tag">PWM & Data Conversion</div>
           <div class="card-title">PWM Signal & Dynamic Bit-Width Converter</div>
           <div class="card-desc">
-            Simulate RP2040 16-bit PWM hardware registers (`duty_u16`) and master bit-shifting arithmetic (`>>`) down to 8-bit, 10-bit, 12-bit, and 14-bit targets with an interactive oscilloscope waveform trace.
+            Simulate RP2040 16-bit PWM hardware registers (`duty_u16`) and master bit-shifting arithmetic (`>>`) down to 8-bit, 10-bit, 12-bit, and 14-bit targets.
           </div>
         </div>
         <a href="./pwm_visualizer.html" class="btn-launch">Launch PWM Converter Lab →</a>
       </div>
 
+      <!-- PIR Interrupt Sensor -->
+      <div class="module-card">
+        <div>
+          <div class="card-tag">Hardware Interrupts</div>
+          <div class="card-title">PIR Motion Sensor & IRQ Interrupt Lab</div>
+          <div class="card-desc">
+            Simulate asynchronous hardware interrupt requests (`Pin.IRQ_RISING`) triggered by motion detection to execute instant MicroPython callback handlers.
+          </div>
+        </div>
+        <a href="./pir_interrupt.html" class="btn-launch">Launch PIR Interrupt Lab →</a>
+      </div>
+
     </div>
 
-    <!-- Section 2: Actuators, Motors & Communication Protocols -->
-    <div class="section-title">🧲 Actuators, Motors & Bus Protocols</div>
+    <!-- Section 2: Actuators, Motors & Physics Dynamics -->
+    <div class="section-title">🧲 Actuators, Motors & Servo Power Physics</div>
     <div class="grid">
 
       <!-- Stepper Motor Matrix Simulator -->
@@ -136,7 +148,7 @@
           <div class="card-tag">Motor Control & Electromagnetics</div>
           <div class="card-title">Stepper Motor Phase Excitation & Step Matrix</div>
           <div class="card-desc">
-            Simulate 4-phase stator coil excitation sequences, compare Full-Step (2-coil) holding torque vs Wave Drive (1-coil) power consumption, calculate step angles (1.8°/step), and inspect the live GPIO output matrix.
+            Simulate 4-phase stator coil excitation sequences, compare Full-Step holding torque vs Wave Drive power consumption, and inspect the live output matrix.
           </div>
         </div>
         <a href="./stepper.html" class="btn-launch">Launch Stepper Matrix Lab →</a>
@@ -166,6 +178,18 @@
         <a href="./servo.html" class="btn-launch">Launch Servo Lab →</a>
       </div>
 
+      <!-- Servo Voltage Dynamics -->
+      <div class="module-card">
+        <div>
+          <div class="card-tag">Power Engineering</div>
+          <div class="card-title">Servo Supply Voltage & Stall Current Lab</div>
+          <div class="card-desc">
+            Simulate power supply voltage drops, peak stall current spikes under high load, and brownout conditions on microcontroller power rails.
+          </div>
+        </div>
+        <a href="./servo_voltage.html" class="btn-launch">Launch Servo Voltage Lab →</a>
+      </div>
+
       <!-- 2WD Robot Platform -->
       <div class="module-card">
         <div>
@@ -177,6 +201,24 @@
         </div>
         <a href="./2WD_motor.html" class="btn-launch">Launch 2WD Robot Lab →</a>
       </div>
+
+      <!-- Drone Simulation -->
+      <div class="module-card">
+        <div>
+          <div class="card-tag">Multirotor Dynamics</div>
+          <div class="card-title">Quadrotor Flight Dynamics & ESC Simulator</div>
+          <div class="card-desc">
+            4-channel ESC motor mixing, thrust calculations, and roll/pitch/yaw balance logic.
+          </div>
+        </div>
+        <a href="./drone_sim.html" class="btn-launch">Launch Drone Lab →</a>
+      </div>
+
+    </div>
+
+    <!-- Section 3: Serial Protocols & Communication Bus -->
+    <div class="section-title">📡 Serial Protocols & Communication Bus</div>
+    <div class="grid">
 
       <!-- I2C Communication -->
       <div class="module-card">
@@ -190,16 +232,16 @@
         <a href="./i2c_sensor.html" class="btn-launch">Launch I2C Sensor Lab →</a>
       </div>
 
-      <!-- Drone Simulation -->
+      <!-- I2C Interrupt Driven -->
       <div class="module-card">
         <div>
-          <div class="card-tag">Multirotor Dynamics</div>
-          <div class="card-title">Quadrotor Flight Dynamics & ESC Simulator</div>
+          <div class="card-tag">Bus Events & IRQ</div>
+          <div class="card-title">Interrupt-Driven I2C Sensor Events Lab</div>
           <div class="card-desc">
-            4-channel ESC motor mixing, thrust calculations, and roll/pitch/yaw balance logic.
+            Simulate hardware interrupt flags triggered by I2C sensor threshold events for real-time alerts without blocking CPU polling loops.
           </div>
         </div>
-        <a href="./drone_sim.html" class="btn-launch">Launch Drone Lab →</a>
+        <a href="./i2c_interrupt.html" class="btn-launch">Launch I2C Interrupt Lab →</a>
       </div>
 
     </div>
