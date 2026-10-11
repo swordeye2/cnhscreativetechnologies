@@ -3,406 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RP2040 MicroPython Educational Hardware Curriculum Hub</title>
+  <title>RP2040 MicroPython Physics & Hardware Lab Suite</title>
   
   <!-- Legal IP & Copyright Assertions -->
   <meta name="author" content="Jorge Victor M. Sales">
   <meta name="creator" content="Jorge Victor M. Sales">
   <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
-  <meta name="rights" content="Licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). All software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales under CC BY-NC-SA 4.0.">
   <meta name="alias" content="swordeye, thearbiter">
-  <meta name="description" content="Interactive RP2040 MicroPython Physics & Embedded Hardware Simulations Platform by Jorge Victor M. Sales.">
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            ctp: {
-              base: '#1e1e2e',
-              mantle: '#181825',
-              surface: '#313244',
-              surface2: '#45475a',
-              text: '#cdd6f4',
-              subtext: '#a6adc8',
-              blue: '#89b4fa',
-              green: '#a6e3a1',
-              yellow: '#f9e2af',
-              mauve: '#cba6f7',
-              peach: '#fab387',
-              red: '#f38ba8',
-              sky: '#89dceb'
-            }
-          }
-        }
-      }
-    }
-  </script>
   <style>
-    body { background-color: #1e1e2e; color: #cdd6f4; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-    .card-hover { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-    .card-hover:hover { transform: translateY(-4px); border-color: #89b4fa; box-shadow: 0 12px 24px -10px rgba(137, 180, 250, 0.25); }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 25px 30px; text-align: center; }
+    h1 { color: #89b4fa; margin: 0 0 8px 0; font-size: 1.8rem; }
+    p.subtitle { color: #a6adc8; margin: 0; font-size: 0.95rem; }
+
+    .content-wrapper { padding: 30px 20px; width: 100%; max-width: 1100px; flex-grow: 1; }
+
+    /* Concept & Legal Card */
+    .info-card { background: #181825; border: 1px solid #313244; border-radius: 10px; padding: 18px 22px; margin-bottom: 25px; line-height: 1.5; font-size: 0.88rem; }
+    .info-title { font-weight: bold; color: #89b4fa; font-size: 1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; }
+    .badge-license { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
+    .badge-ip { background: #1e3a5f; color: #89b4fa; border: 1px solid #89b4fa; }
+
+    /* Module Grid Layout */
+    .section-title { font-size: 1.2rem; font-weight: bold; color: #89b4fa; border-bottom: 2px solid #313244; padding-bottom: 8px; margin-top: 25px; margin-bottom: 18px; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+    
+    .module-card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; transition: all 0.25s ease; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+    .module-card:hover { border-color: #89b4fa; transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); }
+
+    .card-tag { font-size: 0.72rem; font-weight: bold; font-family: monospace; color: #fab387; text-transform: uppercase; margin-bottom: 6px; }
+    .card-title { font-size: 1.1rem; font-weight: bold; color: #cdd6f4; margin-bottom: 10px; }
+    .card-desc { font-size: 0.83rem; color: #a6adc8; line-height: 1.45; margin-bottom: 16px; flex-grow: 1; }
+
+    .btn-launch { display: inline-block; width: 100%; text-align: center; background: #89b4fa; color: #11111b; font-weight: bold; font-size: 0.85rem; padding: 10px 14px; border-radius: 6px; text-decoration: none; transition: background 0.2s ease; }
+    .btn-launch:hover { background: #b4befe; }
+
+    footer { width: 100%; background: #181825; border-top: 1px solid #313244; padding: 20px; text-align: center; font-size: 0.78rem; color: #6c7086; font-family: monospace; margin-top: 40px; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between antialiased">
+<body>
 
-  <!-- Top Navigation Header -->
-  <header class="w-full bg-ctp-mantle border-b border-ctp-surface py-4 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg">
-    <div class="flex items-center gap-3">
-      <div class="bg-ctp-blue text-ctp-mantle p-2 rounded-lg font-mono font-bold text-xl shadow-md">
-        RP2040
-      </div>
-      <div>
-        <h1 class="text-xl font-bold text-ctp-blue leading-tight">MicroPython Hardware Lab Hub</h1>
-        <p class="text-xs text-ctp-subtext">Interactive Physics, Circuit Logic & Simulation Platform</p>
-      </div>
-    </div>
-    <div class="flex items-center gap-2 bg-ctp-surface/60 border border-ctp-surface px-3 py-1.5 rounded-full text-xs font-mono text-ctp-subtext">
-      <span>Author:</span>
-      <span class="text-ctp-green font-bold">Jorge Victor M. Sales</span>
-      <span class="text-ctp-surface2">|</span>
-      <span class="text-ctp-mauve">swordeye / thearbiter</span>
-    </div>
+  <header>
+    <h1>RP2040 MicroPython Physics & Hardware Lab Suite</h1>
+    <p class="subtitle">Interactive Web-Based Microcontroller Simulations & Live Code Inspectors</p>
   </header>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl w-full mx-auto px-4 py-8 flex-grow space-y-10">
+  <div class="content-wrapper">
 
-    <!-- Platform Hero & CC License Banner -->
-    <div class="bg-ctp-mantle border border-ctp-surface rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-2xl">
-      <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-ctp-blue/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="relative z-10 max-w-4xl space-y-3">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-ctp-blue/10 border border-ctp-blue/30 text-ctp-blue text-xs font-mono font-semibold">
-          ⚡ Open Hardware Curriculum Suite
+    <!-- Legal & IP Notice -->
+    <div class="info-card">
+      <div class="info-title">
+        🛡️ Intellectual Property & Licensing Assertion
+      </div>
+      <div>
+        All software architecture, visual simulation engines, MicroPython hardware abstractions, and educational physics models contained in this lab suite are copyrighted and authored by <strong>Jorge Victor M. Sales</strong> (<code>swordeye</code> / <code>thearbiter</code>).
+        <br><br>
+        Distributed under the <strong>Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</strong> license. Free for non-commercial educational use. Commercial distribution, unauthorized mirroring, or course monetization without prior consent is prohibited.
+        <br><br>
+        <span class="badge badge-license">CC BY-NC-SA 4.0 Licensed</span>
+        <span class="badge badge-ip">Author: Jorge Victor M. Sales</span>
+      </div>
+    </div>
+
+    <!-- Section 1: Digital I/O & Logic Processing -->
+    <div class="section-title">⚡ Digital I/O & Signal Processing Labs</div>
+    <div class="grid">
+
+      <!-- Direct 3.3V GPIO Visualizer -->
+      <div class="module-card">
+        <div>
+          <div class="card-tag">GPIO & Digital Logic</div>
+          <div class="card-title">Direct 3.3V Input & Output LED Simulator</div>
+          <div class="card-desc">
+            Visualize direct 3.3V digital signal inputs on assigned RP2040 GPIO pins (GP14, GP16, GP18) driving LED output circuits (GP15, GP17, GP19). Features pin-level visual glowing and live reactive MicroPython code inspection.
+          </div>
         </div>
-        <h2 class="text-2xl md:text-3xl font-extrabold text-ctp-text tracking-tight">
-          Interactive Microcontroller Physics & Signal Logic Engine
-        </h2>
-        <p class="text-sm md:text-base text-ctp-subtext leading-relaxed">
-          Explore real-time interactive physics simulations, MicroPython code execution inspects, oscilloscope waveform analyzers, and GPIO digital logic loops tailored for the Raspberry Pi RP2040 microcontroller architecture.
-        </p>
-        
-        <!-- License & IP Assertion -->
-        <div class="pt-2 flex flex-wrap items-center gap-4 text-xs font-mono text-ctp-subtext border-t border-ctp-surface/80 mt-4">
-          <span class="flex items-center gap-1.5 text-ctp-yellow font-medium">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-            Copyright © 2026 Jorge Victor M. Sales
-          </span>
-          <span class="text-ctp-surface2">•</span>
-          <span class="text-ctp-green">License: CC BY-NC-SA 4.0 International</span>
-          <span class="text-ctp-surface2">•</span>
-          <span class="text-ctp-sky">Free Educational Distribution Authorized</span>
+        <a href="./labs/digital_io/gpio_switch_visualizer.html" class="btn-launch">Launch Digital I/O Lab →</a>
+      </div>
+
+      <!-- Pull-Up / Pull-Down Resistor Simulator -->
+      <div class="module-card">
+        <div>
+          <div class="card-tag">Electronics Physics</div>
+          <div class="card-title">Internal Pull-Up vs Pull-Down Resistor Lab</div>
+          <div class="card-desc">
+            Explore default idle voltages (0.0V LOW for Pull-Down vs 3.3V HIGH for Pull-Up) and active-LOW logic. Visualizes the internal ~50kΩ resistor bus inside the RP2040 chip during switch actuation.
+          </div>
         </div>
+        <a href="./labs/digital_io/pull_resistor_visualizer.html" class="btn-launch">Launch Pull-Resistor Lab →</a>
       </div>
+
+      <!-- PWM & Bit Converter Visualizer -->
+      <div class="module-card">
+        <div>
+          <div class="card-tag">PWM & Data Conversion</div>
+          <div class="card-title">PWM Signal & Dynamic Bit-Width Converter</div>
+          <div class="card-desc">
+            Simulate RP2040 16-bit PWM hardware registers (`duty_u16`) and master bit-shifting arithmetic (`>>`) down to 8-bit, 10-bit, 12-bit, and 14-bit targets with an interactive oscilloscope waveform trace.
+          </div>
+        </div>
+        <a href="./labs/pwm/pwm_visualizer.html" class="btn-launch">Launch PWM Converter Lab →</a>
+      </div>
+
     </div>
 
-    <!-- SECTION 1: Digital I/O & Signal Logic -->
-    <section class="space-y-4">
-      <div class="flex items-center gap-3 border-b border-ctp-surface pb-3">
-        <div class="w-3 h-3 rounded-full bg-ctp-green"></div>
-        <h3 class="text-lg font-bold text-ctp-text font-mono uppercase tracking-wider">
-          1. Digital I/O, Signals & Switch Logic
-        </h3>
+    <!-- Section 2: Actuators & Motor Dynamics -->
+    <div class="section-title">🧲 Actuators & Electromagnetic Drive Labs</div>
+    <div class="grid">
+
+      <!-- Stepper Motor Matrix Simulator -->
+      <div class="module-card">
+        <div>
+          <div class="card-tag">Motor Control & Electromagnetics</div>
+          <div class="card-title">Stepper Motor Phase Excitation & Step Matrix</div>
+          <div class="card-desc">
+            Simulate 4-phase stator coil excitation sequences, compare Full-Step (2-coil) holding torque vs Wave Drive (1-coil) power consumption, calculate step angles (1.8°/step), and inspect the live GPIO output matrix.
+          </div>
+        </div>
+        <a href="./labs/motors/stepper.html" class="btn-launch">Launch Stepper Matrix Lab →</a>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        <!-- Direct 3.3V GPIO Simulator Card -->
-        <a href="./gpio_switch_visualizer.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group relative overflow-hidden">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-green/20 text-ctp-green text-xs font-mono font-bold border border-ctp-green/30">
-                ACTIVE LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">gpio_switch_visualizer.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              Direct 3.3V Digital I/O & LED Matrix
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              RP2040 direct pin-assignment simulator mapping 3.3V input signals directly to output pin LED drivers. Includes dynamic pin glowing and real-time reactive MicroPython live code state highlighting.
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-green font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- SECTION 2: PWM & Motor Control Systems -->
-    <section class="space-y-4">
-      <div class="flex items-center gap-3 border-b border-ctp-surface pb-3">
-        <div class="w-3 h-3 rounded-full bg-ctp-mauve"></div>
-        <h3 class="text-lg font-bold text-ctp-text font-mono uppercase tracking-wider">
-          2. PWM Modulation & Actuator Dynamics
-        </h3>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- PWM Bit Resolution Simulator Card -->
-        <a href="./pwm_visualizer.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-mauve/20 text-ctp-mauve text-xs font-mono font-bold border border-ctp-mauve/30">
-                RESOLUTION LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">pwm_visualizer.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              PWM Bit-Resolution & Duty Converter
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              Interactive pulse-width modulation visualizer supporting 8-bit (0-255), 10-bit (0-1023), 12-bit (0-4095), and 16-bit RP2040 duty cycles with real-time waveform oscilloscope plotting.
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-mauve font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <!-- Stepper Motor Matrix Card -->
-        <a href="./stepper.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-peach/20 text-ctp-peach text-xs font-mono font-bold border border-ctp-peach/30">
-                ACTUATOR LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">stepper.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              Stepper Motor Full-Step Matrix
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              Electromagnetic coil sequence matrix simulator animating 4-wire bipolar rotor step angles alongside active H-bridge output step tables.
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-peach font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <!-- DC Motor Drive Card -->
-        <a href="./dc-motor.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-yellow/20 text-ctp-yellow text-xs font-mono font-bold border border-ctp-yellow/30">
-                DRIVE LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">dc-motor.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              DC Motor H-Bridge Speed & Direction
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              PWM speed modulation and directional logic simulator demonstrating motor torque, back-EMF, and MicroPython PWM frequency mapping.
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-yellow font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <!-- 2WD Robot Chassis Card -->
-        <a href="./2WD_motor.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-sky/20 text-ctp-sky text-xs font-mono font-bold border border-ctp-sky/30">
-                ROBOTICS LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">2WD_motor.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              2WD Differential Drive Chassis
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              Kinematic differential steer simulator controlling dual DC motors for forward, reverse, pivot turns, and speed vector calculations.
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-sky font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <!-- Servo Angle Controller Card -->
-        <a href="./servo.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-red/20 text-ctp-red text-xs font-mono font-bold border border-ctp-red/30">
-                SERVO LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">servo.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              50Hz PWM Servo Angle Control
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              Standard 50Hz RC servo motor simulator converting pulse widths (1.0ms - 2.0ms) into precise shaft angular positions ($0^\circ - 180^\circ$).
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-red font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <!-- Servo Voltage Curves Card -->
-        <a href="./servo_voltage.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-mauve/20 text-ctp-mauve text-xs font-mono font-bold border border-ctp-mauve/30">
-                POWER LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">servo_voltage.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              Servo Supply Voltage & Current Curves
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              Power supply dynamic simulator plotting torque, operating voltage drops (4.8V vs 6.0V), and stall current spikes under mechanical load.
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-mauve font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- SECTION 3: Advanced Avionics, Sensors & Interrupt Protocols -->
-    <section class="space-y-4">
-      <div class="flex items-center gap-3 border-b border-ctp-surface pb-3">
-        <div class="w-3 h-3 rounded-full bg-ctp-blue"></div>
-        <h3 class="text-lg font-bold text-ctp-text font-mono uppercase tracking-wider">
-          3. Avionics, Interrupts & Protocols
-        </h3>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- Quadcopter Drone Flight Control Card -->
-        <a href="./drone_sim.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-blue/20 text-ctp-blue text-xs font-mono font-bold border border-ctp-blue/30">
-                AVIONICS LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">drone_sim.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              Drone Flight Dynamics & PID Control
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              Full quadcopter flight physics simulator featuring pitch/roll angle feedback, 4-rotor thrust vectoring, and MicroPython PID loop tuning.
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-blue font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <!-- PIR Motion Sensor Interrupt Card -->
-        <a href="./pir_interrupt.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-green/20 text-ctp-green text-xs font-mono font-bold border border-ctp-green/30">
-                INTERRUPT LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">pir_interrupt.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              PIR Motion Sensor Hardware Interrupts
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              Hardware IRQ handling visualizer setting asynchronous `Pin.IRQ_RISING` callbacks for low-latency motion detection routines.
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-green font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <!-- I2C Bus Bus Protocol Card -->
-        <a href="./i2c_sensor.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-peach/20 text-ctp-peach text-xs font-mono font-bold border border-ctp-peach/30">
-                PROTOCOL LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">i2c_sensor.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              I2C Bus Communication & MPU6050
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              SDA/SCL clock logic simulator demonstrating two-wire I2C frame transactions, slave addressing (0x68), and byte register reads.
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-peach font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-        <!-- I2C Interrupt Data Sync Card -->
-        <a href="./i2c_interrupt.html" class="bg-ctp-mantle border border-ctp-surface rounded-xl p-5 flex flex-col justify-between card-hover group">
-          <div class="space-y-3">
-            <div class="flex justify-between items-start">
-              <span class="px-2.5 py-1 rounded-md bg-ctp-yellow/20 text-ctp-yellow text-xs font-mono font-bold border border-ctp-yellow/30">
-                SYNC LAB
-              </span>
-              <span class="text-xs font-mono text-ctp-subtext">i2c_interrupt.html</span>
-            </div>
-            <h4 class="text-base font-bold text-ctp-blue group-hover:text-ctp-sky transition-colors">
-              I2C Data Ready Interrupt Synchronization
-            </h4>
-            <p class="text-xs text-ctp-subtext leading-relaxed">
-              Combining hardware IRQ alert pins with I2C register transfers to eliminate CPU polling lag during high-frequency sensor reads.
-            </p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-ctp-surface/60 flex items-center justify-between text-xs font-mono text-ctp-yellow font-bold">
-            <span>Launch Simulation</span>
-            <span>→</span>
-          </div>
-        </a>
-
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="w-full bg-ctp-mantle border-t border-ctp-surface py-6 px-6 text-center text-xs text-ctp-subtext space-y-2">
-    <div class="font-mono">
-      Designed & Developed by <strong class="text-ctp-text">Jorge Victor M. Sales</strong> (<span class="text-ctp-blue">swordeye / thearbiter</span>)
     </div>
-    <div class="text-ctp-surface2 font-mono">
-      Copyright © 2026 Jorge Victor M. Sales. All Rights Reserved. Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer" class="text-ctp-green hover:underline">CC BY-NC-SA 4.0 International</a>.
-    </div>
+
+  </div>
+
+  <footer>
+    Copyright © 2026 Authored & Designed by <strong style="color: #cdd6f4;">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
   </footer>
 
 </body>
 </html>
-```
-
-### Key Hub Highlights & Updates:
-1. **Prominent Digital I/O Placement:** Added `gpio_switch_visualizer.html` at the top as the foundational **Direct 3.3V Digital I/O & LED Matrix** simulation module.
-2. **Complete Curriculum Catalog:** Categorized all 11 curriculum modules into logical learning tracks:
-   - *Digital I/O, Signals & Switch Logic*
-   - *PWM Modulation & Actuator Dynamics*
-   - *Avionics, Interrupts & Protocols*
-3. **Catppuccin Mocha Aesthetic:** Styled with dark themes (`#1e1e2e` base, `#181825` mantle, `#313244` surface border) with responsive Tailwind CSS layout cards.
-4. **Legal & IP Assertions:** Formally embedded your full copyright header and CC BY-NC-SA 4.0 metadata for **Jorge Victor M. Sales (swordeye / thearbiter)** across top badges, hero section, and legal footer.
