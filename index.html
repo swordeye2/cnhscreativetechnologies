@@ -3,140 +3,371 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RP2040 MicroPython Physics & Hardware Lab Suite</title>
+  <title>RP2040 Pull-Up & Pull-Down Resistor Physics Simulator</title>
   
   <!-- Legal IP & Copyright Assertions -->
   <meta name="author" content="Jorge Victor M. Sales">
   <meta name="creator" content="Jorge Victor M. Sales">
   <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
-  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales under CC BY-NC-SA 4.0.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
   <meta name="alias" content="swordeye, thearbiter">
 
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #1e1e2e; color: #cdd6f4; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    
-    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 25px 30px; text-align: center; }
-    h1 { color: #89b4fa; margin: 0 0 8px 0; font-size: 1.8rem; }
-    p.subtitle { color: #a6adc8; margin: 0; font-size: 0.95rem; }
+    header { width: 100%; background: #181825; border-bottom: 1px solid #313244; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-link { color: #89b4fa; text-decoration: none; font-weight: bold; font-size: 0.95rem; }
+    .nav-link:hover { text-decoration: underline; }
+    .content-wrapper { padding: 25px 20px; width: 100%; max-width: 1100px; }
+    h1 { color: #89b4fa; margin-top: 0; margin-bottom: 5px; text-align: center; }
+    p.subtitle { color: #a6adc8; margin-top: 0; margin-bottom: 20px; font-size: 0.95rem; text-align: center; }
 
-    .content-wrapper { padding: 30px 20px; width: 100%; max-width: 1100px; flex-grow: 1; }
-
-    /* Concept & Legal Card */
-    .info-card { background: #181825; border: 1px solid #313244; border-radius: 10px; padding: 18px 22px; margin-bottom: 25px; line-height: 1.5; font-size: 0.88rem; }
-    .info-title { font-weight: bold; color: #89b4fa; font-size: 1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-    
+    /* Concept Banner */
+    .concept-card { background: #181825; border: 1px solid #313244; border-radius: 8px; padding: 16px; margin-bottom: 18px; font-size: 0.85rem; line-height: 1.5; color: #cdd6f4; }
+    .concept-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
     .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; font-family: monospace; display: inline-block; }
-    .badge-license { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
-    .badge-ip { background: #1e3a5f; color: #89b4fa; border: 1px solid #89b4fa; }
+    .badge-pulldown { background: #274029; color: #a6e3a1; border: 1px solid #a6e3a1; }
+    .badge-pullup { background: #421e25; color: #f38ba8; border: 1px solid #f38ba8; }
 
-    /* Module Grid Layout */
-    .section-title { font-size: 1.2rem; font-weight: bold; color: #89b4fa; border-bottom: 2px solid #313244; padding-bottom: 8px; margin-top: 25px; margin-bottom: 18px; }
-    
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
-    
-    .module-card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 20px; transition: all 0.25s ease; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
-    .module-card:hover { border-color: #89b4fa; transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); }
+    /* Layout */
+    .grid-container { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
+    @media (max-width: 900px) { .grid-container { grid-template-columns: 1fr; } }
+    .card { background: #181825; border: 1px solid #313244; border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
 
-    .card-tag { font-size: 0.72rem; font-weight: bold; font-family: monospace; color: #fab387; text-transform: uppercase; margin-bottom: 6px; }
-    .card-title { font-size: 1.1rem; font-weight: bold; color: #cdd6f4; margin-bottom: 10px; }
-    .card-desc { font-size: 0.83rem; color: #a6adc8; line-height: 1.45; margin-bottom: 16px; flex-grow: 1; }
+    /* Canvas */
+    .canvas-container { width: 100%; background: #11111b; border: 1px solid #313244; border-radius: 8px; overflow: hidden; position: relative; margin-bottom: 12px; }
+    canvas { display: block; width: 100%; height: auto; }
 
-    .btn-launch { display: inline-block; width: 100%; text-align: center; background: #89b4fa; color: #11111b; font-weight: bold; font-size: 0.85rem; padding: 10px 14px; border-radius: 6px; text-decoration: none; transition: background 0.2s ease; }
-    .btn-launch:hover { background: #b4befe; }
+    /* Controls */
+    .control-panel { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+    .btn-group { display: flex; gap: 8px; margin-top: 6px; }
+    .mode-btn { flex: 1; padding: 8px 12px; background: #181825; border: 1px solid #313244; color: #a6adc8; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; text-align: center; }
+    .mode-btn:hover { border-color: #89b4fa; color: #cdd6f4; }
+    .mode-btn.active-down { background: #a6e3a1; color: #11111b; border-color: #a6e3a1; }
+    .mode-btn.active-up { background: #f38ba8; color: #11111b; border-color: #f38ba8; }
 
-    footer { width: 100%; background: #181825; border-top: 1px solid #313244; padding: 20px; text-align: center; font-size: 0.78rem; color: #6c7086; font-family: monospace; margin-top: 40px; }
+    .switch-trigger { width: 100%; padding: 12px; background: #313244; border: 2px solid #89b4fa; color: #cdd6f4; border-radius: 8px; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: all 0.15s ease; text-align: center; margin-top: 10px; }
+    .switch-trigger:active, .switch-trigger.pressed { background: #89b4fa; color: #11111b; transform: scale(0.98); }
+
+    /* Code Inspector */
+    .code-box { background: #11111b; border: 1px solid #313244; border-radius: 8px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.45; overflow-x: auto; flex-grow: 1; }
+    .code-line { padding: 3px 6px; border-radius: 4px; color: #a6adc8; white-space: pre; transition: all 0.3s ease; }
+    .code-line.active-line { background: rgba(137, 180, 250, 0.2); border-left: 3px solid #89b4fa; color: #cdd6f4; }
+    .kw { color: #f38ba8; }
+    .fn { color: #89b4fa; }
+    .num { color: #fab387; }
+    .cm { color: #6c7086; font-style: italic; }
+    .val-highlight { font-weight: bold; padding: 1px 4px; border-radius: 3px; }
+    .val-high { color: #11111b; background: #a6e3a1; }
+    .val-low { color: #11111b; background: #f38ba8; }
+
+    /* Quiz */
+    .quiz-title { font-weight: bold; color: #89b4fa; font-size: 0.95rem; border-bottom: 1px solid #313244; padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: #cdd6f4; font-weight: 600; line-height: 1.4; margin-top: 8px; }
+    .quiz-opt { background: #11111b; border: 1px solid #313244; padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; }
+    .quiz-opt:hover { border-color: #89b4fa; background: #1e1e2e; }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; margin-top: 8px; }
+
+    footer { margin-top: 25px; border-top: 1px solid #313244; padding-top: 15px; width: 100%; text-align: center; font-size: 0.75rem; color: #6c7086; font-family: monospace; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>RP2040 MicroPython Physics & Hardware Lab Suite</h1>
-    <p class="subtitle">Interactive Web-Based Microcontroller Simulations & Live Code Inspectors</p>
+    <a href="./index.html" class="nav-link">← Back to Lab Hub</a>
+    <span style="font-weight: bold; color: #a6adc8;">RP2040 MicroPython Digital I/O Lab</span>
   </header>
 
   <div class="content-wrapper">
+    <h1>RP2040 Internal Pull-Up vs. Pull-Down Physics Simulator</h1>
+    <p class="subtitle">Visualizing Default Idle Voltages, Active Switch Closures, and Active-LOW / Active-HIGH Logic</p>
 
-    <!-- Legal & IP Notice -->
-    <div class="info-card">
-      <div class="info-title">
-        🛡️ Intellectual Property & Licensing Assertion
+    <div class="concept-card">
+      <div class="concept-title">
+        ⚡ Internal Resistor Voltage Reference Physics
       </div>
       <div>
-        All software architecture, visual simulation engines, MicroPython hardware abstractions, and educational physics models contained in this lab suite are copyrighted and authored by <strong>Jorge Victor M. Sales</strong> (<code>swordeye</code> / <code>thearbiter</code>).
+        <strong>Pull-Down Resistor (Default = 0.0V LOW / `0`):</strong> Connects the input pin to Ground via an internal ~50kΩ resistor. When the switch is open, the pin stays tied to <strong>0V</strong>. Closing the switch connects direct 3.3V, pulling the pin <strong>HIGH (`1`)</strong>.
+        <br>
+        <strong>Pull-Up Resistor (Default = 3.3V HIGH / `1`):</strong> Connects the input pin to 3.3V VCC via ~50kΩ. When the switch is open, the pin reads <strong>3.3V (`1`)</strong>. Closing the switch shorts the pin to Ground, pulling it <strong>LOW (`0`)</strong> (Active-LOW logic).
         <br><br>
-        Distributed under the <strong>Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)</strong> license. Free for non-commercial educational use. Commercial distribution, unauthorized mirroring, or course monetization without prior consent is prohibited.
-        <br><br>
-        <span class="badge badge-license">CC BY-NC-SA 4.0 Licensed</span>
-        <span class="badge badge-ip">Author: Jorge Victor M. Sales</span>
+        <span class="badge badge-pulldown">Pin.PULL_DOWN: Idle = 0V (LOW) | Pressed = 3.3V (HIGH)</span>
+        <span class="badge badge-pullup">Pin.PULL_UP: Idle = 3.3V (HIGH) | Pressed = 0V (LOW)</span>
       </div>
     </div>
 
-    <!-- Section 1: Digital I/O & Logic Processing -->
-    <div class="section-title">⚡ Digital I/O & Signal Processing Labs</div>
-    <div class="grid">
-
-      <!-- Direct 3.3V GPIO Visualizer -->
-      <div class="module-card">
-        <div>
-          <div class="card-tag">GPIO & Digital Logic</div>
-          <div class="card-title">Direct 3.3V Input & Output LED Simulator</div>
-          <div class="card-desc">
-            Visualize direct 3.3V digital signal inputs on assigned RP2040 GPIO pins (GP14, GP16, GP18) driving LED output circuits (GP15, GP17, GP19). Features pin-level visual glowing and live reactive MicroPython code inspection.
-          </div>
+    <div class="grid-container">
+      
+      <!-- LEFT COLUMN -->
+      <div class="card">
+        <div class="canvas-container">
+          <canvas id="pullCanvas" width="540" height="280"></canvas>
         </div>
-        <a href="./labs/digital_io/gpio_switch_visualizer.html" class="btn-launch">Launch Digital I/O Lab →</a>
+
+        <div class="control-panel">
+          <div style="font-size: 0.82rem; font-weight: bold; color: #89b4fa; margin-bottom: 6px;">
+            1. Select Internal Resistor Configuration:
+          </div>
+          <div class="btn-group">
+            <button class="mode-btn active-down" id="btnDown" onclick="setPullMode('DOWN')">
+              Pin.PULL_DOWN (Default 0V)
+            </button>
+            <button class="mode-btn" id="btnUp" onclick="setPullMode('UP')">
+              Pin.PULL_UP (Default 3.3V)
+            </button>
+          </div>
+
+          <div style="font-size: 0.82rem; font-weight: bold; color: #89b4fa; margin-top: 14px; margin-bottom: 4px;">
+            2. Actuate Physical Switch:
+          </div>
+          <button class="switch-trigger" id="switchBtn" onmousedown="pressSwitch(true)" onmouseup="pressSwitch(false)" onmouseleave="pressSwitch(false)">
+            PRESS & HOLD SWITCH (DISCONNECTED)
+          </button>
+        </div>
       </div>
 
-      <!-- Pull-Up / Pull-Down Resistor Simulator -->
-      <div class="module-card">
-        <div>
-          <div class="card-tag">Electronics Physics</div>
-          <div class="card-title">Internal Pull-Up vs Pull-Down Resistor Lab</div>
-          <div class="card-desc">
-            Explore default idle voltages (0.0V LOW for Pull-Down vs 3.3V HIGH for Pull-Up) and active-LOW logic. Visualizes the internal ~50kΩ resistor bus inside the RP2040 chip during switch actuation.
+      <!-- RIGHT COLUMN -->
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+        
+        <!-- Live Code Inspector -->
+        <div class="card">
+          <div style="font-weight: bold; color: #89b4fa; margin-bottom: 8px; font-size: 0.92rem;">
+            🐍 MicroPython Live Code State
+          </div>
+          <div class="code-box">
+            <div class="code-line"><span class="kw">from</span> machine <span class="kw">import</span> Pin</div>
+            <div class="code-line"><span class="kw">import</span> time</div>
+            <div class="code-line"><br><span class="cm"># Configure Input Pin with Internal Resistor</span></div>
+            <div class="code-line active-line" id="codeConfig">btn = Pin(<span class="num">14</span>, Pin.IN, Pin.PULL_DOWN)</div>
+            <div class="code-line"><br><span class="cm"># Read Pin Register State</span></div>
+            <div class="code-line"><span class="kw">while</span> <span class="kw">True</span>:</div>
+            <div class="code-line active-line" id="codeRead">&nbsp;&nbsp;val = btn.value()  <span class="cm"># Live Read: </span><span id="codeVal" class="val-highlight val-low">0 (0.0V LOW)</span></div>
+            <div class="code-line">&nbsp;&nbsp;time.sleep_ms(<span class="num">20</span>)</div>
           </div>
         </div>
-        <a href="./labs/digital_io/pull_resistor_visualizer.html" class="btn-launch">Launch Pull-Resistor Lab →</a>
-      </div>
 
-      <!-- PWM & Bit Converter Visualizer -->
-      <div class="module-card">
-        <div>
-          <div class="card-tag">PWM & Data Conversion</div>
-          <div class="card-title">PWM Signal & Dynamic Bit-Width Converter</div>
-          <div class="card-desc">
-            Simulate RP2040 16-bit PWM hardware registers (`duty_u16`) and master bit-shifting arithmetic (`>>`) down to 8-bit, 10-bit, 12-bit, and 14-bit targets with an interactive oscilloscope waveform trace.
+        <!-- Quiz -->
+        <div class="card">
+          <div class="quiz-title">📝 Concept Check Quiz</div>
+          <div class="quiz-question" id="quiz-question">
+            When configuring an input pin as `Pin.PULL_UP`, why does pressing a switch connected to Ground cause `btn.value()` to return `0`?
           </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;"></div>
+          <div id="quiz-feedback"></div>
         </div>
-        <a href="./labs/pwm/pwm_visualizer.html" class="btn-launch">Launch PWM Converter Lab →</a>
+
       </div>
 
     </div>
-
-    <!-- Section 2: Actuators & Motor Dynamics -->
-    <div class="section-title">🧲 Actuators & Electromagnetic Drive Labs</div>
-    <div class="grid">
-
-      <!-- Stepper Motor Matrix Simulator -->
-      <div class="module-card">
-        <div>
-          <div class="card-tag">Motor Control & Electromagnetics</div>
-          <div class="card-title">Stepper Motor Phase Excitation & Step Matrix</div>
-          <div class="card-desc">
-            Simulate 4-phase stator coil excitation sequences, compare Full-Step (2-coil) holding torque vs Wave Drive (1-coil) power consumption, calculate step angles (1.8°/step), and inspect the live GPIO output matrix.
-          </div>
-        </div>
-        <a href="./labs/motors/stepper.html" class="btn-launch">Launch Stepper Matrix Lab →</a>
-      </div>
-
-    </div>
-
   </div>
 
   <footer>
-    Copyright © 2026 Authored & Designed by <strong style="color: #cdd6f4;">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
+    © 2026 Designed & Authored by <strong style="color:#cdd6f4;">Jorge Victor M. Sales</strong> (swordeye / thearbiter). All Rights Reserved.
   </footer>
 
+  <script>
+    let pullMode = 'DOWN'; // 'DOWN' or 'UP'
+    let isPressed = false;
+
+    const canvas = document.getElementById('pullCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const btnDown = document.getElementById('btnDown');
+    const btnUp = document.getElementById('btnUp');
+    const switchBtn = document.getElementById('switchBtn');
+
+    const codeConfig = document.getElementById('codeConfig');
+    const codeVal = document.getElementById('codeVal');
+
+    function setPullMode(mode) {
+      pullMode = mode;
+      if (mode === 'DOWN') {
+        btnDown.className = 'mode-btn active-down';
+        btnUp.className = 'mode-btn';
+        codeConfig.innerHTML = `btn = Pin(<span class="num">14</span>, Pin.IN, Pin.PULL_DOWN)`;
+      } else {
+        btnUp.className = 'mode-btn active-up';
+        btnDown.className = 'mode-btn';
+        codeConfig.innerHTML = `btn = Pin(<span class="num">14</span>, Pin.IN, Pin.PULL_UP)`;
+      }
+      updateDisplay();
+    }
+
+    function pressSwitch(pressed) {
+      isPressed = pressed;
+      if (pressed) {
+        switchBtn.classList.add('pressed');
+        switchBtn.textContent = 'SWITCH CONNECTED (CLOSED)';
+      } else {
+        switchBtn.classList.remove('pressed');
+        switchBtn.textContent = 'PRESS & HOLD SWITCH (DISCONNECTED)';
+      }
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      let isHigh = false;
+
+      if (pullMode === 'DOWN') {
+        isHigh = isPressed; // Pressed = 3.3V, Open = 0V
+      } else {
+        isHigh = !isPressed; // Open = 3.3V, Pressed = Ground (0V)
+      }
+
+      if (isHigh) {
+        codeVal.textContent = '1 (3.3V HIGH)';
+        codeVal.className = 'val-highlight val-high';
+      } else {
+        codeVal.textContent = '0 (0.0V LOW)';
+        codeVal.className = 'val-highlight val-low';
+      }
+
+      drawGraphic(isHigh);
+    }
+
+    function drawGraphic(isHigh) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // RP2040 Box
+      const chipX = 180, chipY = 30, chipW = 200, chipH = 220;
+      ctx.fillStyle = '#181825';
+      ctx.strokeStyle = '#313244';
+      ctx.lineWidth = 3;
+      ctx.fillRect(chipX, chipY, chipW, chipH);
+      ctx.strokeRect(chipX, chipY, chipW, chipH);
+
+      ctx.fillStyle = '#89b4fa';
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('RP2040 Microcontroller', chipX + chipW / 2, chipY + 22);
+
+      // GP14 Pin Box
+      const pinY = 120;
+      ctx.fillStyle = isHigh ? '#a6e3a1' : '#f38ba8';
+      ctx.fillRect(chipX - 4, pinY - 8, 8, 16);
+
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('[GP14 Pin]', chipX + 10, pinY + 3);
+
+      // External Circuit Wire (Left)
+      const wireLeftX = 40;
+      ctx.strokeStyle = isHigh ? '#a6e3a1' : '#f38ba8';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(wireLeftX, pinY);
+      ctx.lineTo(chipX, pinY);
+      ctx.stroke();
+
+      // Switch Graphic on Wire
+      const switchX = 100;
+      ctx.fillStyle = '#11111b';
+      ctx.fillRect(switchX - 15, pinY - 15, 30, 30);
+
+      // Contacts
+      ctx.fillStyle = '#89b4fa';
+      ctx.beginPath(); ctx.arc(switchX - 10, pinY, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(switchX + 10, pinY, 4, 0, Math.PI * 2); ctx.fill();
+
+      // Lever
+      ctx.strokeStyle = '#f9e2af';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(switchX - 10, pinY);
+      if (isPressed) {
+        ctx.lineTo(switchX + 10, pinY); // Closed
+      } else {
+        ctx.lineTo(switchX + 8, pinY - 12); // Open
+      }
+      ctx.stroke();
+
+      // External Supply connected to switch
+      ctx.fillStyle = '#cdd6f4';
+      ctx.font = 'bold 10px monospace';
+      ctx.textAlign = 'right';
+      if (pullMode === 'DOWN') {
+        ctx.fillText('External 3.3V', wireLeftX - 5, pinY + 3);
+      } else {
+        ctx.fillText('External Ground (0V)', wireLeftX - 5, pinY + 3);
+      }
+
+      // Internal Resistor Bus inside RP2040
+      const resX = chipX + 130;
+      const busY = pullMode === 'DOWN' ? chipY + 180 : chipY + 60;
+
+      // Wire from GP14 to Internal Resistor
+      ctx.strokeStyle = isHigh ? '#a6e3a1' : '#f38ba8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(chipX + 70, pinY);
+      ctx.lineTo(resX, pinY);
+      ctx.lineTo(resX, busY > pinY ? busY - 15 : busY + 15);
+      ctx.stroke();
+
+      // Resistor Box (50k Ohm)
+      ctx.fillStyle = '#313244';
+      ctx.strokeStyle = '#89b4fa';
+      ctx.fillRect(resX - 10, Math.min(pinY, busY) + 20, 20, 30);
+      ctx.strokeRect(resX - 10, Math.min(pinY, busY) + 20, 20, 30);
+
+      ctx.fillStyle = '#cdd6f4';
+      ctx.font = '8px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('50kΩ', resX, Math.min(pinY, busY) + 38);
+
+      // Power Rail Target inside chip
+      ctx.fillStyle = pullMode === 'DOWN' ? '#f38ba8' : '#a6e3a1';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText(pullMode === 'DOWN' ? 'GND (0.0V)' : 'VCC (3.3V)', resX, busY);
+
+      // Voltage Badge on Canvas
+      ctx.fillStyle = isHigh ? '#a6e3a1' : '#f38ba8';
+      ctx.font = 'bold 14px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`Pin State: ${isHigh ? '3.3V (HIGH / 1)' : '0.0V (LOW / 0)'}`, chipX + chipW / 2, chipY + chipH - 15);
+    }
+
+    // Quiz Logic
+    const quizData = {
+      question: "When configuring an input pin as `Pin.PULL_UP`, why does pressing a switch connected to Ground cause `btn.value()` to return `0`?",
+      options: [
+        { text: "A. Pressing the switch creates a direct path to Ground (0V), shorting the input node to LOW (Active-LOW logic).", correct: true },
+        { text: "B. The internal 50kΩ resistor burns out when pressed.", correct: false },
+        { text: "C. Pull-Up mode automatically turns off the input register.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! In Pull-Up mode, the pin sits at 3.3V by default. Closing the switch grounds the pin directly, bringing its potential down to 0V (digital 0)!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Consider how closing a switch connected to Ground overrides the weak 50kΩ pull-up resistor to pull the voltage down to 0V.';
+      }
+    }
+
+    initQuiz();
+    setPullMode('DOWN');
+  </script>
 </body>
 </html>
