@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RP2040 MicroPython & Mechatronics Suite | CNHS Creative Technologies</title>
+  <title>RP2040 MicroPython Laboratory Suite | CNHS Creative Technologies</title>
   
   <!-- Legal IP & Copyright Assertions -->
   <meta name="author" content="Jorge Victor M. Sales">
@@ -30,8 +30,8 @@
 
     header {
       padding: 25px 20px;
-      background: var(--header-bg, #181825);
-      border-bottom: 1px solid var(--card-border, #313244);
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
       border-radius: 8px;
       margin-bottom: 25px;
       display: flex;
@@ -289,9 +289,26 @@
 
     </div>
 
-    <!-- Section 2: Digital, Analog & Protocols -->
-    <div class="category-title">📡 Signals, Protocols & Logic</div>
+    <!-- Section 2: Sensors, Logic & Control Systems -->
+    <div class="category-title">🌱 Sensors, Compound Logic & Systems</div>
     <div class="card-grid">
+
+      <!-- DHT Climate Roof Control Card -->
+      <div class="card">
+        <div>
+          <h3>🌡️ Automated Greenhouse Roof & Single-Wire</h3>
+          <p>
+            Model 40-bit Single-Wire pulse-width timing and compound boolean logic (<code style="color:var(--accent);">if ... and</code>, <code style="color:var(--accent);">elif</code>) driving a motorized roof and exhaust fan.
+          </p>
+          <div class="tag-container">
+            <span class="tag">DHT11 / Single-Wire</span>
+            <span class="tag">40-Bit Frame</span>
+            <span class="tag">if ... and</span>
+            <span class="tag">elif / else</span>
+          </div>
+        </div>
+        <a href="./climate_roof.html" class="card-btn">Launch Simulator →</a>
+      </div>
 
       <!-- Analog Processing Card -->
       <div class="card">
