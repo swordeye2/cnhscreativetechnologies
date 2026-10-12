@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DHT Temperature & Humidity Automated Roof Control | RP2040 Lab</title>
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .code-font { font-family: 'Fira Code', monospace; }
+
+    .glass-card {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 12px;
+    }
+
+    /* Code line highlight styling */
+    .code-line {
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: var(--text-sub, #a6adc8);
+      transition: background 0.2s ease, border-color 0.2s ease;
+      border-left: 3px solid transparent;
+      white-space: pre;
+    }
+
+    .code-line.active {
+      background: var(--card-border, #313244);
+      color: #a6e3a1;
+      border-left-color: #a6e3a1;
+      font-weight: bold;
+    }
+
+    .kw { color: #f38ba8; font-weight: 600; }
+    .fn { color: var(--accent, #89b4fa); }
+    .num { color: #fab387; }
+    .cm { color: var(--text-sub, #6c7086); font-style: italic; }
+    .str { color: #a6e3a1; }
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    /* Sliders */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: var(--card-border, #313244);
+      height: 6px;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent, #89b4fa);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* Quiz Panel Styling */
+    .quiz-title { font-weight: bold; color: var(--accent, #89b4fa); font-size: 0.95rem; border-bottom: 1px solid var(--card-border, #313244); padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: var(--text-main, #cdd6f4); font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: var(--inner-box, #11111b); border: 1px solid var(--card-border, #313244); padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; color: var(--text-main); }
+    .quiz-opt:hover { border-color: var(--accent, #89b4fa); background: var(--card-border, #1e1e2e); }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+  <header class="max-w-7xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Hub
+      </a>
+      <span class="text-[var(--card-border)]">|</span>
+      <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">RP2040 MicroPython Lab</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#a6e3a1] animate-pulse"></span>
+      <span class="text-xs font-mono font-medium text-[#a6e3a1]">Logic & Protocol Engine Active</span>
+    </div>
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
+  </header>
+
+  <main class="max-w-7xl mx-auto w-full">
+    <div class="text-center mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">🌡️ Automated Greenhouse Roof & Single-Wire Protocol</h1>
+      <p class="text-sm text-[var(--text-sub)] mt-1 max-w-2xl mx-auto">
+        Learn how the DHT11 communicates using a 40-bit Single-Bus Protocol before evaluating compound boolean logic (<code class="text-[#a6e3a1]">if ... and ...</code>, <code class="text-[#f38ba8]">elif</code>).
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT COLUMN: Physical Greenhouse Simulation & Controls (7 Cols) -->
+      <div class="lg:col-span-7 flex flex-col gap-5">
+
+        <!-- SVG Greenhouse & Actuator Visualizer -->
+        <div class="glass-card p-4 shadow-xl">
+          <div class="flex justify-between items-center mb-2 px-1">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">🌱 Greenhouse Structure & Roof Motor</span>
+            <span id="statusBadge" class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--inner-box)] text-[#a6e3a1] border border-[var(--card-border)]">
+              Roof: CLOSED • Motor: OFF
+            </span>
+          </div>
+
+          <div class="w-full bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg overflow-hidden relative shadow-inner">
+            <svg viewBox="0 0 400 220" class="w-full h-auto">
+              <defs>
+                <!-- Glass Pattern -->
+                <pattern id="glassPattern" width="20" height="20" patternUnits="userSpaceOnUse">
+                  <line x1="0" y1="20" x2="20" y2="0" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                </pattern>
+              </defs>
+
+              <!-- Sky Background -->
+              <rect x="0" y="0" width="400" height="220" fill="var(--card-bg)"/>
+
+              <!-- HUD Environmental Text Overlay -->
+              <g transform="translate(15, 15)">
+                <rect x="0" y="0" width="130" height="38" rx="4" fill="var(--inner-box)" opacity="0.9" stroke="var(--card-border)" stroke-width="1"/>
+                <text x="10" y="15" fill="#f9e2af" font-size="10" font-family="monospace" font-weight="bold" id="svgTempLabel">Temp: 25.0°C</text>
+                <text x="10" y="30" fill="#89b4fa" font-size="10" font-family="monospace" font-weight="bold" id="svgHumLabel">Humidity: 50.0%</text>
+              </g>
+
+              <!-- Sun Graphic -->
+              <circle cx="350" cy="35" r="16" id="sunGraphic" fill="#f9e2af" opacity="0.9"/>
+
+              <!-- Greenhouse Main Enclosure Base -->
+              <rect x="60" y="115" width="280" height="95" fill="url(#glassPattern)" stroke="var(--card-border)" stroke-width="2"/>
+
+              <!-- Structural Pillars -->
+              <line x1="130" y1="115" x2="130" y2="210" stroke="var(--card-border)" stroke-width="1.5"/>
+              <line x1="200" y1="115" x2="200" y2="210" stroke="var(--card-border)" stroke-width="1.5"/>
+              <line x1="270" y1="115" x2="270" y2="210" stroke="var(--card-border)" stroke-width="1.5"/>
+
+              <!-- Fixed Left Roof Gable Slope -->
+              <polygon points="60,115 200,55 200,115" fill="rgba(137, 180, 250, 0.08)"/>
+              <line x1="60" y1="115" x2="200" y2="55" stroke="var(--accent)" stroke-width="3.5"/>
+
+              <!-- Right Roof Track Frame -->
+              <line x1="200" y1="55" x2="340" y2="115" stroke="var(--card-border)" stroke-width="2" stroke-dasharray="3 3"/>
+
+              <!-- Animated Retractable Right Roof Panel -->
+              <line x1="200" y1="55" x2="340" y2="115" id="roofPanelLine" stroke="#fab387" stroke-width="6" stroke-linecap="round"/>
+
+              <!-- Ridge Motor Box -->
+              <rect x="185" y="42" width="30" height="18" rx="3" fill="#313244" stroke="var(--accent)" stroke-width="1.5"/>
+              <circle cx="200" cy="51" r="4" id="motorGear" fill="#89b4fa"/>
+              <text x="200" y="36" fill="var(--text-sub)" font-size="7" font-family="monospace" text-anchor="middle">ROOF MOTOR</text>
+
+              <!-- Internal Greenhouse Plants -->
+              <path d="M 90 210 Q 90 180 97 175 Q 105 180 105 210 Z" fill="#a6e3a1"/>
+              <path d="M 160 210 Q 160 175 167 170 Q 175 175 175 210 Z" fill="#a6e3a1"/>
+              <path d="M 230 210 Q 230 180 237 175 Q 245 180 245 210 Z" fill="#a6e3a1"/>
+
+              <!-- DHT11 Sensor Module -->
+              <g transform="translate(80, 130)">
+                <rect x="0" y="0" width="20" height="26" rx="3" fill="#1e66f5"/>
+                <rect x="3" y="3" width="14" height="12" fill="#11111b"/>
+                <text x="10" y="22" fill="#ffffff" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">DHT</text>
+              </g>
+
+              <!-- Exhaust Fan Module & Label -->
+              <g transform="translate(290, 150)">
+                <rect x="-16" y="-16" width="32" height="32" rx="4" fill="var(--inner-box)" stroke="var(--card-border)" stroke-width="1.5"/>
+                <circle cx="0" cy="-2" r="11" fill="#11111b" stroke="var(--card-border)"/>
+                <g id="fanBladesGroup">
+                  <path d="M -8 -2 L 8 -2 M 0 -10 L 0 6" stroke="#f38ba8" stroke-width="2.5" stroke-linecap="round"/>
+                </g>
+                <!-- Explicit FAN Label -->
+                <text x="0" y="24" fill="#f38ba8" font-size="8" font-family="monospace" font-weight="bold" text-anchor="middle">FAN</text>
+              </g>
+
+            </svg>
+          </div>
+        </div>
+
+        <!-- Environmental Sliders & Controls -->
+        <div class="glass-card p-5 shadow-xl flex flex-col gap-4">
+          <div class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)] border-b border-[var(--card-border)] pb-2">
+            🎛️ Climate Environmental Controls
+          </div>
+
+          <!-- Temperature Slider -->
+          <div class="bg-[var(--inner-box)] p-3.5 rounded-lg border border-[var(--card-border)]">
+            <div class="flex justify-between items-center mb-1">
+              <label for="tempSlider" class="text-xs font-semibold text-[var(--text-main)]">Ambient Temperature (DHT11):</label>
+              <span class="text-sm font-mono font-bold text-[#f9e2af]"><span id="tempVal">25.0</span> °C</span>
+            </div>
+            <input type="range" id="tempSlider" min="15" max="45" step="0.5" value="25" class="w-full cursor-pointer">
+            <div class="flex justify-between text-[10px] font-mono text-[var(--text-sub)] mt-1">
+              <span>15°C (Cool)</span>
+              <span>30°C (Warm Threshold)</span>
+              <span>45°C (Extreme Heat)</span>
+            </div>
+          </div>
+
+          <!-- Relative Humidity Slider -->
+          <div class="bg-[var(--inner-box)] p-3.5 rounded-lg border border-[var(--card-border)]">
+            <div class="flex justify-between items-center mb-1">
+              <label for="humSlider" class="text-xs font-semibold text-[var(--text-main)]">Relative Humidity (DHT11):</label>
+              <span class="text-sm font-mono font-bold text-[var(--accent)]"><span id="humVal">50.0</span> %</span>
+            </div>
+            <input type="range" id="humSlider" min="20" max="95" step="1" value="50" class="w-full cursor-pointer">
+            <div class="flex justify-between text-[10px] font-mono text-[var(--text-sub)] mt-1">
+              <span>20% (Dry)</span>
+              <span>70% (High Moisture Threshold)</span>
+              <span>95% (Saturated)</span>
+            </div>
+          </div>
+
+          <!-- Quick Scenario Presets -->
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button id="btnOptimal" class="flex-1 bg-[var(--card-border)] hover:opacity-80 text-[var(--text-main)] text-xs font-semibold py-2 px-3 rounded-lg transition-all">
+              🌱 Normal (25°C / 50%)
+            </button>
+
+            <button id="btnHeatHum" class="flex-1 bg-[#f38ba8] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3 rounded-lg transition-all">
+              🚨 Heat & Mold (34°C / 80%)
+            </button>
+
+            <button id="btnVent" class="flex-1 bg-[#f9e2af] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3 rounded-lg transition-all">
+              ☀️ Vent Heat (35°C / 40%)
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Protocol Inspector, Code Inspector & Quiz (5 Cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-5">
+
+        <!-- Single-Wire Hardware Protocol Visualizer Card -->
+        <div class="glass-card p-5 shadow-xl flex flex-col">
+          <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2 mb-2">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">📡 DHT11 Single-Wire Communication Protocol</span>
+            <span class="text-[10px] font-mono text-[#f9e2af] bg-[var(--inner-box)] px-2 py-0.5 rounded border border-[var(--card-border)]">40-Bit Frame</span>
+          </div>
+
+          <p class="text-[11px] text-[var(--text-sub)] mb-2">
+            When <code class="text-[#89b4fa]">sensor.measure()</code> runs, RP2040 pulls GP15 LOW for 18ms to signal start. The DHT11 responds with 40-bit Pulse-Width Modulated data (16-bit Humidity, 16-bit Temp, 8-bit Checksum):
+          </p>
+
+          <!-- SVG Single Wire Waveform Diagram -->
+          <div class="bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-2 mb-2">
+            <svg viewBox="0 0 380 70" class="w-full h-auto">
+              <!-- High-Level Guide Baseline -->
+              <line x1="0" y1="20" x2="380" y2="20" stroke="var(--card-border)" stroke-width="1" stroke-dasharray="2 2"/>
+              <line x1="0" y1="50" x2="380" y2="50" stroke="var(--card-border)" stroke-width="1" stroke-dasharray="2 2"/>
+
+              <!-- Protocol Waveform -->
+              <path d="M 0 20 L 20 20 L 20 50 L 70 50 L 70 20 L 90 20 L 90 50 L 110 50 L 110 20 L 130 20 L 130 50 L 150 50 L 150 20 L 165 20 L 165 50 L 185 50 L 185 20 L 220 20 L 220 50 L 380 50" fill="none" stroke="#a6e3a1" stroke-width="2"/>
+
+              <!-- Labels -->
+              <text x="45" y="62" fill="#f38ba8" font-size="8" font-family="monospace" text-anchor="middle">MCU 18ms LOW</text>
+              <text x="100" y="14" fill="#f9e2af" font-size="8" font-family="monospace" text-anchor="middle">ACK 80µs</text>
+              <text x="157" y="14" fill="#89b4fa" font-size="8" font-family="monospace" text-anchor="middle">Bit 0 (26µs)</text>
+              <text x="202" y="14" fill="#a6e3a1" font-size="8" font-family="monospace" text-anchor="middle">Bit 1 (70µs)</text>
+            </svg>
+          </div>
+
+          <!-- Dynamic 40-Bit Register Breakdown -->
+          <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
+            <div class="bg-[var(--inner-box)] p-1.5 rounded border border-[var(--card-border)]">
+              <span class="text-[var(--text-sub)] block">Humidity (16-bit):</span>
+              <span id="protoHumBin" class="text-[#89b4fa] font-bold">00110010 00000000</span>
+            </div>
+            <div class="bg-[var(--inner-box)] p-1.5 rounded border border-[var(--card-border)]">
+              <span class="text-[var(--text-sub)] block">Temp (16-bit):</span>
+              <span id="protoTempBin" class="text-[#f9e2af] font-bold">00011001 00000000</span>
+            </div>
+            <div class="bg-[var(--inner-box)] p-1.5 rounded border border-[var(--card-border)]">
+              <span class="text-[var(--text-sub)] block">Checksum (8-bit):</span>
+              <span id="protoCheckBin" class="text-[#a6e3a1] font-bold">01001011</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live MicroPython Code Inspector -->
+        <div class="glass-card p-5 shadow-xl flex flex-col">
+          <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2 mb-3">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">🐍 MicroPython Logic Inspector</span>
+            <span class="text-[10px] font-mono text-[#a6e3a1] bg-[var(--inner-box)] px-2 py-0.5 rounded border border-[var(--card-border)]">RP2040 Executing</span>
+          </div>
+
+          <div class="code-box bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-3 code-font text-xs leading-relaxed overflow-x-auto">
+            <div class="code-line"><span class="kw">import</span> dht, machine, time</div>
+            <div class="code-line">sensor = dht.DHT11(machine.Pin(<span class="num">15</span>)) <span class="cm"># Single-wire GP15</span></div>
+            <div class="code-line">in1 = machine.Pin(<span class="num">16</span>, machine.Pin.OUT) <span class="cm"># Roof Motor CW</span></div>
+            <div class="code-line">in2 = machine.Pin(<span class="num">17</span>, machine.Pin.OUT) <span class="cm"># Roof Motor CCW</span></div>
+            <div class="code-line">fan = machine.Pin(<span class="num">18</span>, machine.Pin.OUT) <span class="cm"># Exhaust Fan</span></div>
+            <div class="code-line"><br><span class="kw">while</span> <span class="num">True</span>:</div>
+            <div class="code-line active">&nbsp;&nbsp;sensor.measure() <span class="cm"># Triggers 40-bit Single-Bus Read</span></div>
+            <div class="code-line">&nbsp;&nbsp;temp = sensor.temperature() <span class="cm"># <span id="codeTemp" class="val-highlight">25.0</span>°C</span></div>
+            <div class="code-line">&nbsp;&nbsp;hum = sensor.humidity()     <span class="cm"># <span id="codeHum" class="val-highlight">50.0</span>%</span></div>
+            <div class="code-line"><br>&nbsp;&nbsp;<span class="cm"># Compound Condition: HIGH Temp AND HIGH Humidity</span></div>
+            <div class="code-line" id="lineIf">&nbsp;&nbsp;<span class="kw">if</span> temp &gt; <span class="num">30</span> <span class="kw">and</span> hum &gt; <span class="num">70</span>:</div>
+            <div class="code-line" id="lineIfBody1">&nbsp;&nbsp;&nbsp;&nbsp;in1.value(<span class="num">1</span>); in2.value(<span class="num">0</span>) <span class="cm"># Close Roof (Protect)</span></div>
+            <div class="code-line" id="lineIfBody2">&nbsp;&nbsp;&nbsp;&nbsp;fan.value(<span class="num">1</span>)               <span class="cm"># Turn ON Exhaust Fan</span></div>
+            <div class="code-line" id="lineElif">&nbsp;&nbsp;<span class="kw">elif</span> temp &gt; <span class="num">32</span>:</div>
+            <div class="code-line" id="lineElifBody1">&nbsp;&nbsp;&nbsp;&nbsp;in1.value(<span class="num">0</span>); in2.value(<span class="num">1</span>) <span class="cm"># Open Roof (Vent Heat)</span></div>
+            <div class="code-line" id="lineElifBody2">&nbsp;&nbsp;&nbsp;&nbsp;fan.value(<span class="num">0</span>)               <span class="cm"># Fan OFF</span></div>
+            <div class="code-line" id="lineElse">&nbsp;&nbsp;<span class="kw">else</span>:</div>
+            <div class="code-line" id="lineElseBody1">&nbsp;&nbsp;&nbsp;&nbsp;in1.value(<span class="num">0</span>); in2.value(<span class="num">0</span>) <span class="cm"># Motor STOP</span></div>
+            <div class="code-line" id="lineElseBody2">&nbsp;&nbsp;&nbsp;&nbsp;fan.value(<span class="num">0</span>)               <span class="cm"># Fan OFF</span></div>
+            <div class="code-line"><br>&nbsp;&nbsp;time.sleep(<span class="num">2</span>)</div>
+          </div>
+        </div>
+
+        <!-- Concept Check Quiz Panel -->
+        <div class="glass-card p-5 shadow-xl flex flex-col">
+          <div class="quiz-title">📝 Compound Logic & Protocol Quiz</div>
+          <div class="quiz-question mt-2" id="quiz-question">
+            How does the RP2040 differentiate between a binary '0' and a binary '1' in the DHT11 single-wire data stream?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;"></div>
+          <div id="quiz-feedback" style="margin-top: 10px;"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // System State Variables
+    let tempVal = 25.0;
+    let humVal = 50.0;
+    let roofOpenRatio = 0.0;
+    let targetRoofRatio = 0.0;
+    let fanAngle = 0;
+    let fanActive = false;
+
+    // DOM Elements
+    const tempSlider = document.getElementById('tempSlider');
+    const humSlider = document.getElementById('humSlider');
+    const tempValLabel = document.getElementById('tempVal');
+    const humValLabel = document.getElementById('humVal');
+
+    const svgTempLabel = document.getElementById('svgTempLabel');
+    const svgHumLabel = document.getElementById('svgHumLabel');
+    const statusBadge = document.getElementById('statusBadge');
+
+    const codeTemp = document.getElementById('codeTemp');
+    const codeHum = document.getElementById('codeHum');
+
+    const protoHumBin = document.getElementById('protoHumBin');
+    const protoTempBin = document.getElementById('protoTempBin');
+    const protoCheckBin = document.getElementById('protoCheckBin');
+
+    const roofPanelLine = document.getElementById('roofPanelLine');
+    const fanBladesGroup = document.getElementById('fanBladesGroup');
+
+    // Code Lines for Highlighting
+    const lineIf = document.getElementById('lineIf');
+    const lineIfBody1 = document.getElementById('lineIfBody1');
+    const lineIfBody2 = document.getElementById('lineIfBody2');
+
+    const lineElif = document.getElementById('lineElif');
+    const lineElifBody1 = document.getElementById('lineElifBody1');
+    const lineElifBody2 = document.getElementById('lineElifBody2');
+
+    const lineElse = document.getElementById('lineElse');
+    const lineElseBody1 = document.getElementById('lineElseBody1');
+    const lineElseBody2 = document.getElementById('lineElseBody2');
+
+    // Quiz Data
+    const quizData = {
+      question: "How does the microcontroller differentiate between a binary '0' and a binary '1' in the DHT11 single-wire data stream?",
+      options: [
+        { text: "A. By measuring the duration of the HIGH voltage pulse (26µs = '0', 70µs = '1').", correct: true },
+        { text: "B. By changing the voltage level between 3.3V ('1') and 5V ('0').", correct: false },
+        { text: "C. By sending separate clock pulses over an SDA and SCL wire.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = "Correct! The DHT11 uses pulse-width modulation timing. A short HIGH pulse (~26µs) represents 0, while a long HIGH pulse (~70µs) represents 1!";
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. All bits begin with a 50µs LOW voltage pulse. The length of the following HIGH pulse determines whether the bit is a 0 or a 1.';
+      }
+    }
+
+    function updateBinaryProtocolRegisters(temp, hum) {
+      const humInt = Math.round(hum);
+      const tempInt = Math.round(temp);
+      const checkSum = (humInt + tempInt) & 0xFF;
+
+      const humBinStr = humInt.toString(2).padStart(8, '0') + ' 00000000';
+      const tempBinStr = tempInt.toString(2).padStart(8, '0') + ' 00000000';
+      const checkBinStr = checkSum.toString(2).padStart(8, '0');
+
+      protoHumBin.textContent = humBinStr;
+      protoTempBin.textContent = tempBinStr;
+      protoCheckBin.textContent = checkBinStr;
+    }
+
+    function clearHighlights() {
+      const allLines = [lineIf, lineIfBody1, lineIfBody2, lineElif, lineElifBody1, lineElifBody2, lineElse, lineElseBody1, lineElseBody2];
+      allLines.forEach(l => l.classList.remove('active'));
+    }
+
+    function evaluateLogic() {
+      clearHighlights();
+
+      codeTemp.textContent = tempVal.toFixed(1);
+      codeHum.textContent = humVal.toFixed(1);
+      svgTempLabel.textContent = `Temp: ${tempVal.toFixed(1)}°C`;
+      svgHumLabel.textContent = `Humidity: ${humVal.toFixed(1)}%`;
+
+      updateBinaryProtocolRegisters(tempVal, humVal);
+
+      if (tempVal > 30 && humVal > 70) {
+        lineIf.classList.add('active');
+        lineIfBody1.classList.add('active');
+        lineIfBody2.classList.add('active');
+
+        targetRoofRatio = 0.0;
+        fanActive = true;
+        statusBadge.textContent = 'Roof: CLOSED (Protect) • Fan: ON • Motor: CW';
+        statusBadge.className = 'text-xs font-mono px-2 py-0.5 rounded bg-[#421e25] text-[#f38ba8] border border-[#f38ba8]';
+      } else if (tempVal > 32) {
+        lineElif.classList.add('active');
+        lineElifBody1.classList.add('active');
+        lineElifBody2.classList.add('active');
+
+        targetRoofRatio = 1.0;
+        fanActive = false;
+        statusBadge.textContent = 'Roof: OPEN (Venting) • Fan: OFF • Motor: CCW';
+        statusBadge.className = 'text-xs font-mono px-2 py-0.5 rounded bg-[#3a331d] text-[#f9e2af] border border-[#f9e2af]';
+      } else {
+        lineElse.classList.add('active');
+        lineElseBody1.classList.add('active');
+        lineElseBody2.classList.add('active');
+
+        targetRoofRatio = 0.0;
+        fanActive = false;
+        statusBadge.textContent = 'Roof: CLOSED (Normal) • Fan: OFF • Motor: STOP';
+        statusBadge.className = 'text-xs font-mono px-2 py-0.5 rounded bg-[var(--inner-box)] text-[#a6e3a1] border border-[var(--card-border)]';
+      }
+    }
+
+    function animationLoop() {
+      // Smooth roof motion interpolation
+      if (Math.abs(roofOpenRatio - targetRoofRatio) > 0.01) {
+        if (roofOpenRatio < targetRoofRatio) {
+          roofOpenRatio += 0.03;
+        } else {
+          roofOpenRatio -= 0.03;
+        }
+      } else {
+        roofOpenRatio = targetRoofRatio;
+      }
+
+      // Slide endpoint along gable pitch line: (200, 55) to (340, 115)
+      const x1 = 200 + (340 - 200) * roofOpenRatio * 0.85;
+      const y1 = 55 + (115 - 55) * roofOpenRatio * 0.85;
+      roofPanelLine.setAttribute('x1', x1);
+      roofPanelLine.setAttribute('y1', y1);
+
+      // Spin fan blades around local center (0, -2)
+      if (fanActive) {
+        fanAngle = (fanAngle + 15) % 360;
+        fanBladesGroup.setAttribute('transform', `rotate(${fanAngle}, 0, -2)`);
+      }
+
+      requestAnimationFrame(animationLoop);
+    }
+
+    // Event Listeners
+    tempSlider.addEventListener('input', (e) => {
+      tempVal = parseFloat(e.target.value);
+      tempValLabel.textContent = tempVal.toFixed(1);
+      evaluateLogic();
+    });
+
+    humSlider.addEventListener('input', (e) => {
+      humVal = parseFloat(e.target.value);
+      humValLabel.textContent = humVal.toFixed(1);
+      evaluateLogic();
+    });
+
+    document.getElementById('btnOptimal').addEventListener('click', () => {
+      tempVal = 25.0; humVal = 50.0;
+      tempSlider.value = 25; humSlider.value = 50;
+      tempValLabel.textContent = '25.0'; humValLabel.textContent = '50.0';
+      evaluateLogic();
+    });
+
+    document.getElementById('btnHeatHum').addEventListener('click', () => {
+      tempVal = 34.0; humVal = 80.0;
+      tempSlider.value = 34; humSlider.value = 80;
+      tempValLabel.textContent = '34.0'; humValLabel.textContent = '80.0';
+      evaluateLogic();
+    });
+
+    document.getElementById('btnVent').addEventListener('click', () => {
+      tempVal = 35.0; humVal = 40.0;
+      tempSlider.value = 35; humSlider.value = 40;
+      tempValLabel.textContent = '35.0'; humValLabel.textContent = '40.0';
+      evaluateLogic();
+    });
+
+    // Initialize
+    initQuiz();
+    evaluateLogic();
+    requestAnimationFrame(animationLoop);
+  </script>
+  <script src="./theme.js"></script>
+</body>
+</html>
