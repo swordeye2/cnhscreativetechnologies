@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waterproof DS18B20 1-Wire Sensor | RP2040 Lab</title>
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .code-font { font-family: 'Fira Code', monospace; }
+
+    .glass-card {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 12px;
+    }
+
+    .code-line {
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: var(--text-sub, #a6adc8);
+      transition: background 0.2s ease, border-color 0.2s ease;
+      border-left: 3px solid transparent;
+      white-space: pre;
+    }
+
+    .code-line.active {
+      background: var(--card-border, #313244);
+      color: #a6e3a1;
+      border-left-color: #a6e3a1;
+      font-weight: bold;
+    }
+
+    .kw { color: #f38ba8; font-weight: 600; }
+    .fn { color: var(--accent, #89b4fa); }
+    .num { color: #fab387; }
+    .cm { color: var(--text-sub, #6c7086); font-style: italic; }
+    .str { color: #a6e3a1; }
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      background: var(--card-border, #313244);
+      height: 6px;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent, #89b4fa);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .quiz-title { font-weight: bold; color: var(--accent, #89b4fa); font-size: 0.95rem; border-bottom: 1px solid var(--card-border, #313244); padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: var(--text-main, #cdd6f4); font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: var(--inner-box, #11111b); border: 1px solid var(--card-border, #313244); padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; color: var(--text-main); }
+    .quiz-opt:hover { border-color: var(--accent, #89b4fa); background: var(--card-border, #1e1e2e); }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+  <header class="max-w-7xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Hub
+      </a>
+      <span class="text-[var(--card-border)]">|</span>
+      <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">RP2040 MicroPython Lab</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#a6e3a1] animate-pulse"></span>
+      <span class="text-xs font-mono font-medium text-[#a6e3a1]">1-Wire Bus Active</span>
+    </div>
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
+  </header>
+
+  <main class="max-w-7xl mx-auto w-full">
+    <div class="text-center mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">🌊 Waterproof DS18B20 & 16-Bit Register Math</h1>
+      <p class="text-sm text-[var(--text-sub)] mt-1 max-w-2xl mx-auto">
+        Simulate submerged thermal sensing, 3.0V–5.5V supply voltage, Parasite Power Mode, 64-bit ROM addressing, and <strong>Hex → 16-Bit → 12-Bit Fixed Point Conversion</strong>.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT COLUMN: Submerged Tank & Data Conversion Flowchart (7 Cols) -->
+      <div class="lg:col-span-7 flex flex-col gap-5">
+
+        <!-- SVG Liquid Container Visualizer -->
+        <div class="glass-card p-4 shadow-xl">
+          <div class="flex justify-between items-center mb-2 px-1">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">🧪 Submerged Stainless Steel Probe Tank</span>
+            <span id="statusBadge" class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--inner-box)] text-[#a6e3a1] border border-[var(--card-border)]">
+              Power: 3.3V Normal (3-Wire)
+            </span>
+          </div>
+
+          <div class="w-full bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg overflow-hidden relative shadow-inner">
+            <svg viewBox="0 0 400 230" class="w-full h-auto">
+              <!-- Background Sky/Lab Frame -->
+              <rect x="0" y="0" width="400" height="230" fill="var(--card-bg)"/>
+
+              <!-- Glass Tank Container -->
+              <rect x="120" y="70" width="220" height="140" rx="8" fill="rgba(255,255,255,0.03)" stroke="var(--card-border)" stroke-width="2"/>
+              
+              <!-- Liquid Body with Dynamic Thermal Color -->
+              <rect x="122" y="85" width="216" height="123" rx="6" id="liquidBody" fill="#1e3a5f" opacity="0.85"/>
+              <line x1="122" y1="85" x2="338" y2="85" stroke="#89b4fa" stroke-width="2" opacity="0.6"/>
+
+              <!-- Submerged Bubbles -->
+              <circle cx="160" cy="180" r="3" fill="rgba(255,255,255,0.3)"/>
+              <circle cx="220" cy="150" r="2" fill="rgba(255,255,255,0.4)"/>
+              <circle cx="280" cy="190" r="4" fill="rgba(255,255,255,0.2)"/>
+
+              <!-- RP2040 Board & Power Circuit Diagram -->
+              <g transform="translate(15, 20)">
+                <rect x="0" y="0" width="85" height="190" rx="6" fill="var(--inner-box)" stroke="var(--card-border)" stroke-width="1.5"/>
+                <text x="42.5" y="18" fill="var(--accent)" font-size="9" font-family="monospace" font-weight="bold" text-anchor="middle">RP2040 BOARD</text>
+                
+                <!-- Pins -->
+                <text x="10" y="45" id="vccPinLabel" fill="#f38ba8" font-size="8" font-family="monospace">3V3 ──┐</text>
+                <text x="10" y="75" fill="#89b4fa" font-size="8" font-family="monospace">GP22 ──┼── DQ</text>
+                <text x="10" y="105" fill="#a6adc8" font-size="8" font-family="monospace">GND ──┼── GND</text>
+
+                <!-- Pull-up resistor box -->
+                <rect x="18" y="48" width="30" height="20" rx="3" fill="#313244" stroke="#fab387" stroke-width="1"/>
+                <text x="33" y="61" fill="#fab387" font-size="7" font-family="monospace" text-anchor="middle">4.7kΩ</text>
+              </g>
+
+              <!-- Waterproof Cable Harness -->
+              <path id="sensorCable" d="M 85 95 C 130 95, 140 30, 210 30" fill="none" stroke="#f38ba8" stroke-width="3.5"/>
+              <path d="M 85 95 C 130 95, 140 30, 210 30" fill="none" stroke="#11111b" stroke-width="1.5" stroke-dasharray="2 2"/>
+
+              <!-- Waterproof Steel Probe Group -->
+              <g id="probeGroup" transform="translate(210, 30)">
+                <rect x="-4" y="0" width="8" height="25" rx="2" fill="#11111b" stroke="#313244" stroke-width="1"/>
+                <rect x="-5" y="25" width="10" height="65" rx="3" fill="url(#metalGradient)" stroke="#a6adc8" stroke-width="1.5"/>
+                <circle cx="0" cy="70" r="3" fill="#f38ba8"/>
+                <text x="12" y="73" fill="var(--text-sub)" font-size="7" font-family="monospace">DS18B20 Die</text>
+              </g>
+
+              <defs>
+                <linearGradient id="metalGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#6c7086"/>
+                  <stop offset="50%" stop-color="#cdd6f4"/>
+                  <stop offset="100%" stop-color="#45475a"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Live HUD Overlay -->
+              <g transform="translate(220, 160)">
+                <rect x="0" y="0" width="110" height="40" rx="4" fill="var(--inner-box)" opacity="0.9" stroke="var(--card-border)" stroke-width="1"/>
+                <text x="10" y="16" fill="#f9e2af" font-size="10" font-family="monospace" font-weight="bold" id="svgTempLabel">Temp: 25.00°C</text>
+                <text x="10" y="31" fill="#89b4fa" font-size="9" font-family="monospace" id="svgPwrLabel">VCC: 3.3V Normal</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Live Hex -> 16-Bit -> 12-Bit Conversion Graph & Register Flowchart -->
+        <div class="glass-card p-5 shadow-xl flex flex-col gap-3">
+          <div class="font-bold text-[var(--accent)] uppercase tracking-wider text-xs border-b border-[var(--card-border)] pb-2 flex justify-between items-center">
+            <span>📊 Live Hex → 16-Bit → 12-Bit Fixed Point Conversion</span>
+            <span class="text-[10px] text-[#a6e3a1] font-mono">1 LSB = 0.0625°C</span>
+          </div>
+
+          <!-- Step 1: 2-Byte Scratchpad Hex Buffer -->
+          <div class="grid grid-cols-2 gap-3 text-xs font-mono">
+            <div class="bg-[var(--inner-box)] p-2.5 rounded border border-[var(--card-border)] text-center">
+              <span class="text-[var(--text-sub)] text-[10px] block">Byte 0 (LSB):</span>
+              <span id="hexByte0" class="text-[#f9e2af] font-bold text-sm">0x90</span>
+            </div>
+            <div class="bg-[var(--inner-box)] p-2.5 rounded border border-[var(--card-border)] text-center">
+              <span class="text-[var(--text-sub)] text-[10px] block">Byte 1 (MSB):</span>
+              <span id="hexByte1" class="text-[#fab387] font-bold text-sm">0x01</span>
+            </div>
+          </div>
+
+          <!-- Step 2: 16-Bit Binary Register Bit Mapping Graph -->
+          <div class="bg-[var(--inner-box)] p-3 rounded border border-[var(--card-border)]">
+            <div class="text-[11px] text-[var(--text-sub)] mb-1.5 flex justify-between">
+              <span>16-Bit Scratchpad Register Layout:</span>
+              <span id="fullHexVal" class="text-[#89b4fa] font-bold code-font">0x0190</span>
+            </div>
+            <div class="grid grid-cols-16 gap-1 text-center font-mono text-[9px]">
+              <!-- MSB Byte 1 (Bits 15-8) -->
+              <div class="bg-[#421e25] text-[#f38ba8] p-1 rounded border border-[#f38ba8]/30" title="Sign Bit">S</div>
+              <div class="bg-[#421e25] text-[#f38ba8] p-1 rounded border border-[#f38ba8]/30" title="Sign Bit">S</div>
+              <div class="bg-[#421e25] text-[#f38ba8] p-1 rounded border border-[#f38ba8]/30" title="Sign Bit">S</div>
+              <div class="bg-[#421e25] text-[#f38ba8] p-1 rounded border border-[#f38ba8]/30" title="Sign Bit">S</div>
+              <div class="bg-[#421e25] text-[#f38ba8] p-1 rounded border border-[#f38ba8]/30" title="Sign Bit">S</div>
+              <div class="bg-[#274029] text-[#a6e3a1] p-1 rounded border border-[#a6e3a1]/30" id="bit10">2⁶</div>
+              <div class="bg-[#274029] text-[#a6e3a1] p-1 rounded border border-[#a6e3a1]/30" id="bit9">2⁵</div>
+              <div class="bg-[#274029] text-[#a6e3a1] p-1 rounded border border-[#a6e3a1]/30" id="bit8">2⁴</div>
+              <!-- LSB Byte 0 (Bits 7-0) -->
+              <div class="bg-[#274029] text-[#a6e3a1] p-1 rounded border border-[#a6e3a1]/30" id="bit7">2³</div>
+              <div class="bg-[#274029] text-[#a6e3a1] p-1 rounded border border-[#a6e3a1]/30" id="bit6">2²</div>
+              <div class="bg-[#274029] text-[#a6e3a1] p-1 rounded border border-[#a6e3a1]/30" id="bit5">2¹</div>
+              <div class="bg-[#274029] text-[#a6e3a1] p-1 rounded border border-[#a6e3a1]/30" id="bit4">2⁰</div>
+              <div class="bg-[#3a331d] text-[#f9e2af] p-1 rounded border border-[#f9e2af]/30" id="bit3">2⁻¹</div>
+              <div class="bg-[#3a331d] text-[#f9e2af] p-1 rounded border border-[#f9e2af]/30" id="bit2">2⁻²</div>
+              <div class="bg-[#3a331d] text-[#f9e2af] p-1 rounded border border-[#f9e2af]/30" id="bit1">2⁻³</div>
+              <div class="bg-[#3a331d] text-[#f9e2af] p-1 rounded border border-[#f9e2af]/30" id="bit0">2⁻⁴</div>
+            </div>
+            <!-- Live Binary Bits Stream -->
+            <div id="binaryBitStream" class="text-center font-mono text-xs font-bold text-[#89b4fa] mt-2 tracking-widest">
+              0000 0001 1001 0000
+            </div>
+          </div>
+
+          <!-- Step 3: Fixed-Point Division Formula -->
+          <div class="bg-[var(--inner-box)] p-2.5 rounded border border-[var(--card-border)] text-xs font-mono leading-relaxed">
+            <div class="text-[var(--text-sub)] text-[10px]">Step 3: Convert 16-Bit Signed Integer to Temperature (°C):</div>
+            <div class="text-[var(--text-main)] mt-0.5">
+              Temp (°C) = <span id="mathRaw16" class="text-[#f9e2af]">400</span> / 16 = <span id="mathRaw16Mult" class="text-[#f9e2af]">400</span> × 0.0625°C = <strong id="mathResultTemp" class="text-[#a6e3a1] text-sm font-bold">25.00°C</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="glass-card p-5 shadow-xl flex flex-col gap-4">
+          <div class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)] border-b border-[var(--card-border)] pb-2">
+            🎛️ Interactive Wiring & Thermal Controls
+          </div>
+
+          <!-- Power Mode Selector -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-medium text-[var(--text-sub)] block mb-1">Power Supply Wiring Mode:</label>
+              <select id="pwrModeSelect" class="w-full bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-2 text-sm text-[var(--text-main)] focus:border-[var(--accent)] outline-none code-font cursor-pointer">
+                <option value="normal" selected>Normal Power (3-Wire, VCC = 3.3V)</option>
+                <option value="parasite">Parasite Power (2-Wire, VDD = GND)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-[var(--text-sub)] block mb-1">Target Supply Voltage:</label>
+              <input type="text" readonly value="3.3V (RP2040 Power Rail)" class="w-full bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-2 text-sm text-[var(--text-sub)] code-font">
+            </div>
+          </div>
+
+          <!-- Liquid Temperature Slider -->
+          <div class="bg-[var(--inner-box)] p-3.5 rounded-lg border border-[var(--card-border)]">
+            <div class="flex justify-between items-center mb-1">
+              <label for="tempSlider" class="text-xs font-semibold text-[var(--text-main)]">Liquid Bath Temperature:</label>
+              <span class="text-sm font-mono font-bold text-[#f9e2af]"><span id="tempVal">25.00</span> °C</span>
+            </div>
+            <input type="range" id="tempSlider" min="-10" max="100" step="0.25" value="25" class="w-full cursor-pointer">
+            <div class="flex justify-between text-[10px] font-mono text-[var(--text-sub)] mt-1">
+              <span>-10°C (Freezing Ice)</span>
+              <span>25°C (Room Temp)</span>
+              <span>100°C (Boiling Point)</span>
+            </div>
+          </div>
+
+          <!-- Probe Submersion Depth Slider -->
+          <div class="bg-[var(--inner-box)] p-3.5 rounded-lg border border-[var(--card-border)]">
+            <div class="flex justify-between items-center mb-1">
+              <label for="depthSlider" class="text-xs font-semibold text-[var(--text-main)]">Probe Insertion Depth:</label>
+              <span class="text-sm font-mono font-bold text-[var(--accent)]"><span id="depthVal">60</span> % Submerged</span>
+            </div>
+            <input type="range" id="depthSlider" min="10" max="100" step="1" value="60" class="w-full cursor-pointer">
+          </div>
+
+          <!-- Quick Scenario Presets -->
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button id="btnSubZero" class="flex-1 bg-[#89b4fa] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3 rounded-lg transition-all">
+              ❄️ Sub-Zero (-10.0°C)
+            </button>
+            <button id="btnIce" class="flex-1 bg-[var(--card-border)] hover:opacity-80 text-[var(--text-main)] text-xs font-semibold py-2 px-3 rounded-lg transition-all">
+              🧊 Ice Bath (0.0°C)
+            </button>
+            <button id="btnAquarium" class="flex-1 bg-[var(--card-border)] hover:opacity-80 text-[var(--text-main)] text-xs font-semibold py-2 px-3 rounded-lg transition-all">
+              🐠 Tropical Tank (26.5°C)
+            </button>
+            <button id="btnBoiling" class="flex-1 bg-[#f38ba8] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3 rounded-lg transition-all">
+              🔥 Boiling (98.5°C)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Protocol Inspector, Code Inspector & Quiz (5 Cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-5">
+
+        <!-- Dallas 1-Wire Protocol Inspector -->
+        <div class="glass-card p-5 shadow-xl flex flex-col">
+          <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2 mb-2">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">📡 Dallas 1-Wire ROM & Scratchpad RAM</span>
+            <span class="text-[10px] font-mono text-[#f9e2af] bg-[var(--inner-box)] px-2 py-0.5 rounded border border-[var(--card-border)]">Addressable</span>
+          </div>
+
+          <p class="text-[11px] text-[var(--text-sub)] mb-2">
+            Every DS18B20 contains a unique 64-bit laser-etched ROM code. Multiple waterproof sensors can share the exact same GP22 data wire:
+          </p>
+
+          <!-- 64-Bit ROM Registration Box -->
+          <div class="bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-2.5 code-font text-[10px] mb-3">
+            <div class="text-[var(--text-sub)] mb-1">Unique 64-Bit ROM ID (<code class="text-[#89b4fa]">roms[0]</code>):</div>
+            <div class="text-[#a6e3a1] font-bold tracking-wider">bytearray(b'\x28\xFF\x64\x1E\x82\x22\x04\x9B')</div>
+            <div class="flex justify-between text-[9px] text-[var(--text-sub)] mt-1 pt-1 border-t border-[#313244]">
+              <span>Family: <strong class="text-[#89b4fa]">0x28</strong></span>
+              <span>Serial: <strong class="text-[#f9e2af]">48-Bit Unique</strong></span>
+              <span>CRC: <strong class="text-[#a6e3a1]">0x9B</strong></span>
+            </div>
+          </div>
+
+          <!-- 9-Byte Scratchpad Register Decode -->
+          <div class="bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-2.5 code-font text-[10px]">
+            <div class="text-[var(--text-sub)] mb-1">Scratchpad Temperature Register (Bytes 0 & 1):</div>
+            <div class="flex justify-between items-center">
+              <span class="text-[#fab387]">Raw Hex: <strong id="hexReg">0x0190</strong></span>
+              <span class="text-[#a6e3a1]">12-Bit Temp: <strong id="calcTempReg">25.00°C</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MicroPython Code Inspector -->
+        <div class="glass-card p-5 shadow-xl flex flex-col">
+          <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2 mb-3">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">🐍 MicroPython 1-Wire Driver Code</span>
+            <span class="text-[10px] font-mono text-[#a6e3a1] bg-[var(--inner-box)] px-2 py-0.5 rounded border border-[var(--card-border)]">RP2040 Executing</span>
+          </div>
+
+          <div class="code-box bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-3 code-font text-xs leading-relaxed overflow-x-auto">
+            <div class="code-line"><span class="kw">import</span> machine, onewire, ds18x20, time</div>
+            <div class="code-line"><br><span class="cm"># Configure 1-Wire bus on GP22 (4.7kΩ pull-up)</span></div>
+            <div class="code-line">ow = onewire.OneWire(machine.Pin(<span class="num">22</span>))</div>
+            <div class="code-line">ds = ds18x20.DS18X20(ow)</div>
+            <div class="code-line"><br><span class="cm"># Scan bus for sensor ROM IDs</span></div>
+            <div class="code-line">roms = ds.scan()</div>
+            <div class="code-line"><br><span class="kw">while</span> <span class="num">True</span>:</div>
+            <div class="code-line active">&nbsp;&nbsp;ds.convert_temp() <span class="cm"># Start 12-bit ADC conversion</span></div>
+            <div class="code-line">&nbsp;&nbsp;time.sleep_ms(<span class="num">750</span>) <span class="cm"># Required 750ms conversion delay</span></div>
+            <div class="code-line active">&nbsp;&nbsp;<span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(roms)):</div>
+            <div class="code-line active">&nbsp;&nbsp;&nbsp;&nbsp;t = ds.read_temp(roms[i]) <span class="cm"># <span id="codeTemp" class="val-highlight">25.00</span>°C</span></div>
+            <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"Sensor:"</span>, roms[i], <span class="str">"Temp:"</span>, t)</div>
+            <div class="code-line">&nbsp;&nbsp;time.sleep(<span class="num">1</span>)</div>
+          </div>
+        </div>
+
+        <!-- Concept Check Quiz Panel -->
+        <div class="glass-card p-5 shadow-xl flex flex-col">
+          <div class="quiz-title">📝 Power & 1-Wire Protocol Quiz</div>
+          <div class="quiz-question mt-2" id="quiz-question">
+            How does MicroPython derive temperature in °C from the DS18B20 16-bit raw integer register?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;"></div>
+          <div id="quiz-feedback" style="margin-top: 10px;"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // System State Variables
+    let tempVal = 25.00;
+    let depthVal = 60;
+    let powerMode = 'normal';
+
+    // DOM Elements
+    const tempSlider = document.getElementById('tempSlider');
+    const depthSlider = document.getElementById('depthSlider');
+    const pwrModeSelect = document.getElementById('pwrModeSelect');
+    const tempValLabel = document.getElementById('tempVal');
+    const depthValLabel = document.getElementById('depthVal');
+
+    const svgTempLabel = document.getElementById('svgTempLabel');
+    const svgPwrLabel = document.getElementById('svgPwrLabel');
+    const statusBadge = document.getElementById('statusBadge');
+    const vccPinLabel = document.getElementById('vccPinLabel');
+    const liquidBody = document.getElementById('liquidBody');
+    const probeGroup = document.getElementById('probeGroup');
+
+    const codeTemp = document.getElementById('codeTemp');
+    const hexReg = document.getElementById('hexReg');
+    const calcTempReg = document.getElementById('calcTempReg');
+
+    // Register Graph Elements
+    const hexByte0 = document.getElementById('hexByte0');
+    const hexByte1 = document.getElementById('hexByte1');
+    const fullHexVal = document.getElementById('fullHexVal');
+    const binaryBitStream = document.getElementById('binaryBitStream');
+    const mathRaw16 = document.getElementById('mathRaw16');
+    const mathRaw16Mult = document.getElementById('mathRaw16Mult');
+    const mathResultTemp = document.getElementById('mathResultTemp');
+
+    // Quiz Data
+    const quizData = {
+      question: "How does MicroPython derive temperature in °C from the DS18B20 16-bit raw integer register value?",
+      options: [
+        { text: "A. By dividing the signed 16-bit raw integer by 16 (or multiplying by 0.0625°C per LSB).", correct: true },
+        { text: "B. By directly converting raw Hex into percentage duty cycles.", correct: false },
+        { text: "C. By subtracting 273.15 from the raw 16-bit register value.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = "Correct! The DS18B20 12-bit ADC stores values in 1/16th °C increments. Dividing the 16-bit signed raw integer by 16 gives exact °C!";
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Remember that 1 LSB = 0.0625°C, which is exactly 1/16th of a degree!';
+      }
+    }
+
+    function updateThermalColors(temp) {
+      let r, g, b;
+      if (temp < 25) {
+        const ratio = (temp + 10) / 35;
+        r = Math.round(30 + ratio * 20);
+        g = Math.round(58 + ratio * 100);
+        b = Math.round(95 + ratio * 100);
+      } else {
+        const ratio = (temp - 25) / 75;
+        r = Math.round(50 + ratio * 200);
+        g = Math.round(150 - ratio * 100);
+        b = Math.round(180 - ratio * 140);
+      }
+      liquidBody.setAttribute('fill', `rgb(${r}, ${g}, ${b})`);
+    }
+
+    function updateCalculations() {
+      tempValLabel.textContent = tempVal.toFixed(2);
+      depthValLabel.textContent = depthVal;
+      svgTempLabel.textContent = `Temp: ${tempVal.toFixed(2)}°C`;
+      codeTemp.textContent = tempVal.toFixed(2);
+
+      // Convert temp to 16-bit signed raw integer (1/16th deg C resolution)
+      const raw16Signed = Math.round(tempVal * 16);
+      const raw16Unsigned = raw16Signed & 0xFFFF;
+
+      // Hex Formatting
+      const hexStr = '0x' + raw16Unsigned.toString(16).toUpperCase().padStart(4, '0');
+      const lsbHex = '0x' + (raw16Unsigned & 0xFF).toString(16).toUpperCase().padStart(2, '0');
+      const msbHex = '0x' + ((raw16Unsigned >> 8) & 0xFF).toString(16).toUpperCase().padStart(2, '0');
+
+      hexByte0.textContent = lsbHex;
+      hexByte1.textContent = msbHex;
+      fullHexVal.textContent = hexStr;
+      hexReg.textContent = hexStr;
+      calcTempReg.textContent = `${tempVal.toFixed(2)}°C`;
+
+      // Binary bit stream rendering
+      const binStr = raw16Unsigned.toString(2).padStart(16, '0');
+      binaryBitStream.textContent = `${binStr.slice(0,4)} ${binStr.slice(4,8)} ${binStr.slice(8,12)} ${binStr.slice(12,16)}`;
+
+      // Mathematical formula update
+      mathRaw16.textContent = raw16Signed;
+      mathRaw16Mult.textContent = raw16Signed;
+      mathResultTemp.textContent = `${tempVal.toFixed(2)}°C`;
+
+      const translateY = 10 + (depthVal / 100) * 55;
+      probeGroup.setAttribute('transform', `translate(210, ${translateY})`);
+
+      // Power Mode Wiring Visual State
+      if (powerMode === 'parasite') {
+        statusBadge.textContent = 'Power: Parasite Mode (VDD = GND)';
+        statusBadge.className = 'text-xs font-mono px-2 py-0.5 rounded bg-[#3a331d] text-[#f9e2af] border border-[#f9e2af]';
+        vccPinLabel.textContent = 'GND ──┐';
+        vccPinLabel.setAttribute('fill', '#a6adc8');
+        svgPwrLabel.textContent = 'VCC: Parasite (GND)';
+      } else {
+        statusBadge.textContent = 'Power: 3.3V Normal (3-Wire)';
+        statusBadge.className = 'text-xs font-mono px-2 py-0.5 rounded bg-[var(--inner-box)] text-[#a6e3a1] border border-[var(--card-border)]';
+        vccPinLabel.textContent = '3V3 ──┐';
+        vccPinLabel.setAttribute('fill', '#f38ba8');
+        svgPwrLabel.textContent = 'VCC: 3.3V Normal';
+      }
+
+      updateThermalColors(tempVal);
+    }
+
+    // Event Listeners
+    tempSlider.addEventListener('input', (e) => {
+      tempVal = parseFloat(e.target.value);
+      updateCalculations();
+    });
+
+    depthSlider.addEventListener('input', (e) => {
+      depthVal = parseInt(e.target.value);
+      updateCalculations();
+    });
+
+    pwrModeSelect.addEventListener('change', (e) => {
+      powerMode = e.target.value;
+      updateCalculations();
+    });
+
+    document.getElementById('btnSubZero').addEventListener('click', () => {
+      tempVal = -10.00;
+      tempSlider.value = -10;
+      updateCalculations();
+    });
+
+    document.getElementById('btnIce').addEventListener('click', () => {
+      tempVal = 0.00;
+      tempSlider.value = 0;
+      updateCalculations();
+    });
+
+    document.getElementById('btnAquarium').addEventListener('click', () => {
+      tempVal = 26.50;
+      tempSlider.value = 26.5;
+      updateCalculations();
+    });
+
+    document.getElementById('btnBoiling').addEventListener('click', () => {
+      tempVal = 98.50;
+      tempSlider.value = 98.5;
+      updateCalculations();
+    });
+
+    // Initialize
+    initQuiz();
+    updateCalculations();
+  </script>
+  <script src="./theme.js"></script>
+</body>
+</html>
