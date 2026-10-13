@@ -2,7 +2,7 @@
   "id": "/cnhscreativetechnologies/",
   "name": "RP2040 MicroPython Physics & Hardware Hub",
   "short_name": "CNHS RPi Python Sims",
-  "description": "Interactive web-based Microcontroller simulations, drone PID flight dynamics, and hardware logic inspectors created by Jorge Victor M. Sales.",
+  "description": "Interactive web-based RPi Microcontroller simulations, drone PID flight dynamics, and hardware logic inspectors using Python created by Jorge Victor M. Sales.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
