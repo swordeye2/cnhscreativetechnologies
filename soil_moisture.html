@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capacitive Soil Moisture Sensor & Irrigation Relay | RP2040 Lab</title>
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .code-font { font-family: 'Fira Code', monospace; }
+
+    .glass-card {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 12px;
+    }
+
+    .code-line {
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: var(--text-sub, #a6adc8);
+      transition: background 0.2s ease, border-color 0.2s ease;
+      border-left: 3px solid transparent;
+      white-space: pre;
+    }
+
+    .code-line.active {
+      background: var(--card-border, #313244);
+      color: #a6e3a1;
+      border-left-color: #a6e3a1;
+      font-weight: bold;
+    }
+
+    .kw { color: #f38ba8; font-weight: 600; }
+    .fn { color: var(--accent, #89b4fa); }
+    .num { color: #fab387; }
+    .cm { color: var(--text-sub, #6c7086); font-style: italic; }
+    .str { color: #a6e3a1; }
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      background: var(--card-border, #313244);
+      height: 6px;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent, #89b4fa);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .quiz-title { font-weight: bold; color: var(--accent, #89b4fa); font-size: 0.95rem; border-bottom: 1px solid var(--card-border, #313244); padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: var(--text-main, #cdd6f4); font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: var(--inner-box, #11111b); border: 1px solid var(--card-border, #313244); padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; color: var(--text-main); }
+    .quiz-opt:hover { border-color: var(--accent, #89b4fa); background: var(--card-border, #1e1e2e); }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+  <header class="max-w-7xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Hub
+      </a>
+      <span class="text-[var(--card-border)]">|</span>
+      <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">RP2040 MicroPython Lab</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="pumpDot" class="inline-block w-2.5 h-2.5 rounded-full bg-[#f38ba8]"></span>
+      <span id="pumpStatus" class="text-xs font-mono font-medium text-[#f38ba8]">Relay & DC Pump: OFF</span>
+    </div>
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
+  </header>
+
+  <main class="max-w-7xl mx-auto w-full">
+    <div class="text-center mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">🌱 Real-Time Soil Evaporation & 25% Cooldown Hysteresis</h1>
+      <p class="text-sm text-[var(--text-sub)] mt-1 max-w-2xl mx-auto">
+        When soil moisture drops below $25\%$, the RP2040 relay triggers the $5\text{V}$ pump. Once it re-hydrates to $25\%$, the relay turns OFF and enforces a **10-second lockout delay** to prevent relay jittering[cite: 1]!
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT COLUMN: Soil Visualizer, Relay & DC Pump Circuit (7 Cols) -->
+      <div class="lg:col-span-7 flex flex-col gap-5">
+
+        <!-- SVG Plant Pot, Relay Module & DC Pump Container -->
+        <div class="glass-card p-4 shadow-xl">
+          <div class="flex justify-between items-center mb-2 px-1">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">🪴 Soil Bed, Relay Terminals & Submersible DC Motor</span>
+            <div class="flex items-center gap-2">
+              <span id="cooldownBadge" class="hidden text-xs font-mono px-2 py-0.5 rounded bg-[#421e25] text-[#f38ba8] border border-[#f38ba8] animate-pulse">
+                ⏳ COOLDOWN LOCKOUT: 10.0s
+              </span>
+              <span id="moistureBadge" class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--inner-box)] text-[#f9e2af] border border-[var(--card-border)]">
+                Moisture: 30.0% (Soil Adequate)
+              </span>
+            </div>
+          </div>
+
+          <div class="w-full bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg overflow-hidden relative shadow-inner">
+            <svg viewBox="0 0 400 240" class="w-full h-auto">
+              <!-- Background -->
+              <rect x="0" y="0" width="400" height="240" fill="var(--card-bg)"/>
+
+              <!-- Water Reservoir Container (Right Side) -->
+              <rect x="285" y="130" width="105" height="95" rx="4" fill="rgba(137, 180, 250, 0.1)" stroke="var(--card-border)" stroke-width="1.5"/>
+              <rect x="287" y="150" width="101" height="73" rx="2" fill="#1e3a5f" opacity="0.8"/>
+              <text x="337.5" y="142" fill="var(--accent)" font-size="7" font-family="monospace" text-anchor="middle">WATER RESERVOIR</text>
+
+              <!-- Submerged DC Motor Pump (Inside Reservoir) -->
+              <g transform="translate(310, 160)">
+                <rect x="0" y="0" width="55" height="55" rx="4" fill="#181825" stroke="#89b4fa" stroke-width="1.5"/>
+                <text x="27.5" y="12" fill="#89b4fa" font-size="6" font-family="monospace" text-anchor="middle">5V DC PUMP</text>
+                <circle cx="15" cy="2" r="2" fill="#f38ba8"/>
+                <circle cx="40" cy="2" r="2" fill="#313244"/>
+                <text x="15" y="-3" fill="#f38ba8" font-size="5" font-family="monospace">+</text>
+                <text x="40" y="-3" fill="#a6adc8" font-size="5" font-family="monospace">-</text>
+
+                <!-- Impeller Housing Circle -->
+                <circle cx="27.5" cy="32" r="13" fill="#313244" stroke="#fab387" stroke-width="1"/>
+                <!-- Rotating Impeller Blade -->
+                <g id="pumpImpeller" transform="rotate(0, 27.5, 32)">
+                  <line x1="16.5" y1="32" x2="38.5" y2="32" stroke="#f38ba8" stroke-width="2.5" stroke-linecap="round"/>
+                  <line x1="27.5" y1="21" x2="27.5" y2="43" stroke="#f38ba8" stroke-width="2.5" stroke-linecap="round"/>
+                </g>
+              </g>
+
+              <!-- Flexible Water Hose Tubing (From Pump to Plant) -->
+              <path d="M 337.5 160 L 337.5 45 L 160 45 L 160 65" fill="none" stroke="rgba(137, 180, 250, 0.4)" stroke-width="6"/>
+              <path d="M 337.5 160 L 337.5 45 L 160 45 L 160 65" fill="none" stroke="#89b4fa" stroke-width="2" stroke-dasharray="3 3"/>
+
+              <!-- Flowing Water Waterdrops (Active when Pump is ON) -->
+              <g id="waterFlowGroup" opacity="0">
+                <circle cx="260" cy="45" r="2.5" fill="#a6e3a1" class="animate-ping"/>
+                <circle cx="200" cy="45" r="2.5" fill="#a6e3a1" class="animate-ping"/>
+                <circle cx="160" cy="72" r="3" fill="#89b4fa"/>
+                <circle cx="160" cy="85" r="2.5" fill="#89b4fa"/>
+              </g>
+
+              <!-- Plant Pot Container (Middle) -->
+              <polygon points="90,220 210,220 230,100 70,100" fill="#2d1b0e" stroke="var(--card-border)" stroke-width="2"/>
+              <!-- Soil Layer with Dynamic Moisture Color -->
+              <polygon points="93,215 207,215 225,105 75,105" id="soilLayer" fill="#3d2314" opacity="0.9"/>
+
+              <!-- Plant Stem & Green Leaves -->
+              <path d="M 150 105 Q 150 70 140 40" fill="none" stroke="#a6e3a1" stroke-width="4" stroke-linecap="round"/>
+              <path d="M 140 55 Q 110 45 120 30 Q 140 35 140 55 Z" fill="#a6e3a1"/>
+              <path d="M 145 45 Q 175 35 165 20 Q 145 25 145 45 Z" fill="#a6e3a1"/>
+
+              <!-- Capacitive Sensor Probe inserted in Soil -->
+              <g transform="translate(175, 60)">
+                <rect x="-8" y="0" width="16" height="20" rx="2" fill="#181825" stroke="#313244" stroke-width="1"/>
+                <polygon points="-6,20 6,20 4,95 -4,95" fill="#11111b" stroke="#fab387" stroke-width="1.5"/>
+                <text x="10" y="15" fill="var(--text-sub)" font-size="6" font-family="monospace">Capacitive Probe</text>
+              </g>
+
+              <!-- 1-Channel Relay Module (Left Side) -->
+              <g transform="translate(10, 125)">
+                <rect x="0" y="0" width="65" height="100" rx="4" fill="#1e1e2e" stroke="var(--card-border)" stroke-width="1.5"/>
+                <rect x="8" y="12" width="49" height="45" rx="3" fill="#89b4fa" stroke="#11111b" stroke-width="1"/>
+                <text x="32.5" y="28" fill="#11111b" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">5V RELAY</text>
+                <text x="32.5" y="40" fill="#11111b" font-size="6" font-family="monospace" text-anchor="middle">SRD-05VDC</text>
+                
+                <rect x="42" y="65" width="18" height="30" fill="#fab387" stroke="#11111b" stroke-width="1"/>
+                <circle cx="51" cy="72" r="2.5" fill="#11111b"/>
+                <circle cx="51" cy="80" r="2.5" fill="#11111b"/>
+                <circle cx="51" cy="88" r="2.5" fill="#11111b"/>
+                <text x="36" y="74" fill="#fab387" font-size="5" font-family="monospace">NO</text>
+                <text x="33" y="82" fill="#fab387" font-size="5" font-family="monospace">COM</text>
+                <text x="36" y="90" fill="#fab387" font-size="5" font-family="monospace">NC</text>
+
+                <circle id="relayLed" cx="20" cy="78" r="4" fill="#313244" stroke="#ffffff" stroke-width="0.5"/>
+                <text x="20" y="90" fill="var(--text-sub)" font-size="6" font-family="monospace" text-anchor="middle">LED</text>
+              </g>
+
+              <path d="M 61 205 L 10 205 L 10 230 L 280 230 L 280 152 L 325 152 M 61 205" fill="none" stroke="#f38ba8" stroke-width="2" stroke-dasharray="2 2"/>
+              <path d="M 61 197 C 120 197, 180 135, 325 158" fill="none" stroke="#f38ba8" stroke-width="2.5" id="wireRelayToPump"/>
+              <text x="180" y="150" fill="#f38ba8" font-size="6" font-family="monospace">Relay NO -> DC Pump (+)</text>
+
+              <path d="M 350 158 L 350 120 L 270 120" fill="none" stroke="#a6adc8" stroke-width="2"/>
+
+              <!-- RP2040 Controller Board (Top Left) -->
+              <g transform="translate(10, 10)">
+                <rect x="0" y="0" width="60" height="100" rx="4" fill="var(--inner-box)" stroke="var(--card-border)" stroke-width="1.5"/>
+                <text x="30" y="14" fill="var(--accent)" font-size="7" font-family="monospace" font-weight="bold" text-anchor="middle">RP2040 MCU</text>
+                <text x="6" y="32" fill="#f38ba8" font-size="6" font-family="monospace">3V3 ── VCC</text>
+                <text x="6" y="52" fill="#89b4fa" font-size="6" font-family="monospace">GP26 ── ADC</text>
+                <text x="6" y="72" fill="#a6adc8" font-size="6" font-family="monospace">GND ── GND</text>
+                <text x="6" y="90" fill="#a6e3a1" font-size="6" font-family="monospace">GP16 ── RELAY</text>
+              </g>
+
+              <!-- Live Circuit Voltage HUD -->
+              <g transform="translate(235, 10)">
+                <rect x="0" y="0" width="155" height="35" rx="4" fill="var(--inner-box)" opacity="0.95" stroke="var(--card-border)" stroke-width="1"/>
+                <text x="10" y="14" fill="#f9e2af" font-size="9" font-family="monospace" font-weight="bold" id="svgVoltLabel">AOUT: 2.46 V</text>
+                <text x="10" y="27" fill="#89b4fa" font-size="8" font-family="monospace" id="svgAdcLabel">ADC0: 3058 / 4095</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="glass-card p-5 shadow-xl flex flex-col gap-4">
+          <div class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)] border-b border-[var(--card-border)] pb-2 flex justify-between items-center">
+            <span>🎛️ Dynamic Evaporation & 10s Cooldown Controls</span>
+            <button id="toggleTimerBtn" class="bg-[#a6e3a1] hover:opacity-90 text-[#11111b] text-xs font-bold py-1 px-3 rounded transition-all">
+              ⏸ PAUSE EVAPORATION
+            </button>
+          </div>
+
+          <!-- Soil Moisture Slider -->
+          <div class="bg-[var(--inner-box)] p-3.5 rounded-lg border border-[var(--card-border)]">
+            <div class="flex justify-between items-center mb-1">
+              <label for="moistureSlider" class="text-xs font-semibold text-[var(--text-main)]">Soil Moisture Level:</label>
+              <span class="text-sm font-mono font-bold text-[#f9e2af]"><span id="moistureVal">30.0</span> %</span>
+            </div>
+            <input type="range" id="moistureSlider" min="0" max="100" step="0.1" value="30" class="w-full cursor-pointer">
+            <div class="flex justify-between text-[10px] font-mono text-[var(--text-sub)] mt-1">
+              <span>0% (Bone Dry / 3.0V)</span>
+              <span>25% (Trigger & Stop Point)</span>
+              <span>100% (Saturated / 1.2V)</span>
+            </div>
+          </div>
+
+          <!-- Quick Scenario Presets -->
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button id="btnDry" class="flex-1 bg-[#f38ba8] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3 rounded-lg transition-all">
+              🌵 Dry Soil (10%)
+            </button>
+            <button id="btnThreshold" class="flex-1 bg-[#f9e2af] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3 rounded-lg transition-all">
+              ⚠️ Trigger Point (24%)
+            </button>
+            <button id="btnMoist" class="flex-1 bg-[var(--card-border)] hover:opacity-80 text-[var(--text-main)] text-xs font-semibold py-2 px-3 rounded-lg transition-all">
+              🌱 Moist Soil (55%)
+            </button>
+            <button id="btnSat" class="flex-1 bg-[#89b4fa] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3 rounded-lg transition-all">
+              🌊 Saturated (90%)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Inverse Physics Math, Code Inspector & Quiz (5 Cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-5">
+
+        <!-- Inverse Capacitive Voltage Register Inspector -->
+        <div class="glass-card p-5 shadow-xl flex flex-col gap-3">
+          <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">📊 Inverse Capacitive Signal Physics</span>
+            <span class="text-[10px] font-mono text-[#a6e3a1] bg-[var(--inner-box)] px-2 py-0.5 rounded border border-[var(--card-border)]">3.0V = Dry • 1.2V = Wet</span>
+          </div>
+
+          <p class="text-[11px] text-[var(--text-sub)]">
+            Capacitive soil sensors output an <strong>INVERSE analog voltage</strong>: higher soil water permittivity lowers capacitance impedance, producing a lower output voltage!
+          </p>
+
+          <!-- Mathematical Formula Conversion Card -->
+          <div class="bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-3 code-font text-xs space-y-1.5">
+            <div class="text-[var(--text-sub)] text-[10px]">1. Sensor Output Voltage ($V_{out}$):</div>
+            <div class="text-[#89b4fa]">
+              $V_{out} = 3.0\text{V} - (\text{Moisture} \times 1.8\text{V}) =$ <span id="mathVolt" class="font-bold">2.46 V</span>
+            </div>
+            
+            <div class="text-[var(--text-sub)] text-[10px] pt-1">2. RP2040 12-Bit ADC & 16-Bit Register:</div>
+            <div class="text-[#f9e2af]">
+              ADC_12bit = <span id="mathAdc12" class="font-bold">3058</span> &nbsp;|&nbsp; duty_u16 = <span id="mathAdc16" class="font-bold">48935</span>
+            </div>
+
+            <div class="text-[var(--text-sub)] text-[10px] pt-1">3. Relay Contact & Cooldown Status:</div>
+            <div class="text-[#a6e3a1] font-bold" id="mathRelayState">
+              Relay = OPEN | DC Motor = IDLE
+            </div>
+          </div>
+        </div>
+
+        <!-- MicroPython Code Inspector -->
+        <div class="glass-card p-5 shadow-xl flex flex-col">
+          <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2 mb-2">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">🐍 MicroPython Hysteresis Controller</span>
+            <span class="text-[10px] font-mono text-[#a6e3a1] bg-[var(--inner-box)] px-2 py-0.5 rounded border border-[var(--card-border)]">RP2040 Executing</span>
+          </div>
+
+          <div class="code-box bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-3 code-font text-xs leading-relaxed overflow-x-auto">
+            <div class="code-line"><span class="kw">import</span> machine, time</div>
+            <div class="code-line">soil_adc = machine.ADC(machine.Pin(<span class="num">26</span>))</div>
+            <div class="code-line">relay = machine.Pin(<span class="num">16</span>, machine.Pin.OUT)</div>
+            <div class="code-line">cooldown_until = <span class="num">0</span> <span class="cm"># Lockout timestamp</span></div>
+            <div class="code-line"><br><span class="kw">while</span> <span class="num">True</span>:</div>
+            <div class="code-line active">&nbsp;&nbsp;raw = soil_adc.read_u16() <span class="cm"># <span id="codeRawVal" class="val-highlight">48935</span></span></div>
+            <div class="code-line active">&nbsp;&nbsp;now = time.time()</div>
+            <div class="code-line"><br></div>
+            <div class="code-line" id="lineCheck">&nbsp;&nbsp;<span class="kw">if</span> moisture &lt; <span class="num">25.0</span> <span class="kw">and</span> now &gt;= cooldown_until:</div>
+            <div class="code-line" id="linePumpOn">&nbsp;&nbsp;&nbsp;&nbsp;relay.value(<span class="num">1</span>) <span class="cm"># Relay ON -> Pump Active</span></div>
+            <div class="code-line" id="linePumpOff">&nbsp;&nbsp;<span class="kw">elif</span> moisture &gt;= <span class="num">25.0</span> <span class="kw">and</span> relay.value() == <span class="num">1</span>:</div>
+            <div class="code-line" id="lineCooldown">&nbsp;&nbsp;&nbsp;&nbsp;relay.value(<span class="num">0</span>) <span class="cm"># Relay OFF at 25%</span></div>
+            <div class="code-line" id="lineLockout">&nbsp;&nbsp;&nbsp;&nbsp;cooldown_until = now + <span class="num">10</span> <span class="cm"># 10s Lockout</span></div>
+            <div class="code-line">&nbsp;&nbsp;time.sleep(<span class="num">1</span>)</div>
+          </div>
+        </div>
+
+        <!-- Formative Assessment Quiz Panel -->
+        <div class="glass-card p-5 shadow-xl flex flex-col">
+          <div class="quiz-title">📝 Soil Moisture & Relay Logic Quiz</div>
+          <div class="quiz-question mt-2" id="quiz-question">
+            Why does a capacitive soil sensor's analog voltage DECREASE as the soil becomes wetter?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;"></div>
+          <div id="quiz-feedback" style="margin-top: 10px;"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // System State Variables
+    let moisturePct = 30.0;
+    const PUMP_TRIGGER_LEVEL = 25.0; // Trigger threshold set to 25%
+    const COOLDOWN_DURATION_SEC = 10.0;
+
+    let isTimerActive = true;
+    let isPumpOn = false;
+    let cooldownRemainingSec = 0;
+    let impellerAngle = 0;
+    let animFrameId = null;
+
+    // DOM Elements
+    const moistureSlider = document.getElementById('moistureSlider');
+    const moistureValLabel = document.getElementById('moistureVal');
+    const moistureBadge = document.getElementById('moistureBadge');
+    const cooldownBadge = document.getElementById('cooldownBadge');
+    const pumpDot = document.getElementById('pumpDot');
+    const pumpStatus = document.getElementById('pumpStatus');
+    const toggleTimerBtn = document.getElementById('toggleTimerBtn');
+
+    const soilLayer = document.getElementById('soilLayer');
+    const waterFlowGroup = document.getElementById('waterFlowGroup');
+    const pumpImpeller = document.getElementById('pumpImpeller');
+    const relayLed = document.getElementById('relayLed');
+    const wireRelayToPump = document.getElementById('wireRelayToPump');
+
+    const svgVoltLabel = document.getElementById('svgVoltLabel');
+    const svgAdcLabel = document.getElementById('svgAdcLabel');
+
+    const mathVolt = document.getElementById('mathVolt');
+    const mathAdc12 = document.getElementById('mathAdc12');
+    const mathAdc16 = document.getElementById('mathAdc16');
+    const mathRelayState = document.getElementById('mathRelayState');
+    const codeRawVal = document.getElementById('codeRawVal');
+
+    const lineCheck = document.getElementById('lineCheck');
+    const linePumpOn = document.getElementById('linePumpOn');
+    const linePumpOff = document.getElementById('linePumpOff');
+    const lineCooldown = document.getElementById('lineCooldown');
+    const lineLockout = document.getElementById('lineLockout');
+
+    // Quiz Data
+    const quizData = {
+      question: "Why does a capacitive soil sensor's output voltage DECREASE when soil moisture INCREASES?",
+      options: [
+        { text: "A. Water increases soil dielectric constant, raising capacitance and lowering onboard oscillator circuit voltage.", correct: true },
+        { text: "B. Wet soil acts as a physical resistor that consumes current directly from the 3V3 rail.", correct: false },
+        { text: "C. The RP2040 ADC automatically reverses voltage polarity when water is detected.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! Capacitive sensors measure dielectric permittivity. High water content increases capacitance, which reduces the output DC voltage!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Capacitive sensors do not use direct DC current conduction. They measure capacitance changes due to water permittivity!';
+      }
+    }
+
+    function updateSoilColors(pct) {
+      const ratio = pct / 100.0;
+      const r = Math.round(92 - ratio * 60);
+      const g = Math.round(58 - ratio * 42);
+      const b = Math.round(33 - ratio * 27);
+      soilLayer.setAttribute('fill', `rgb(${r}, ${g}, ${b})`);
+    }
+
+    function updateCalculations() {
+      const voltage = 3.0 - (moisturePct / 100.0) * 1.8;
+      const adc12 = Math.round((voltage / 3.3) * 4095);
+      const adc16 = Math.round((voltage / 3.3) * 65535);
+
+      // Cooldown Badge Update
+      if (cooldownRemainingSec > 0) {
+        cooldownBadge.classList.remove('hidden');
+        cooldownBadge.textContent = `⏳ COOLDOWN LOCKOUT: ${cooldownRemainingSec.toFixed(1)}s`;
+      } else {
+        cooldownBadge.classList.add('hidden');
+      }
+
+      // Update UI HUD & Badges
+      moistureValLabel.textContent = moisturePct.toFixed(1);
+      moistureSlider.value = moisturePct;
+
+      moistureBadge.textContent = `Moisture: ${moisturePct.toFixed(1)}% (${isPumpOn ? 'IRRIGATING' : cooldownRemainingSec > 0 ? 'COOLDOWN LOCKOUT' : 'ADEQUATE'})`;
+      moistureBadge.className = isPumpOn
+        ? 'text-xs font-mono px-2 py-0.5 rounded bg-[#421e25] text-[#f38ba8] border border-[#f38ba8]'
+        : 'text-xs font-mono px-2 py-0.5 rounded bg-[var(--inner-box)] text-[#a6e3a1] border border-[var(--card-border)]';
+
+      if (isPumpOn) {
+        pumpDot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-[#a6e3a1] animate-pulse';
+        pumpStatus.textContent = 'Relay Contact: CLOSED | DC Pump: ACTIVE';
+        pumpStatus.className = 'text-xs font-mono font-medium text-[#a6e3a1]';
+        waterFlowGroup.setAttribute('opacity', '1');
+        relayLed.setAttribute('fill', '#a6e3a1');
+        wireRelayToPump.setAttribute('stroke', '#a6e3a1');
+
+        lineCheck.classList.add('active');
+        linePumpOn.classList.add('active');
+        linePumpOff.classList.remove('active');
+        lineCooldown.classList.remove('active');
+        lineLockout.classList.remove('active');
+      } else {
+        pumpDot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-[#f38ba8]';
+        pumpStatus.textContent = cooldownRemainingSec > 0
+          ? `Relay: LOCKOUT (${cooldownRemainingSec.toFixed(1)}s)`
+          : 'Relay Contact: OPEN | DC Pump: OFF';
+        pumpStatus.className = 'text-xs font-mono font-medium text-[#f38ba8]';
+        waterFlowGroup.setAttribute('opacity', '0');
+        relayLed.setAttribute('fill', '#313244');
+        wireRelayToPump.setAttribute('stroke', '#f38ba8');
+
+        lineCheck.classList.remove('active');
+        linePumpOn.classList.remove('active');
+        if (cooldownRemainingSec > 0) {
+          linePumpOff.classList.add('active');
+          lineCooldown.classList.add('active');
+          lineLockout.classList.add('active');
+        } else {
+          linePumpOff.classList.remove('active');
+          lineCooldown.classList.remove('active');
+          lineLockout.classList.remove('active');
+        }
+      }
+
+      svgVoltLabel.textContent = `AOUT: ${voltage.toFixed(2)} V`;
+      svgAdcLabel.textContent = `ADC0: ${adc12} / 4095`;
+
+      mathVolt.textContent = `${voltage.toFixed(2)} V`;
+      mathAdc12.textContent = adc12;
+      mathAdc16.textContent = adc16;
+      codeRawVal.textContent = adc16;
+      mathRelayState.textContent = `Relay = ${isPumpOn ? 'CLOSED (NO Contact) | Motor SPINNING' : cooldownRemainingSec > 0 ? `OPEN (10s Lockout: ${cooldownRemainingSec.toFixed(1)}s)` : 'OPEN | Motor IDLE'}`;
+      mathRelayState.className = isPumpOn ? 'text-[#a6e3a1] font-bold' : 'text-[#f38ba8] font-bold';
+
+      updateSoilColors(moisturePct);
+    }
+
+    // Dynamic Physics & Cooldown Loop
+    function animLoop() {
+      if (isTimerActive) {
+        // Decrease cooldown timer if active
+        if (cooldownRemainingSec > 0) {
+          cooldownRemainingSec = Math.max(0, cooldownRemainingSec - (1 / 60));
+        }
+
+        // Check Trigger Condition: Turn ON when below 25% AND NOT in cooldown lockout
+        if (moisturePct < PUMP_TRIGGER_LEVEL && cooldownRemainingSec <= 0 && !isPumpOn) {
+          isPumpOn = true;
+        }
+
+        // Pump Active Re-hydration: Turns OFF immediately at 25% threshold and starts 10s cooldown
+        if (isPumpOn) {
+          moisturePct += 0.08; // Re-hydrate at +1.2% per second
+          if (moisturePct >= PUMP_TRIGGER_LEVEL) {
+            isPumpOn = false;
+            cooldownRemainingSec = COOLDOWN_DURATION_SEC; // Start 10s hysteresis delay
+          }
+        } else {
+          // Natural Soil Evaporation (-0.15% per second)
+          moisturePct = Math.max(0, moisturePct - 0.003);
+        }
+
+        updateCalculations();
+      }
+
+      if (isPumpOn) {
+        impellerAngle = (impellerAngle + 18) % 360;
+        pumpImpeller.setAttribute('transform', `rotate(${impellerAngle}, 27.5, 32)`);
+      }
+
+      animFrameId = requestAnimationFrame(animLoop);
+    }
+
+    // Event Listeners
+    moistureSlider.addEventListener('input', (e) => {
+      moisturePct = parseFloat(e.target.value);
+      updateCalculations();
+    });
+
+    toggleTimerBtn.addEventListener('click', () => {
+      isTimerActive = !isTimerActive;
+      toggleTimerBtn.textContent = isTimerActive ? '⏸ PAUSE EVAPORATION' : '▶ RESUME EVAPORATION';
+      toggleTimerBtn.className = isTimerActive
+        ? 'bg-[#a6e3a1] hover:opacity-90 text-[#11111b] text-xs font-bold py-1 px-3 rounded transition-all'
+        : 'bg-[#f9e2af] hover:opacity-90 text-[#11111b] text-xs font-bold py-1 px-3 rounded transition-all';
+    });
+
+    document.getElementById('btnDry').addEventListener('click', () => {
+      moisturePct = 10.0; updateCalculations();
+    });
+
+    document.getElementById('btnThreshold').addEventListener('click', () => {
+      moisturePct = 24.0; updateCalculations();
+    });
+
+    document.getElementById('btnMoist').addEventListener('click', () => {
+      moisturePct = 55.0; updateCalculations();
+    });
+
+    document.getElementById('btnSat').addEventListener('click', () => {
+      moisturePct = 90.0; updateCalculations();
+    });
+
+    // Initialize
+    initQuiz();
+    updateCalculations();
+    animLoop();
+  </script>
+  <script src="./theme.js"></script>
+</body>
+</html>
