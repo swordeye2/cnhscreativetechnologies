@@ -1,24 +1,25 @@
 {
-  "id": "/cnhscreativetechnologies/",
+  "id": "/",
   "name": "RP2040 MicroPython Physics & Hardware Hub",
-  "short_name": "CNHS RPi Python Sims",
+  "short_name": "RPi Sims",
   "description": "Interactive web-based RPi Microcontroller simulations, drone PID flight dynamics, and hardware logic inspectors using Python created by Jorge Victor M. Sales.",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "orientation": "any",
   "background_color": "#1e1e2e",
   "theme_color": "#1e1e2e",
   "categories": ["education", "utilities"],
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -26,14 +27,14 @@
   ],
   "screenshots": [
     {
-      "src": "screenshot-mobile.png",
+      "src": "./screenshot-mobile.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "RP2040 Interactive Hub Mobile View"
     },
     {
-      "src": "screenshot-desktop.png",
+      "src": "./screenshot-desktop.png",
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
