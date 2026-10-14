@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Servo Metronome & PWM Timing | RP2040 Lab</title>
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .code-font { font-family: 'Fira Code', monospace; }
+
+    .glass-card {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 12px;
+    }
+
+    .code-line {
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: var(--text-sub, #a6adc8);
+      transition: background 0.2s ease, border-color 0.2s ease;
+      border-left: 3px solid transparent;
+      white-space: pre;
+    }
+
+    .code-line.active {
+      background: var(--card-border, #313244);
+      color: #a6e3a1;
+      border-left-color: #a6e3a1;
+      font-weight: bold;
+    }
+
+    .kw { color: #f38ba8; font-weight: 600; }
+    .fn { color: var(--accent, #89b4fa); }
+    .num { color: #fab387; }
+    .cm { color: var(--text-sub, #6c7086); font-style: italic; }
+    .str { color: #a6e3a1; }
+    .val-highlight { color: #f9e2af; font-weight: bold; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      background: var(--card-border, #313244);
+      height: 6px;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent, #89b4fa);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .quiz-title { font-weight: bold; color: var(--accent, #89b4fa); font-size: 0.95rem; border-bottom: 1px solid var(--card-border, #313244); padding-bottom: 8px; }
+    .quiz-question { font-size: 0.85rem; color: var(--text-main, #cdd6f4); font-weight: 600; line-height: 1.4; }
+    .quiz-opt { background: var(--inner-box, #11111b); border: 1px solid var(--card-border, #313244); padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; color: var(--text-main); }
+    .quiz-opt:hover { border-color: var(--accent, #89b4fa); background: var(--card-border, #1e1e2e); }
+    .quiz-opt.correct { background: #274029; border-color: #a6e3a1; color: #a6e3a1; }
+    .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
+    #quiz-feedback { font-size: 0.8rem; font-weight: bold; line-height: 1.4; }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+  <header class="max-w-7xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Hub
+      </a>
+      <span class="text-[var(--card-border)]">|</span>
+      <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">RP2040 MicroPython Lab</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span id="engineDot" class="inline-block w-2.5 h-2.5 rounded-full bg-[#f38ba8]"></span>
+      <span id="engineStatus" class="text-xs font-mono font-medium text-[#f38ba8]">Metronome Stopped</span>
+    </div>
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
+  </header>
+
+  <main class="max-w-7xl mx-auto w-full">
+    <div class="text-center mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">🎵 Servo Motor Musical Metronome & PWM Timing</h1>
+      <p class="text-sm text-[var(--text-sub)] mt-1 max-w-2xl mx-auto">
+        Learn how RP2040 50 Hz PWM duty cycles (<code class="text-[#a6e3a1]">duty_u16</code>) drive a physical servo pendulum arm to oscillate at precise musical tempos (BPM) and time signatures.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT COLUMN: Physical Metronome Visualizer & Controls (7 Cols) -->
+      <div class="lg:col-span-7 flex flex-col gap-5">
+
+        <!-- SVG Metronome Visualizer -->
+        <div class="glass-card p-4 shadow-xl">
+          <div class="flex justify-between items-center mb-2 px-1">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">⏱️ Mechanical Servo Metronome</span>
+            <span id="beatBadge" class="text-xs font-mono px-2 py-0.5 rounded bg-[var(--inner-box)] text-[#a6e3a1] border border-[var(--card-border)]">
+              Beat: 1 / 4 • DOWNBEAT
+            </span>
+          </div>
+
+          <div class="w-full bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg overflow-hidden relative shadow-inner">
+            <svg viewBox="0 0 400 240" class="w-full h-auto">
+              <!-- Background -->
+              <rect x="0" y="0" width="400" height="240" fill="var(--card-bg)"/>
+
+              <!-- Traditional Metronome Wooden Body Housing -->
+              <polygon points="140,220 260,220 220,50 180,50" fill="#181825" stroke="var(--card-border)" stroke-width="2"/>
+              <polygon points="155,210 245,210 212,70 188,70" fill="#11111b" stroke="var(--card-border)" stroke-width="1"/>
+
+              <!-- Angle Arc Scale Lines -->
+              <path d="M 130 100 A 110 110 0 0 1 270 100" fill="none" stroke="var(--card-border)" stroke-width="1.5" stroke-dasharray="2 2"/>
+              <text x="120" y="95" fill="var(--text-sub)" font-size="8" font-family="monospace">45°</text>
+              <text x="200" y="62" fill="var(--text-sub)" font-size="8" font-family="monospace" text-anchor="middle">90°</text>
+              <text x="280" y="95" fill="var(--text-sub)" font-size="8" font-family="monospace">135°</text>
+
+              <!-- Servo Motor Base Housing at Pivot Point -->
+              <rect x="180" y="170" width="40" height="35" rx="4" fill="#313244" stroke="var(--accent)" stroke-width="1.5"/>
+              <circle cx="200" cy="180" r="8" fill="#89b4fa"/>
+              <circle cx="200" cy="180" r="3" fill="#11111b"/>
+              <text x="200" y="198" fill="var(--text-sub)" font-size="7" font-family="monospace" text-anchor="middle">SG90 SERVO</text>
+
+              <!-- Oscillating Metronome Arm Group (Rotates smoothly around Pivot (200, 180)) -->
+              <g id="armGroup" transform="rotate(0, 200, 180)">
+                <!-- Main Pendulum Rod -->
+                <line x1="200" y1="180" x2="200" y2="60" stroke="#fab387" stroke-width="4" stroke-linecap="round"/>
+                <!-- Sliding Weight Block -->
+                <rect x="192" y="80" width="16" height="20" rx="2" fill="#f38ba8" stroke="#11111b" stroke-width="1"/>
+                <circle cx="200" cy="90" r="3" fill="#ffffff"/>
+                <!-- Top Pointer Tip -->
+                <polygon points="200,52 195,62 205,62" fill="#fab387"/>
+              </g>
+
+              <!-- Beat LED Visualizer Array -->
+              <g id="ledArray" transform="translate(130, 225)">
+                <circle id="led1" cx="10" cy="0" r="5" fill="#a6e3a1" stroke="#313244"/>
+                <circle id="led2" cx="38" cy="0" r="5" fill="#313244" stroke="#313244"/>
+                <circle id="led3" cx="66" cy="0" r="5" fill="#313244" stroke="#313244"/>
+                <circle id="led4" cx="94" cy="0" r="5" fill="#313244" stroke="#313244"/>
+                <circle id="led5" cx="122" cy="0" r="5" fill="#313244" stroke="#313244"/>
+                <circle id="led6" cx="150" cy="0" r="5" fill="#313244" stroke="#313244"/>
+              </g>
+
+              <!-- Live PWM HUD Overlay -->
+              <g transform="translate(15, 15)">
+                <rect x="0" y="0" width="135" height="42" rx="4" fill="var(--inner-box)" opacity="0.9" stroke="var(--card-border)" stroke-width="1"/>
+                <text x="10" y="16" fill="#f9e2af" font-size="10" font-family="monospace" font-weight="bold" id="svgAngleLabel">Angle: 90.0°</text>
+                <text x="10" y="31" fill="#89b4fa" font-size="9" font-family="monospace" id="svgDutyLabel">duty_u16: 4915 (1.50ms)</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Metronome & Servo Parameter Controls -->
+        <div class="glass-card p-5 shadow-xl flex flex-col gap-4">
+          <div class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)] border-b border-[var(--card-border)] pb-2 flex justify-between items-center">
+            <span>🎛️ Tempo & Servo Motion Parameters</span>
+            <button id="togglePlayBtn" class="bg-[#a6e3a1] hover:opacity-90 text-[#11111b] text-xs font-bold py-1.5 px-4 rounded-lg transition-all flex items-center gap-1">
+              ▶ START METRONOME
+            </button>
+          </div>
+
+          <!-- BPM Tempo Slider -->
+          <div class="bg-[var(--inner-box)] p-3.5 rounded-lg border border-[var(--card-border)]">
+            <div class="flex justify-between items-center mb-1">
+              <label for="bpmSlider" class="text-xs font-semibold text-[var(--text-main)]">Tempo (Beats Per Minute):</label>
+              <span class="text-sm font-mono font-bold text-[#f9e2af]"><span id="bpmVal">120</span> BPM</span>
+            </div>
+            <input type="range" id="bpmSlider" min="40" max="240" step="1" value="120" class="w-full cursor-pointer">
+            <div class="flex justify-between text-[10px] font-mono text-[var(--text-sub)] mt-1">
+              <span>40 (Largo)</span>
+              <span>120 (Moderato)</span>
+              <span>240 (Presto)</span>
+            </div>
+          </div>
+
+          <!-- Time Signature & Audio Toggle -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-medium text-[var(--text-sub)] block mb-1">Time Signature:</label>
+              <select id="timeSigSelect" class="w-full bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-2 text-sm text-[var(--text-main)] focus:border-[var(--accent)] outline-none code-font cursor-pointer">
+                <option value="2">2/4 (Duple Meter)</option>
+                <option value="3">3/4 (Waltz Meter)</option>
+                <option value="4" selected>4/4 (Common Time)</option>
+                <option value="6">6/8 (Compound Duple)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-[var(--text-sub)] block mb-1">Audio Click Sound:</label>
+              <button id="audioToggleBtn" class="w-full bg-[var(--card-border)] text-[var(--text-main)] text-xs font-semibold p-2.5 rounded-lg transition-all">
+                🔊 Audio Click: ENABLED
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Tempo Presets -->
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button id="btnAdagio" class="flex-1 bg-[var(--card-border)] hover:opacity-80 text-[var(--text-main)] text-xs font-semibold py-2 px-3 rounded-lg transition-all">
+              🐢 Adagio (60 BPM)
+            </button>
+            <button id="btnAndante" class="flex-1 bg-[var(--card-border)] hover:opacity-80 text-[var(--text-main)] text-xs font-semibold py-2 px-3 rounded-lg transition-all">
+              🚶 Andante (90 BPM)
+            </button>
+            <button id="btnAllegro" class="flex-1 bg-[#89b4fa] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3 rounded-lg transition-all">
+              🏃 Allegro (140 BPM)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: PWM Formula, Code Inspector & Quiz (5 Cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-5">
+
+        <!-- 50Hz Servo PWM Register Conversion Inspector -->
+        <div class="glass-card p-5 shadow-xl flex flex-col gap-3">
+          <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">📊 50 Hz PWM Servo Duty Conversion</span>
+            <span class="text-[10px] font-mono text-[#f9e2af] bg-[var(--inner-box)] px-2 py-0.5 rounded border border-[var(--card-border)]">Period T = 20ms</span>
+          </div>
+
+          <p class="text-[11px] text-[var(--text-sub)]">
+            Standard servos run on a $50\text{ Hz}$ PWM carrier frequency ($20\text{ ms}$ period). $0.5\text{ ms}$ ($0^\circ$) maps to `duty_u16(1638)`, while $2.5\text{ ms}$ ($180^\circ$) maps to `duty_u16(8192)`.
+          </p>
+
+          <!-- Mathematical Formula Conversion Card -->
+          <div class="bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-3 code-font text-xs space-y-1.5">
+            <div class="text-[var(--text-sub)] text-[10px]">Active Servo Position Formula:</div>
+            <div class="text-[#89b4fa]">
+              Pulse Width = <span id="mathPulse">1.50</span> ms
+            </div>
+            <div class="text-[#a6e3a1] font-bold">
+              duty_u16 = int((Pulse / 20.0) × 65535) = <span id="mathDuty">4915</span>
+            </div>
+            <div class="flex justify-between text-[10px] text-[var(--text-sub)] mt-1 pt-1 border-t border-[#313244]">
+              <span>Beat Duration: <strong id="mathPeriod" class="text-[#f9e2af]">500 ms / beat</strong></span>
+              <span>RP2040 PWM: <strong class="text-[#a6e3a1]">16-bit Hardware</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MicroPython Code Inspector (With Hardware Loop Explanation) -->
+        <div class="glass-card p-5 shadow-xl flex flex-col">
+          <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2 mb-2">
+            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent)]">🐍 MicroPython Hardware Loop Code</span>
+            <span class="text-[10px] font-mono text-[#a6e3a1] bg-[var(--inner-box)] px-2 py-0.5 rounded border border-[var(--card-border)]">RP2040 Physical Code</span>
+          </div>
+
+          <!-- Pedagogical Hardware Note -->
+          <div class="bg-[var(--inner-box)] border border-[#fab387]/40 rounded p-2 mb-3 text-[10.5px] text-[var(--text-sub)] leading-relaxed">
+            <strong class="text-[#fab387] block mb-0.5">💡 Hardware Implementation Tip:</strong>
+            In physical hardware, a servo cannot jump instantly! You must command <strong class="text-[var(--text-main)]">LEFT</strong> motion, pause for the beat delay, then command <strong class="text-[var(--text-main)]">RIGHT</strong> motion in a continuous loop:
+          </div>
+
+          <div class="code-box bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg p-3 code-font text-xs leading-relaxed overflow-x-auto">
+            <div class="code-line"><span class="kw">import</span> machine, time</div>
+            <div class="code-line"><br><span class="cm"># Configure 50Hz PWM Servo on GP15</span></div>
+            <div class="code-line">servo = machine.PWM(machine.Pin(<span class="num">15</span>))</div>
+            <div class="code-line">servo.freq(<span class="num">50</span>)</div>
+            <div class="code-line"><br><span class="cm"># Define Swing Duty Limits (45° & 135°)</span></div>
+            <div class="code-line">DUTY_LEFT = <span class="num">3276</span>  <span class="cm"># 1.0ms pulse (45°)</span></div>
+            <div class="code-line">DUTY_RIGHT = <span class="num">6553</span> <span class="cm"># 2.0ms pulse (135°)</span></div>
+            <div class="code-line">bpm = <span class="num" id="codeBpm">120</span></div>
+            <div class="code-line">delay = <span class="num">60.0</span> / bpm <span class="cm"># Beat interval in sec</span></div>
+            <div class="code-line"><br><span class="kw">while</span> <span class="num">True</span>:</div>
+            <div class="code-line" id="lineLeft">&nbsp;&nbsp;<span class="cm"># 1. Swing Servo LEFT (Beat Downbeat)</span></div>
+            <div class="code-line" id="lineLeftCmd">&nbsp;&nbsp;servo.duty_u16(DUTY_LEFT)</div>
+            <div class="code-line" id="lineLeftWait">&nbsp;&nbsp;time.sleep(delay)</div>
+            <div class="code-line"><br></div>
+            <div class="code-line" id="lineRight">&nbsp;&nbsp;<span class="cm"># 2. Swing Servo RIGHT (Upbeat)</span></div>
+            <div class="code-line" id="lineRightCmd">&nbsp;&nbsp;servo.duty_u16(DUTY_RIGHT)</div>
+            <div class="code-line" id="lineRightWait">&nbsp;&nbsp;time.sleep(delay)</div>
+          </div>
+        </div>
+
+        <!-- Formative Assessment Quiz Panel -->
+        <div class="glass-card p-5 shadow-xl flex flex-col">
+          <div class="quiz-title">📝 Servo PWM & Tempo Timing Quiz</div>
+          <div class="quiz-question mt-2" id="quiz-question">
+            Why do we set the MicroPython PWM frequency to exactly 50 Hz when driving RC servo motors?
+          </div>
+          <div id="quiz-options" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;"></div>
+          <div id="quiz-feedback" style="margin-top: 10px;"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // System State Variables
+    let isPlaying = false;
+    let bpm = 120;
+    let timeSignature = 4;
+    let currentBeat = 0;
+    let soundEnabled = true;
+
+    // Servo Constants (50 Hz = 20ms period)
+    const MIN_PULSE_MS = 0.5;  // 0 deg
+    const MAX_PULSE_MS = 2.5;  // 180 deg
+    const CENTER_ANGLE = 90;
+    const SWEEP_AMPLITUDE = 45; // Swing between 45° and 135°
+
+    // Animation & Physics Variables
+    let startTime = null;
+    let lastBeatHalf = -1;
+    let animFrameId = null;
+
+    // DOM Elements
+    const bpmSlider = document.getElementById('bpmSlider');
+    const bpmValLabel = document.getElementById('bpmVal');
+    const timeSigSelect = document.getElementById('timeSigSelect');
+    const togglePlayBtn = document.getElementById('togglePlayBtn');
+    const audioToggleBtn = document.getElementById('audioToggleBtn');
+
+    const engineDot = document.getElementById('engineDot');
+    const engineStatus = document.getElementById('engineStatus');
+    const beatBadge = document.getElementById('beatBadge');
+
+    const svgAngleLabel = document.getElementById('svgAngleLabel');
+    const svgDutyLabel = document.getElementById('svgDutyLabel');
+    const armGroup = document.getElementById('armGroup');
+
+    const mathPulse = document.getElementById('mathPulse');
+    const mathDuty = document.getElementById('mathDuty');
+    const mathPeriod = document.getElementById('mathPeriod');
+    const codeBpm = document.getElementById('codeBpm');
+
+    // Code Line Highlight Elements
+    const lineLeft = document.getElementById('lineLeft');
+    const lineLeftCmd = document.getElementById('lineLeftCmd');
+    const lineLeftWait = document.getElementById('lineLeftWait');
+    const lineRight = document.getElementById('lineRight');
+    const lineRightCmd = document.getElementById('lineRightCmd');
+    const lineRightWait = document.getElementById('lineRightWait');
+
+    // Web Audio API Context
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playClickSound(isDownbeat) {
+      if (!soundEnabled) return;
+      initAudio();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(isDownbeat ? 1200 : 800, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.05);
+    }
+
+    // Quiz Data
+    const quizData = {
+      question: "Why do standard RC servo motors require a PWM frequency of exactly 50 Hz in MicroPython?",
+      options: [
+        { text: "A. Standard servo internal control circuits expect a 20ms frame period (1/50Hz) to decode 1ms–2ms positioning pulses.", correct: true },
+        { text: "B. Higher frequencies like 1000 Hz would burn out the RP2040 GPIO pins due to overcurrent.", correct: false },
+        { text: "C. 50 Hz matches the AC wall outlet frequency needed to power the servo motor coils.", correct: false }
+      ]
+    };
+
+    function initQuiz() {
+      document.getElementById('quiz-question').innerText = quizData.question;
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = '';
+
+      quizData.options.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-opt';
+        div.innerText = opt.text;
+        div.onclick = () => checkQuiz(div, opt.correct);
+        container.appendChild(div);
+      });
+    }
+
+    function checkQuiz(selectedEl, isCorrect) {
+      const feedback = document.getElementById('quiz-feedback');
+      document.querySelectorAll('.quiz-opt').forEach(el => el.classList.remove('correct', 'wrong'));
+
+      if (isCorrect) {
+        selectedEl.classList.add('correct');
+        feedback.style.color = '#a6e3a1';
+        feedback.textContent = 'Correct! A 50 Hz frequency equals a 20ms control period. The high time of the pulse (1.0ms–2.0ms) dictates the exact physical angle of the servo shaft!';
+      } else {
+        selectedEl.classList.add('wrong');
+        feedback.style.color = '#f38ba8';
+        feedback.textContent = 'Incorrect. Servo motor position is controlled by pulse width timing relative to a fixed 20ms (50 Hz) frame!';
+      }
+    }
+
+    function angleToPulseMs(angle) {
+      return MIN_PULSE_MS + (angle / 180.0) * (MAX_PULSE_MS - MIN_PULSE_MS);
+    }
+
+    function pulseMsToDutyU16(pulseMs) {
+      return Math.round((pulseMs / 20.0) * 65535);
+    }
+
+    function updateLEDs(activeBeatIndex) {
+      for (let i = 1; i <= 6; i++) {
+        const led = document.getElementById(`led${i}`);
+        if (i <= timeSignature) {
+          if (i === activeBeatIndex + 1) {
+            led.setAttribute('fill', i === 1 ? '#f38ba8' : '#a6e3a1');
+            led.setAttribute('stroke', '#ffffff');
+          } else {
+            led.setAttribute('fill', '#313244');
+            led.setAttribute('stroke', '#313244');
+          }
+        } else {
+          led.setAttribute('fill', 'transparent');
+          led.setAttribute('stroke', 'transparent');
+        }
+      }
+    }
+
+    function highlightCodeStep(isLeftPhase) {
+      if (isLeftPhase) {
+        lineLeft.classList.add('active');
+        lineLeftCmd.classList.add('active');
+        lineLeftWait.classList.add('active');
+        lineRight.classList.remove('active');
+        lineRightCmd.classList.remove('active');
+        lineRightWait.classList.remove('active');
+      } else {
+        lineLeft.classList.remove('active');
+        lineLeftCmd.classList.remove('active');
+        lineLeftWait.classList.remove('active');
+        lineRight.classList.add('active');
+        lineRightCmd.classList.add('active');
+        lineRightWait.classList.add('active');
+      }
+    }
+
+    function updateCalculations(currentAngle) {
+      const pulseMs = angleToPulseMs(currentAngle);
+      const duty = pulseMsToDutyU16(pulseMs);
+      const periodMs = Math.round(60000 / bpm);
+
+      svgAngleLabel.textContent = `Angle: ${currentAngle.toFixed(1)}°`;
+      svgDutyLabel.textContent = `duty_u16: ${duty} (${pulseMs.toFixed(2)}ms)`;
+      mathPulse.textContent = pulseMs.toFixed(2);
+      mathDuty.textContent = duty;
+      codeBpm.textContent = bpm;
+      mathPeriod.textContent = `${periodMs} ms / beat`;
+
+      // SVG Servo Arm Rotation (-90 to +90 relative to vertical)
+      const rotateDeg = currentAngle - 90;
+      armGroup.setAttribute('transform', `rotate(${rotateDeg}, 200, 180)`);
+    }
+
+    // Smooth Physics Simulation Loop using Sinusoidal Oscillation
+    function smoothAnimationLoop(timestamp) {
+      if (!isPlaying) return;
+      if (!startTime) startTime = timestamp;
+
+      const elapsedSec = (timestamp - startTime) / 1000.0;
+      const beatDurationSec = 60.0 / bpm;
+      
+      const omega = Math.PI / beatDurationSec;
+      const currentAngle = CENTER_ANGLE + SWEEP_AMPLITUDE * Math.sin(omega * elapsedSec);
+      updateCalculations(currentAngle);
+
+      const halfBeatPhase = Math.floor((elapsedSec / beatDurationSec) + 0.5);
+      if (halfBeatPhase > lastBeatHalf) {
+        lastBeatHalf = halfBeatPhase;
+        currentBeat = halfBeatPhase % timeSignature;
+        const isDownbeat = (currentBeat === 0);
+
+        const isLeftPhase = (halfBeatPhase % 2 === 0);
+        highlightCodeStep(isLeftPhase);
+
+        updateLEDs(currentBeat);
+        playClickSound(isDownbeat);
+
+        beatBadge.textContent = `Beat: ${currentBeat + 1} / ${timeSignature} • ${isDownbeat ? 'DOWNBEAT' : 'UPBEAT'}`;
+        beatBadge.className = isDownbeat
+          ? 'text-xs font-mono px-2 py-0.5 rounded bg-[#421e25] text-[#f38ba8] border border-[#f38ba8]'
+          : 'text-xs font-mono px-2 py-0.5 rounded bg-[var(--inner-box)] text-[#a6e3a1] border border-[var(--card-border)]';
+      }
+
+      animFrameId = requestAnimationFrame(smoothAnimationLoop);
+    }
+
+    function startMetronome() {
+      initAudio();
+      isPlaying = true;
+      startTime = null;
+      lastBeatHalf = -1;
+
+      engineDot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-[#a6e3a1] animate-pulse';
+      engineStatus.textContent = 'Metronome Active';
+      engineStatus.className = 'text-xs font-mono font-medium text-[#a6e3a1]';
+
+      togglePlayBtn.textContent = '⏹ STOP METRONOME';
+      togglePlayBtn.className = 'bg-[#f38ba8] hover:opacity-90 text-[#11111b] text-xs font-bold py-1.5 px-4 rounded-lg transition-all flex items-center gap-1';
+
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+      animFrameId = requestAnimationFrame(smoothAnimationLoop);
+    }
+
+    function stopMetronome() {
+      isPlaying = false;
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+
+      engineDot.className = 'inline-block w-2.5 h-2.5 rounded-full bg-[#f38ba8]';
+      engineStatus.textContent = 'Metronome Stopped';
+      engineStatus.className = 'text-xs font-mono font-medium text-[#f38ba8]';
+
+      togglePlayBtn.textContent = '▶ START METRONOME';
+      togglePlayBtn.className = 'bg-[#a6e3a1] hover:opacity-90 text-[#11111b] text-xs font-bold py-1.5 px-4 rounded-lg transition-all flex items-center gap-1';
+
+      lineLeft.classList.remove('active'); lineLeftCmd.classList.remove('active'); lineLeftWait.classList.remove('active');
+      lineRight.classList.remove('active'); lineRightCmd.classList.remove('active'); lineRightWait.classList.remove('active');
+
+      updateCalculations(90);
+    }
+
+    // Event Listeners
+    bpmSlider.addEventListener('input', (e) => {
+      bpm = parseInt(e.target.value);
+      bpmValLabel.textContent = bpm;
+      if (isPlaying) {
+        startTime = null;
+      } else {
+        updateCalculations(90);
+      }
+    });
+
+    timeSigSelect.addEventListener('change', (e) => {
+      timeSignature = parseInt(e.target.value);
+      currentBeat = 0;
+      updateLEDs(0);
+    });
+
+    togglePlayBtn.addEventListener('click', () => {
+      if (isPlaying) stopMetronome();
+      else startMetronome();
+    });
+
+    audioToggleBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      audioToggleBtn.textContent = soundEnabled ? '🔊 Audio Click: ENABLED' : '🔇 Audio Click: MUTED';
+      audioToggleBtn.className = soundEnabled
+        ? 'w-full bg-[var(--card-border)] text-[var(--text-main)] text-xs font-semibold p-2.5 rounded-lg transition-all'
+        : 'w-full bg-[#421e25] text-[#f38ba8] text-xs font-semibold p-2.5 rounded-lg transition-all border border-[#f38ba8]';
+    });
+
+    document.getElementById('btnAdagio').addEventListener('click', () => {
+      bpm = 60; bpmSlider.value = 60; bpmValLabel.textContent = 60;
+      if (isPlaying) startTime = null; else updateCalculations(90);
+    });
+
+    document.getElementById('btnAndante').addEventListener('click', () => {
+      bpm = 90; bpmSlider.value = 90; bpmValLabel.textContent = 90;
+      if (isPlaying) startTime = null; else updateCalculations(90);
+    });
+
+    document.getElementById('btnAllegro').addEventListener('click', () => {
+      bpm = 140; bpmSlider.value = 140; bpmValLabel.textContent = 140;
+      if (isPlaying) startTime = null; else updateCalculations(90);
+    });
+
+    // Initialize
+    initQuiz();
+    updateLEDs(0);
+    updateCalculations(90);
+  </script>
+  <script src="./theme.js"></script>
+</body>
+</html>
