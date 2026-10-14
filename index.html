@@ -363,6 +363,40 @@
     <div class="category-title">🌱 Sensors, Compound Logic & Protocols</div>
     <div class="card-grid">
 
+      <!-- Capacitive Soil Moisture Sensor & Irrigation Relay Card -->
+      <div class="card">
+        <div>
+          <h3>🌱 Soil Moisture v1.2 & DC Irrigation Pump</h3>
+          <p>
+            Model inverse capacitive dielectric voltage ($3.0\text{V} = \text{Dry}$, $1.2\text{V} = \text{Wet}$), real-time soil evaporation, optocoupled relay switching, and 10s cooldown hysteresis.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Capacitive v1.2</span>
+            <span class="tag">DC Pump Motor</span>
+            <span class="tag">Relay NO/COM</span>
+            <span class="tag">10s Hysteresis</span>
+          </div>
+        </div>
+        <a href="./soil_moisture.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- Potentiometer Analog Processing (ADC to PWM) Card -->
+      <div class="card">
+        <div>
+          <h3>🎛️ Potentiometer Signal Processing (ADC to PWM)</h3>
+          <p>
+            Visualize 10kΩ rotary potentiometer wiper voltage remapped from 12-bit ADC registers ($0–4095$) directly into 16-bit PWM duty cycles ($0–65535$).
+          </p>
+          <div class="tag-container">
+            <span class="tag">ADC.read_u16()</span>
+            <span class="tag">PWM.duty_u16()</span>
+            <span class="tag">10kΩ Potentiometer</span>
+            <span class="tag">Signal Scaling</span>
+          </div>
+        </div>
+        <a href="./analog_processing.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
       <!-- DHT Climate Roof Control Card -->
       <div class="card">
         <div>
@@ -395,22 +429,6 @@
           </div>
         </div>
         <a href="./ds18b20_waterproof.html" class="card-btn">Launch Simulator →</a>
-      </div>
-
-      <!-- Analog Processing Card -->
-      <div class="card">
-        <div>
-          <h3>🎛️ Analog Processing (ADC to PWM)</h3>
-          <p>
-            Visualize RP2040 12-bit ADC reading (0–4095) remapped to 16-bit PWM duty cycles (0–65535) for smooth speed control.
-          </p>
-          <div class="tag-container">
-            <span class="tag">ADC.read_u16()</span>
-            <span class="tag">PWM.duty_u16()</span>
-            <span class="tag">Signal Scaling</span>
-          </div>
-        </div>
-        <a href="./analog_processing.html" class="card-btn">Launch Simulator →</a>
       </div>
 
       <!-- Pull Resistors Card -->
