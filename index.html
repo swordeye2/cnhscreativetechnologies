@@ -3,389 +3,535 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RP2040 MicroPython Interactive Physics & Hardware Hub</title>
+  <title>RP2040 MicroPython Laboratory Suite | CNHS Creative Technologies</title>
   
   <!-- Legal IP & Copyright Assertions -->
   <meta name="author" content="Jorge Victor M. Sales">
   <meta name="creator" content="Jorge Victor M. Sales">
-  <meta name="publisher" content="Jorge Victor M. Sales">
   <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
   <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
   <meta name="alias" content="swordeye, thearbiter">
-  <meta name="description" content="RP2040 MicroPython Educational Simulations created and authored by Jorge Victor M. Sales (swordeye/thearbiter). Proprietary interactive learning assets for physics and embedded hardware.">
-
-  <!-- Open Graph Metadata -->
-  <meta property="og:title" content="RP2040 MicroPython Interactive Physics & Hardware Hub">
-  <meta property="og:type" content="website">
-  <meta property="og:description" content="Interactive RP2040 hardware and flight physics simulators created by Jorge Victor M. Sales.">
-  <meta property="og:article:author" content="Jorge Victor M. Sales">
-
-  <!-- PWA & Mobile Offline Assets -->
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#1e1e2e">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  <!-- Google AdSense Integration (COPPA / Child-Safe Non-Personalized Ads) -->
-  <script>
-    window.adsbygoogle = window.adsbygoogle || [];
-    window.adsbygoogle.requestNonPersonalizedAds = 1;
-  </script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136"
-     crossorigin="anonymous"></script>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./theme.css">
 
+  <!-- Google AdSense Script (COPPA & Non-Personalized Student-Safe Configuration) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136" crossorigin="anonymous"></script>
+  <script>
+    // Force Non-Personalized Ads for Child/Student Safety & COPPA Compliance
+    (adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
+  </script>
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
-
-    :root[data-theme="dark"] {
-      --bg-dark: #1e1e2e;
-      --card-bg: #181825;
-      --border-color: #313244;
-      --accent-blue: #89b4fa;
-      --accent-green: #a6e3a1;
-      --accent-yellow: #f9e2af;
-      --accent-mauve: #cba6f7;
-      --accent-peach: #fab387;
-      --text-main: #cdd6f4;
-      --text-sub: #a6adc8;
-    }
-
-    :root[data-theme="light"] {
-      --bg-dark: #eff1f5;
-      --card-bg: #e6e9ef;
-      --border-color: #bcc0cc;
-      --accent-blue: #1e66f5;
-      --accent-green: #40a02b;
-      --accent-yellow: #df8e1d;
-      --accent-mauve: #8839ef;
-      --accent-peach: #fe640b;
-      --text-main: #4c4f69;
-      --text-sub: #6c6f85;
-    }
-
-    * {
-      box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
-      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
-    }
-
     body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
       margin: 0;
       padding: 0;
-      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
     }
 
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      padding: 25px 20px;
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 8px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-content h1 {
+      margin: 0 0 5px 0;
+      font-size: 1.8rem;
+      color: var(--accent, #89b4fa);
+    }
+
+    .header-content p {
+      margin: 0;
+      color: var(--text-sub, #a6adc8);
+      font-size: 0.95rem;
+    }
+
+    .author-badge {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--text-sub, #a6adc8);
+    }
+
+    .theme-toggle-btn {
+      background: var(--card-border, #313244);
+      color: var(--text-main, #cdd6f4);
+      border: 1px solid var(--card-border, #313244);
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      background: var(--btn-hover, #b4befe);
+      color: #11111b;
+    }
+
+    .category-title {
+      font-size: 1.3rem;
+      color: var(--accent, #89b4fa);
+      margin: 30px 0 15px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--card-border, #313244);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent, #89b4fa);
+    }
+
+    .card h3 {
+      margin: 0 0 10px 0;
+      color: var(--accent, #89b4fa);
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card p {
+      color: var(--text-sub, #a6adc8);
+      font-size: 0.88rem;
+      line-height: 1.4;
+      margin-bottom: 15px;
+      flex-grow: 1;
+    }
+
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 15px;
+    }
+
+    .tag {
+      background: var(--inner-box, #11111b);
+      color: var(--tag-color, #fab387);
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--card-border, #313244);
+    }
+
+    .card-btn {
+      display: block;
+      text-align: center;
+      background: var(--accent, #89b4fa);
+      color: #11111b;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 6px;
+      transition: opacity 0.2s;
+    }
+
+    .card-btn:hover {
+      opacity: 0.9;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-sub, #a6adc8);
+      border-top: 1px solid var(--card-border, #313244);
+    }
+
+    /* Glass Card Styling for Splash Ad Modal */
     .glass-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .glass-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--accent-blue);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 12px;
     }
   </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
 
-  <!-- Navigation / Top Control Bar -->
-  <div class="max-w-6xl mx-auto flex justify-between items-center mb-6">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-opacity-20 bg-slate-500 text-xs font-mono">
-      <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-      RP2040 MicroPython Curriculum Hub
+  <!-- SPLASH AD OVERLAY MODAL (Cached per session) -->
+  <div id="splashAdOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="glass-card max-w-lg w-full p-6 text-center relative border border-[var(--card-border)] shadow-2xl">
+      
+      <!-- Header -->
+      <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2 mb-3">
+        <span class="text-[10px] font-mono uppercase tracking-widest text-[var(--accent)] font-bold">
+          ⚡ Educational Hardware Sponsor
+        </span>
+        <span class="text-[10px] font-mono text-[var(--text-sub)]">COPPA / Learner Safe</span>
+      </div>
+
+      <!-- Google AdSense Container -->
+      <div id="splashAdFrame" class="my-4 bg-[var(--inner-box)] border border-[var(--card-border)] rounded-lg min-h-[250px] flex items-center justify-center p-2 overflow-hidden">
+        <ins class="adsbygoogle"
+             style="display:block; width:100%; height:250px;"
+             data-ad-client="ca-pub-7612819391368136"
+             data-ad-format="rectangle"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+      </div>
+
+      <!-- Timer & Skip Button Bar -->
+      <div class="flex items-center justify-between mt-4 pt-3 border-t border-[var(--card-border)]">
+        <span id="splashTimerText" class="text-xs font-mono text-[var(--text-sub)]">Entering Lab in 5s...</span>
+        <button id="skipSplashBtn" disabled onclick="closeSplashAd()" class="bg-[var(--card-border)] text-[var(--text-sub)] text-xs font-bold py-2 px-4 rounded cursor-not-allowed transition-all opacity-60">
+          Skip (5)
+        </button>
+      </div>
+
     </div>
-    <button id="themeToggleBtn" onclick="toggleTheme()" class="px-3 py-1.5 rounded-lg border border-[var(--border-color)] text-xs font-mono font-semibold bg-[var(--card-bg)] hover:border-[var(--accent-blue)]">
-      🌓 Toggle Theme
-    </button>
   </div>
 
-  <!-- Header Section -->
-  <header class="max-w-6xl mx-auto w-full mb-10 text-center">
-    <h1 class="text-3xl md:text-5xl font-extrabold text-[var(--accent-blue)] tracking-tight mb-3">
-      Interactive Hardware & Physics Simulation Hub
-    </h1>
-    <p class="text-base text-[var(--text-sub)] max-w-2xl mx-auto leading-relaxed">
-      Bridge MicroPython register code with real-world physical dynamics: PWM generation, motor torque, sensor interrupts, single-wire communication, and quadcopter PID flight stabilization.
-    </p>
+  <!-- MAIN SUITE HUB CONTAINER -->
+  <div class="container">
+    <header>
+      <div class="header-content">
+        <h1>⚙️ RP2040 MicroPython Laboratory Suite</h1>
+        <p>Interactive Mechatronics Visualizers, Motor Dynamics, and Embedded Physics Curriculum</p>
+        <div class="author-badge">
+          Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
+        </div>
+      </div>
+      <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">
+        <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+      </button>
+    </header>
 
-    <!-- Creator & IP Protection Badge -->
-    <div class="mt-4 inline-flex flex-wrap items-center justify-center gap-2 bg-[var(--card-bg)] border border-[var(--border-color)] px-4 py-1.5 rounded-full text-xs font-mono">
-      <span class="text-[var(--accent-yellow)]">💡 Creator & Legal Author:</span>
-      <span class="font-bold text-[var(--accent-blue)]">Jorge Victor M. Sales</span>
-      <span class="text-[var(--text-sub)]">(swordeye / thearbiter)</span>
-      <span class="text-[var(--text-sub)]">|</span>
-      <span class="text-[var(--text-sub)]">© 2026 Educational IP Reserved</span>
+    <!-- Section 1: Actuators & Motor Dynamics -->
+    <div class="category-title">⚡ Actuators & Motor Dynamics</div>
+    <div class="card-grid">
+
+      <!-- Stepper Motor Matrix Card -->
+      <div class="card">
+        <div>
+          <h3>⚙️ Stepper Phase Excitation & Matrix</h3>
+          <p>
+            Explore 4-phase stator sequences, Full-Step vs Wave Drive, MicroPython step index logic, and 1.8° angle stepping calculations.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Wave Drive</span>
+            <span class="tag">Full-Step</span>
+            <span class="tag">while True</span>
+            <span class="tag">range(len(pins))</span>
+          </div>
+        </div>
+        <a href="./stepper.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- Stepper Motor Torque & Physics Card -->
+      <div class="card">
+        <div>
+          <h3>🧲 Stepper Torque & Rotor Vector Physics</h3>
+          <p>
+            Simulate salient-pole tooth rotor geometry, flux lines, load torque stalling limits, and vector superposition.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Salient Rotor</span>
+            <span class="tag">Magnetic Vectors</span>
+            <span class="tag">Holding Torque</span>
+            <span class="tag">Stall Jitter</span>
+          </div>
+        </div>
+        <a href="./stepper_torque.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- DC Motor Card -->
+      <div class="card">
+        <div>
+          <h3>🏎️ DC Motor & DRV8833 H-Bridge</h3>
+          <p>
+            Explore directional H-Bridge logic, PWM duty cycle speed scaling, back-EMF, and active braking vs coasting mechanics.
+          </p>
+          <div class="tag-container">
+            <span class="tag">DRV8833</span>
+            <span class="tag">PWM Speed</span>
+            <span class="tag">Active Braking</span>
+            <span class="tag">H-Bridge</span>
+          </div>
+        </div>
+        <a href="./dc-motor.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- Servo Angle Mapping Card -->
+      <div class="card">
+        <div>
+          <h3>🎯 Servo PWM & Angle Mapping</h3>
+          <p>
+            Visualize 50Hz PWM signal timing (1ms–2ms pulse widths) mapped directly to RP2040 16-bit MicroPython duty_u16 registers.
+          </p>
+          <div class="tag-container">
+            <span class="tag">50 Hz PWM</span>
+            <span class="tag">duty_u16</span>
+            <span class="tag">Position Control</span>
+          </div>
+        </div>
+        <a href="./servo.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- Servo Metronome Card -->
+      <div class="card">
+        <div>
+          <h3>🎵 Servo Metronome & Musical Timing</h3>
+          <p>
+            Model sinusoidal pendulum oscillation, 50 Hz PWM duty cycle calculations, tempo (BPM) dynamics, and time signatures driving an SG90 servo.
+          </p>
+          <div class="tag-container">
+            <span class="tag">50 Hz PWM</span>
+            <span class="tag">BPM Tempo</span>
+            <span class="tag">duty_u16 Sweep</span>
+            <span class="tag">Hardware Loop</span>
+          </div>
+        </div>
+        <a href="./servo_metronome.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- Servo Voltage Dynamics Card -->
+      <div class="card">
+        <div>
+          <h3>🔋 Servo Supply Voltage & Stall Current</h3>
+          <p>
+            Analyze voltage drops, power rail sag under high load, stall currents, and power decoupling strategies in robotics.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Voltage Sag</span>
+            <span class="tag">Stall Current</span>
+            <span class="tag">Power Decoupling</span>
+          </div>
+        </div>
+        <a href="./servo_voltage.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- 2WD Mobile Robot Card -->
+      <div class="card">
+        <div>
+          <h3>🤖 2WD Differential Mobile Robot</h3>
+          <p>
+            Model differential kinematic steering, pivot vs tank turns, wheel velocity vectors, and dual H-Bridge PWM outputs.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Kinematics</span>
+            <span class="tag">Tank Turn</span>
+            <span class="tag">Differential Drive</span>
+          </div>
+        </div>
+        <a href="./2WD_motor.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
     </div>
-  </header>
 
-  <!-- Main Modules Grid -->
-  <main class="max-w-6xl mx-auto w-full space-y-10">
+    <!-- Section 2: Sensors, Compound Logic & Protocols -->
+    <div class="category-title">🌱 Sensors, Compound Logic & Protocols</div>
+    <div class="card-grid">
 
-    <!-- CATEGORY 1: FLIGHT DYNAMICS & CLOSED-LOOP CONTROL -->
-    <section>
-      <div class="flex items-center gap-3 mb-4 border-b border-[var(--border-color)] pb-2">
-        <span class="text-xl">🚁</span>
-        <h2 class="text-xl font-bold text-[var(--accent-green)]">Flight Dynamics & Feedback Stabilization</h2>
+      <!-- DHT Climate Roof Control Card -->
+      <div class="card">
+        <div>
+          <h3>🌱 Automated Greenhouse Roof & Single-Wire</h3>
+          <p>
+            Model 40-bit Single-Wire pulse-width timing and compound boolean logic (<code style="color:var(--accent);">if ... and</code>, <code style="color:var(--accent);">elif</code>) driving a motorized roof and exhaust fan.
+          </p>
+          <div class="tag-container">
+            <span class="tag">DHT11 / Single-Wire</span>
+            <span class="tag">40-Bit Frame</span>
+            <span class="tag">if ... and</span>
+            <span class="tag">elif / else</span>
+          </div>
+        </div>
+        <a href="./climate_roof.html" class="card-btn">Launch Simulator →</a>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <!-- Quadcopter Drone Simulator -->
-        <a href="./drone_sim.html" class="glass-card rounded-xl p-6 block text-left md:col-span-2">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2.5 py-1 rounded border border-[var(--border-color)]">
-              drone_sim.html
-            </span>
-            <span class="text-xs font-mono text-[var(--accent-peach)]">PID Closed-Loop Flight</span>
-          </div>
-          <h3 class="text-xl font-bold text-[var(--text-main)] mb-2">Quadcopter Motor Physics & PID Simulator</h3>
-          <p class="text-sm text-[var(--text-sub)] mb-4 leading-relaxed max-w-3xl">
-            Analyze differential motor thrust ($F \propto \text{RPM}^2$), force vector resolutions, pitch torque moments, and MicroPython PID feedback loops stabilizing drone flight.
+      <!-- DS18B20 Waterproof Sensor Card -->
+      <div class="card">
+        <div>
+          <h3>🌊 Waterproof DS18B20 & 16-Bit Math</h3>
+          <p>
+            Simulate submerged probe thermal dynamics, 3.0V–5.5V VCC vs Parasite Power, 64-bit laser ROM IDs, and Hex → 16-Bit → 12-Bit Fixed Point math.
           </p>
-          <div class="flex items-center justify-between pt-2 border-t border-[var(--border-color)]">
-            <span class="text-xs font-mono text-[var(--accent-yellow)]">Core Concept: Force Resolution & Closed-Loop PID</span>
-            <span class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Launch Flight Lab →</span>
+          <div class="tag-container">
+            <span class="tag">DS18B20 / 1-Wire</span>
+            <span class="tag">3.3V / Parasite</span>
+            <span class="tag">Hex → 16-Bit Math</span>
+            <span class="tag">range(len(roms))</span>
           </div>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- CATEGORY 2: PWM, MOTORS & ACTUATORS -->
-    <section>
-      <div class="flex items-center gap-3 mb-4 border-b border-[var(--border-color)] pb-2">
-        <span class="text-xl">⚙️</span>
-        <h2 class="text-xl font-bold text-[var(--accent-yellow)]">PWM Signals, DC & Stepper Motors</h2>
+        </div>
+        <a href="./ds18b20_waterproof.html" class="card-btn">Launch Simulator →</a>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- PWM Visualizer -->
-        <a href="./pwm_visualizer.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              pwm_visualizer.html
-            </span>
-            <span class="text-xs font-mono text-[var(--accent-green)]">16-bit to 8-bit</span>
-          </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">PWM & Resolution Converter</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            Duty cycle waveforms, 16-bit to 8-bit scaling (`u16 >> 8`), and RP2040 GPIO PWM output.
+      <!-- Analog Processing Card -->
+      <div class="card">
+        <div>
+          <h3>🎛️ Analog Processing (ADC to PWM)</h3>
+          <p>
+            Visualize RP2040 12-bit ADC reading (0–4095) remapped to 16-bit PWM duty cycles (0–65535) for smooth speed control.
           </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-        <!-- Analog Processing -->
-        <a href="./analog_processing.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              analog_processing.html
-            </span>
-            <span class="text-xs font-mono text-[var(--accent-mauve)]">ADC to PWM</span>
+          <div class="tag-container">
+            <span class="tag">ADC.read_u16()</span>
+            <span class="tag">PWM.duty_u16()</span>
+            <span class="tag">Signal Scaling</span>
           </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">Analog Signal Processing</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            12-bit ADC reading (`0-4095`) conversion to PWM duty output and potentiometer voltage dividers.
-          </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-        <!-- DC Motor Control -->
-        <a href="./dc-motor.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              dc-motor.html
-            </span>
-            <span class="text-xs font-mono text-[var(--accent-yellow)]">H-Bridge Driver</span>
-          </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">DC Motor H-Bridge Control</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            PWM speed scaling, H-bridge directional switching logic (IN1/IN2), back-EMF, and motor load.
-          </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-        <!-- 2WD Robot Motor Control -->
-        <a href="./2WD_motor.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              2WD_motor.html
-            </span>
-            <span class="text-xs font-mono text-[var(--accent-peach)]">Differential Drive</span>
-          </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">2WD Differential Drive Robot</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            Dual-wheel thrust vectoring, turning radius geometry, and skid-steer MicroPython logic.
-          </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-        <!-- Servo Motor Standard -->
-        <a href="./servo.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              servo.html
-            </span>
-            <span class="text-xs font-mono text-[var(--accent-mauve)]">50Hz Pulse Width</span>
-          </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">Servo Motor Timing Physics</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            50Hz PWM pulse width control ($0.5\text{ms} \to 2.5\text{ms}$) and 180° horn positioning.
-          </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-        <!-- Stepper Motor Matrix -->
-        <a href="./stepper.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              stepper.html
-            </span>
-            <span class="text-xs font-mono text-[var(--accent-green)]">Coil Sequence</span>
-          </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">Stepper Motor Phase Excitation</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            4-phase coil excitation sequences, magnet vector addition, and stepping rotation.
-          </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- CATEGORY 3: DIGITAL I/O, SENSORS & PROTOCOLS -->
-    <section>
-      <div class="flex items-center gap-3 mb-4 border-b border-[var(--border-color)] pb-2">
-        <span class="text-xl">📡</span>
-        <h2 class="text-xl font-bold text-[var(--accent-mauve)]">Digital I/O, Sensors & Protocols</h2>
+        </div>
+        <a href="./analog_processing.html" class="card-btn">Launch Simulator →</a>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-        <!-- Pull Resistors -->
-        <a href="./pull_resistor_visualizer.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              pull_resistor_visualizer.html
-            </span>
-          </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">Pull-Up / Pull-Down Physics</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            Understand floating pin states, active-LOW inputs, and internal RP2040 pull resistor configurations.
+      <!-- Pull Resistors Card -->
+      <div class="card">
+        <div>
+          <h3>🔘 GPIO Pull-Up / Pull-Down Resistors</h3>
+          <p>
+            Master Active-HIGH vs Active-LOW GPIO inputs, internal RP2040 pulls, and floating state noise suppression.
           </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-        <!-- Climate Roof -->
-        <a href="./climate_roof.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              climate_roof.html
-            </span>
+          <div class="tag-container">
+            <span class="tag">Pin.PULL_UP</span>
+            <span class="tag">Active-LOW</span>
+            <span class="tag">Digital Logic</span>
           </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">Climate Roof & Single-Wire</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            Automated roof actuation based on ambient temperature/humidity single-wire timing protocols.
-          </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-        <!-- Waterproof DS18B20 1-Wire -->
-        <a href="./ds18b20_waterproof.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              ds18b20_waterproof.html
-            </span>
-            <span class="text-xs font-mono text-[var(--accent-green)]">1-Wire Bus</span>
-          </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">DS18B20 Waterproof 1-Wire</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            Digital temperature reading, 64-bit ROM addressing, scratchpad CRC verification, and 1-Wire timing dynamics.
-          </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-        <!-- PIR Interrupt -->
-        <a href="./pir_interrupt.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              pir_interrupt.html
-            </span>
-          </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">PIR Hardware Interrupts</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            Motion detection events using MicroPython `Pin.IRQ_RISING` callbacks for zero polling overhead.
-          </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-        <!-- I2C Communication -->
-        <a href="./i2c_sensor.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              i2c_sensor.html
-            </span>
-          </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">I2C Sensor Register Protocol</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            SDA/SCL serial timing, start/stop conditions, 7-bit device addressing, and byte reading.
-          </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
-        <!-- I2C Interrupt -->
-        <a href="./i2c_interrupt.html" class="glass-card rounded-xl p-5 block text-left">
-          <div class="flex justify-between items-start mb-3">
-            <span class="text-xs font-mono font-bold text-[var(--accent-blue)] bg-[var(--bg-dark)] px-2 py-0.5 rounded border border-[var(--border-color)]">
-              i2c_interrupt.html
-            </span>
-            <span class="text-xs font-mono text-[var(--accent-mauve)]">Async Sensing</span>
-          </div>
-          <h3 class="text-base font-bold text-[var(--text-main)] mb-1">I2C with Interrupt Alerts</h3>
-          <p class="text-xs text-[var(--text-sub)] mb-3">
-            Asynchronous hardware alert pins triggering RP2040 interrupts to initiate targeted I2C register reads.
-          </p>
-          <div class="text-xs font-mono text-[var(--accent-blue)] font-semibold">Open Lab →</div>
-        </a>
-
+        </div>
+        <a href="./pull_resistor_visualizer.html" class="card-btn">Launch Simulator →</a>
       </div>
-    </section>
 
-  </main>
+      <!-- PIR Interrupt Card -->
+      <div class="card">
+        <div>
+          <h3>🚨 PIR Motion Sensor & Hardware IRQs</h3>
+          <p>
+            Compare hardware edge interrupts (.irq()) against continuous polling loops in low-power embedded computing.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Pin.IRQ_RISING</span>
+            <span class="tag">ISR Handler</span>
+            <span class="tag">Power Efficiency</span>
+          </div>
+        </div>
+        <a href="./pir_interrupt.html" class="card-btn">Launch Simulator →</a>
+      </div>
 
-  <!-- Copyright & IP Protection Footer -->
-  <footer class="max-w-6xl mx-auto w-full mt-16 pt-6 border-t border-[var(--border-color)] text-center text-xs font-mono text-[var(--text-sub)]">
-    <p class="text-[var(--text-main)] font-bold mb-1">
-      © 2026 Designed & Authored by <span class="text-[var(--accent-blue)]">Jorge Victor M. Sales</span> (<span class="text-[var(--accent-yellow)]">swordeye / thearbiter</span>). All Rights Reserved.
-    </p>
-    <p class="text-[var(--text-sub)] mb-3">
-      Educational curriculum assets, interactive simulation architectures, and MicroPython physics mappings.
-    </p>
-  </footer>
+      <!-- I2C Bus Sensor Card -->
+      <div class="card">
+        <div>
+          <h3>🌐 I2C Bus & Proximity Reading</h3>
+          <p>
+            Understand 2-wire SDA/SCL serial protocols, slave device addresses (0x39), and byte buffer memory reads.
+          </p>
+          <div class="tag-container">
+            <span class="tag">I2C Protocol</span>
+            <span class="tag">SDA/SCL</span>
+            <span class="tag">Register Read</span>
+          </div>
+        </div>
+        <a href="./i2c_sensor.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- I2C Interrupt Card -->
+      <div class="card">
+        <div>
+          <h3>⚡ I2C Event Interrupts</h3>
+          <p>
+            Simulate interrupt-driven I2C bus communications for real-time sensor processing without blocking main CPU loops.
+          </p>
+          <div class="tag-container">
+            <span class="tag">I2C IRQ</span>
+            <span class="tag">Bus Events</span>
+            <span class="tag">Non-blocking</span>
+          </div>
+        </div>
+        <a href="./i2c_interrupt.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- Drone Flight Dynamics Card -->
+      <div class="card">
+        <div>
+          <h3>🚁 6-DoF Flight Dynamics & Moments</h3>
+          <p>
+            Apply rotational mechanics, moments of inertia, and motor thrust vectors to simulated drone flight controls.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Pitch & Roll</span>
+            <span class="tag">Aerodynamics</span>
+            <span class="tag">Inertia Matrix</span>
+          </div>
+        </div>
+        <a href="./drone_sim.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+    </div>
+
+    <footer>
+      RP2040 MicroPython Visualizers for CNHS Creative Technologies | © 2026 Jorge Victor M. Sales
+    </footer>
+  </div>
 
   <script src="./theme.js"></script>
   <script>
-    // Register Service Worker for Offline Android PWA Capability
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then((reg) => console.log('Service Worker registered successfully:', reg.scope))
-          .catch((err) => console.error('Service Worker registration failed:', err));
-      });
-    }
+    // Splash Screen Timer & Session Caching Logic
+    document.addEventListener("DOMContentLoaded", () => {
+      const splashOverlay = document.getElementById("splashAdOverlay");
+      const skipBtn = document.getElementById("skipSplashBtn");
+      const timerText = document.getElementById("splashTimerText");
 
-    function toggleTheme() {
-      const current = document.documentElement.getAttribute('data-theme') || 'dark';
-      const next = current === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('cnhs_theme', next);
+      // Check if student already saw the splash ad in this browser session
+      if (sessionStorage.getItem("splashAdShown") === "true") {
+        splashOverlay.style.display = "none";
+        return;
+      }
+
+      let countdown = 5;
+      const interval = setInterval(() => {
+        countdown--;
+        timerText.textContent = `Entering Lab in ${countdown}s...`;
+        skipBtn.textContent = `Skip (${countdown})`;
+
+        if (countdown <= 0) {
+          clearInterval(interval);
+          skipBtn.disabled = false;
+          skipBtn.textContent = "Continue to Lab →";
+          skipBtn.className = "bg-[var(--accent)] text-[#11111b] text-xs font-bold py-2 px-4 rounded cursor-pointer hover:opacity-90 shadow-md";
+          timerText.textContent = "Ready!";
+        }
+      }, 1000);
+    });
+
+    function closeSplashAd() {
+      document.getElementById("splashAdOverlay").style.display = "none";
+      sessionStorage.setItem("splashAdShown", "true");
     }
   </script>
 </body>
