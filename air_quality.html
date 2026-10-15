@@ -45,6 +45,12 @@
       color: #f38ba8 !important;
       font-weight: bold;
     }
+    .code-active-cooldown {
+      background-color: rgba(245, 158, 11, 0.25);
+      border-left: 3px solid #f59e0b;
+      color: #f9e2af !important;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body class="p-4 md:p-8 max-w-6xl mx-auto">
@@ -54,7 +60,7 @@
     <div>
       <a href="./index.html" class="text-xs text-[var(--accent,#89b4fa)] hover:underline mb-1 inline-block">← Back to Suite Hub</a>
       <h1 class="text-2xl font-bold text-[var(--accent,#89b4fa)]">💨 MQ-135 Air Quality Sensor & Relay Exhaust Fan</h1>
-      <p class="text-sm text-[var(--text-sub,#a6adc8)]">ADC Voltage Sensing, Hysteresis Logic, Particle Physics, & Hardware Pinout</p>
+      <p class="text-sm text-[var(--text-sub,#a6adc8)]">ADC Voltage Sensing, 10s Cooldown Hysteresis, Dynamic Particles, & Pinout</p>
     </div>
     <button onclick="toggleTheme()" class="px-4 py-2 rounded-lg bg-[var(--card-border,#313244)] text-sm font-semibold hover:bg-[var(--accent,#89b4fa)] hover:text-[#11111b] transition-all">
       Theme Switcher
@@ -70,9 +76,14 @@
       <div class="card-panel p-6">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)]">🏠 Living Room Gas Particle Visualizer</h2>
-          <span id="fanStatusBadge" class="px-3 py-1 text-xs font-bold rounded bg-red-500/20 text-red-400 border border-red-500/30">
-            Exhaust Fan: OFF
-          </span>
+          <div class="flex items-center gap-2">
+            <span id="cooldownBadge" class="hidden px-2.5 py-1 text-xs font-mono font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              ⏳ Cooldown: 10s
+            </span>
+            <span id="fanStatusBadge" class="px-3 py-1 text-xs font-bold rounded bg-red-500/20 text-red-400 border border-red-500/30">
+              Exhaust Fan: OFF
+            </span>
+          </div>
         </div>
 
         <!-- Room Canvas Window -->
@@ -128,7 +139,7 @@
 
       <!-- MicroPython Hardware Code Example with Real-Time Highlighting -->
       <div class="card-panel p-6">
-        <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)] mb-3">🐍 RP2040 MicroPython Logic (Live Execution)</h2>
+        <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)] mb-3">🐍 RP2040 MicroPython Logic (With 10s Hysteresis Cooldown)</h2>
         <div class="bg-[#11111b] p-4 rounded-lg font-mono text-xs text-slate-300 overflow-x-auto border border-[var(--card-border)] space-y-1">
           <div class="text-slate-500">from machine import ADC, Pin</div>
           <div class="text-slate-500">import time</div>
@@ -138,6 +149,7 @@
           <br>
           <div class="text-amber-400">HIGH_THRESHOLD = 400  <span class="text-slate-600"># Trigger Fan ON</span></div>
           <div class="text-amber-400">LOW_THRESHOLD = 200   <span class="text-slate-600"># Trigger Fan OFF</span></div>
+          <div class="text-amber-400">COOLDOWN_DELAY = 10   <span class="text-slate-600"># 10s hysteresis before re-arm</span></div>
           <br>
           <div class="text-slate-400">while True:</div>
           <div class="pl-4 text-slate-400">raw_val = adc.read_u16()</div>
@@ -146,8 +158,9 @@
           <br>
           <div id="codeOnLine" class="code-line pl-4 text-slate-300">if ppm > HIGH_THRESHOLD:</div>
           <div id="codeOnAction" class="code-line pl-8 text-slate-300">relay.value(1)  <span class="text-slate-600"># Trigger Fan ON</span></div>
-          <div id="codeOffLine" class="code-line pl-4 text-slate-300">elif ppm < LOW_THRESHOLD:</div>
+          <div id="codeOffLine" class="code-line pl-4 text-slate-300">elif ppm < LOW_THRESHOLD and relay.value() == 1:</div>
           <div id="codeOffAction" class="code-line pl-8 text-slate-300">relay.value(0)  <span class="text-slate-600"># Stop Fan OFF</span></div>
+          <div id="codeCooldown" class="code-line pl-8 text-slate-300">time.sleep(COOLDOWN_DELAY)  <span class="text-slate-600"># 10s delay allows particles to regenerate</span></div>
         </div>
       </div>
 
@@ -190,7 +203,7 @@
         <ul class="text-xs text-[var(--text-sub)] space-y-2 list-disc pl-4">
           <li><strong>ADC Conversion:</strong> RP2040 reads 0–3.3V analog input on GP26 mapped into 16-bit registers (<code class="text-amber-300">0–65535</code>).</li>
           <li><strong>Hysteresis Gap:</strong> Prevents rapid relay chattering when air quality fluctuates around the threshold.</li>
-          <li><strong>Slow Accumulation:</strong> After purging, environmental gas builds up gradually over time until it reaches equilibrium.</li>
+          <li><strong>10-Second Cooldown:</strong> Forces a 10s pause after fan shutoff, allowing smoke particles to slowly re-accumulate into the living space.</li>
         </ul>
       </div>
 
@@ -247,6 +260,7 @@
     const adcDisplay = document.getElementById('adcVoltage');
     const relayDisplay = document.getElementById('relayState');
     const fanBadge = document.getElementById('fanStatusBadge');
+    const cooldownBadge = document.getElementById('cooldownBadge');
     const fanBlade = document.getElementById('fanBlade');
 
     // Code Highlighting Elements
@@ -254,10 +268,13 @@
     const codeOnAction = document.getElementById('codeOnAction');
     const codeOffLine = document.getElementById('codeOffLine');
     const codeOffAction = document.getElementById('codeOffAction');
+    const codeCooldown = document.getElementById('codeCooldown');
 
     let particles = [];
     let currentPpm = 120; // Active ambient PPM in the room
     let fanOn = false;
+    let cooldownTimer = 0; // Remaining cooldown seconds
+    let lastTime = performance.now();
 
     // Particle Class
     class Particle {
@@ -265,10 +282,11 @@
         this.reset();
       }
       reset() {
-        this.x = 60 + Math.random() * 280; // inside house boundary
+        // Random spawn anywhere within house room bounds
+        this.x = 60 + Math.random() * 280;
         this.y = 90 + Math.random() * 80;
-        this.vx = (Math.random() - 0.5) * 0.6;
-        this.vy = (Math.random() - 0.5) * 0.6;
+        this.vx = (Math.random() - 0.5) * 0.7;
+        this.vy = (Math.random() - 0.5) * 0.7;
         this.radius = 2 + Math.random() * 2;
       }
       update() {
@@ -300,48 +318,73 @@
       particles.push(new Particle());
     }
 
-    function updateSimulation() {
+    function updateSimulation(now) {
+      const deltaSec = (now - lastTime) / 1000;
+      lastTime = now;
+
+      // Handle 10s Cooldown Countdown
+      if (cooldownTimer > 0) {
+        cooldownTimer = Math.max(0, cooldownTimer - deltaSec);
+        cooldownBadge.textContent = `⏳ Cooldown: ${Math.ceil(cooldownTimer)}s`;
+        cooldownBadge.classList.remove('hidden');
+      } else {
+        cooldownBadge.classList.add('hidden');
+      }
+
       const targetPpm = parseInt(ppmSlider.value);
 
-      // Realistic Dynamic Accumulation & Purging Physics
+      // Physics: Purging vs Random Particle Accumulation
       if (fanOn) {
         // Active Fan: Environment purges down rapidly
         currentPpm = Math.max(100, currentPpm - 4);
       } else {
-        // Fan OFF: Smoke/Gas slowly accumulates back up to target PPM
+        // Fan OFF: Smoke/Gas slowly accumulates and spawns particles back into room
         if (currentPpm < targetPpm) {
-          currentPpm = Math.min(targetPpm, currentPpm + 1.5);
+          currentPpm = Math.min(targetPpm, currentPpm + 1.2);
         } else if (currentPpm > targetPpm) {
           currentPpm = Math.max(targetPpm, currentPpm - 2);
         }
       }
 
-      // Hysteresis Logic Evaluation
-      if (currentPpm > 400) {
+      // Hysteresis Logic Evaluation with 10s Cooldown Trigger
+      if (currentPpm > 400 && cooldownTimer <= 0) {
         fanOn = true;
-      } else if (currentPpm < 200) {
+      } else if (currentPpm < 200 && fanOn) {
         fanOn = false;
+        cooldownTimer = 10; // Trigger 10-second hysteresis delay upon shutoff
+        
+        // Re-randomize particle positions when fan shuts off to simulate fresh gas dispersion
+        particles.forEach(p => p.reset());
       }
 
       const displayVoltage = ((currentPpm / 1000) * 3.3).toFixed(2);
 
-      // Code Highlighting Logic
+      // Real-time Code Block Highlighting
       if (fanOn) {
         codeOnLine.className = "code-line pl-4 code-active-on";
         codeOnAction.className = "code-line pl-8 code-active-on";
         codeOffLine.className = "code-line pl-4 text-slate-300";
         codeOffAction.className = "code-line pl-8 text-slate-300";
+        codeCooldown.className = "code-line pl-8 text-slate-300";
+      } else if (cooldownTimer > 0) {
+        codeOnLine.className = "code-line pl-4 text-slate-300";
+        codeOnAction.className = "code-line pl-8 text-slate-300";
+        codeOffLine.className = "code-line pl-4 code-active-cooldown";
+        codeOffAction.className = "code-line pl-8 code-active-cooldown";
+        codeCooldown.className = "code-line pl-8 code-active-cooldown";
       } else if (currentPpm < 200) {
         codeOnLine.className = "code-line pl-4 text-slate-300";
         codeOnAction.className = "code-line pl-8 text-slate-300";
         codeOffLine.className = "code-line pl-4 code-active-off";
         codeOffAction.className = "code-line pl-8 code-active-off";
+        codeCooldown.className = "code-line pl-8 text-slate-300";
       } else {
-        // Inside Hysteresis Zone
+        // Hysteresis Deadband Zone
         codeOnLine.className = "code-line pl-4 text-slate-300";
         codeOnAction.className = "code-line pl-8 text-slate-300";
         codeOffLine.className = "code-line pl-4 text-slate-300";
         codeOffAction.className = "code-line pl-8 text-slate-300";
+        codeCooldown.className = "code-line pl-8 text-slate-300";
       }
 
       // UI Display Updates
@@ -376,7 +419,7 @@
       requestAnimationFrame(updateSimulation);
     }
 
-    updateSimulation();
+    requestAnimationFrame(updateSimulation);
 
     // Mini Quiz Evaluation Function
     function evaluateQuiz() {
