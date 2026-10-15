@@ -83,16 +83,16 @@
 
   <!-- TIMED QUIZ START SPLASH OVERLAY MODAL -->
   <div id="quizStartSplash" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="glass-card max-w-lg w-full p-6 text-center relative border border-[var(--card-border)] shadow-2xl">
+    <div class="glass-card max-w-lg w-full p-6 text-center relative border border-[var(--card-border)] shadow-2xl my-auto max-h-[95vh] overflow-y-auto">
       <div class="border-b border-[var(--card-border)] pb-3 mb-4">
-        <span class="text-xs font-mono uppercase tracking-widest text-[#f38ba8] font-bold">⏱️ Timed Assessment Warning</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-[#f38ba8] font-bold">⏱️ Timed Assessment Setup</span>
         <h2 class="text-xl font-bold text-[var(--accent)] mt-1">Mechatronics Exam Review</h2>
       </div>
 
-      <div class="space-y-3 text-xs text-[var(--text-sub)] text-left bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] mb-5 leading-relaxed">
-        <p>• <strong>Exam Structure:</strong> You will be presented with <strong>20 randomized questions</strong> selected from the master bank.</p>
-        <p>• <strong>Session Duration:</strong> You have strictly <strong>40 MINUTES</strong> to complete and record your assessment.</p>
-        <p>• <strong>Automatic Submission:</strong> When time expires, your answers will be automatically submitted directly to the class Google Sheet.</p>
+      <div class="space-y-2 text-xs text-[var(--text-sub)] text-left bg-[var(--inner-box)] p-3.5 rounded-lg border border-[var(--card-border)] mb-4 leading-relaxed">
+        <p>• <strong>Exam Structure:</strong> Select your target topic below to generate a 20-question randomized test session.</p>
+        <p>• <strong>Session Duration:</strong> Strictly <strong>40 MINUTES</strong> timer active once launched.</p>
+        <p>• <strong>Auto-Submission:</strong> Submits scores directly to the cloud Google Sheet upon completion or time expiration.</p>
       </div>
 
       <div class="space-y-3 mb-5 text-left">
@@ -100,9 +100,27 @@
           <label for="splashName" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Student Full Name:</label>
           <input type="text" id="splashName" placeholder="e.g. Juan Dela Cruz" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
         </div>
+
         <div>
           <label for="splashSection" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Class / Section Register:</label>
           <input type="text" id="splashSection" placeholder="e.g. Grade 12 - Creative Tech A" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
+        </div>
+
+        <div>
+          <label for="splashTopicSelect" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Select Exam Topic Module:</label>
+          <select id="splashTopicSelect" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
+            <option value="ALL">🌐 All Topics (20 Randomized Mix)</option>
+            <option value="Stepper">⚙️ Stepper Motors & Stator Physics</option>
+            <option value="DC Motor">🏎️ DC Motors & DRV8833 H-Bridge</option>
+            <option value="Servo">🎵 Servo PWM & Metronome Timing</option>
+            <option value="Soil Moisture">🌱 Capacitive Soil Moisture & Relays</option>
+            <option value="DHT11">🌡️ DHT Greenhouse & Single-Wire</option>
+            <option value="DS18B20">🧪 DS18B20 Waterproof Probe & 1-Wire</option>
+            <option value="ADC-PWM">🎛️ Analog Processing (ADC to PWM)</option>
+            <option value="Pull Resistors">🔘 GPIO Pull Resistors & Floating States</option>
+            <option value="Interrupts">🚨 PIR & I2C Hardware IRQs</option>
+            <option value="Drone">🛸 6-DoF Drone Flight Dynamics</option>
+          </select>
         </div>
       </div>
 
@@ -156,12 +174,11 @@
         Back to Hub
       </a>
       <span class="text-[var(--card-border)]">|</span>
-      <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">RP2040 Exam Readiness Bank</span>
+      <span id="activeTopicBadge" class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">All Topics</span>
     </div>
 
-    <!-- Live Timer & Score Tracker -->
-    <div class="flex items-center gap-3">
-      <!-- 40-Minute Countdown Timer HUD -->
+    <!-- Live Timer, Score Tracker & TOP SUBMIT BUTTON -->
+    <div class="flex items-center gap-3 flex-wrap">
       <div id="timerBox" class="text-xs font-mono bg-[var(--inner-box)] px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-[#f9e2af] flex items-center gap-1.5">
         <span>⏱️ Time Remaining:</span>
         <span id="timerText" class="font-bold text-sm">40:00</span>
@@ -172,9 +189,11 @@
         (<span id="percentText" class="text-[#f9e2af]">0%</span>)
       </div>
 
-      <button onclick="openPerformanceModal()" class="bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-xs font-bold py-1.5 px-3 rounded-lg transition-all">
-        📜 Record Score
+      <!-- TOP SUBMIT BUTTON -->
+      <button onclick="openPerformanceModal()" class="bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3.5 rounded-lg transition-all shadow-md">
+        📜 Submit & Record Score
       </button>
+
       <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
         <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
       </button>
@@ -185,12 +204,12 @@
     <div class="text-center mb-6">
       <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">📝 20-Question Randomized Timed Review</h1>
       <p class="text-sm text-[var(--text-sub)] mt-1 max-w-3xl mx-auto">
-        Each attempt selects 20 randomized questions from our 100-question master bank with a strict 40-minute session countdown!
+        Your current session is locked with a strict 40-minute countdown. Complete all questions and click submit when finished!
       </p>
     </div>
 
-    <!-- Student Registration Bar -->
-    <div class="glass-card p-4 mb-5 shadow-md flex flex-wrap items-center gap-4 border border-[var(--card-border)]">
+    <!-- Student Registration Summary Bar -->
+    <div class="glass-card p-4 mb-6 shadow-md flex flex-wrap items-center gap-4 border border-[var(--card-border)]">
       <div class="flex-1 min-w-[200px]">
         <label for="studentName" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Student Full Name:</label>
         <input type="text" id="studentName" placeholder="e.g. Juan Dela Cruz" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
@@ -201,31 +220,20 @@
       </div>
     </div>
 
-    <!-- Filter & Randomize Bar -->
-    <div class="glass-card p-4 mb-6 shadow-md flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <label for="filterSelect" class="text-xs font-mono font-bold text-[var(--accent)]">Filter Topic:</label>
-        <select id="filterSelect" onchange="generateRandomExam()" class="bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none">
-          <option value="ALL">All Topics (Randomized 20)</option>
-          <option value="Stepper">Stepper Motors & Stator Physics</option>
-          <option value="DC Motor">DC Motors & DRV8833 H-Bridge</option>
-          <option value="Servo">Servo PWM & Metronome Timing</option>
-          <option value="Soil Moisture">Capacitive Soil Moisture & Relays</option>
-          <option value="DHT11">DHT Greenhouse & Single-Wire</option>
-          <option value="DS18B20">DS18B20 Waterproof Probe & 1-Wire</option>
-          <option value="ADC-PWM">Analog Processing (ADC to PWM)</option>
-          <option value="Pull Resistors">GPIO Pull Resistors & Floating States</option>
-          <option value="Interrupts">PIR & I2C Hardware IRQs</option>
-          <option value="Drone">6-DoF Drone Flight Dynamics</option>
-        </select>
-      </div>
-      <button onclick="generateRandomExam()" class="bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-4 rounded-lg transition-all shadow-md">
-        🔀 New 20-Question Exam
-      </button>
-    </div>
-
     <!-- Questions Container -->
     <div id="questionsContainer" class="flex flex-col gap-6"></div>
+
+    <!-- BOTTOM SUBMIT ACTION BAR -->
+    <div class="mt-8 mb-12 p-6 glass-card text-center border border-[var(--card-border)] shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="text-left">
+        <h3 class="text-base font-bold text-[var(--accent)]">Ready to submit your exam?</h3>
+        <p class="text-xs text-[var(--text-sub)] mt-0.5">Submitting will calculate your final score, display detailed performance analytics, and log results to Google Sheets.</p>
+      </div>
+
+      <button onclick="openPerformanceModal()" class="w-full md:w-auto bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-sm font-bold py-3 px-8 rounded-lg transition-all shadow-lg">
+        📜 Finish & Submit Exam →
+      </button>
+    </div>
   </main>
 
   <script>
@@ -375,14 +383,20 @@
     function startTimedQuiz() {
       const splashName = document.getElementById('splashName').value.trim();
       const splashSection = document.getElementById('splashSection').value.trim();
+      const selectedTopic = document.getElementById('splashTopicSelect').value;
 
       if (splashName) document.getElementById('studentName').value = splashName;
       if (splashSection) document.getElementById('studentSection').value = splashSection;
 
+      // Update Header Topic Badge
+      const topicSelectEl = document.getElementById('splashTopicSelect');
+      const topicText = topicSelectEl.options[topicSelectEl.selectedIndex].text;
+      document.getElementById('activeTopicBadge').textContent = topicText;
+
       document.getElementById('quizStartSplash').style.display = 'none';
 
-      // Start Countdown
-      generateRandomExam();
+      // Generate Exam & Start Timer
+      generateRandomExam(selectedTopic);
       startTimer();
     }
 
@@ -426,12 +440,11 @@
       openPerformanceModal();
     }
 
-    function generateRandomExam() {
+    function generateRandomExam(selectedTopic) {
       userAnswers = {};
-      const selectedTopic = document.getElementById('filterSelect').value;
       
       let pool = questionBank;
-      if (selectedTopic !== 'ALL') {
+      if (selectedTopic && selectedTopic !== 'ALL') {
         pool = questionBank.filter(q => q.topic === selectedTopic);
       }
 
