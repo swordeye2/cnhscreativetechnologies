@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mechatronics & MicroPython Comprehensive Exam Review | RP2040 Suite</title>
+  <title>Mechatronics & MicroPython Exam Review | RP2040 Suite</title>
 
   <!-- Legal IP & Copyright Assertions -->
   <meta name="author" content="Jorge Victor M. Sales">
@@ -89,7 +89,7 @@
         <button onclick="closePerformanceModal()" class="text-[var(--text-sub)] hover:text-white font-bold text-sm">✕</button>
       </div>
 
-      <div class="space-y-3 code-font text-xs bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] mb-5">
+      <div class="space-y-3 code-font text-xs bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] mb-4">
         <div><span class="text-[var(--text-sub)]">Learner Name:</span> <strong id="recName" class="text-white">--</strong></div>
         <div><span class="text-[var(--text-sub)]">Class Section:</span> <strong id="recSection" class="text-white">--</strong></div>
         <div><span class="text-[var(--text-sub)]">Timestamp:</span> <strong id="recTime" class="text-[#f9e2af]">--</strong></div>
@@ -97,6 +97,11 @@
         <div><span class="text-[var(--text-sub)]">Total Answered:</span> <strong id="recAnswered" class="text-white">0</strong></div>
         <div><span class="text-[var(--text-sub)]">Correct Answers:</span> <strong id="recCorrect" class="text-[#a6e3a1]">0</strong></div>
         <div><span class="text-[var(--text-sub)]">Percentage Score:</span> <strong id="recPercent" class="text-[var(--accent)] text-sm">0%</strong></div>
+      </div>
+
+      <!-- Cloud Sync Status Bar -->
+      <div id="cloudSyncStatus" class="mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[var(--inner-box)] border border-[var(--card-border)] text-[var(--text-sub)]">
+        Initializing cloud sync...
       </div>
 
       <div class="flex flex-wrap gap-2">
@@ -139,9 +144,9 @@
 
   <main class="max-w-6xl mx-auto w-full">
     <div class="text-center mb-6">
-      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">📝 100-Question Mechatronics & Embedded Systems Exam Review</h1>
+      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">📝 20-Question Randomized Mechatronics Review</h1>
       <p class="text-sm text-[var(--text-sub)] mt-1 max-w-3xl mx-auto">
-        Test your knowledge across all 12 RP2040 MicroPython laboratory modules. Register your student information below to record and export your final score!
+        Each attempt selects 20 randomized questions from our 100-question master bank. Register your information below to record your final score!
       </p>
     </div>
 
@@ -157,12 +162,12 @@
       </div>
     </div>
 
-    <!-- Filter & Reset Bar -->
+    <!-- Filter & Randomize Bar -->
     <div class="glass-card p-4 mb-6 shadow-md flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-2">
         <label for="filterSelect" class="text-xs font-mono font-bold text-[var(--accent)]">Filter Topic:</label>
-        <select id="filterSelect" onchange="filterQuestions()" class="bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none">
-          <option value="ALL">All 100 Questions (Full Exam)</option>
+        <select id="filterSelect" onchange="generateRandomExam()" class="bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none">
+          <option value="ALL">All Topics (Randomized 20)</option>
           <option value="Stepper">Stepper Motors & Stator Physics</option>
           <option value="DC Motor">DC Motors & DRV8833 H-Bridge</option>
           <option value="Servo">Servo PWM & Metronome Timing</option>
@@ -175,8 +180,8 @@
           <option value="Drone">6-DoF Drone Flight Dynamics</option>
         </select>
       </div>
-      <button onclick="resetQuiz()" class="bg-[#f38ba8] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-4 rounded-lg transition-all">
-        🔄 Reset Progress
+      <button onclick="generateRandomExam()" class="bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-4 rounded-lg transition-all shadow-md">
+        🔀 New 20-Question Exam
       </button>
     </div>
 
@@ -185,7 +190,9 @@
   </main>
 
   <script>
-    // 100-Question Exam Bank Data
+    const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxssshzZu5lxu9FHbzZdD9EAOZgukeVAf7Itglf52hfYHdzMbAH-a02DdyrZauTxzwS/exec";
+
+    // 100-Question Master Bank Data
     const questionBank = [
       // STEPPER MOTORS (1-10)
       { id: 1, topic: "Stepper", q: "In a standard 1.8° full-step bipolar stepper motor, how many complete full steps are required to execute one 360° revolution?", opts: ["A. 100 steps", "B. 200 steps", "C. 400 steps", "D. 64 steps"], ans: 1, exp: "360° / 1.8° = 200 full steps per revolution." },
@@ -308,20 +315,46 @@
       { id: 100, topic: "Drone", q: "What electronic component converts low-level RP2040 PWM signals into high-current 3-phase AC driving BLDC drone motors?", opts: ["A. H-Bridge DRV8833", "B. ESC (Electronic Speed Controller)", "C. Step-down Buck converter", "D. Linear Regulator"], ans: 1, exp: "ESCs interpret incoming PWM/DShot logic pulses to switch high-power 3-phase MOSFET bridges driving BLDC motor coils." }
     ];
 
-    // User Progress State
+    // User Session State
+    let activeQuestions = [];
     let userAnswers = {};
-    let filteredQuestions = [...questionBank];
+
+    // Fisher-Yates Shuffle Algorithm
+    function shuffleArray(arr) {
+      const shuffled = [...arr];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    function generateRandomExam() {
+      userAnswers = {};
+      const selectedTopic = document.getElementById('filterSelect').value;
+      
+      let pool = questionBank;
+      if (selectedTopic !== 'ALL') {
+        pool = questionBank.filter(q => q.topic === selectedTopic);
+      }
+
+      // Shuffle and pick top 20
+      const shuffled = shuffleArray(pool);
+      activeQuestions = shuffled.slice(0, Math.min(20, shuffled.length));
+
+      renderQuestions();
+    }
 
     function renderQuestions() {
       const container = document.getElementById('questionsContainer');
       container.innerHTML = '';
 
-      if (filteredQuestions.length === 0) {
+      if (activeQuestions.length === 0) {
         container.innerHTML = `<div class="text-center py-12 text-[var(--text-sub)]">No questions found for this topic filter.</div>`;
         return;
       }
 
-      filteredQuestions.forEach((item, idx) => {
+      activeQuestions.forEach((item, idx) => {
         const card = document.createElement('div');
         card.className = 'glass-card p-5 shadow-xl flex flex-col gap-3 relative';
         
@@ -358,7 +391,7 @@
 
         card.innerHTML = `
           <div class="flex justify-between items-start gap-2 border-b border-[var(--card-border)] pb-2">
-            <span class="text-xs font-mono font-bold text-[var(--accent)]">Question ${idx + 1} of ${filteredQuestions.length} (ID: #${item.id})</span>
+            <span class="text-xs font-mono font-bold text-[var(--accent)]">Question ${idx + 1} of ${activeQuestions.length} (ID: #${item.id})</span>
             <span class="topic-pill">${item.topic}</span>
           </div>
           <div class="text-sm font-semibold text-[var(--text-main)] leading-relaxed">${item.q}</div>
@@ -384,54 +417,64 @@
       let correctCount = 0;
 
       Object.keys(userAnswers).forEach(qId => {
-        const qObj = questionBank.find(q => q.id === parseInt(qId));
+        const qObj = activeQuestions.find(q => q.id === parseInt(qId));
         if (qObj && userAnswers[qId] === qObj.ans) {
           correctCount++;
         }
       });
 
-      const pct = answeredCount > 0 ? ((correctCount / answeredCount) * 100).toFixed(1) : "0.0";
+      const pct = activeQuestions.length > 0 ? ((correctCount / activeQuestions.length) * 100).toFixed(1) : "0.0";
       return { answeredCount, correctCount, pct };
     }
 
     function updateScore() {
       const { answeredCount, correctCount, pct } = getScoreMetrics();
       document.getElementById('scoreText').textContent = correctCount;
-      document.getElementById('answeredText').textContent = answeredCount;
+      document.getElementById('answeredText').textContent = `${answeredCount} / ${activeQuestions.length}`;
       document.getElementById('percentText').textContent = `${Math.round(pct)}%`;
     }
 
-    function filterQuestions() {
-      const selectedTopic = document.getElementById('filterSelect').value;
-      if (selectedTopic === 'ALL') {
-        filteredQuestions = [...questionBank];
-      } else {
-        filteredQuestions = questionBank.filter(q => q.topic === selectedTopic);
-      }
-      renderQuestions();
-    }
-
-    function resetQuiz() {
-      if (confirm('Are you sure you want to reset your quiz progress?')) {
-        userAnswers = {};
-        renderQuestions();
-      }
-    }
-
-    // Performance Modal & Export Functions
+    // Modal & Cloud Syncing
     function openPerformanceModal() {
       const name = document.getElementById('studentName').value.trim() || 'Anonymous Student';
       const section = document.getElementById('studentSection').value.trim() || 'Unassigned Section';
       const { answeredCount, correctCount, pct } = getScoreMetrics();
+      const statusEl = document.getElementById('cloudSyncStatus');
 
       document.getElementById('recName').textContent = name;
       document.getElementById('recSection').textContent = section;
       document.getElementById('recTime').textContent = new Date().toLocaleString();
-      document.getElementById('recAnswered').textContent = `${answeredCount} / ${questionBank.length}`;
+      document.getElementById('recAnswered').textContent = `${answeredCount} / ${activeQuestions.length}`;
       document.getElementById('recCorrect').textContent = correctCount;
       document.getElementById('recPercent').textContent = `${pct}%`;
 
       document.getElementById('performanceModal').classList.remove('hidden');
+
+      statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[var(--inner-box)] border border-[#f9e2af] text-[#f9e2af] animate-pulse";
+      statusEl.textContent = "⏳ Submitting score to Google Sheet...";
+
+      fetch(GOOGLE_SCRIPT_WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name,
+          section: section,
+          score: correctCount,
+          total: activeQuestions.length,
+          percent: `${pct}%`,
+          timestamp: new Date().toISOString()
+        })
+      })
+      .then(() => {
+        statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[#274029] border border-[#a6e3a1] text-[#a6e3a1]";
+        statusEl.textContent = "✓ Successfully recorded to Google Sheet!";
+      })
+      .catch((err) => {
+        statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[#421e25] border border-[#f38ba8] text-[#f38ba8]";
+        statusEl.textContent = "⚠️ Cloud sync error. Use manual CSV export below.";
+        console.error(err);
+      });
     }
 
     function closePerformanceModal() {
@@ -450,7 +493,7 @@
       csvContent += "Question ID,Topic,User Answer Index,Correct Answer Index,Status\n";
 
       Object.keys(userAnswers).forEach(qId => {
-        const qObj = questionBank.find(q => q.id === parseInt(qId));
+        const qObj = activeQuestions.find(q => q.id === parseInt(qId));
         const uAns = userAnswers[qId];
         const isCorrect = uAns === qObj.ans;
         csvContent += `${qObj.id},"${qObj.topic}",${uAns},${qObj.ans},"${isCorrect ? 'CORRECT' : 'INCORRECT'}"\n`;
@@ -465,8 +508,8 @@
       document.body.removeChild(link);
     }
 
-    // Initialize
-    renderQuestions();
+    // Initialize random 20 on first page load
+    generateRandomExam();
   </script>
   <script src="./theme.js"></script>
 </body>
