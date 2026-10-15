@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Air Quality & Relay Exhaust Fan Interactive Simulator | RP2040 Suite</title>
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .code-font { font-family: 'Fira Code', monospace; }
+
+    .glass-card {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 12px;
+    }
+
+    /* Fan Rotation Animation */
+    @keyframes spin-fan {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .fan-spinning {
+      animation: spin-fan 0.3s linear infinite;
+      transform-origin: center;
+    }
+
+    /* Relay Switch Indicator */
+    .relay-indicator {
+      transition: all 0.3s ease;
+    }
+
+    .relay-on {
+      background-color: #a6e3a1;
+      box-shadow: 0 0 12px #a6e3a1;
+    }
+
+    .relay-off {
+      background-color: #f38ba8;
+      box-shadow: 0 0 4px #f38ba8;
+    }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+  <!-- Header Navigation -->
+  <header class="max-w-6xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Hub
+      </a>
+      <span class="text-[var(--card-border)]">|</span>
+      <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">Module 13: Air Quality & Ventilation Relay</span>
+    </div>
+
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
+  </header>
+
+  <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- LEFT PANEL: Interactive Controls & Live Physics Visualizer (7 Cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-6">
+      
+      <!-- Interactive Visualizer Canvas -->
+      <div class="glass-card p-6 shadow-xl flex flex-col items-center justify-between min-h-[360px] relative overflow-hidden">
+        <div class="w-full flex justify-between items-center border-b border-[var(--card-border)] pb-3 mb-4">
+          <span class="text-xs font-mono font-bold text-[var(--accent)] uppercase">💨 Ventilation Chamber Simulation</span>
+          <span id="airStatusPill" class="text-xs font-mono px-2.5 py-1 rounded bg-[#274029] text-[#a6e3a1] border border-[#a6e3a1]">AIR QUALITY: NORMAL</span>
+        </div>
+
+        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-6 items-center my-4">
+          
+          <!-- Gas Sensor & Environment Visual -->
+          <div class="bg-[var(--inner-box)] p-4 rounded-xl border border-[var(--card-border)] flex flex-col items-center gap-3">
+            <span class="text-xs font-mono text-[var(--text-sub)]">Gas Sensor (MQ-135 / ADC0)</span>
+            <div id="gasCloud" class="w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 border-2 border-dashed border-[var(--card-border)] bg-[#a6e3a1]/10">
+              <span id="ppmDisplay" class="text-xl font-bold font-mono text-[#a6e3a1]">320 PPM</span>
+            </div>
+            <span class="text-[0.7rem] font-mono text-[var(--text-sub)]">RP2040 Pin: GP26 (ADC0)</span>
+          </div>
+
+          <!-- Relay & Exhaust Fan Visual -->
+          <div class="bg-[var(--inner-box)] p-4 rounded-xl border border-[var(--card-border)] flex flex-col items-center gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-mono text-[var(--text-sub)]">Exhaust Fan Relay (GP16)</span>
+              <span id="relayLed" class="w-3 h-3 rounded-full relay-indicator relay-off"></span>
+            </div>
+
+            <!-- Exhaust Fan Blade Graphics -->
+            <div class="relative w-24 h-24 flex items-center justify-center">
+              <svg id="fanBlade" class="w-20 h-20 text-[var(--text-sub)] transition-colors duration-300" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 11a1 1 0 100 2 1 1 0 000-2zm0-9a4 4 0 00-4 4c0 1.8.8 3.4 2.1 4.4L8 12c-1.8 0-3.4-.8-4.4-2.1A4 4 0 002 12a4 4 0 004 4c1.8 0 3.4-.8 4.4-2.1L12 16c0 1.8.8 3.4 2.1 4.4A4 4 0 0016 22a4 4 0 004-4c0-1.8-.8-3.4-2.1-4.4L16 12c1.8 0 3.4.8 4.4 2.1A4 4 0 0022 12a4 4 0 00-4-4c-1.8 0-3.4.8-4.4 2.1L12 8c0-1.8-.8-3.4-2.1-4.4A3.98 3.98 0 0012 2z"/>
+              </svg>
+            </div>
+
+            <span id="fanStatusText" class="text-xs font-mono font-bold text-[#f38ba8]">FAN STATE: OFF</span>
+          </div>
+
+        </div>
+
+        <!-- System Readouts -->
+        <div class="w-full grid grid-cols-3 gap-2 text-center code-font text-xs bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)]">
+          <div><span class="text-[var(--text-sub)]">ADC Raw:</span> <br><strong id="adcRawText">6350</strong></div>
+          <div><span class="text-[var(--text-sub)]">Voltage:</span> <br><strong id="voltageText">0.32 V</strong></div>
+          <div><span class="text-[var(--text-sub)]">Relay Pin (GP16):</span> <br><strong id="gpioStateText" class="text-[#f38ba8]">LOW (0)</strong></div>
+        </div>
+      </div>
+
+      <!-- Controls & Threshold Settings -->
+      <div class="glass-card p-5 shadow-xl flex flex-col gap-4">
+        <h3 class="text-sm font-bold text-[var(--accent)] font-mono uppercase">🎛️ Interactive Controls</h3>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label for="gasSlider" class="text-xs font-mono">Air Gas Concentration (PPM):</label>
+            <span id="sliderPpmVal" class="text-xs font-mono font-bold text-[var(--accent)]">320 PPM</span>
+          </div>
+          <input type="range" id="gasSlider" min="100" max="2000" value="320" step="10" oninput="updateSimulation()" class="w-full accent-[var(--accent)] bg-[var(--inner-box)] rounded-lg cursor-pointer">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="thresholdInput" class="block text-xs font-mono text-[var(--text-sub)] mb-1">Trigger Threshold (PPM):</label>
+            <input type="number" id="thresholdInput" value="800" min="200" max="1800" step="50" onchange="updateSimulation()" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none focus:border-[var(--accent)] code-font">
+          </div>
+          <div>
+            <label for="hysteresisInput" class="block text-xs font-mono text-[var(--text-sub)] mb-1">Hysteresis Gap (PPM):</label>
+            <input type="number" id="hysteresisInput" value="100" min="10" max="300" step="10" onchange="updateSimulation()" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none focus:border-[var(--accent)] code-font">
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT PANEL: MicroPython Code & Principles (5 Cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- MicroPython Hardware Control Script -->
+      <div class="glass-card p-5 shadow-xl flex flex-col gap-3">
+        <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2">
+          <span class="text-xs font-mono font-bold text-[var(--accent)]">🐍 MicroPython Code (RP2040)</span>
+          <button onclick="copyCode()" class="text-[0.7rem] font-mono bg-[var(--inner-box)] hover:bg-[var(--card-border)] border border-[var(--card-border)] px-2 py-1 rounded transition-colors text-[var(--accent)]">📋 Copy</button>
+        </div>
+
+        <pre class="bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] code-font text-xs text-[#cdd6f4] overflow-x-auto leading-relaxed"><code id="codeBlock">import machine
+import time
+
+# Pin Definitions
+adc_pin = machine.ADC(machine.Pin(26)) # MQ Gas Sensor
+relay_pin = machine.Pin(16, machine.Pin.OUT) # Exhaust Fan
+
+THRESHOLD_PPM = 800
+HYSTERESIS_PPM = 100
+
+def read_ppm():
+    raw = adc_pin.read_u16()
+    voltage = (raw / 65535.0) * 3.3
+    # Map voltage to approximate PPM scale
+    ppm = int((voltage / 3.3) * 2000)
+    return ppm, raw
+
+relay_active = False
+
+while True:
+    ppm, raw = read_ppm()
+    
+    # Dual-threshold Hysteresis Relay Control
+    if ppm >= THRESHOLD_PPM and not relay_active:
+        relay_pin.value(1) # Turn ON Exhaust Fan
+        relay_active = True
+        print(f"ALERT: Gas {ppm} PPM! Fan ON.")
+    
+    elif ppm < (THRESHOLD_PPM - HYSTERESIS_PPM) and relay_active:
+        relay_pin.value(0) # Turn OFF Exhaust Fan
+        relay_active = False
+        print(f"CLEAR: Gas {ppm} PPM. Fan OFF.")
+        
+    time.sleep(0.5)</code></pre>
+      </div>
+
+      <!-- Theory & Wiring Guide -->
+      <div class="glass-card p-5 shadow-xl space-y-3 text-xs">
+        <h4 class="font-bold text-[var(--accent)] font-mono uppercase">🔌 Circuit Schematic Notes</h4>
+        <ul class="space-y-1.5 text-[var(--text-sub)] list-disc pl-4 leading-relaxed">
+          <li><strong>MQ-135 Sensor:</strong> VCC &rarr; 5V, GND &rarr; GND, AO &rarr; RP2040 GP26 (ADC0).</li>
+          <li><strong>Relay Module:</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; RP2040 GP16.</li>
+          <li><strong>Exhaust Fan:</strong> Powered via Relay NO (Normally Open) contact switch circuit.</li>
+          <li><strong>Hysteresis Logic:</strong> Prevents rapid relay contact chatter when air quality fluctuates around the target threshold.</li>
+        </ul>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    let currentRelayState = false;
+
+    function updateSimulation() {
+      const ppm = parseInt(document.getElementById('gasSlider').value);
+      const threshold = parseInt(document.getElementById('thresholdInput').value);
+      const hysteresis = parseInt(document.getElementById('hysteresisInput').value);
+
+      document.getElementById('sliderPpmVal').textContent = `${ppm} PPM`;
+      document.getElementById('ppmDisplay').textContent = `${ppm} PPM`;
+
+      // Convert PPM to simulated ADC hardware values
+      const voltage = (ppm / 2000.0) * 3.3;
+      const rawAdc = Math.round((voltage / 3.3) * 65535);
+
+      document.getElementById('adcRawText').textContent = rawAdc;
+      document.getElementById('voltageText').textContent = `${voltage.toFixed(2)} V`;
+
+      // Hysteresis Relay Control Logic
+      if (ppm >= threshold && !currentRelayState) {
+        currentRelayState = true;
+      } else if (ppm < (threshold - hysteresis) && currentRelayState) {
+        currentRelayState = false;
+      }
+
+      // Update UI Physics Elements
+      const relayLed = document.getElementById('relayLed');
+      const fanBlade = document.getElementById('fanBlade');
+      const fanStatusText = document.getElementById('fanStatusText');
+      const gpioStateText = document.getElementById('gpioStateText');
+      const airStatusPill = document.getElementById('airStatusPill');
+      const gasCloud = document.getElementById('gasCloud');
+
+      if (currentRelayState) {
+        relayLed.className = "w-3 h-3 rounded-full relay-indicator relay-on";
+        fanBlade.classList.add('fan-spinning');
+        fanBlade.style.color = "#a6e3a1";
+        fanStatusText.textContent = "FAN STATE: ACTIVE (PURGING)";
+        fanStatusText.className = "text-xs font-mono font-bold text-[#a6e3a1]";
+        gpioStateText.textContent = "HIGH (1)";
+        gpioStateText.className = "text-[#a6e3a1]";
+      } else {
+        relayLed.className = "w-3 h-3 rounded-full relay-indicator relay-off";
+        fanBlade.classList.remove('fan-spinning');
+        fanBlade.style.color = "var(--text-sub)";
+        fanStatusText.textContent = "FAN STATE: OFF";
+        fanStatusText.className = "text-xs font-mono font-bold text-[#f38ba8]";
+        gpioStateText.textContent = "LOW (0)";
+        gpioStateText.className = "text-[#f38ba8]";
+      }
+
+      // Gas Cloud Visual Warning Colors
+      if (ppm >= threshold) {
+        airStatusPill.textContent = "AIR QUALITY: POOR (ALERT)";
+        airStatusPill.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#421e25] text-[#f38ba8] border border-[#f38ba8]";
+        gasCloud.className = "w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 border-2 border-dashed border-[#f38ba8] bg-[#f38ba8]/20";
+        document.getElementById('ppmDisplay').className = "text-xl font-bold font-mono text-[#f38ba8]";
+      } else if (ppm >= (threshold - hysteresis)) {
+        airStatusPill.textContent = "AIR QUALITY: ELEVATED";
+        airStatusPill.className = "text-xs font-mono px-2.5 py-1 rounded bg-[var(--inner-box)] text-[#f9e2af] border border-[#f9e2af]";
+        gasCloud.className = "w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 border-2 border-dashed border-[#f9e2af] bg-[#f9e2af]/15";
+        document.getElementById('ppmDisplay').className = "text-xl font-bold font-mono text-[#f9e2af]";
+      } else {
+        airStatusPill.textContent = "AIR QUALITY: NORMAL";
+        airStatusPill.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#274029] text-[#a6e3a1] border border-[#a6e3a1]";
+        gasCloud.className = "w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 border-2 border-dashed border-[var(--card-border)] bg-[#a6e3a1]/10";
+        document.getElementById('ppmDisplay').className = "text-xl font-bold font-mono text-[#a6e3a1]";
+      }
+    }
+
+    function copyCode() {
+      const codeText = document.getElementById('codeBlock').innerText;
+      navigator.clipboard.writeText(codeText).then(() => {
+        alert("MicroPython code copied to clipboard!");
+      });
+    }
+
+    // Initialize
+    updateSimulation();
+  </script>
+  <script src="./theme.js"></script>
+</body>
+</html>
