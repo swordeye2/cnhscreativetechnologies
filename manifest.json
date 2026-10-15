@@ -35,7 +35,7 @@
     },
     {
       "src": "./screenshot-desktop.png",
-      "sizes": "1920x1080",
+      "sizes": "1897x830",
       "type": "image/png",
       "form_factor": "wide",
       "label": "RP2040 Interactive Hub Desktop View"
