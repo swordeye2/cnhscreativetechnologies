@@ -81,6 +81,37 @@
 </head>
 <body class="p-3 md:p-6">
 
+  <!-- TIMED QUIZ START SPLASH OVERLAY MODAL -->
+  <div id="quizStartSplash" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="glass-card max-w-lg w-full p-6 text-center relative border border-[var(--card-border)] shadow-2xl">
+      <div class="border-b border-[var(--card-border)] pb-3 mb-4">
+        <span class="text-xs font-mono uppercase tracking-widest text-[#f38ba8] font-bold">⏱️ Timed Assessment Warning</span>
+        <h2 class="text-xl font-bold text-[var(--accent)] mt-1">Mechatronics Exam Review</h2>
+      </div>
+
+      <div class="space-y-3 text-xs text-[var(--text-sub)] text-left bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] mb-5 leading-relaxed">
+        <p>• <strong>Exam Structure:</strong> You will be presented with <strong>20 randomized questions</strong> selected from the master bank.</p>
+        <p>• <strong>Session Duration:</strong> You have strictly <strong>40 MINUTES</strong> to complete and record your assessment.</p>
+        <p>• <strong>Automatic Submission:</strong> When time expires, your answers will be automatically submitted directly to the class Google Sheet.</p>
+      </div>
+
+      <div class="space-y-3 mb-5 text-left">
+        <div>
+          <label for="splashName" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Student Full Name:</label>
+          <input type="text" id="splashName" placeholder="e.g. Juan Dela Cruz" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
+        </div>
+        <div>
+          <label for="splashSection" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Class / Section Register:</label>
+          <input type="text" id="splashSection" placeholder="e.g. Grade 12 - Creative Tech A" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
+        </div>
+      </div>
+
+      <button onclick="startTimedQuiz()" class="w-full bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-sm font-bold py-3 px-4 rounded-lg transition-all shadow-lg">
+        🚀 Start 40-Minute Exam →
+      </button>
+    </div>
+  </div>
+
   <!-- PERFORMANCE SUMMARY MODAL -->
   <div id="performanceModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="glass-card max-w-lg w-full p-6 relative border border-[var(--card-border)] shadow-2xl">
@@ -93,6 +124,7 @@
         <div><span class="text-[var(--text-sub)]">Learner Name:</span> <strong id="recName" class="text-white">--</strong></div>
         <div><span class="text-[var(--text-sub)]">Class Section:</span> <strong id="recSection" class="text-white">--</strong></div>
         <div><span class="text-[var(--text-sub)]">Timestamp:</span> <strong id="recTime" class="text-[#f9e2af]">--</strong></div>
+        <div><span class="text-[var(--text-sub)]">Time Taken:</span> <strong id="recTimeTaken" class="text-[#89b4fa]">--</strong></div>
         <hr class="border-[var(--card-border)] my-2">
         <div><span class="text-[var(--text-sub)]">Total Answered:</span> <strong id="recAnswered" class="text-white">0</strong></div>
         <div><span class="text-[var(--text-sub)]">Correct Answers:</span> <strong id="recCorrect" class="text-[#a6e3a1]">0</strong></div>
@@ -127,12 +159,19 @@
       <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">RP2040 Exam Readiness Bank</span>
     </div>
 
-    <!-- Live Score Tracker -->
-    <div class="flex items-center gap-4">
+    <!-- Live Timer & Score Tracker -->
+    <div class="flex items-center gap-3">
+      <!-- 40-Minute Countdown Timer HUD -->
+      <div id="timerBox" class="text-xs font-mono bg-[var(--inner-box)] px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-[#f9e2af] flex items-center gap-1.5">
+        <span>⏱️ Time Remaining:</span>
+        <span id="timerText" class="font-bold text-sm">40:00</span>
+      </div>
+
       <div class="text-xs font-mono bg-[var(--inner-box)] px-3 py-1.5 rounded-lg border border-[var(--card-border)]">
         Score: <span id="scoreText" class="font-bold text-[#a6e3a1]">0</span> / <span id="answeredText">0</span>
         (<span id="percentText" class="text-[#f9e2af]">0%</span>)
       </div>
+
       <button onclick="openPerformanceModal()" class="bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-xs font-bold py-1.5 px-3 rounded-lg transition-all">
         📜 Record Score
       </button>
@@ -144,9 +183,9 @@
 
   <main class="max-w-6xl mx-auto w-full">
     <div class="text-center mb-6">
-      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">📝 20-Question Randomized Mechatronics Review</h1>
+      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">📝 20-Question Randomized Timed Review</h1>
       <p class="text-sm text-[var(--text-sub)] mt-1 max-w-3xl mx-auto">
-        Each attempt selects 20 randomized questions from our 100-question master bank. Register your information below to record your final score!
+        Each attempt selects 20 randomized questions from our 100-question master bank with a strict 40-minute session countdown!
       </p>
     </div>
 
@@ -315,11 +354,15 @@
       { id: 100, topic: "Drone", q: "What electronic component converts low-level RP2040 PWM signals into high-current 3-phase AC driving BLDC drone motors?", opts: ["A. H-Bridge DRV8833", "B. ESC (Electronic Speed Controller)", "C. Step-down Buck converter", "D. Linear Regulator"], ans: 1, exp: "ESCs interpret incoming PWM/DShot logic pulses to switch high-power 3-phase MOSFET bridges driving BLDC motor coils." }
     ];
 
-    // User Session State
+    // User Session & Timer State
     let activeQuestions = [];
     let userAnswers = {};
+    let timerInterval = null;
+    let totalSeconds = 40 * 60; // 40 Minutes
+    let timeElapsedSeconds = 0;
+    let examEnded = false;
 
-    // Fisher-Yates Shuffle Algorithm
+    // Fisher-Yates Shuffle
     function shuffleArray(arr) {
       const shuffled = [...arr];
       for (let i = shuffled.length - 1; i > 0; i--) {
@@ -327,6 +370,60 @@
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
       }
       return shuffled;
+    }
+
+    function startTimedQuiz() {
+      const splashName = document.getElementById('splashName').value.trim();
+      const splashSection = document.getElementById('splashSection').value.trim();
+
+      if (splashName) document.getElementById('studentName').value = splashName;
+      if (splashSection) document.getElementById('studentSection').value = splashSection;
+
+      document.getElementById('quizStartSplash').style.display = 'none';
+
+      // Start Countdown
+      generateRandomExam();
+      startTimer();
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      totalSeconds = 40 * 60;
+      timeElapsedSeconds = 0;
+      examEnded = false;
+
+      timerInterval = setInterval(() => {
+        if (totalSeconds <= 0) {
+          clearInterval(timerInterval);
+          timeExpiredAutoSubmit();
+          return;
+        }
+
+        totalSeconds--;
+        timeElapsedSeconds++;
+
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        
+        const timerText = document.getElementById('timerText');
+        const timerBox = document.getElementById('timerBox');
+        timerText.textContent = timeStr;
+
+        // Warning state under 5 minutes
+        if (totalSeconds < 300) {
+          timerBox.className = "text-xs font-mono bg-[#421e25] px-3 py-1.5 rounded-lg border border-[#f38ba8] text-[#f38ba8] flex items-center gap-1.5 animate-pulse font-bold";
+        } else {
+          timerBox.className = "text-xs font-mono bg-[var(--inner-box)] px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-[#f9e2af] flex items-center gap-1.5";
+        }
+      }, 1000);
+    }
+
+    function timeExpiredAutoSubmit() {
+      examEnded = true;
+      document.getElementById('timerText').textContent = "EXPIRED";
+      alert("⏱️ Time Has Expired! Your exam answers are being automatically submitted.");
+      openPerformanceModal();
     }
 
     function generateRandomExam() {
@@ -338,7 +435,6 @@
         pool = questionBank.filter(q => q.topic === selectedTopic);
       }
 
-      // Shuffle and pick top 20
       const shuffled = shuffleArray(pool);
       activeQuestions = shuffled.slice(0, Math.min(20, shuffled.length));
 
@@ -373,7 +469,7 @@
           }
 
           optionsHtml += `
-            <button class="${optClass}" ${isAnswered ? 'disabled' : ''} onclick="answerQuestion(${item.id}, ${optIdx})">
+            <button class="${optClass}" ${isAnswered || examEnded ? 'disabled' : ''} onclick="answerQuestion(${item.id}, ${optIdx})">
               <span>${optText}</span>
             </button>
           `;
@@ -406,7 +502,7 @@
     }
 
     function answerQuestion(qId, optIdx) {
-      if (!userAnswers.hasOwnProperty(qId)) {
+      if (!userAnswers.hasOwnProperty(qId) && !examEnded) {
         userAnswers[qId] = optIdx;
         renderQuestions();
       }
@@ -441,9 +537,14 @@
       const { answeredCount, correctCount, pct } = getScoreMetrics();
       const statusEl = document.getElementById('cloudSyncStatus');
 
+      const elapsedMins = Math.floor(timeElapsedSeconds / 60);
+      const elapsedSecs = timeElapsedSeconds % 60;
+      const timeTakenStr = `${elapsedMins}m ${elapsedSecs}s`;
+
       document.getElementById('recName').textContent = name;
       document.getElementById('recSection').textContent = section;
       document.getElementById('recTime').textContent = new Date().toLocaleString();
+      document.getElementById('recTimeTaken').textContent = timeTakenStr;
       document.getElementById('recAnswered').textContent = `${answeredCount} / ${activeQuestions.length}`;
       document.getElementById('recCorrect').textContent = correctCount;
       document.getElementById('recPercent').textContent = `${pct}%`;
@@ -463,6 +564,7 @@
           score: correctCount,
           total: activeQuestions.length,
           percent: `${pct}%`,
+          timeTaken: timeTakenStr,
           timestamp: new Date().toISOString()
         })
       })
@@ -507,9 +609,6 @@
       link.click();
       document.body.removeChild(link);
     }
-
-    // Initialize random 20 on first page load
-    generateRandomExam();
   </script>
   <script src="./theme.js"></script>
 </body>
