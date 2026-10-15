@@ -3,301 +3,328 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Air Quality & Relay Exhaust Fan Interactive Simulator | RP2040 Suite</title>
-
-  <!-- Legal IP & Copyright Assertions -->
-  <meta name="author" content="Jorge Victor M. Sales">
-  <meta name="creator" content="Jorge Victor M. Sales">
-  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
-  <meta name="alias" content="swordeye, thearbiter">
-
+  <title>MQ-135 Air Quality & Exhaust Fan Simulator | RP2040 Suite</title>
+  
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+  <link rel="manifest" href="./manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./theme.css">
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
-
-    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
-
     body {
       background-color: var(--bg-color, #1e1e2e);
       color: var(--text-main, #cdd6f4);
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-
-    .code-font { font-family: 'Fira Code', monospace; }
-
-    .glass-card {
+    .card-panel {
       background: var(--card-bg, #181825);
       border: 1px solid var(--card-border, #313244);
       border-radius: 12px;
     }
-
-    /* Fan Rotation Animation */
-    @keyframes spin-fan {
-      0% { transform: rotate(0deg); }
+    .fan-spin {
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin {
       100% { transform: rotate(360deg); }
-    }
-
-    .fan-spinning {
-      animation: spin-fan 0.3s linear infinite;
-      transform-origin: center;
-    }
-
-    /* Relay Switch Indicator */
-    .relay-indicator {
-      transition: all 0.3s ease;
-    }
-
-    .relay-on {
-      background-color: #a6e3a1;
-      box-shadow: 0 0 12px #a6e3a1;
-    }
-
-    .relay-off {
-      background-color: #f38ba8;
-      box-shadow: 0 0 4px #f38ba8;
     }
   </style>
 </head>
-<body class="p-3 md:p-6">
+<body class="p-4 md:p-8 max-w-6xl mx-auto">
 
-  <!-- Header Navigation -->
-  <header class="max-w-6xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
-    <div class="flex items-center gap-3">
-      <a href="index.html" class="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        Back to Hub
-      </a>
-      <span class="text-[var(--card-border)]">|</span>
-      <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">Module 13: Air Quality & Ventilation Relay</span>
+  <!-- Header Section -->
+  <header class="card-panel p-6 mb-6 flex flex-wrap justify-between items-center gap-4">
+    <div>
+      <a href="./index.html" class="text-xs text-[var(--accent,#89b4fa)] hover:underline mb-1 inline-block">← Back to Suite Hub</a>
+      <h1 class="text-2xl font-bold text-[var(--accent,#89b4fa)]">💨 MQ-135 Air Quality Sensor & Relay Exhaust Fan</h1>
+      <p class="text-sm text-[var(--text-sub,#a6adc8)]">ADC Voltage Sensing, Hysteresis Logic, and Particle Physics Simulation</p>
     </div>
-
-    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    <button onclick="toggleTheme()" class="px-4 py-2 rounded-lg bg-[var(--card-border,#313244)] text-sm font-semibold hover:bg-[var(--accent,#89b4fa)] hover:text-[#11111b] transition-all">
+      Theme Switcher
     </button>
   </header>
 
-  <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
-    
-    <!-- LEFT PANEL: Interactive Controls & Live Physics Visualizer (7 Cols) -->
-    <section class="lg:col-span-7 flex flex-col gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Interactive Simulation & Controls -->
+    <div class="lg:col-span-2 space-y-6">
       
-      <!-- Interactive Visualizer Canvas -->
-      <div class="glass-card p-6 shadow-xl flex flex-col items-center justify-between min-h-[360px] relative overflow-hidden">
-        <div class="w-full flex justify-between items-center border-b border-[var(--card-border)] pb-3 mb-4">
-          <span class="text-xs font-mono font-bold text-[var(--accent)] uppercase">💨 Ventilation Chamber Simulation</span>
-          <span id="airStatusPill" class="text-xs font-mono px-2.5 py-1 rounded bg-[#274029] text-[#a6e3a1] border border-[#a6e3a1]">AIR QUALITY: NORMAL</span>
+      <!-- House & Room Particle Canvas -->
+      <div class="card-panel p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)]">🏠 Living Room Gas Particle Visualizer</h2>
+          <span id="fanStatusBadge" class="px-3 py-1 text-xs font-bold rounded bg-red-500/20 text-red-400 border border-red-500/30">
+            Exhaust Fan: OFF
+          </span>
         </div>
 
-        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-6 items-center my-4">
+        <!-- Room Canvas Window -->
+        <div class="relative w-full h-64 bg-[#11111b] rounded-xl border border-[var(--card-border)] overflow-hidden shadow-inner flex items-center justify-center">
           
-          <!-- Gas Sensor & Environment Visual -->
-          <div class="bg-[var(--inner-box)] p-4 rounded-xl border border-[var(--card-border)] flex flex-col items-center gap-3">
-            <span class="text-xs font-mono text-[var(--text-sub)]">Gas Sensor (MQ-135 / ADC0)</span>
-            <div id="gasCloud" class="w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 border-2 border-dashed border-[var(--card-border)] bg-[#a6e3a1]/10">
-              <span id="ppmDisplay" class="text-xl font-bold font-mono text-[#a6e3a1]">320 PPM</span>
+          <!-- House SVG Background Structure -->
+          <svg class="absolute inset-0 w-full h-full opacity-30 stroke-[var(--card-border)] fill-none pointer-events-none" viewBox="0 0 400 200">
+            <!-- Roof -->
+            <polygon points="200,20 40,80 360,80" stroke-width="2" />
+            <!-- Main Walls -->
+            <rect x="50" y="80" width="300" height="110" stroke-width="2" />
+            <!-- Door -->
+            <rect x="180" y="130" width="40" height="60" stroke-width="2" />
+            <!-- Windows -->
+            <rect x="80" y="100" width="40" height="40" stroke-width="2" />
+            <rect x="280" y="100" width="40" height="40" stroke-width="2" />
+          </svg>
+
+          <!-- Dynamic Particle Canvas -->
+          <canvas id="particleCanvas" width="500" height="240" class="absolute inset-0 w-full h-full z-10"></canvas>
+
+          <!-- Animated Exhaust Fan Frame in Window -->
+          <div class="absolute top-4 right-6 z-20 flex flex-col items-center">
+            <div id="fanBlade" class="w-12 h-12 rounded-full border-2 border-slate-600 bg-slate-800 flex items-center justify-center text-xl transition-all">
+              🌀
             </div>
-            <span class="text-[0.7rem] font-mono text-[var(--text-sub)]">RP2040 Pin: GP26 (ADC0)</span>
+            <span class="text-[10px] font-mono mt-1 text-[var(--text-sub)]">Exhaust Port</span>
           </div>
-
-          <!-- Relay & Exhaust Fan Visual -->
-          <div class="bg-[var(--inner-box)] p-4 rounded-xl border border-[var(--card-border)] flex flex-col items-center gap-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-mono text-[var(--text-sub)]">Exhaust Fan Relay (GP16)</span>
-              <span id="relayLed" class="w-3 h-3 rounded-full relay-indicator relay-off"></span>
-            </div>
-
-            <!-- Exhaust Fan Blade Graphics -->
-            <div class="relative w-24 h-24 flex items-center justify-center">
-              <svg id="fanBlade" class="w-20 h-20 text-[var(--text-sub)] transition-colors duration-300" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 11a1 1 0 100 2 1 1 0 000-2zm0-9a4 4 0 00-4 4c0 1.8.8 3.4 2.1 4.4L8 12c-1.8 0-3.4-.8-4.4-2.1A4 4 0 002 12a4 4 0 004 4c1.8 0 3.4-.8 4.4-2.1L12 16c0 1.8.8 3.4 2.1 4.4A4 4 0 0016 22a4 4 0 004-4c0-1.8-.8-3.4-2.1-4.4L16 12c1.8 0 3.4.8 4.4 2.1A4 4 0 0022 12a4 4 0 00-4-4c-1.8 0-3.4.8-4.4 2.1L12 8c0-1.8-.8-3.4-2.1-4.4A3.98 3.98 0 0012 2z"/>
-              </svg>
-            </div>
-
-            <span id="fanStatusText" class="text-xs font-mono font-bold text-[#f38ba8]">FAN STATE: OFF</span>
-          </div>
-
         </div>
 
-        <!-- System Readouts -->
-        <div class="w-full grid grid-cols-3 gap-2 text-center code-font text-xs bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)]">
-          <div><span class="text-[var(--text-sub)]">ADC Raw:</span> <br><strong id="adcRawText">6350</strong></div>
-          <div><span class="text-[var(--text-sub)]">Voltage:</span> <br><strong id="voltageText">0.32 V</strong></div>
-          <div><span class="text-[var(--text-sub)]">Relay Pin (GP16):</span> <br><strong id="gpioStateText" class="text-[#f38ba8]">LOW (0)</strong></div>
-        </div>
-      </div>
-
-      <!-- Controls & Threshold Settings -->
-      <div class="glass-card p-5 shadow-xl flex flex-col gap-4">
-        <h3 class="text-sm font-bold text-[var(--accent)] font-mono uppercase">🎛️ Interactive Controls</h3>
-
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label for="gasSlider" class="text-xs font-mono">Air Gas Concentration (PPM):</label>
-            <span id="sliderPpmVal" class="text-xs font-mono font-bold text-[var(--accent)]">320 PPM</span>
-          </div>
-          <input type="range" id="gasSlider" min="100" max="2000" value="320" step="10" oninput="updateSimulation()" class="w-full accent-[var(--accent)] bg-[var(--inner-box)] rounded-lg cursor-pointer">
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
+        <!-- Control Sliders -->
+        <div class="mt-6 space-y-4">
           <div>
-            <label for="thresholdInput" class="block text-xs font-mono text-[var(--text-sub)] mb-1">Trigger Threshold (PPM):</label>
-            <input type="number" id="thresholdInput" value="800" min="200" max="1800" step="50" onchange="updateSimulation()" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none focus:border-[var(--accent)] code-font">
+            <div class="flex justify-between text-sm font-semibold mb-1">
+              <span>Gas / Smoke Concentration (PPM):</span>
+              <span id="ppmValueDisplay" class="font-mono text-emerald-400">120 PPM (Clean Air)</span>
+            </div>
+            <input type="range" id="ppmSlider" min="0" max="1000" value="120" class="w-full accent-[var(--accent,#89b4fa)] cursor-pointer">
           </div>
-          <div>
-            <label for="hysteresisInput" class="block text-xs font-mono text-[var(--text-sub)] mb-1">Hysteresis Gap (PPM):</label>
-            <input type="number" id="hysteresisInput" value="100" min="10" max="300" step="10" onchange="updateSimulation()" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none focus:border-[var(--accent)] code-font">
+
+          <div class="grid grid-cols-2 gap-4 text-xs font-mono">
+            <div class="p-3 bg-[#11111b] rounded-lg border border-[var(--card-border)]">
+              <span class="text-[var(--text-sub)]">RP2040 ADC0 (GP26):</span>
+              <div id="adcVoltage" class="text-base text-amber-400 font-bold mt-0.5">0.40 V</div>
+            </div>
+            <div class="p-3 bg-[#11111b] rounded-lg border border-[var(--card-border)]">
+              <span class="text-[var(--text-sub)]">Relay Control (GP16):</span>
+              <div id="relayState" class="text-base text-slate-400 font-bold mt-0.5">LOW (De-energized)</div>
+            </div>
           </div>
         </div>
       </div>
 
-    </section>
-
-    <!-- RIGHT PANEL: MicroPython Code & Principles (5 Cols) -->
-    <section class="lg:col-span-5 flex flex-col gap-6">
-      
-      <!-- MicroPython Hardware Control Script -->
-      <div class="glass-card p-5 shadow-xl flex flex-col gap-3">
-        <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2">
-          <span class="text-xs font-mono font-bold text-[var(--accent)]">🐍 MicroPython Code (RP2040)</span>
-          <button onclick="copyCode()" class="text-[0.7rem] font-mono bg-[var(--inner-box)] hover:bg-[var(--card-border)] border border-[var(--card-border)] px-2 py-1 rounded transition-colors text-[var(--accent)]">📋 Copy</button>
-        </div>
-
-        <pre class="bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] code-font text-xs text-[#cdd6f4] overflow-x-auto leading-relaxed"><code id="codeBlock">import machine
+      <!-- MicroPython Hardware Code Example -->
+      <div class="card-panel p-6">
+        <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)] mb-3">🐍 RP2040 MicroPython Logic</h2>
+        <pre class="bg-[#11111b] p-4 rounded-lg font-mono text-xs text-slate-300 overflow-x-auto border border-[var(--card-border)]">
+from machine import ADC, Pin
 import time
 
-# Pin Definitions
-adc_pin = machine.ADC(machine.Pin(26)) # MQ Gas Sensor
-relay_pin = machine.Pin(16, machine.Pin.OUT) # Exhaust Fan
+adc = ADC(Pin(26))  # MQ-135 Analog Output on GP26
+relay = Pin(16, Pin.OUT)  # Exhaust Fan Relay on GP16
 
-THRESHOLD_PPM = 800
-HYSTERESIS_PPM = 100
-
-def read_ppm():
-    raw = adc_pin.read_u16()
-    voltage = (raw / 65535.0) * 3.3
-    # Map voltage to approximate PPM scale
-    ppm = int((voltage / 3.3) * 2000)
-    return ppm, raw
-
-relay_active = False
+HIGH_THRESHOLD = 400  # Fan turns ON above 400 PPM
+LOW_THRESHOLD = 200   # Fan turns OFF below 200 PPM (Hysteresis)
 
 while True:
-    ppm, raw = read_ppm()
+    raw_val = adc.read_u16()
+    voltage = (raw_val / 65535) * 3.3
+    ppm = int((voltage / 3.3) * 1000)
     
-    # Dual-threshold Hysteresis Relay Control
-    if ppm >= THRESHOLD_PPM and not relay_active:
-        relay_pin.value(1) # Turn ON Exhaust Fan
-        relay_active = True
-        print(f"ALERT: Gas {ppm} PPM! Fan ON.")
-    
-    elif ppm < (THRESHOLD_PPM - HYSTERESIS_PPM) and relay_active:
-        relay_pin.value(0) # Turn OFF Exhaust Fan
-        relay_active = False
-        print(f"CLEAR: Gas {ppm} PPM. Fan OFF.")
+    if ppm > HIGH_THRESHOLD:
+        relay.value(1)  # Trigger Fan ON
+    elif ppm < LOW_THRESHOLD:
+        relay.value(0)  # Stop Fan OFF
         
-    time.sleep(0.5)</code></pre>
+    time.sleep(0.5)</pre>
       </div>
 
-      <!-- Theory & Wiring Guide -->
-      <div class="glass-card p-5 shadow-xl space-y-3 text-xs">
-        <h4 class="font-bold text-[var(--accent)] font-mono uppercase">🔌 Circuit Schematic Notes</h4>
-        <ul class="space-y-1.5 text-[var(--text-sub)] list-disc pl-4 leading-relaxed">
-          <li><strong>MQ-135 Sensor:</strong> VCC &rarr; 5V, GND &rarr; GND, AO &rarr; RP2040 GP26 (ADC0).</li>
-          <li><strong>Relay Module:</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; RP2040 GP16.</li>
-          <li><strong>Exhaust Fan:</strong> Powered via Relay NO (Normally Open) contact switch circuit.</li>
-          <li><strong>Hysteresis Logic:</strong> Prevents rapid relay contact chatter when air quality fluctuates around the target threshold.</li>
+    </div>
+
+    <!-- Mini-Quiz Module & Theory Panel -->
+    <div class="space-y-6">
+
+      <!-- Theory Card -->
+      <div class="card-panel p-6">
+        <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)] mb-2">📚 Key Concepts</h2>
+        <ul class="text-xs text-[var(--text-sub)] space-y-2 list-disc pl-4">
+          <li><strong>ADC Conversion:</strong> RP2040 reads 0–3.3V analog input on GP26 mapped into 16-bit registers (<code class="text-amber-300">0–65535</code>).</li>
+          <li><strong>Hysteresis Gap:</strong> Prevents rapid relay chattering when air quality fluctuates around the threshold.</li>
+          <li><strong>Gas Purging:</strong> Active exhaust ventilation lowers particle concentration over time.</li>
         </ul>
       </div>
 
-    </section>
+      <!-- Mini Quiz Module -->
+      <div class="card-panel p-6 border-l-4 border-l-[var(--accent,#89b4fa)]">
+        <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)] mb-3">📝 Mini-Quiz Module</h2>
+        
+        <form id="quizForm" class="space-y-4 text-xs">
+          <div>
+            <p class="font-semibold text-slate-200 mb-2">1. Why is dual-threshold hysteresis used in environmental relay controls?</p>
+            <label class="block p-2 rounded bg-[#11111b] mb-1 cursor-pointer hover:bg-slate-800">
+              <input type="radio" name="q1" value="A" class="mr-2"> To double the fan speed
+            </label>
+            <label class="block p-2 rounded bg-[#11111b] mb-1 cursor-pointer hover:bg-slate-800">
+              <input type="radio" name="q1" value="B" class="mr-2"> To prevent rapid relay chatter/flicker near thresholds
+            </label>
+            <label class="block p-2 rounded bg-[#11111b] class="cursor-pointer hover:bg-slate-800">
+              <input type="radio" name="q1" value="C" class="mr-2"> To save RP2040 memory
+            </label>
+          </div>
 
-  </main>
+          <div>
+            <p class="font-semibold text-slate-200 mb-2">2. What GP pin on RP2040 natively supports ADC0 input?</p>
+            <label class="block p-2 rounded bg-[#11111b] mb-1 cursor-pointer hover:bg-slate-800">
+              <input type="radio" name="q2" value="A" class="mr-2"> GP0
+            </label>
+            <label class="block p-2 rounded bg-[#11111b] mb-1 cursor-pointer hover:bg-slate-800">
+              <input type="radio" name="q2" value="B" class="mr-2"> GP26
+            </label>
+            <label class="block p-2 rounded bg-[#11111b] class="cursor-pointer hover:bg-slate-800">
+              <input type="radio" name="q2" value="C" class="mr-2"> GP16
+            </label>
+          </div>
 
+          <button type="button" onclick="evaluateQuiz()" class="w-full py-2 bg-[var(--accent,#89b4fa)] text-[#11111b] font-bold rounded-lg hover:opacity-90 transition-all">
+            Submit Answers
+          </button>
+        </form>
+
+        <div id="quizResult" class="mt-4 p-3 rounded-lg hidden font-bold text-center text-xs"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="./theme.js"></script>
   <script>
-    let currentRelayState = false;
+    // Particle Simulation Setup
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    const ppmSlider = document.getElementById('ppmSlider');
+    const ppmDisplay = document.getElementById('ppmValueDisplay');
+    const adcDisplay = document.getElementById('adcVoltage');
+    const relayDisplay = document.getElementById('relayState');
+    const fanBadge = document.getElementById('fanStatusBadge');
+    const fanBlade = document.getElementById('fanBlade');
+
+    let particles = [];
+    let fanOn = false;
+
+    // Particle Object
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = 60 + Math.random() * 280; // inside house boundary
+        this.y = 90 + Math.random() * 90;
+        this.vx = (Math.random() - 0.5) * 0.8;
+        this.vy = (Math.random() - 0.5) * 0.8;
+        this.radius = 2 + Math.random() * 2;
+      }
+      update() {
+        if (fanOn) {
+          // Particles get pulled toward top-right exhaust fan
+          const targetX = 380;
+          const targetY = 30;
+          this.x += (targetX - this.x) * 0.03;
+          this.y += (targetY - this.y) * 0.03;
+        } else {
+          this.x += this.vx;
+          this.y += this.vy;
+
+          // Bounce off inner room walls
+          if (this.x < 60 || this.x > 340) this.vx *= -1;
+          if (this.y < 90 || this.y > 180) this.vy *= -1;
+        }
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = fanOn ? 'rgba(239, 68, 68, 0.7)' : 'rgba(251, 191, 36, 0.6)';
+        ctx.fill();
+      }
+    }
+
+    // Initialize particle pool
+    for (let i = 0; i < 200; i++) {
+      particles.push(new Particle());
+    }
 
     function updateSimulation() {
-      const ppm = parseInt(document.getElementById('gasSlider').value);
-      const threshold = parseInt(document.getElementById('thresholdInput').value);
-      const hysteresis = parseInt(document.getElementById('hysteresisInput').value);
-
-      document.getElementById('sliderPpmVal').textContent = `${ppm} PPM`;
-      document.getElementById('ppmDisplay').textContent = `${ppm} PPM`;
-
-      // Convert PPM to simulated ADC hardware values
-      const voltage = (ppm / 2000.0) * 3.3;
-      const rawAdc = Math.round((voltage / 3.3) * 65535);
-
-      document.getElementById('adcRawText').textContent = rawAdc;
-      document.getElementById('voltageText').textContent = `${voltage.toFixed(2)} V`;
-
-      // Hysteresis Relay Control Logic
-      if (ppm >= threshold && !currentRelayState) {
-        currentRelayState = true;
-      } else if (ppm < (threshold - hysteresis) && currentRelayState) {
-        currentRelayState = false;
+      const ppm = parseInt(ppmSlider.value);
+      const voltage = ((ppm / 1000) * 3.3).toFixed(2);
+      
+      // Hysteresis Logic
+      if (ppm > 400) {
+        fanOn = true;
+      } else if (ppm < 200) {
+        fanOn = false;
       }
 
-      // Update UI Physics Elements
-      const relayLed = document.getElementById('relayLed');
-      const fanBlade = document.getElementById('fanBlade');
-      const fanStatusText = document.getElementById('fanStatusText');
-      const gpioStateText = document.getElementById('gpioStateText');
-      const airStatusPill = document.getElementById('airStatusPill');
-      const gasCloud = document.getElementById('gasCloud');
-
-      if (currentRelayState) {
-        relayLed.className = "w-3 h-3 rounded-full relay-indicator relay-on";
-        fanBlade.classList.add('fan-spinning');
-        fanBlade.style.color = "#a6e3a1";
-        fanStatusText.textContent = "FAN STATE: ACTIVE (PURGING)";
-        fanStatusText.className = "text-xs font-mono font-bold text-[#a6e3a1]";
-        gpioStateText.textContent = "HIGH (1)";
-        gpioStateText.className = "text-[#a6e3a1]";
+      // UI Updates
+      ppmDisplay.textContent = `${ppm} PPM ${ppm > 400 ? '(Hazardous)' : (ppm > 200 ? '(Moderate)' : '(Clean Air)')}`;
+      ppmDisplay.className = `font-mono ${ppm > 400 ? 'text-red-400' : (ppm > 200 ? 'text-amber-400' : 'text-emerald-400')}`;
+      adcDisplay.textContent = `${voltage} V`;
+      
+      if (fanOn) {
+        relayDisplay.textContent = "HIGH (Energized)";
+        relayDisplay.className = "text-base text-emerald-400 font-bold mt-0.5";
+        fanBadge.textContent = "Exhaust Fan: ON (Purging)";
+        fanBadge.className = "px-3 py-1 text-xs font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        fanBlade.classList.add('fan-spin');
       } else {
-        relayLed.className = "w-3 h-3 rounded-full relay-indicator relay-off";
-        fanBlade.classList.remove('fan-spinning');
-        fanBlade.style.color = "var(--text-sub)";
-        fanStatusText.textContent = "FAN STATE: OFF";
-        fanStatusText.className = "text-xs font-mono font-bold text-[#f38ba8]";
-        gpioStateText.textContent = "LOW (0)";
-        gpioStateText.className = "text-[#f38ba8]";
+        relayDisplay.textContent = "LOW (De-energized)";
+        relayDisplay.className = "text-base text-slate-400 font-bold mt-0.5";
+        fanBadge.textContent = "Exhaust Fan: OFF";
+        fanBadge.className = "px-3 py-1 text-xs font-bold rounded bg-red-500/20 text-red-400 border border-red-500/30";
+        fanBlade.classList.remove('fan-spin');
       }
 
-      // Gas Cloud Visual Warning Colors
-      if (ppm >= threshold) {
-        airStatusPill.textContent = "AIR QUALITY: POOR (ALERT)";
-        airStatusPill.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#421e25] text-[#f38ba8] border border-[#f38ba8]";
-        gasCloud.className = "w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 border-2 border-dashed border-[#f38ba8] bg-[#f38ba8]/20";
-        document.getElementById('ppmDisplay').className = "text-xl font-bold font-mono text-[#f38ba8]";
-      } else if (ppm >= (threshold - hysteresis)) {
-        airStatusPill.textContent = "AIR QUALITY: ELEVATED";
-        airStatusPill.className = "text-xs font-mono px-2.5 py-1 rounded bg-[var(--inner-box)] text-[#f9e2af] border border-[#f9e2af]";
-        gasCloud.className = "w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 border-2 border-dashed border-[#f9e2af] bg-[#f9e2af]/15";
-        document.getElementById('ppmDisplay').className = "text-xl font-bold font-mono text-[#f9e2af]";
-      } else {
-        airStatusPill.textContent = "AIR QUALITY: NORMAL";
-        airStatusPill.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#274029] text-[#a6e3a1] border border-[#a6e3a1]";
-        gasCloud.className = "w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 border-2 border-dashed border-[var(--card-border)] bg-[#a6e3a1]/10";
-        document.getElementById('ppmDisplay').className = "text-xl font-bold font-mono text-[#a6e3a1]";
+      // Render Particles Canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const activeCount = Math.floor((ppm / 1000) * particles.length);
+
+      for (let i = 0; i < activeCount; i++) {
+        particles[i].update();
+        particles[i].draw();
       }
+
+      requestAnimationFrame(updateSimulation);
     }
 
-    function copyCode() {
-      const codeText = document.getElementById('codeBlock').innerText;
-      navigator.clipboard.writeText(codeText).then(() => {
-        alert("MicroPython code copied to clipboard!");
-      });
-    }
+    ppmSlider.addEventListener('input', () => {
+      // If user lowers PPM slider manually while fan is running
+      if (fanOn && parseInt(ppmSlider.value) < 200) {
+        fanOn = false;
+      }
+    });
 
-    // Initialize
     updateSimulation();
+
+    // Mini Quiz Evaluation Function
+    function evaluateQuiz() {
+      const q1 = document.querySelector('input[name="q1"]:checked')?.value;
+      const q2 = document.querySelector('input[name="q2"]:checked')?.value;
+      const resultBox = document.getElementById("quizResult");
+
+      if (!q1 || !q2) {
+        resultBox.className = "mt-4 p-3 rounded-lg font-bold text-center text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        resultBox.textContent = "⚠️ Please select an answer for all questions.";
+        resultBox.classList.remove("hidden");
+        return;
+      }
+
+      let score = 0;
+      if (q1 === "B") score++;
+      if (q2 === "B") score++;
+
+      resultBox.classList.remove("hidden");
+      if (score === 2) {
+        resultBox.className = "mt-4 p-3 rounded-lg font-bold text-center text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        resultBox.textContent = "🎉 Outstanding! 2/2 Correct. You mastered hysteresis logic and ADC pin mapping!";
+      } else {
+        resultBox.className = "mt-4 p-3 rounded-lg font-bold text-center text-xs bg-red-500/20 text-red-400 border border-red-500/30";
+        resultBox.textContent = `Score: ${score}/2. Review the theory notes and try again!`;
+      }
+    }
   </script>
-  <script src="./theme.js"></script>
 </body>
 </html>
