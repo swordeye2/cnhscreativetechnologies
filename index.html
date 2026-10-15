@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RP2040 MicroPython Laboratory Suite | CNHS Creative Technologies</title>
+
+  <!-- PWA & Branding Icons -->
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png">
+  <link rel="manifest" href="./manifest.json">
   
   <!-- Legal IP & Copyright Assertions -->
   <meta name="author" content="Jorge Victor M. Sales">
@@ -217,14 +222,20 @@
 
   <!-- MAIN SUITE HUB CONTAINER -->
   <div class="container">
-    <header>
-      <div class="header-content">
-        <h1>⚙️ RP2040 MicroPython Laboratory Suite</h1>
-        <p>Interactive Mechatronics Visualizers, Motor Dynamics, and Embedded Physics Curriculum</p>
-        <div class="author-badge">
-          Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
+    <header class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <!-- Suite Brand Logo Badge -->
+        <img src="./icon-512.png" alt="RP2040 Suite Logo" class="w-14 h-14 md:w-16 md:h-16 rounded-xl border border-[var(--card-border)] shadow-md object-cover bg-[var(--inner-box)] p-1">
+        
+        <div class="header-content">
+          <h1>⚙️ RP2040 MicroPython Laboratory Suite</h1>
+          <p>Interactive Mechatronics Visualizers, Motor Dynamics, and Embedded Physics Curriculum</p>
+          <div class="author-badge">
+            Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
+          </div>
         </div>
       </div>
+
       <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">
         <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
       </button>
@@ -575,8 +586,9 @@
 
     </div>
 
-    <footer>
-      RP2040 MicroPython Visualizers for CNHS Creative Technologies | © 2026 Jorge Victor M. Sales
+    <footer class="flex items-center justify-center gap-3">
+      <img src="./icon-512.png" alt="Logo" class="w-6 h-6 rounded-md opacity-80">
+      <span>RP2040 MicroPython Visualizers for CNHS Creative Technologies | © 2026 Jorge Victor M. Sales</span>
     </footer>
   </div>
 
