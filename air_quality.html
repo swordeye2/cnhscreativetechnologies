@@ -272,6 +272,7 @@
 
     let particles = [];
     let currentPpm = 120; // Active ambient PPM in the room
+    let targetPpm = 120;  // Baseline generation rate set by user
     let fanOn = false;
     let cooldownTimer = 0; // Remaining cooldown seconds
     let lastTime = performance.now();
@@ -318,6 +319,11 @@
       particles.push(new Particle());
     }
 
+    // Track user slider interaction
+    ppmSlider.addEventListener('input', (e) => {
+      targetPpm = parseInt(e.target.value);
+    });
+
     function updateSimulation(now) {
       const deltaSec = (now - lastTime) / 1000;
       lastTime = now;
@@ -331,18 +337,21 @@
         cooldownBadge.classList.add('hidden');
       }
 
-      const targetPpm = parseInt(ppmSlider.value);
-
       // Physics: Purging vs Random Particle Accumulation
       if (fanOn) {
-        // Active Fan: Environment purges down rapidly
+        // Active Fan: Rapidly purge air pollution
         currentPpm = Math.max(100, currentPpm - 4);
+        
+        // Dynamically slide the UI slider down during purge
+        ppmSlider.value = Math.round(currentPpm);
       } else {
-        // Fan OFF: Smoke/Gas slowly accumulates and spawns particles back into room
+        // Fan OFF: Smoke/Gas slowly accumulates and spawns particles back into room up to target baseline
         if (currentPpm < targetPpm) {
           currentPpm = Math.min(targetPpm, currentPpm + 1.2);
+          ppmSlider.value = Math.round(currentPpm);
         } else if (currentPpm > targetPpm) {
           currentPpm = Math.max(targetPpm, currentPpm - 2);
+          ppmSlider.value = Math.round(currentPpm);
         }
       }
 
