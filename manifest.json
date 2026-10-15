@@ -28,7 +28,7 @@
   "screenshots": [
     {
       "src": "./screenshot-mobile.png",
-      "sizes": "1080x1920",
+      "sizes": "929x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "RP2040 Interactive Hub Mobile View"
