@@ -1,7 +1,7 @@
 {
   "id": "/",
   "name": "RP2040 MicroPython Physics & Hardware Hub",
-  "short_name": "RPi MicroPyhton Sims",
+  "short_name": "RPi MicroPython Sims",
   "description": "Interactive web-based RPi Microcontroller simulations, drone PID flight dynamics, and hardware logic inspectors using Python created by Jorge Victor M. Sales.",
   "start_url": "/",
   "scope": "/",
