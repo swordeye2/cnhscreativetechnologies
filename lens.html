@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometric Optics Simulation - Biconvex & Biconcave Lenses</title>
+    <!-- Embedded PWA Web Manifest -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Optics Simulation Lab","short_name":"OpticsLab","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#1e293b","description":"Interactive Geometric Optics Simulation for Biconvex and Biconcave Lenses."}'>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --panel-border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-red: #f87171;
+            --accent-purple: #c084fc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            background-color: var(--panel-bg);
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid var(--panel-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            flex-direction: row;
+            height: calc(100vh - 53px);
+        }
+
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+            }
+        }
+
+        /* Sidebar Control Panel */
+        .controls-sidebar {
+            width: 320px;
+            background-color: var(--panel-bg);
+            border-right: 1px solid var(--panel-border);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 900px) {
+            .controls-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--panel-border);
+            }
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: rgba(15, 23, 42, 0.4);
+            padding: 0.85rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--panel-border);
+        }
+
+        .control-group label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-group label span.value {
+            color: var(--accent-blue);
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #334155;
+            outline: none;
+            accent-color: var(--accent-blue);
+            cursor: pointer;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.6rem 0.8rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--panel-border);
+            background-color: #334155;
+            color: var(--text-main);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+            border-color: var(--accent-blue);
+        }
+
+        .btn.active {
+            background-color: #0284c7;
+            border-color: var(--accent-blue);
+            color: white;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-color: #0284c7;
+            border-color: #38bdf8;
+            grid-column: span 2;
+        }
+
+        .btn-primary:hover {
+            background-color: #0369a1;
+        }
+
+        /* Checkbox Toggles */
+        .toggle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .toggle-item input[type="checkbox"] {
+            accent-color: var(--accent-blue);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Canvas Workspace */
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            background-color: #0b1120;
+            display: flex;
+            flex-direction: column;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+        }
+
+        /* Overlay Telemetry HUD */
+        .hud-panel {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--panel-border);
+            border-radius: 0.5rem;
+            padding: 0.85rem 1.1rem;
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: var(--text-main);
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .hud-label {
+            color: var(--text-muted);
+        }
+
+        .hud-val {
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .hud-badge {
+            display: inline-block;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 0.25rem;
+        }
+
+        .badge-real {
+            background-color: rgba(74, 222, 128, 0.2);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+
+        .badge-virtual {
+            background-color: rgba(248, 113, 113, 0.2);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .instruction-banner {
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--panel-border);
+            padding: 0.4rem 0.9rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            pointer-events: none;
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            Interactive Optics Lab: Biconvex &amp; Biconcave Lenses
+        </h1>
+    </header>
+
+    <div class="main-container">
+        <!-- Controls Sidebar -->
+        <div class="controls-sidebar">
+            
+            <!-- Lens Mode Toggle -->
+            <div class="control-group">
+                <label>Lens Type Geometry</label>
+                <div class="btn-grid">
+                    <button id="btn-convex" class="btn active" onclick="setLensType('biconvex')">Biconvex (+f)</button>
+                    <button id="btn-concave" class="btn" onclick="setLensType('biconcave')">Biconcave (-f)</button>
+                </div>
+            </div>
+
+            <!-- Focal Length Slider -->
+            <div class="control-group">
+                <label for="slider-focal">
+                    Focal Length (|f|)
+                    <span id="val-focal" class="value">150 mm</span>
+                </label>
+                <input type="range" id="slider-focal" min="40" max="300" step="5" value="150">
+            </div>
+
+            <!-- Object Distance Slider -->
+            <div class="control-group">
+                <label for="slider-do">
+                    Object Distance (d<sub>o</sub>)
+                    <span id="val-do" class="value">250 mm</span>
+                </label>
+                <input type="range" id="slider-do" min="20" max="500" step="2" value="250">
+            </div>
+
+            <!-- Object Height Slider -->
+            <div class="control-group">
+                <label for="slider-ho">
+                    Object Height (h<sub>o</sub>)
+                    <span id="val-ho" class="value">80 mm</span>
+                </label>
+                <input type="range" id="slider-ho" min="-150" max="150" step="2" value="80">
+            </div>
+
+            <!-- Presets -->
+            <div class="control-group">
+                <label>Quick Configuration Presets</label>
+                <div class="btn-grid">
+                    <button class="btn" onclick="applyPreset('real-image')">Real Image</button>
+                    <button class="btn" onclick="applyPreset('magnifier')">Magnifier</button>
+                    <button class="btn" onclick="applyPreset('diverging')">Diverging</button>
+                    <button class="btn" onclick="applyPreset('2f-equal')">2F Distance</button>
+                    <button class="btn btn-primary" onclick="resetSimulation()">Reset Simulation</button>
+                </div>
+            </div>
+
+            <!-- Ray Toggles -->
+            <div class="control-group">
+                <label>Ray Trace Visibility</label>
+                <div class="toggle-list">
+                    <label class="toggle-item">
+                        <input type="checkbox" id="chk-ray1" checked>
+                        <span style="color:#f87171;">● Parallel Ray (Red)</span>
+                    </label>
+                    <label class="toggle-item">
+                        <input type="checkbox" id="chk-ray2" checked>
+                        <span style="color:#60a5fa;">● Chief Center Ray (Blue)</span>
+                    </label>
+                    <label class="toggle-item">
+                        <input type="checkbox" id="chk-ray3" checked>
+                        <span style="color:#4ade80;">● Focal Ray (Green)</span>
+                    </label>
+                    <label class="toggle-item">
+                        <input type="checkbox" id="chk-virtual" checked>
+                        <span style="color:#c084fc;">- - Extended Virtual Rays</span>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Interactive Canvas Viewport -->
+        <div class="canvas-area">
+            <canvas id="opticsCanvas"></canvas>
+
+            <!-- Real-Time Telemetry HUD -->
+            <div class="hud-panel">
+                <div class="hud-row"><span class="hud-label">Lens Mode:</span><span id="hud-mode" class="hud-val">Biconvex</span></div>
+                <div class="hud-row"><span class="hud-label">Focal Length (f):</span><span id="hud-f" class="hud-val">+150.0 mm</span></div>
+                <div class="hud-row"><span class="hud-label">Object Dist (d<sub>o</sub>):</span><span id="hud-do" class="hud-val">250.0 mm</span></div>
+                <div class="hud-row"><span class="hud-label">Image Dist (d<sub>i</sub>):</span><span id="hud-di" class="hud-val">+375.0 mm</span></div>
+                <div class="hud-row"><span class="hud-label">Magnification (m):</span><span id="hud-m" class="hud-val">-1.50x</span></div>
+                <div class="hud-row"><span class="hud-label">Image Height (h<sub>i</sub>):</span><span id="hud-hi" class="hud-val">-120.0 mm</span></div>
+                <div id="hud-badge" class="hud-badge badge-real">REAL • INVERTED • ENLARGED</div>
+            </div>
+
+            <div class="instruction-banner">
+                💡 Click &amp; Drag the <b>Object Arrow tip</b> or <b>Focal Points (F)</b> directly on the canvas.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inline Service Worker Registration for Offline Capabilities
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'optics-lab-v1';
+                self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
+                self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+                self.addEventListener('fetch', e => {
+                    e.respondWith(fetch(e.request).catch(() => new Response('Offline')));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'text/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(err => console.log('SW reg error:', err));
+        }
+
+        // State variables
+        let lensType = 'biconvex'; // 'biconvex' or 'biconcave'
+        let focalLength = 150;     // Positive magnitude in mm
+        let objectDistance = 250;  // Positive distance in mm
+        let objectHeight = 80;     // Positive = upwards, negative = downwards
+
+        // Dragging states
+        let isDraggingObject = false;
+        let isDraggingFocusNear = false;
+        let isDraggingFocusFar = false;
+
+        // Canvas element and context
+        const canvas = document.getElementById('opticsCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Element References
+        const sliderFocal = document.getElementById('slider-focal');
+        const sliderDo = document.getElementById('slider-do');
+        const sliderHo = document.getElementById('slider-ho');
+        const valFocal = document.getElementById('val-focal');
+        const valDo = document.getElementById('val-do');
+        const valHo = document.getElementById('val-ho');
+
+        const hudMode = document.getElementById('hud-mode');
+        const hudF = document.getElementById('hud-f');
+        const hudDo = document.getElementById('hud-do');
+        const hudDi = document.getElementById('hud-di');
+        const hudM = document.getElementById('hud-m');
+        const hudHi = document.getElementById('hud-hi');
+        const hudBadge = document.getElementById('hud-badge');
+
+        const chkRay1 = document.getElementById('chk-ray1');
+        const chkRay2 = document.getElementById('chk-ray2');
+        const chkRay3 = document.getElementById('chk-ray3');
+        const chkVirtual = document.getElementById('chk-virtual');
+
+        // Resize Canvas dynamically
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Core Physics Calculations
+        function getPhysics() {
+            const f = (lensType === 'biconvex') ? focalLength : -focalLength;
+            const do_val = objectDistance;
+            
+            // Thin Lens Equation: 1/f = 1/do + 1/di => di = (f * do) / (do - f)
+            let di_val = Infinity;
+            if (Math.abs(do_val - f) > 0.001) {
+                di_val = (f * do_val) / (do_val - f);
+            }
+
+            // Magnification: m = -di / do
+            let m = 0;
+            if (isFinite(di_val) && do_val !== 0) {
+                m = -di_val / do_val;
+            }
+
+            const hi_val = objectHeight * m;
+
+            return { f, do_val, di_val, m, hi_val };
+        }
+
+        // Draw Optical Bench and Components
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // 1. Principal Axis Line
+            ctx.beginPath();
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1.5;
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.stroke();
+
+            const phys = getPhysics();
+
+            // Focal Points Positions
+            const F1_x = centerX - focalLength; // Left Focal Point
+            const F2_x = centerX + focalLength; // Right Focal Point
+            const F2_2x = centerX - 2 * focalLength; // 2F Left
+            const F2_2x_R = centerX + 2 * focalLength; // 2F Right
+
+            // 2. Draw Focal Markers
+            drawFocalMarker(F1_x, centerY, "F1");
+            drawFocalMarker(F2_x, centerY, "F2");
+            drawFocalMarker(F2_2x, centerY, "2F1");
+            drawFocalMarker(F2_2x_R, centerY, "2F2");
+
+            // 3. Draw Lens Geometry (Physical Biconvex / Biconcave Shapes)
+            drawLens(centerX, centerY);
+
+            // 4. Draw Object Arrow
+            const objX = centerX - objectDistance;
+            const objY = centerY - objectHeight;
+            drawArrow(objX, centerY, objX, objY, '#38bdf8', 'Object', true);
+
+            // 5. Calculate and Draw Image Arrow (if finite)
+            let imgX = 0, imgY = 0;
+            const isImageValid = isFinite(phys.di_val) && Math.abs(phys.di_val) < 5000;
+
+            if (isImageValid) {
+                imgX = centerX + phys.di_val;
+                imgY = centerY - phys.hi_val;
+                const isVirtual = (phys.di_val < 0);
+                const imgColor = isVirtual ? '#c084fc' : '#4ade80';
+                drawArrow(imgX, centerY, imgX, imgY, imgColor, isVirtual ? 'Virtual Image' : 'Real Image', !isVirtual, isVirtual);
+            }
+
+            // 6. Ray Tracing Logic
+            if (isImageValid) {
+                drawRayTracing(centerX, centerY, objX, objY, imgX, imgY, phys);
+            }
+
+            // 7. Update HUD Overlay
+            updateHUD(phys);
+        }
+
+        // Draw Custom Lens Shape (Glass Aesthetics)
+        function drawLens(cx, cy) {
+            const lensHeight = Math.min(canvas.height * 0.75, 340);
+            const lensThickness = Math.max(16, focalLength * 0.18);
+            const topY = cy - lensHeight / 2;
+            const bottomY = cy + lensHeight / 2;
+
+            ctx.save();
+
+            // Glass Translucent Gradient
+            const glassGrad = ctx.createLinearGradient(cx - 30, cy, cx + 30, cy);
+            glassGrad.addColorStop(0, 'rgba(186, 230, 253, 0.25)');
+            glassGrad.addColorStop(0.5, 'rgba(56, 189, 248, 0.45)');
+            glassGrad.addColorStop(1, 'rgba(186, 230, 253, 0.25)');
+
+            ctx.fillStyle = glassGrad;
+            ctx.strokeStyle = '#7dd3fc';
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+
+            if (lensType === 'biconvex') {
+                // Biconvex: Thick middle, tapered top and bottom
+                const bulge = lensThickness;
+                ctx.moveTo(cx, topY);
+                ctx.quadraticCurveTo(cx + bulge, cy, cx, bottomY);
+                ctx.quadraticCurveTo(cx - bulge, cy, cx, topY);
+            } else {
+                // Biconcave: Thin center, thick top and bottom
+                const edgeWidth = lensThickness;
+                const centerIndent = 6;
+                ctx.moveTo(cx - edgeWidth, topY);
+                ctx.lineTo(cx + edgeWidth, topY);
+                ctx.quadraticCurveTo(cx + centerIndent, cy, cx + edgeWidth, bottomY);
+                ctx.lineTo(cx - edgeWidth, bottomY);
+                ctx.quadraticCurveTo(cx - centerIndent, cy, cx - edgeWidth, topY);
+            }
+
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Center Optical Plane Axis (dotted vertical center)
+            ctx.beginPath();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.moveTo(cx, topY - 10);
+            ctx.lineTo(cx, bottomY + 10);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Ray Tracing Mechanics
+        function drawRayTracing(cx, cy, objX, objY, imgX, imgY, phys) {
+            const f = phys.f;
+
+            // RAY 1: Parallel Ray (Red)
+            if (chkRay1.checked) {
+                // Incident: Object tip -> Lens Center Axis (Horizontal)
+                drawSegment(objX, objY, cx, objY, '#f87171', 2);
+
+                if (lensType === 'biconvex') {
+                    // Refracts through far focal point
+                    const fFarX = cx + focalLength;
+                    drawRayLine(cx, objY, fFarX, cy, '#f87171', 2);
+
+                    if (phys.di_val < 0 && chkVirtual.checked) {
+                        // Virtual extension back to image
+                        drawSegment(cx, objY, imgX, imgY, '#f87171', 1.5, [4, 4]);
+                    }
+                } else {
+                    // Biconcave: Diverges aligned with near focal point
+                    const fNearX = cx - focalLength;
+                    drawRayLine(fNearX, cy, cx, objY, '#f87171', 2);
+
+                    if (chkVirtual.checked) {
+                        // Virtual extension back to near focal point
+                        drawSegment(cx, objY, fNearX, cy, '#f87171', 1.5, [4, 4]);
+                    }
+                }
+            }
+
+            // RAY 2: Chief Ray through Optical Center (Blue)
+            if (chkRay2.checked) {
+                // Straight line through (cx, cy)
+                drawRayLine(objX, objY, cx, cy, '#60a5fa', 2);
+                if (phys.di_val < 0 && chkVirtual.checked) {
+                    drawSegment(cx, cy, imgX, imgY, '#60a5fa', 1.5, [4, 4]);
+                }
+            }
+
+            // RAY 3: Focal Ray (Green)
+            if (chkRay3.checked) {
+                if (lensType === 'biconvex') {
+                    const fNearX = cx - focalLength;
+                    
+                    // Ray passes through front focal point to lens axis
+                    // Line equation from (objX, objY) through (fNearX, cy) to x = cx
+                    const slope = (cy - objY) / (fNearX - objX);
+                    const yAtLens = objY + slope * (cx - objX);
+
+                    drawSegment(objX, objY, cx, yAtLens, '#4ade80', 2);
+                    // Refracts parallel to axis
+                    drawRayLine(cx, yAtLens, cx + 200, yAtLens, '#4ade80', 2);
+
+                    if (phys.di_val < 0 && chkVirtual.checked) {
+                        drawSegment(cx, yAtLens, imgX, imgY, '#4ade80', 1.5, [4, 4]);
+                    }
+                } else {
+                    // Biconcave: Directed towards far focal point (cx + focalLength, cy)
+                    const fFarX = cx + focalLength;
+                    const slope = (cy - objY) / (fFarX - objX);
+                    const yAtLens = objY + slope * (cx - objX);
+
+                    drawSegment(objX, objY, cx, yAtLens, '#4ade80', 2);
+                    // Refracts parallel
+                    drawRayLine(cx, yAtLens, cx - 200, yAtLens, '#4ade80', 2);
+
+                    if (chkVirtual.checked) {
+                        // Extension parallel backwards
+                        drawSegment(cx, yAtLens, imgX, imgY, '#4ade80', 1.5, [4, 4]);
+                        // Extension to far focus
+                        drawSegment(cx, yAtLens, fFarX, cy, 'rgba(74, 222, 128, 0.4)', 1, [2, 4]);
+                    }
+                }
+            }
+        }
+
+        // Helper to draw infinite ray line extending past canvas bounds
+        function drawRayLine(x1, y1, x2, y2, color, width) {
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            if (length === 0) return;
+
+            // Project ray across screen
+            const farX = x1 + (dx / length) * 2000;
+            const farY = y1 + (dy / length) * 2000;
+
+            drawSegment(x1, y1, farX, farY, color, width);
+        }
+
+        // Helper for line segments with optional dash pattern
+        function drawSegment(x1, y1, x2, y2, color, width, dash = []) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.setLineDash(dash);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Draw Focal Marker Point
+        function drawFocalMarker(x, y, label) {
+            ctx.save();
+            ctx.fillStyle = '#38bdf8';
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x, y + 20);
+            ctx.restore();
+        }
+
+        // Draw Arrow (Object/Image)
+        function drawArrow(x1, y1, x2, y2, color, label, isSolid = true, isDashed = false) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 3;
+
+            if (isDashed) {
+                ctx.setLineDash([5, 5]);
+            }
+
+            // Arrow shaft
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Arrow head
+            ctx.setLineDash([]);
+            const headLen = 12;
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(
+                x2 - headLen * Math.cos(angle - Math.PI / 6),
+                y2 - headLen * Math.sin(angle - Math.PI / 6)
+            );
+            ctx.lineTo(
+                x2 - headLen * Math.cos(angle + Math.PI / 6),
+                y2 - headLen * Math.sin(angle + Math.PI / 6)
+            );
+            ctx.closePath();
+            ctx.fill();
+
+            // Label text
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            const labelY = (y2 < y1) ? y2 - 12 : y2 + 20;
+            ctx.fillText(label, x2, labelY);
+
+            ctx.restore();
+        }
+
+        // Update Text Indicators & HUD Panel
+        function updateHUD(phys) {
+            hudMode.textContent = lensType === 'biconvex' ? 'Biconvex (+f)' : 'Biconcave (-f)';
+            hudF.textContent = `${phys.f > 0 ? '+' : ''}${phys.f.toFixed(1)} mm`;
+            hudDo.textContent = `${phys.do_val.toFixed(1)} mm`;
+
+            if (isFinite(phys.di_val)) {
+                hudDi.textContent = `${phys.di_val > 0 ? '+' : ''}${phys.di_val.toFixed(1)} mm`;
+                hudM.textContent = `${phys.m.toFixed(2)}x`;
+                hudHi.textContent = `${phys.hi_val.toFixed(1)} mm`;
+
+                // Badge Logic
+                const isReal = phys.di_val > 0;
+                const isInverted = phys.m < 0;
+                const isEnlarged = Math.abs(phys.m) > 1.001;
+                const isSameSize = Math.abs(Math.abs(phys.m) - 1.0) < 0.01;
+
+                let statusStr = isReal ? 'REAL' : 'VIRTUAL';
+                statusStr += isInverted ? ' • INVERTED' : ' • UPRIGHT';
+                statusStr += isEnlarged ? ' • ENLARGED' : (isSameSize ? ' • SAME SIZE' : ' • REDUCED');
+
+                hudBadge.textContent = statusStr;
+                hudBadge.className = `hud-badge ${isReal ? 'badge-real' : 'badge-virtual'}`;
+            } else {
+                hudDi.textContent = '∞ (At Infinity)';
+                hudM.textContent = 'undefined';
+                hudHi.textContent = 'undefined';
+                hudBadge.textContent = 'NO DEFINED IMAGE (PARALLEL RAYS)';
+                hudBadge.className = 'hud-badge badge-virtual';
+            }
+
+            // Sync Sliders Text
+            valFocal.textContent = `${focalLength} mm`;
+            valDo.textContent = `${objectDistance} mm`;
+            valHo.textContent = `${objectHeight} mm`;
+        }
+
+        // Set Lens Type
+        function setLensType(type) {
+            lensType = type;
+            document.getElementById('btn-convex').classList.toggle('active', type === 'biconvex');
+            document.getElementById('btn-concave').classList.toggle('active', type === 'biconcave');
+            draw();
+        }
+
+        // Apply Configuration Presets
+        function applyPreset(preset) {
+            if (preset === 'real-image') {
+                setLensType('biconvex');
+                focalLength = 150;
+                objectDistance = 280;
+                objectHeight = 80;
+            } else if (preset === 'magnifier') {
+                setLensType('biconvex');
+                focalLength = 150;
+                objectDistance = 90;
+                objectHeight = 60;
+            } else if (preset === 'diverging') {
+                setLensType('biconcave');
+                focalLength = 150;
+                objectDistance = 220;
+                objectHeight = 80;
+            } else if (preset === '2f-equal') {
+                setLensType('biconvex');
+                focalLength = 140;
+                objectDistance = 280;
+                objectHeight = 80;
+            }
+            updateSlidersFromState();
+            draw();
+        }
+
+        function resetSimulation() {
+            setLensType('biconvex');
+            focalLength = 150;
+            objectDistance = 250;
+            objectHeight = 80;
+            updateSlidersFromState();
+            draw();
+        }
+
+        function updateSlidersFromState() {
+            sliderFocal.value = focalLength;
+            sliderDo.value = objectDistance;
+            sliderHo.value = objectHeight;
+        }
+
+        // Synchronize Input Sliders
+        sliderFocal.addEventListener('input', (e) => {
+            focalLength = parseFloat(e.target.value);
+            draw();
+        });
+        sliderDo.addEventListener('input', (e) => {
+            objectDistance = parseFloat(e.target.value);
+            draw();
+        });
+        sliderHo.addEventListener('input', (e) => {
+            objectHeight = parseFloat(e.target.value);
+            draw();
+        });
+
+        [chkRay1, chkRay2, chkRay3, chkVirtual].forEach(chk => chk.addEventListener('change', draw));
+
+        // Canvas Direct Drag & Touch Interaction Logic
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function onPointerDown(e) {
+            const { x, y } = getCanvasCoords(e);
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            const objX = cx - objectDistance;
+            const objY = cy - objectHeight;
+            const F1_x = cx - focalLength;
+            const F2_x = cx + focalLength;
+
+            // Hit test Object Arrow Tip
+            if (Math.hypot(x - objX, y - objY) < 25) {
+                isDraggingObject = true;
+            } 
+            // Hit test Focal Points
+            else if (Math.hypot(x - F1_x, y - cy) < 20) {
+                isDraggingFocusNear = true;
+            } else if (Math.hypot(x - F2_x, y - cy) < 20) {
+                isDraggingFocusFar = true;
+            }
+        }
+
+        function onPointerMove(e) {
+            if (!isDraggingObject && !isDraggingFocusNear && !isDraggingFocusFar) return;
+
+            const { x, y } = getCanvasCoords(e);
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            if (isDraggingObject) {
+                // Update object distance and height based on mouse/touch position
+                let newDo = cx - x;
+                newDo = Math.max(20, Math.min(500, newDo));
+                objectDistance = newDo;
+
+                let newHo = cy - y;
+                newHo = Math.max(-150, Math.min(150, newHo));
+                objectHeight = newHo;
+
+                updateSlidersFromState();
+            } else if (isDraggingFocusNear) {
+                let newF = cx - x;
+                focalLength = Math.max(40, Math.min(300, newF));
+                updateSlidersFromState();
+            } else if (isDraggingFocusFar) {
+                let newF = x - cx;
+                focalLength = Math.max(40, Math.min(300, newF));
+                updateSlidersFromState();
+            }
+
+            draw();
+        }
+
+        function onPointerUp() {
+            isDraggingObject = false;
+            isDraggingFocusNear = false;
+            isDraggingFocusFar = false;
+        }
+
+        // Mouse & Touch Event Listeners
+        canvas.addEventListener('mousedown', onPointerDown);
+        canvas.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', onPointerUp);
+
+        canvas.addEventListener('touchstart', onPointerDown, { passive: true });
+        canvas.addEventListener('touchmove', onPointerMove, { passive: true });
+        window.addEventListener('touchend', onPointerUp);
+
+        // Initial Load Trigger
+        window.onload = () => {
+            resizeCanvas();
+        };
+    </script>
+</body>
+</html>
