@@ -442,7 +442,7 @@
         <div>
           <h3>💧 Water Level Sensor & Automated Pump</h3>
           <p>
-            Model water tank volume depth sensing via 12-bit ADC (GP26), dual-threshold hysteresis refill logic, optocoupled pump relay control, and piezobuzzer alerts.
+            Model water tank volume depth sensing via 12-bit ADC (GP26), dual-threshold hysteresis refill logic, optocoupled pump relay control, piezobuzzer alerts, and code inspection.
           </p>
           <div class="tag-container">
             <span class="tag">Water Level ADC</span>
@@ -459,7 +459,7 @@
         <div>
           <h3>🚨 Flood Barrier Shutter & Warning Relay</h3>
           <p>
-            Model water threat depth sensing (GP26), dual-threshold hysteresis shutter closure, motorized barrier relays (GP16), warning strobes, and security sirens.
+            Model water threat depth sensing (GP26), dual-threshold hysteresis shutter closure, motorized barrier relays (GP16), warning strobes, and web audio sirens.
           </p>
           <div class="tag-container">
             <span class="tag">Flood Sensing</span>
@@ -628,12 +628,12 @@
 
   <script src="./theme.js"></script>
   <script>
+    // --- SPLASH AD MODAL LOGIC ---
     document.addEventListener("DOMContentLoaded", () => {
       const splashOverlay = document.getElementById("splashAdOverlay");
       const skipBtn = document.getElementById("skipSplashBtn");
       const timerText = document.getElementById("splashTimerText");
 
-      // Check if user already saw the splash overlay in this session
       if (sessionStorage.getItem("splashAdShown") === "true") {
         if (splashOverlay) splashOverlay.style.display = "none";
         return;
@@ -664,6 +664,61 @@
       if (splashOverlay) splashOverlay.style.display = "none";
       sessionStorage.setItem("splashAdShown", "true");
     }
+
+    // --- GITHUB APK AUTO-UPDATER CHECKER ---
+    const INSTALLED_APP_VERSION = "1.1.1"; 
+    const GITHUB_VERSION_URL = "https://raw.githubusercontent.com/swordeye2/cnhscreativetechnologies/main/version.json";
+
+    async function checkAppUpdate() {
+      if (!navigator.onLine) return;
+
+      try {
+        const response = await fetch(GITHUB_VERSION_URL + '?t=' + Date.now());
+        if (!response.ok) return;
+
+        const data = await response.json();
+
+        if (isNewerVersion(INSTALLED_APP_VERSION, data.version)) {
+          showUpdateBanner(data.version, data.downloadUrl, data.changelog);
+        }
+      } catch (err) {
+        console.log("Update check skipped (offline mode).");
+      }
+    }
+
+    function isNewerVersion(current, latest) {
+      const cParts = current.split('.').map(Number);
+      const lParts = latest.split('.').map(Number);
+      for (let i = 0; i < Math.max(cParts.length, lParts.length); i++) {
+        const c = cParts[i] || 0;
+        const l = lParts[i] || 0;
+        if (l > c) return true;
+        if (l < c) return false;
+      }
+      return false;
+    }
+
+    function showUpdateBanner(newVersion, downloadUrl, changelog) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed bottom-4 right-4 left-4 md:left-auto md:w-96 z-50 bg-[#181825] border-2 border-[#89b4fa] text-[#cdd6f4] p-4 rounded-xl shadow-2xl font-mono text-xs animate-bounce';
+      modal.innerHTML = `
+        <div class="flex justify-between items-center mb-2 border-b border-[#313244] pb-1">
+          <span class="text-[#89b4fa] font-bold">🚀 New Update Available (v${newVersion})</span>
+          <button onclick="this.parentElement.parentElement.remove()" class="text-[#a6adc8] hover:text-white font-bold">✕</button>
+        </div>
+        <p class="text-[0.75rem] text-[#a6adc8] mb-3">${changelog || 'New features and simulator improvements are ready.'}</p>
+        <div class="flex gap-2">
+          <a href="${downloadUrl}" target="_blank" class="flex-1 bg-[#89b4fa] text-[#11111b] font-bold py-2 rounded-lg text-center hover:opacity-90 block">
+            📥 Download APK v${newVersion}
+          </a>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    window.addEventListener('load', () => {
+      setTimeout(checkAppUpdate, 3000);
+    });
   </script>
 </body>
 </html>
