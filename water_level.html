@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water Level Sensor & Pump Relay Simulator | RP2040 Suite</title>
+
+  <!-- PWA & Branding Icons -->
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png">
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .code-font { font-family: 'Fira Code', monospace; }
+
+    .glass-card {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 12px;
+    }
+
+    /* Water Tank Physics Styling */
+    .tank-container {
+      position: relative;
+      width: 140px;
+      height: 220px;
+      border: 4px solid var(--card-border, #313244);
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+      background: rgba(17, 17, 27, 0.6);
+      overflow: hidden;
+    }
+
+    .water-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, #89b4fa 0%, #313244 100%);
+      transition: height 0.3s ease;
+    }
+
+    .water-wave {
+      position: absolute;
+      top: -8px;
+      left: 0;
+      right: 0;
+      height: 12px;
+      background: #89b4fa;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: wave-anim 2s infinite linear;
+    }
+
+    @keyframes wave-anim {
+      0% { transform: translateX(-5%) scaleY(1); }
+      50% { transform: translateX(5%) scaleY(1.2); }
+      100% { transform: translateX(-5%) scaleY(1); }
+    }
+
+    /* Relay & Motor Animation */
+    @keyframes spin-pump {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .pump-spinning {
+      animation: spin-pump 0.4s linear infinite;
+    }
+
+    .status-led {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .led-off { background-color: #313244; box-shadow: none; }
+    .led-green { background-color: #a6e3a1; box-shadow: 0 0 10px #a6e3a1; }
+    .led-yellow { background-color: #f9e2af; box-shadow: 0 0 10px #f9e2af; }
+    .led-red { background-color: #f38ba8; box-shadow: 0 0 10px #f38ba8; }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+  <!-- Header Navigation -->
+  <header class="max-w-6xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Hub
+      </a>
+      <span class="text-[var(--card-border)]">|</span>
+      <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">Module 14: Automated Water Level & Pump Controller</span>
+    </div>
+
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
+  </header>
+
+  <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- LEFT PANEL: Visualizer & Controls (7 Cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-6">
+      
+      <!-- Interactive Visualizer Canvas -->
+      <div class="glass-card p-6 shadow-xl flex flex-col items-center justify-between min-h-[380px] relative overflow-hidden">
+        <div class="w-full flex justify-between items-center border-b border-[var(--card-border)] pb-3 mb-4">
+          <span class="text-xs font-mono font-bold text-[var(--accent)] uppercase">💧 Water Tank Chamber & Pump Physics</span>
+          <span id="levelBadge" class="text-xs font-mono px-2.5 py-1 rounded bg-[#274029] text-[#a6e3a1] border border-[#a6e3a1]">LEVEL: NORMAL (65%)</span>
+        </div>
+
+        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-6 items-center my-2">
+          
+          <!-- Animated Water Tank Visual -->
+          <div class="bg-[var(--inner-box)] p-4 rounded-xl border border-[var(--card-border)] flex flex-col items-center gap-3">
+            <span class="text-xs font-mono text-[var(--text-sub)]">Water Tank Probe (GP26 / ADC0)</span>
+            
+            <div class="tank-container">
+              <div id="waterLevelFill" class="water-fill" style="height: 65%;">
+                <div class="water-wave"></div>
+              </div>
+
+              <!-- Measurement Lines -->
+              <div class="absolute inset-0 flex flex-col justify-between p-2 pointer-events-none opacity-40 text-[0.65rem] font-mono text-white">
+                <div class="border-b border-dashed border-white">100% (FULL)</div>
+                <div class="border-b border-dashed border-white">75%</div>
+                <div class="border-b border-dashed border-white">50%</div>
+                <div class="border-b border-dashed border-white">25% (LOW)</div>
+                <div>0% (EMPTY)</div>
+              </div>
+            </div>
+
+            <span id="heightPercentText" class="text-xs font-mono font-bold text-[#89b4fa]">Depth: 65.0 %</span>
+          </div>
+
+          <!-- Actuator Status (Relay Pump & Alarm) -->
+          <div class="bg-[var(--inner-box)] p-4 rounded-xl border border-[var(--card-border)] flex flex-col items-center justify-between gap-4 h-full">
+            <span class="text-xs font-mono text-[var(--text-sub)]">Automated Refill System</span>
+
+            <!-- Status LEDs -->
+            <div class="flex items-center gap-4 bg-[var(--card-bg)] px-4 py-2 rounded-lg border border-[var(--card-border)]">
+              <div class="flex items-center gap-1.5 text-[0.7rem] font-mono">
+                <div id="ledLow" class="status-led led-off"></div>
+                <span>LOW</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[0.7rem] font-mono">
+                <div id="ledNormal" class="status-led led-green"></div>
+                <span>OK</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[0.7rem] font-mono">
+                <div id="ledFull" class="status-led led-off"></div>
+                <span>FULL</span>
+              </div>
+            </div>
+
+            <!-- Animated Pump Motor -->
+            <div class="flex flex-col items-center gap-2">
+              <div id="pumpContainer" class="w-16 h-16 rounded-full bg-[var(--card-bg)] border-2 border-[var(--card-border)] flex items-center justify-center">
+                <svg id="pumpIcon" class="w-10 h-10 text-[var(--text-sub)] transition-colors duration-300" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+                </svg>
+              </div>
+              <span id="pumpStateText" class="text-xs font-mono font-bold text-[#f38ba8]">PUMP RELAY: IDLE (OFF)</span>
+            </div>
+
+            <!-- Alarm Buzzer Indicator -->
+            <div id="buzzerBadge" class="text-[0.7rem] font-mono px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-sub)]">
+              🔊 BUZZER: SILENT
+            </div>
+          </div>
+
+        </div>
+
+        <!-- System Signal Readouts -->
+        <div class="w-full grid grid-cols-3 gap-2 text-center code-font text-xs bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)]">
+          <div><span class="text-[var(--text-sub)]">ADC Raw:</span> <br><strong id="adcRawText">42597</strong></div>
+          <div><span class="text-[var(--text-sub)]">Voltage:</span> <br><strong id="voltageText">2.145 V</strong></div>
+          <div><span class="text-[var(--text-sub)]">Relay (GP16):</span> <br><strong id="gpioStateText" class="text-[#f38ba8]">LOW (0)</strong></div>
+        </div>
+      </div>
+
+      <!-- Interactive Controls -->
+      <div class="glass-card p-5 shadow-xl flex flex-col gap-4">
+        <h3 class="text-sm font-bold text-[var(--accent)] font-mono uppercase">🎛️ Interactive Tank Controls</h3>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label for="waterSlider" class="text-xs font-mono">Manual Water Level Adjustment:</label>
+            <span id="sliderPercentVal" class="text-xs font-mono font-bold text-[var(--accent)]">65%</span>
+          </div>
+          <input type="range" id="waterSlider" min="0" max="100" value="65" step="1" oninput="updateSimulation()" class="w-full accent-[var(--accent)] bg-[var(--inner-box)] rounded-lg cursor-pointer">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="lowThreshInput" class="block text-xs font-mono text-[var(--text-sub)] mb-1">Refill Start Threshold (LOW):</label>
+            <input type="number" id="lowThreshInput" value="25" min="5" max="40" step="5" onchange="updateSimulation()" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none focus:border-[var(--accent)] code-font">
+          </div>
+          <div>
+            <label for="fullThreshInput" class="block text-xs font-mono text-[var(--text-sub)] mb-1">Refill Stop Threshold (FULL):</label>
+            <input type="number" id="fullThreshInput" value="85" min="60" max="98" step="5" onchange="updateSimulation()" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none focus:border-[var(--accent)] code-font">
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT PANEL: MicroPython Code & Principles (5 Cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- MicroPython Code Box -->
+      <div class="glass-card p-5 shadow-xl flex flex-col gap-3">
+        <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2">
+          <span class="text-xs font-mono font-bold text-[var(--accent)]">🐍 MicroPython Code (RP2040)</span>
+          <button onclick="copyCode()" class="text-[0.7rem] font-mono bg-[var(--inner-box)] hover:bg-[var(--card-border)] border border-[var(--card-border)] px-2 py-1 rounded transition-colors text-[var(--accent)]">📋 Copy</button>
+        </div>
+
+        <pre class="bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] code-font text-xs text-[#cdd6f4] overflow-x-auto leading-relaxed"><code id="codeBlock">import machine
+import time
+
+# Pin Assignments
+adc_sensor = machine.ADC(machine.Pin(26)) # Probe ADC0
+relay_pump = machine.Pin(16, machine.Pin.OUT) # Refill Pump
+buzzer = machine.Pin(17, machine.Pin.OUT) # Alarm
+
+# Threshold Percentages
+LOW_THRESHOLD = 25.0  # Turn Pump ON below 25%
+FULL_THRESHOLD = 85.0 # Turn Pump OFF above 85%
+
+pump_active = False
+
+def read_water_percentage():
+    raw = adc_sensor.read_u16()
+    # Map 16-bit ADC (0-65535) to 0.0% - 100.0%
+    percent = (raw / 65535.0) * 100.0
+    return percent
+
+while True:
+    level = read_water_percentage()
+    
+    # Hysteresis Tank Refill Logic
+    if level <= LOW_THRESHOLD and not pump_active:
+        relay_pump.value(1) # Start Pump
+        buzzer.value(1)     # Alert Pulse
+        pump_active = True
+        print(f"WATER LOW ({level:.1f}%): Pump ON")
+        time.sleep(0.2)
+        buzzer.value(0)
+        
+    elif level >= FULL_THRESHOLD and pump_active:
+        relay_pump.value(0) # Stop Pump
+        pump_active = False
+        print(f"TANK FULL ({level:.1f}%): Pump OFF")
+        
+    time.sleep(0.5)</code></pre>
+      </div>
+
+      <!-- Hardware Schematic & Notes -->
+      <div class="glass-card p-5 shadow-xl space-y-3 text-xs">
+        <h4 class="font-bold text-[var(--accent)] font-mono uppercase">🔌 Circuit Schematic Notes</h4>
+        <ul class="space-y-1.5 text-[var(--text-sub)] list-disc pl-4 leading-relaxed">
+          <li><strong>Water Level Sensor:</strong> VCC &rarr; 3.3V, GND &rarr; GND, Signal &rarr; RP2040 GP26 (ADC0).</li>
+          <li><strong>Relay Module:</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; RP2040 GP16.</li>
+          <li><strong>Refill Pump Motor:</strong> Wired through Relay NO (Normally Open) contact terminal.</li>
+          <li><strong>Buzzer:</strong> GP17 (Active Piezo Buzzer) triggers audio click on refill state changes.</li>
+        </ul>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    let pumpActive = false;
+
+    function updateSimulation() {
+      const level = parseFloat(document.getElementById('waterSlider').value);
+      const lowThresh = parseFloat(document.getElementById('lowThreshInput').value);
+      const fullThresh = parseFloat(document.getElementById('fullThreshInput').value);
+
+      document.getElementById('sliderPercentVal').textContent = `${level}%`;
+      document.getElementById('heightPercentText').textContent = `Depth: ${level.toFixed(1)} %`;
+      document.getElementById('waterLevelFill').style.height = `${level}%`;
+
+      // Convert percentage to simulated ADC raw and voltage
+      const rawAdc = Math.round((level / 100.0) * 65535);
+      const voltage = (level / 100.0) * 3.3;
+
+      document.getElementById('adcRawText').textContent = rawAdc;
+      document.getElementById('voltageText').textContent = `${voltage.toFixed(3)} V`;
+
+      // Dual-Threshold Refill Logic
+      const buzzerBadge = document.getElementById('buzzerBadge');
+
+      if (level <= lowThresh && !pumpActive) {
+        pumpActive = true;
+        buzzerBadge.textContent = "🔊 BUZZER: BEEP (LOW ALERT)";
+        buzzerBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[#421e25] border border-[#f38ba8] text-[#f38ba8] animate-pulse";
+      } else if (level >= fullThresh && pumpActive) {
+        pumpActive = false;
+        buzzerBadge.textContent = "🔊 BUZZER: SILENT";
+        buzzerBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-sub)]";
+      } else {
+        buzzerBadge.textContent = "🔊 BUZZER: SILENT";
+        buzzerBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-sub)]";
+      }
+
+      // Update UI Actuator States
+      const pumpIcon = document.getElementById('pumpIcon');
+      const pumpStateText = document.getElementById('pumpStateText');
+      const gpioStateText = document.getElementById('gpioStateText');
+
+      if (pumpActive) {
+        pumpIcon.classList.add('pump-spinning');
+        pumpIcon.style.color = "#a6e3a1";
+        pumpStateText.textContent = "PUMP RELAY: REFILLING (ON)";
+        pumpStateText.className = "text-xs font-mono font-bold text-[#a6e3a1]";
+        gpioStateText.textContent = "HIGH (1)";
+        gpioStateText.className = "text-[#a6e3a1]";
+      } else {
+        pumpIcon.classList.remove('pump-spinning');
+        pumpIcon.style.color = "var(--text-sub)";
+        pumpStateText.textContent = "PUMP RELAY: IDLE (OFF)";
+        pumpStateText.className = "text-xs font-mono font-bold text-[#f38ba8]";
+        gpioStateText.textContent = "LOW (0)";
+        gpioStateText.className = "text-[#f38ba8]";
+      }
+
+      // Status LEDs logic
+      const ledLow = document.getElementById('ledLow');
+      const ledNormal = document.getElementById('ledNormal');
+      const ledFull = document.getElementById('ledFull');
+      const levelBadge = document.getElementById('levelBadge');
+
+      ledLow.className = "status-led led-off";
+      ledNormal.className = "status-led led-off";
+      ledFull.className = "status-led led-off";
+
+      if (level <= lowThresh) {
+        ledLow.className = "status-led led-red";
+        levelBadge.textContent = `LEVEL: CRITICAL LOW (${level.toFixed(0)}%)`;
+        levelBadge.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#421e25] text-[#f38ba8] border border-[#f38ba8]";
+      } else if (level >= fullThresh) {
+        ledFull.className = "status-led led-yellow";
+        levelBadge.textContent = `LEVEL: TANK FULL (${level.toFixed(0)}%)`;
+        levelBadge.className = "text-xs font-mono px-2.5 py-1 rounded bg-[var(--inner-box)] text-[#f9e2af] border border-[#f9e2af]";
+      } else {
+        ledNormal.className = "status-led led-green";
+        levelBadge.textContent = `LEVEL: NORMAL (${level.toFixed(0)}%)`;
+        levelBadge.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#274029] text-[#a6e3a1] border border-[#a6e3a1]";
+      }
+    }
+
+    function copyCode() {
+      const codeText = document.getElementById('codeBlock').innerText;
+      navigator.clipboard.writeText(codeText).then(() => {
+        alert("MicroPython code copied to clipboard!");
+      });
+    }
+
+    // Initialize
+    updateSimulation();
+  </script>
+  <script src="./theme.js"></script>
+</body>
+</html>
