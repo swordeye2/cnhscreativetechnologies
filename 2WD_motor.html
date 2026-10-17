@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>2WD Robot & H-Bridge Motor Driver Visualizer • CNHS Creative Tech</title>
+  
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
   <style>
     * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: var(--bg-color, #1e1e2e); color: var(--text-main, #cdd6f4); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
@@ -58,6 +66,7 @@
     .code-func { color: #89b4fa; }
     .code-comment { color: #6c7086; font-style: italic; }
     .code-num { color: #fab387; }
+    .code-string { color: #a6e3a1; }
 
     /* Truth Table Display */
     table.truth-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; font-family: monospace; }
@@ -73,7 +82,7 @@
     .quiz-opt.wrong { background: #421e25; border-color: #f38ba8; color: #f38ba8; }
     #quiz-feedback { font-size: 0.8rem; margin-top: 6px; font-weight: bold; }
   </style>
-<link rel="stylesheet" href="./theme.css">
+  <link rel="stylesheet" href="./theme.css">
 </head>
 <body>
 
@@ -81,10 +90,10 @@
     <a href="index.html" class="back-link">← Back to Hardware Hub</a>
     <h1>2WD Robot & H-Bridge Motor Driver Simulator</h1>
     <p>Explore differential drive kinematics, DRV8833/L298N logic pin states, and RP2040 MicroPython motor control</p>
-  <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-    <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
-  </button>
-</header>
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px;">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
+  </header>
 
   <div class="grid-container">
 
@@ -441,7 +450,8 @@ move_robot(<span class="code-string">"${activeCmd}"</span>)`;
       const vR = rightMotorSpeed * speedScale;
 
       const vLinear = (vL + vR) / 2;
-      const omega = (vR - vL) / wheelBase; // Angular velocity
+      // CORRECTED: (vL - vR) ensures turning Right (vL > vR) rotates Clockwise in Screen Canvas space
+      const omega = (vL - vR) / wheelBase; 
 
       robotAngle += omega;
       robotX += Math.cos(robotAngle) * vLinear;
