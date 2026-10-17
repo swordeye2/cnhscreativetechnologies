@@ -58,7 +58,7 @@
       left: 0;
       right: 0;
       background: linear-gradient(180deg, #89b4fa 0%, #313244 100%);
-      transition: height 0.3s ease;
+      transition: height 0.1s linear;
     }
 
     .water-wave {
@@ -70,13 +70,27 @@
       background: #89b4fa;
       border-radius: 50%;
       opacity: 0.8;
-      animation: wave-anim 2s infinite linear;
+      animation: wave-anim 1.5s infinite linear;
     }
 
     @keyframes wave-anim {
       0% { transform: translateX(-5%) scaleY(1); }
       50% { transform: translateX(5%) scaleY(1.2); }
       100% { transform: translateX(-5%) scaleY(1); }
+    }
+
+    /* Inflow Pipe Stream Animation */
+    .inflow-pipe {
+      position: absolute;
+      top: 10px;
+      right: 25px;
+      width: 8px;
+      height: 0%;
+      background: rgba(137, 180, 250, 0.85);
+      border-radius: 0 0 4px 4px;
+      transition: height 0.2s ease;
+      z-index: 10;
+      box-shadow: 0 0 8px #89b4fa;
     }
 
     /* Relay & Motor Animation */
@@ -100,6 +114,27 @@
     .led-green { background-color: #a6e3a1; box-shadow: 0 0 10px #a6e3a1; }
     .led-yellow { background-color: #f9e2af; box-shadow: 0 0 10px #f9e2af; }
     .led-red { background-color: #f38ba8; box-shadow: 0 0 10px #f38ba8; }
+
+    /* Code Inspector Active Line Highlighting */
+    .code-line {
+      display: block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .code-line.active-on {
+      background: rgba(166, 227, 161, 0.2);
+      border-left: 3px solid #a6e3a1;
+      color: #a6e3a1;
+      font-weight: bold;
+    }
+
+    .code-line.active-off {
+      background: rgba(243, 139, 168, 0.15);
+      border-left: 3px solid #f38ba8;
+      color: #f38ba8;
+    }
 
     /* Interactive Quiz Styling */
     .quiz-opt {
@@ -172,6 +207,9 @@
             <span class="text-xs font-mono text-[var(--text-sub)]">Water Tank Probe (GP26 / ADC0)</span>
             
             <div class="tank-container">
+              <!-- Water Flow Stream when Pump Active -->
+              <div id="inflowStream" class="inflow-pipe"></div>
+
               <div id="waterLevelFill" class="water-fill" style="height: 65%;">
                 <div class="water-wave"></div>
               </div>
@@ -244,7 +282,7 @@
             <label for="waterSlider" class="text-xs font-mono">Manual Water Level Adjustment:</label>
             <span id="sliderPercentVal" class="text-xs font-mono font-bold text-[var(--accent)]">65%</span>
           </div>
-          <input type="range" id="waterSlider" min="0" max="100" value="65" step="1" oninput="updateSimulation()" class="w-full accent-[var(--accent)] bg-[var(--inner-box)] rounded-lg cursor-pointer">
+          <input type="range" id="waterSlider" min="0" max="100" value="65" step="1" oninput="manualSliderInput()" class="w-full accent-[var(--accent)] bg-[var(--inner-box)] rounded-lg cursor-pointer">
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -261,54 +299,31 @@
 
     </section>
 
-    <!-- RIGHT PANEL: MicroPython Code, Principles & Concept Check Quiz (5 Cols) -->
+    <!-- RIGHT PANEL: MicroPython Code, Inspector & Concept Check Quiz (5 Cols) -->
     <section class="lg:col-span-5 flex flex-col gap-6">
       
-      <!-- MicroPython Code Box -->
+      <!-- MicroPython Code Inspector Box -->
       <div class="glass-card p-5 shadow-xl flex flex-col gap-3">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2">
-          <span class="text-xs font-mono font-bold text-[var(--accent)]">🐍 MicroPython Code (RP2040)</span>
+          <span class="text-xs font-mono font-bold text-[var(--accent)]">🐍 MicroPython Code Inspector</span>
           <button onclick="copyCode()" class="text-[0.7rem] font-mono bg-[var(--inner-box)] hover:bg-[var(--card-border)] border border-[var(--card-border)] px-2 py-1 rounded transition-colors text-[var(--accent)]">📋 Copy</button>
         </div>
 
-        <pre class="bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] code-font text-xs text-[#cdd6f4] overflow-x-auto leading-relaxed"><code id="codeBlock">import machine
-import time
-
-# Pin Assignments
-adc_sensor = machine.ADC(machine.Pin(26)) # Probe ADC0
-relay_pump = machine.Pin(16, machine.Pin.OUT) # Refill Pump
-buzzer = machine.Pin(17, machine.Pin.OUT) # Alarm
-
-# Threshold Percentages
-LOW_THRESHOLD = 25.0  # Turn Pump ON below 25%
-FULL_THRESHOLD = 85.0 # Turn Pump OFF above 85%
-
-pump_active = False
-
-def read_water_percentage():
-    raw = adc_sensor.read_u16()
-    # Map 16-bit ADC (0-65535) to 0.0% - 100.0%
-    percent = (raw / 65535.0) * 100.0
-    return percent
-
-while True:
-    level = read_water_percentage()
-    
-    # Hysteresis Tank Refill Logic
-    if level <= LOW_THRESHOLD and not pump_active:
-        relay_pump.value(1) # Start Pump
-        buzzer.value(1)     # Alert Pulse
-        pump_active = True
-        print(f"WATER LOW ({level:.1f}%): Pump ON")
-        time.sleep(0.2)
-        buzzer.value(0)
-        
-    elif level >= FULL_THRESHOLD and pump_active:
-        relay_pump.value(0) # Stop Pump
-        pump_active = False
-        print(f"TANK FULL ({level:.1f}%): Pump OFF")
-        
-    time.sleep(0.5)</code></pre>
+        <div class="bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)] code-font text-xs text-[#cdd6f4] overflow-x-auto leading-relaxed">
+          <span class="code-line">import machine, time</span>
+          <span class="code-line">adc_sensor = machine.ADC(machine.Pin(26))</span>
+          <span class="code-line">relay_pump = machine.Pin(16, machine.Pin.OUT)</span>
+          <span class="code-line">LOW_THRESH = 25.0; FULL_THRESH = 85.0</span>
+          <span class="code-line">pump_active = False</span>
+          <span class="code-line text-[var(--text-sub)]">while True:</span>
+          <span class="code-line text-[var(--text-sub)]">    level = (adc_sensor.read_u16()/65535)*100</span>
+          <span id="lineOn1" class="code-line">    if level <= LOW_THRESH and not pump_active:</span>
+          <span id="lineOn2" class="code-line">        relay_pump.value(1) # Pump ON</span>
+          <span id="lineOn3" class="code-line">        pump_active = True</span>
+          <span id="lineOff1" class="code-line">    elif level >= FULL_THRESH and pump_active:</span>
+          <span id="lineOff2" class="code-line">        relay_pump.value(0) # Pump OFF</span>
+          <span id="lineOff3" class="code-line">        pump_active = False</span>
+        </div>
       </div>
 
       <!-- Hardware Schematic & Notes -->
@@ -357,43 +372,86 @@ while True:
 
   <script>
     let pumpActive = false;
+    let fillTimer = null;
+    let currentLevel = 65.0;
+
+    function manualSliderInput() {
+      currentLevel = parseFloat(document.getElementById('waterSlider').value);
+      updateSimulation();
+    }
 
     function updateSimulation() {
-      const level = parseFloat(document.getElementById('waterSlider').value);
       const lowThresh = parseFloat(document.getElementById('lowThreshInput').value);
       const fullThresh = parseFloat(document.getElementById('fullThreshInput').value);
 
-      document.getElementById('sliderPercentVal').textContent = `${level}%`;
-      document.getElementById('heightPercentText').textContent = `Depth: ${level.toFixed(1)} %`;
-      document.getElementById('waterLevelFill').style.height = `${level}%`;
+      document.getElementById('waterSlider').value = currentLevel;
+      document.getElementById('sliderPercentVal').textContent = `${Math.round(currentLevel)}%`;
+      document.getElementById('heightPercentText').textContent = `Depth: ${currentLevel.toFixed(1)} %`;
+      document.getElementById('waterLevelFill').style.height = `${currentLevel}%`;
 
       // Convert percentage to simulated ADC raw and voltage
-      const rawAdc = Math.round((level / 100.0) * 65535);
-      const voltage = (level / 100.0) * 3.3;
+      const rawAdc = Math.round((currentLevel / 100.0) * 65535);
+      const voltage = (currentLevel / 100.0) * 3.3;
 
       document.getElementById('adcRawText').textContent = rawAdc;
       document.getElementById('voltageText').textContent = `${voltage.toFixed(3)} V`;
 
-      // Dual-Threshold Refill Logic
       const buzzerBadge = document.getElementById('buzzerBadge');
 
-      if (level <= lowThresh && !pumpActive) {
+      // Check Refill Logic Transitions
+      if (currentLevel <= lowThresh && !pumpActive) {
         pumpActive = true;
+        startAutomatedRefill();
         buzzerBadge.textContent = "🔊 BUZZER: BEEP (LOW ALERT)";
         buzzerBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[#421e25] border border-[#f38ba8] text-[#f38ba8] animate-pulse";
-      } else if (level >= fullThresh && pumpActive) {
+      } else if (currentLevel >= fullThresh && pumpActive) {
         pumpActive = false;
-        buzzerBadge.textContent = "🔊 BUZZER: SILENT";
-        buzzerBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-sub)]";
-      } else {
+        stopAutomatedRefill();
         buzzerBadge.textContent = "🔊 BUZZER: SILENT";
         buzzerBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-sub)]";
       }
 
-      // Update UI Actuator States
+      // Update UI & Code Inspector Highlights
+      updateActuatorVisuals();
+    }
+
+    function startAutomatedRefill() {
+      if (fillTimer) clearInterval(fillTimer);
+
+      fillTimer = setInterval(() => {
+        const fullThresh = parseFloat(document.getElementById('fullThreshInput').value);
+
+        if (currentLevel < fullThresh) {
+          currentLevel += 0.8; // Slowly fill up
+          if (currentLevel > 100) currentLevel = 100;
+          updateSimulation();
+        } else {
+          pumpActive = false;
+          stopAutomatedRefill();
+          updateSimulation();
+        }
+      }, 150);
+    }
+
+    function stopAutomatedRefill() {
+      if (fillTimer) {
+        clearInterval(fillTimer);
+        fillTimer = null;
+      }
+    }
+
+    function updateActuatorVisuals() {
       const pumpIcon = document.getElementById('pumpIcon');
       const pumpStateText = document.getElementById('pumpStateText');
       const gpioStateText = document.getElementById('gpioStateText');
+      const inflowStream = document.getElementById('inflowStream');
+
+      const lineOn1 = document.getElementById('lineOn1');
+      const lineOn2 = document.getElementById('lineOn2');
+      const lineOn3 = document.getElementById('lineOn3');
+      const lineOff1 = document.getElementById('lineOff1');
+      const lineOff2 = document.getElementById('lineOff2');
+      const lineOff3 = document.getElementById('lineOff3');
 
       if (pumpActive) {
         pumpIcon.classList.add('pump-spinning');
@@ -402,6 +460,16 @@ while True:
         pumpStateText.className = "text-xs font-mono font-bold text-[#a6e3a1]";
         gpioStateText.textContent = "HIGH (1)";
         gpioStateText.className = "text-[#a6e3a1]";
+        inflowStream.style.height = "100%";
+
+        // Highlight ON Code Lines
+        lineOn1.className = "code-line active-on";
+        lineOn2.className = "code-line active-on";
+        lineOn3.className = "code-line active-on";
+
+        lineOff1.className = "code-line";
+        lineOff2.className = "code-line";
+        lineOff3.className = "code-line";
       } else {
         pumpIcon.classList.remove('pump-spinning');
         pumpIcon.style.color = "var(--text-sub)";
@@ -409,9 +477,22 @@ while True:
         pumpStateText.className = "text-xs font-mono font-bold text-[#f38ba8]";
         gpioStateText.textContent = "LOW (0)";
         gpioStateText.className = "text-[#f38ba8]";
+        inflowStream.style.height = "0%";
+
+        // Highlight OFF Code Lines
+        lineOn1.className = "code-line";
+        lineOn2.className = "code-line";
+        lineOn3.className = "code-line";
+
+        lineOff1.className = "code-line active-off";
+        lineOff2.className = "code-line active-off";
+        lineOff3.className = "code-line active-off";
       }
 
       // Status LEDs logic
+      const lowThresh = parseFloat(document.getElementById('lowThreshInput').value);
+      const fullThresh = parseFloat(document.getElementById('fullThreshInput').value);
+
       const ledLow = document.getElementById('ledLow');
       const ledNormal = document.getElementById('ledNormal');
       const ledFull = document.getElementById('ledFull');
@@ -421,17 +502,17 @@ while True:
       ledNormal.className = "status-led led-off";
       ledFull.className = "status-led led-off";
 
-      if (level <= lowThresh) {
+      if (currentLevel <= lowThresh) {
         ledLow.className = "status-led led-red";
-        levelBadge.textContent = `LEVEL: CRITICAL LOW (${level.toFixed(0)}%)`;
+        levelBadge.textContent = `LEVEL: CRITICAL LOW (${Math.round(currentLevel)}%)`;
         levelBadge.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#421e25] text-[#f38ba8] border border-[#f38ba8]";
-      } else if (level >= fullThresh) {
+      } else if (currentLevel >= fullThresh) {
         ledFull.className = "status-led led-yellow";
-        levelBadge.textContent = `LEVEL: TANK FULL (${level.toFixed(0)}%)`;
+        levelBadge.textContent = `LEVEL: TANK FULL (${Math.round(currentLevel)}%)`;
         levelBadge.className = "text-xs font-mono px-2.5 py-1 rounded bg-[var(--inner-box)] text-[#f9e2af] border border-[#f9e2af]";
       } else {
         ledNormal.className = "status-led led-green";
-        levelBadge.textContent = `LEVEL: NORMAL (${level.toFixed(0)}%)`;
+        levelBadge.textContent = `LEVEL: NORMAL (${Math.round(currentLevel)}%)`;
         levelBadge.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#274029] text-[#a6e3a1] border border-[#a6e3a1]";
       }
     }
@@ -454,7 +535,7 @@ while True:
     }
 
     function copyCode() {
-      const codeText = document.getElementById('codeBlock').innerText;
+      const codeText = `import machine\nimport time\n\nadc_sensor = machine.ADC(machine.Pin(26))\nrelay_pump = machine.Pin(16, machine.Pin.OUT)\n\nLOW_THRESH = 25.0\nFULL_THRESH = 85.0\npump_active = False\n\nwhile True:\n    level = (adc_sensor.read_u16() / 65535.0) * 100.0\n    if level <= LOW_THRESH and not pump_active:\n        relay_pump.value(1)\n        pump_active = True\n    elif level >= FULL_THRESH and pump_active:\n        relay_pump.value(0)\n        pump_active = False\n    time.sleep(0.5)`;
       navigator.clipboard.writeText(codeText).then(() => {
         alert("MicroPython code copied to clipboard!");
       });
