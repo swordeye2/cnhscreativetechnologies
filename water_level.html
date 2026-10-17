@@ -183,9 +183,14 @@
       <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">Module 14: Automated Water Level & Pump Controller</span>
     </div>
 
-    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
-    </button>
+    <div class="flex items-center gap-3">
+      <button id="soundToggleBtn" onclick="toggleAudio()" class="bg-[var(--card-border)] text-xs font-mono px-3 py-1.5 rounded-lg border border-[var(--card-border)] hover:border-[var(--accent)] transition-all">
+        🔊 Sound: ON
+      </button>
+      <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+        <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+      </button>
+    </div>
   </header>
 
   <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -313,12 +318,13 @@
           <span class="code-line">import machine, time</span>
           <span class="code-line">adc_sensor = machine.ADC(machine.Pin(26))</span>
           <span class="code-line">relay_pump = machine.Pin(16, machine.Pin.OUT)</span>
+          <span class="code-line">buzzer = machine.Pin(17, machine.Pin.OUT)</span>
           <span class="code-line">LOW_THRESH = 25.0; FULL_THRESH = 85.0</span>
           <span class="code-line">pump_active = False</span>
           <span class="code-line text-[var(--text-sub)]">while True:</span>
           <span class="code-line text-[var(--text-sub)]">    level = (adc_sensor.read_u16()/65535)*100</span>
           <span id="lineOn1" class="code-line">    if level <= LOW_THRESH and not pump_active:</span>
-          <span id="lineOn2" class="code-line">        relay_pump.value(1) # Pump ON</span>
+          <span id="lineOn2" class="code-line">        relay_pump.value(1); buzzer.value(1)</span>
           <span id="lineOn3" class="code-line">        pump_active = True</span>
           <span id="lineOff1" class="code-line">    elif level >= FULL_THRESH and pump_active:</span>
           <span id="lineOff2" class="code-line">        relay_pump.value(0) # Pump OFF</span>
@@ -333,7 +339,7 @@
           <li><strong>Water Level Sensor:</strong> VCC &rarr; 3.3V, GND &rarr; GND, Signal &rarr; RP2040 GP26 (ADC0).</li>
           <li><strong>Relay Module:</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; RP2040 GP16.</li>
           <li><strong>Refill Pump Motor:</strong> Wired through Relay NO (Normally Open) contact terminal.</li>
-          <li><strong>Buzzer:</strong> GP17 (Active Piezo Buzzer) triggers audio click on refill state changes.</li>
+          <li><strong>Piezo Buzzer:</strong> Connected to GP17 to emit a low-water warning beep when refill engages.</li>
         </ul>
       </div>
 
@@ -375,6 +381,51 @@
     let fillTimer = null;
     let currentLevel = 65.0;
 
+    // Web Audio API Sound Synthesizer for Piezo Buzzer
+    let audioCtx = null;
+    let audioEnabled = true;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playBuzzerBeep() {
+      if (!audioEnabled) return;
+      initAudio();
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'square'; // Typical piezo buzzer waveform
+      osc.frequency.setValueAtTime(2400, audioCtx.currentTime); // 2.4 kHz piezo pitch
+
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('soundToggleBtn');
+      if (audioEnabled) {
+        btn.textContent = "🔊 Sound: ON";
+        btn.className = "bg-[var(--card-border)] text-xs font-mono px-3 py-1.5 rounded-lg border border-[var(--card-border)] hover:border-[var(--accent)] transition-all";
+      } else {
+        btn.textContent = "🔇 Sound: OFF";
+        btn.className = "bg-[#421e25] text-xs font-mono px-3 py-1.5 rounded-lg border border-[#f38ba8] text-[#f38ba8] transition-all";
+      }
+    }
+
     function manualSliderInput() {
       currentLevel = parseFloat(document.getElementById('waterSlider').value);
       updateSimulation();
@@ -401,6 +452,7 @@
       // Check Refill Logic Transitions
       if (currentLevel <= lowThresh && !pumpActive) {
         pumpActive = true;
+        playBuzzerBeep();
         startAutomatedRefill();
         buzzerBadge.textContent = "🔊 BUZZER: BEEP (LOW ALERT)";
         buzzerBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[#421e25] border border-[#f38ba8] text-[#f38ba8] animate-pulse";
@@ -535,7 +587,7 @@
     }
 
     function copyCode() {
-      const codeText = `import machine\nimport time\n\nadc_sensor = machine.ADC(machine.Pin(26))\nrelay_pump = machine.Pin(16, machine.Pin.OUT)\n\nLOW_THRESH = 25.0\nFULL_THRESH = 85.0\npump_active = False\n\nwhile True:\n    level = (adc_sensor.read_u16() / 65535.0) * 100.0\n    if level <= LOW_THRESH and not pump_active:\n        relay_pump.value(1)\n        pump_active = True\n    elif level >= FULL_THRESH and pump_active:\n        relay_pump.value(0)\n        pump_active = False\n    time.sleep(0.5)`;
+      const codeText = `import machine\nimport time\n\nadc_sensor = machine.ADC(machine.Pin(26))\nrelay_pump = machine.Pin(16, machine.Pin.OUT)\nbuzzer = machine.Pin(17, machine.Pin.OUT)\n\nLOW_THRESH = 25.0\nFULL_THRESH = 85.0\npump_active = False\n\nwhile True:\n    level = (adc_sensor.read_u16() / 65535.0) * 100.0\n    if level <= LOW_THRESH and not pump_active:\n        relay_pump.value(1)\n        buzzer.value(1)\n        pump_active = True\n    elif level >= FULL_THRESH and pump_active:\n        relay_pump.value(0)\n        pump_active = False\n    time.sleep(0.5)`;
       navigator.clipboard.writeText(codeText).then(() => {
         alert("MicroPython code copied to clipboard!");
       });
