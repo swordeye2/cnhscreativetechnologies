@@ -103,6 +103,27 @@
     .led-green { background-color: #a6e3a1; box-shadow: 0 0 10px #a6e3a1; }
     .led-red { background-color: #f38ba8; box-shadow: 0 0 10px #f38ba8; }
 
+    /* Code Inspector Active Line Highlighting */
+    .code-line {
+      display: block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .code-line.active-alert {
+      background: rgba(243, 139, 168, 0.2);
+      border-left: 3px solid #f38ba8;
+      color: #f38ba8;
+      font-weight: bold;
+    }
+
+    .code-line.active-clear {
+      background: rgba(166, 227, 161, 0.15);
+      border-left: 3px solid #a6e3a1;
+      color: #a6e3a1;
+    }
+
     /* Interactive Quiz Styling */
     .quiz-opt {
       background: var(--inner-box, #11111b);
@@ -260,55 +281,35 @@
 
     </section>
 
-    <!-- RIGHT PANEL: MicroPython Code, Principles & Concept Check Quiz (5 Cols) -->
+    <!-- RIGHT PANEL: MicroPython Code Inspector, Principles & Concept Check Quiz (5 Cols) -->
     <section class="lg:col-span-5 flex flex-col gap-6">
       
-      <!-- MicroPython Code Box -->
+      <!-- MicroPython Visual Code Inspector Box -->
       <div class="glass-card p-5 shadow-xl flex flex-col gap-3">
         <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2">
-          <span class="text-xs font-mono font-bold text-[var(--accent)]">🐍 MicroPython Code (RP2040)</span>
+          <span class="text-xs font-mono font-bold text-[var(--accent)]">🐍 MicroPython Code Inspector</span>
           <button onclick="copyCode()" class="text-[0.7rem] font-mono bg-[var(--inner-box)] hover:bg-[var(--card-border)] border border-[var(--card-border)] px-2 py-1 rounded transition-colors text-[var(--accent)]">📋 Copy</button>
         </div>
 
-        <pre class="bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] code-font text-xs text-[#cdd6f4] overflow-x-auto leading-relaxed"><code id="codeBlock">import machine
-import time
-
-# Pin Assignments
-water_adc = machine.ADC(machine.Pin(26))  # Water Sensor ADC0
-shutter_relay = machine.Pin(16, machine.Pin.OUT) # Motor Relay
-strobe_light = machine.Pin(17, machine.Pin.OUT)  # Warning Light
-alarm_siren = machine.Pin(18, machine.Pin.OUT)   # Siren PWM
-
-TRIGGER_HEIGHT = 40.0  # Close shutters at >= 40cm
-CLEAR_HEIGHT = 20.0    # Re-open shutters at < 20cm
-
-shutters_closed = False
-
-def read_water_level_cm():
-    raw = water_adc.read_u16()
-    # Map 16-bit ADC reading to 0 - 100 cm
-    level_cm = (raw / 65535.0) * 100.0
-    return level_cm
-
-while True:
-    water_cm = read_water_level_cm()
-    
-    # Dual-Threshold Hysteresis Shutter Trigger
-    if water_cm >= TRIGGER_HEIGHT and not shutters_closed:
-        shutter_relay.value(1) # Energize Relay to Close Shutter
-        strobe_light.value(1)  # Turn ON Beacon Strobe
-        alarm_siren.value(1)   # Sound Warning Siren
-        shutters_closed = True
-        print(f"FLOOD WARNING ({water_cm:.1f}cm): Shutters CLOSING!")
-        
-    elif water_cm < CLEAR_HEIGHT and shutters_closed:
-        shutter_relay.value(0) # De-energize Relay to Open Shutter
-        strobe_light.value(0)  # Turn OFF Strobe
-        alarm_siren.value(0)   # Silence Siren
-        shutters_closed = False
-        print(f"FLOOD CLEAR ({water_cm:.1f}cm): Shutters OPENING.")
-        
-    time.sleep(0.5)</code></pre>
+        <div class="bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)] code-font text-xs text-[#cdd6f4] overflow-x-auto leading-relaxed">
+          <span class="code-line">import machine, time</span>
+          <span class="code-line">water_adc = machine.ADC(machine.Pin(26))</span>
+          <span class="code-line">shutter_relay = machine.Pin(16, machine.Pin.OUT)</span>
+          <span class="code-line">strobe_light = machine.Pin(17, machine.Pin.OUT)</span>
+          <span class="code-line">alarm_siren = machine.Pin(18, machine.Pin.OUT)</span>
+          <span class="code-line">TRIGGER_HT = 40.0; CLEAR_HT = 20.0</span>
+          <span class="code-line">shutters_closed = False</span>
+          <span class="code-line text-[var(--text-sub)]">while True:</span>
+          <span class="code-line text-[var(--text-sub)]">    water_cm = (water_adc.read_u16()/65535)*100</span>
+          <span id="lineAlert1" class="code-line">    if water_cm >= TRIGGER_HT and not shutters_closed:</span>
+          <span id="lineAlert2" class="code-line">        shutter_relay.value(1) # Close Shutter</span>
+          <span id="lineAlert3" class="code-line">        strobe_light.value(1); alarm_siren.value(1)</span>
+          <span id="lineAlert4" class="code-line">        shutters_closed = True</span>
+          <span id="lineClear1" class="code-line">    elif water_cm < CLEAR_HT and shutters_closed:</span>
+          <span id="lineClear2" class="code-line">        shutter_relay.value(0) # Open Shutter</span>
+          <span id="lineClear3" class="code-line">        strobe_light.value(0); alarm_siren.value(0)</span>
+          <span id="lineClear4" class="code-line">        shutters_closed = False</span>
+        </div>
       </div>
 
       <!-- Hardware Schematic & Notes -->
@@ -454,7 +455,7 @@ while True:
         stopSirenSound();
       }
 
-      // Update UI Elements
+      // Update UI Elements & Code Highlights
       const shutterDoor = document.getElementById('shutterDoor');
       const shutterStateText = document.getElementById('shutterStateText');
       const relayStatusText = document.getElementById('relayStatusText');
@@ -463,6 +464,16 @@ while True:
       const strobeBeacon = document.getElementById('strobeBeacon');
       const relayLed = document.getElementById('relayLed');
       const sirenBadge = document.getElementById('sirenBadge');
+
+      const lineAlert1 = document.getElementById('lineAlert1');
+      const lineAlert2 = document.getElementById('lineAlert2');
+      const lineAlert3 = document.getElementById('lineAlert3');
+      const lineAlert4 = document.getElementById('lineAlert4');
+
+      const lineClear1 = document.getElementById('lineClear1');
+      const lineClear2 = document.getElementById('lineClear2');
+      const lineClear3 = document.getElementById('lineClear3');
+      const lineClear4 = document.getElementById('lineClear4');
 
       if (shuttersClosed) {
         shutterDoor.style.height = "100%"; // Fully closed
@@ -482,6 +493,17 @@ while True:
 
         sirenBadge.textContent = "📢 SIREN: WARNING SOUNDING";
         sirenBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[#421e25] border border-[#f38ba8] text-[#f38ba8] animate-pulse";
+
+        // Highlight ALERT Code Lines
+        lineAlert1.className = "code-line active-alert";
+        lineAlert2.className = "code-line active-alert";
+        lineAlert3.className = "code-line active-alert";
+        lineAlert4.className = "code-line active-alert";
+
+        lineClear1.className = "code-line";
+        lineClear2.className = "code-line";
+        lineClear3.className = "code-line";
+        lineClear4.className = "code-line";
       } else {
         shutterDoor.style.height = "0%"; // Fully open
         shutterStateText.textContent = "SHUTTER: OPEN (PASSABLE)";
@@ -500,6 +522,17 @@ while True:
 
         sirenBadge.textContent = "📢 SIREN: SILENT";
         sirenBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-sub)]";
+
+        // Highlight CLEAR Code Lines
+        lineAlert1.className = "code-line";
+        lineAlert2.className = "code-line";
+        lineAlert3.className = "code-line";
+        lineAlert4.className = "code-line";
+
+        lineClear1.className = "code-line active-clear";
+        lineClear2.className = "code-line active-clear";
+        lineClear3.className = "code-line active-clear";
+        lineClear4.className = "code-line active-clear";
       }
     }
 
@@ -521,7 +554,7 @@ while True:
     }
 
     function copyCode() {
-      const codeText = document.getElementById('codeBlock').innerText;
+      const codeText = `import machine\nimport time\n\nwater_adc = machine.ADC(machine.Pin(26))\nshutter_relay = machine.Pin(16, machine.Pin.OUT)\nstrobe_light = machine.Pin(17, machine.Pin.OUT)\nalarm_siren = machine.Pin(18, machine.Pin.OUT)\n\nTRIGGER_HEIGHT = 40.0\nCLEAR_HEIGHT = 20.0\nshutters_closed = False\n\nwhile True:\n    water_cm = (water_adc.read_u16() / 65535.0) * 100.0\n    if water_cm >= TRIGGER_HEIGHT and not shutters_closed:\n        shutter_relay.value(1)\n        strobe_light.value(1)\n        alarm_siren.value(1)\n        shutters_closed = True\n    elif water_cm < CLEAR_HEIGHT and shutters_closed:\n        shutter_relay.value(0)\n        strobe_light.value(0)\n        alarm_siren.value(0)\n        shutters_closed = False\n    time.sleep(0.5)`;
       navigator.clipboard.writeText(codeText).then(() => {
         alert("MicroPython code copied to clipboard!");
       });
