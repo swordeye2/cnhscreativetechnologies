@@ -89,6 +89,23 @@
       color: #11111b;
     }
 
+    .download-apk-btn {
+      background: var(--accent, #89b4fa);
+      color: #11111b;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.2s ease;
+      text-decoration: none;
+    }
+
+    .download-apk-btn:hover {
+      opacity: 0.9;
+    }
+
     .category-title {
       font-size: 1.3rem;
       color: var(--accent, #89b4fa);
@@ -236,9 +253,16 @@
         </div>
       </div>
 
-      <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">
-        <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
-      </button>
+      <!-- Action Buttons: Download APK & Theme Toggle -->
+      <div class="flex items-center gap-3 flex-wrap">
+        <a id="downloadApkHeaderBtn" href="https://github.com/swordeye2/cnhscreativetechnologies/raw/main/app_version/RPi%20MicroPython%20Sims%201.1.2.apk" target="_blank" class="download-apk-btn">
+          <span>📥</span> <span>Download APK (v1.1.2)</span>
+        </a>
+
+        <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">
+          <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+        </button>
+      </div>
     </header>
 
     <!-- Section 0: Timed Assessment & Review -->
@@ -666,7 +690,7 @@
     }
 
     // --- GITHUB APK AUTO-UPDATER CHECKER ---
-    const INSTALLED_APP_VERSION = "1.1.1"; 
+    const INSTALLED_APP_VERSION = "1.1.2"; 
     const GITHUB_VERSION_URL = "https://raw.githubusercontent.com/swordeye2/cnhscreativetechnologies/main/version.json";
 
     async function checkAppUpdate() {
@@ -677,6 +701,13 @@
         if (!response.ok) return;
 
         const data = await response.json();
+
+        // Dynamically update the header download button text & URL if version.json is reachable
+        const headerBtn = document.getElementById('downloadApkHeaderBtn');
+        if (headerBtn && data.downloadUrl) {
+          headerBtn.href = data.downloadUrl;
+          headerBtn.innerHTML = `<span>📥</span> <span>Download APK (v${data.version})</span>`;
+        }
 
         if (isNewerVersion(INSTALLED_APP_VERSION, data.version)) {
           showUpdateBanner(data.version, data.downloadUrl, data.changelog);
