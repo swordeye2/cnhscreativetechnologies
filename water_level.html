@@ -93,14 +93,14 @@
       box-shadow: 0 0 8px #89b4fa;
     }
 
-    /* Relay & Motor Animation */
-    @keyframes spin-pump {
+    /* Pump Turbine Animation */
+    @keyframes spin-turbine {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
 
-    .pump-spinning {
-      animation: spin-pump 0.4s linear infinite;
+    .turbine-spinning {
+      animation: spin-turbine 0.35s linear infinite;
     }
 
     .status-led {
@@ -252,11 +252,14 @@
               </div>
             </div>
 
-            <!-- Animated Pump Motor -->
+            <!-- Animated Pump Turbine Housing -->
             <div class="flex flex-col items-center gap-2">
-              <div id="pumpContainer" class="w-16 h-16 rounded-full bg-[var(--card-bg)] border-2 border-[var(--card-border)] flex items-center justify-center">
-                <svg id="pumpIcon" class="w-10 h-10 text-[var(--text-sub)] transition-colors duration-300" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+              <div id="pumpContainer" class="w-20 h-20 rounded-full bg-[var(--card-bg)] border-2 border-[var(--card-border)] flex items-center justify-center p-2 relative shadow-inner">
+                <!-- Outer Chamber Ring -->
+                <div class="absolute inset-1 rounded-full border border-dashed border-[#45475a]"></div>
+                <!-- Spinning Turbine Impeller SVG -->
+                <svg id="pumpIcon" class="w-12 h-12 text-[var(--text-sub)] transition-colors duration-300 z-10" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2a10 10 0 1 0 10 10 A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zm0-14a2 2 0 1 0 2 2 2 2 0 0 0-2-2zm-1 5h2v6h-2zm-3.5-1.5 1.4 1.4 4.2-4.2-1.4-1.4zm7.8 0-4.2 4.2 1.4 1.4 4.2-4.2z"/>
                 </svg>
               </div>
               <span id="pumpStateText" class="text-xs font-mono font-bold text-[#f38ba8]">PUMP RELAY: IDLE (OFF)</span>
@@ -339,7 +342,7 @@
           <li><strong>Water Level Sensor:</strong> VCC &rarr; 3.3V, GND &rarr; GND, Signal &rarr; RP2040 GP26 (ADC0).</li>
           <li><strong>Relay Module:</strong> VCC &rarr; 5V, GND &rarr; GND, IN &rarr; RP2040 GP16.</li>
           <li><strong>Refill Pump Motor:</strong> Wired through Relay NO (Normally Open) contact terminal.</li>
-          <li><strong>Piezo Buzzer:</strong> Connected to GP17 to emit a low-water warning beep when refill engages.</li>
+          <li><strong>Piezo Buzzer:</strong> Connected to GP17 to emit a rhythmic low-water alert pulse during pump execution.</li>
         </ul>
       </div>
 
@@ -384,6 +387,7 @@
     // Web Audio API Sound Synthesizer for Piezo Buzzer
     let audioCtx = null;
     let audioEnabled = true;
+    let buzzerInterval = null;
 
     function initAudio() {
       if (!audioCtx) {
@@ -391,7 +395,7 @@
       }
     }
 
-    function playBuzzerBeep() {
+    function playBuzzerPulse() {
       if (!audioEnabled) return;
       initAudio();
       if (audioCtx.state === 'suspended') {
@@ -401,17 +405,35 @@
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
 
-      osc.type = 'square'; // Typical piezo buzzer waveform
-      osc.frequency.setValueAtTime(2400, audioCtx.currentTime); // 2.4 kHz piezo pitch
+      osc.type = 'square'; // Piezo buzzer square wave
+      osc.frequency.setValueAtTime(2400, audioCtx.currentTime); // 2.4 kHz pitch
 
-      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
 
       osc.connect(gain);
       gain.connect(audioCtx.destination);
 
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.25);
+      osc.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function startRhythmicBuzzer() {
+      stopRhythmicBuzzer();
+      playBuzzerPulse();
+      // Repeat rhythmic alert pulse every 600ms while pump is active
+      buzzerInterval = setInterval(() => {
+        if (pumpActive && audioEnabled) {
+          playBuzzerPulse();
+        }
+      }, 600);
+    }
+
+    function stopRhythmicBuzzer() {
+      if (buzzerInterval) {
+        clearInterval(buzzerInterval);
+        buzzerInterval = null;
+      }
     }
 
     function toggleAudio() {
@@ -420,9 +442,11 @@
       if (audioEnabled) {
         btn.textContent = "🔊 Sound: ON";
         btn.className = "bg-[var(--card-border)] text-xs font-mono px-3 py-1.5 rounded-lg border border-[var(--card-border)] hover:border-[var(--accent)] transition-all";
+        if (pumpActive) startRhythmicBuzzer();
       } else {
         btn.textContent = "🔇 Sound: OFF";
         btn.className = "bg-[#421e25] text-xs font-mono px-3 py-1.5 rounded-lg border border-[#f38ba8] text-[#f38ba8] transition-all";
+        stopRhythmicBuzzer();
       }
     }
 
@@ -452,12 +476,13 @@
       // Check Refill Logic Transitions
       if (currentLevel <= lowThresh && !pumpActive) {
         pumpActive = true;
-        playBuzzerBeep();
+        startRhythmicBuzzer();
         startAutomatedRefill();
-        buzzerBadge.textContent = "🔊 BUZZER: BEEP (LOW ALERT)";
+        buzzerBadge.textContent = "🔊 BUZZER: BEEPING (REFILL ACTIVE)";
         buzzerBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[#421e25] border border-[#f38ba8] text-[#f38ba8] animate-pulse";
       } else if (currentLevel >= fullThresh && pumpActive) {
         pumpActive = false;
+        stopRhythmicBuzzer();
         stopAutomatedRefill();
         buzzerBadge.textContent = "🔊 BUZZER: SILENT";
         buzzerBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-sub)]";
@@ -479,6 +504,7 @@
           updateSimulation();
         } else {
           pumpActive = false;
+          stopRhythmicBuzzer();
           stopAutomatedRefill();
           updateSimulation();
         }
@@ -494,6 +520,7 @@
 
     function updateActuatorVisuals() {
       const pumpIcon = document.getElementById('pumpIcon');
+      const pumpContainer = document.getElementById('pumpContainer');
       const pumpStateText = document.getElementById('pumpStateText');
       const gpioStateText = document.getElementById('gpioStateText');
       const inflowStream = document.getElementById('inflowStream');
@@ -506,8 +533,9 @@
       const lineOff3 = document.getElementById('lineOff3');
 
       if (pumpActive) {
-        pumpIcon.classList.add('pump-spinning');
+        pumpIcon.classList.add('turbine-spinning');
         pumpIcon.style.color = "#a6e3a1";
+        pumpContainer.style.borderColor = "#a6e3a1";
         pumpStateText.textContent = "PUMP RELAY: REFILLING (ON)";
         pumpStateText.className = "text-xs font-mono font-bold text-[#a6e3a1]";
         gpioStateText.textContent = "HIGH (1)";
@@ -523,8 +551,9 @@
         lineOff2.className = "code-line";
         lineOff3.className = "code-line";
       } else {
-        pumpIcon.classList.remove('pump-spinning');
+        pumpIcon.classList.remove('turbine-spinning');
         pumpIcon.style.color = "var(--text-sub)";
+        pumpContainer.style.borderColor = "var(--card-border)";
         pumpStateText.textContent = "PUMP RELAY: IDLE (OFF)";
         pumpStateText.className = "text-xs font-mono font-bold text-[#f38ba8]";
         gpioStateText.textContent = "LOW (0)";
