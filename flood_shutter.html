@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automated Flood Shutter Relay Simulator | RP2040 Suite</title>
+
+  <!-- PWA & Branding Icons -->
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png">
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and MicroPython code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .code-font { font-family: 'Fira Code', monospace; }
+
+    .glass-card {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 12px;
+    }
+
+    /* Flood Barrier Frame & Shutter Visualizer */
+    .shutter-frame {
+      position: relative;
+      width: 220px;
+      height: 180px;
+      border: 6px solid #45475a;
+      border-bottom: 8px solid #a6adc8;
+      background: #11111b;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    .shutter-door {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 0%;
+      background: repeating-linear-gradient(
+        0deg,
+        #f38ba8 0px,
+        #f38ba8 10px,
+        #11111b 10px,
+        #11111b 14px
+      );
+      border-bottom: 4px solid #f38ba8;
+      transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+
+    .flood-water {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 0%;
+      background: linear-gradient(180deg, rgba(137, 180, 250, 0.8) 0%, rgba(49, 50, 68, 0.9) 100%);
+      transition: height 0.3s ease;
+      z-index: 5;
+    }
+
+    /* Warning Strobe & Relay Lights */
+    @keyframes strobe-flash {
+      0%, 100% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 20px #f38ba8; }
+    }
+
+    .strobe-active {
+      animation: strobe-flash 0.5s infinite ease-in-out;
+      background-color: #f38ba8 !important;
+    }
+
+    .status-led {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .led-off { background-color: #313244; box-shadow: none; }
+    .led-green { background-color: #a6e3a1; box-shadow: 0 0 10px #a6e3a1; }
+    .led-red { background-color: #f38ba8; box-shadow: 0 0 10px #f38ba8; }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+  <!-- Header Navigation -->
+  <header class="max-w-6xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
+    <div class="flex items-center gap-3">
+      <a href="index.html" class="text-sm font-semibold text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Hub
+      </a>
+      <span class="text-[var(--card-border)]">|</span>
+      <span class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">Module 15: Automated Flood Shutter & Barrier Relay</span>
+    </div>
+
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
+  </header>
+
+  <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- LEFT PANEL: Visualizer & Controls (7 Cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-6">
+      
+      <!-- Interactive Visualizer Canvas -->
+      <div class="glass-card p-6 shadow-xl flex flex-col items-center justify-between min-h-[380px] relative overflow-hidden">
+        <div class="w-full flex justify-between items-center border-b border-[var(--card-border)] pb-3 mb-4">
+          <span class="text-xs font-mono font-bold text-[var(--accent)] uppercase">🚨 Flood Barrier Shutter Physics</span>
+          <span id="statusBadge" class="text-xs font-mono px-2.5 py-1 rounded bg-[#274029] text-[#a6e3a1] border border-[#a6e3a1]">STATUS: CLEAR (SAFE)</span>
+        </div>
+
+        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-6 items-center my-2">
+          
+          <!-- Animated Door & Flood Layer Visual -->
+          <div class="bg-[var(--inner-box)] p-4 rounded-xl border border-[var(--card-border)] flex flex-col items-center gap-3">
+            <span class="text-xs font-mono text-[var(--text-sub)]">Building Access Bay Shutter</span>
+            
+            <div class="shutter-frame">
+              <!-- Water Level Graphic -->
+              <div id="waterGraphic" class="flood-water" style="height: 15%;"></div>
+
+              <!-- Motorized Shutter Door -->
+              <div id="shutterDoor" class="shutter-door" style="height: 0%;"></div>
+
+              <!-- Interior Room Safe Label -->
+              <div class="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none text-xs font-bold font-mono text-white">
+                INTERIOR BAY
+              </div>
+            </div>
+
+            <span id="shutterStateText" class="text-xs font-mono font-bold text-[#a6e3a1]">SHUTTER: OPEN (PASSABLE)</span>
+          </div>
+
+          <!-- Relay Actuator & Alarm Panel -->
+          <div class="bg-[var(--inner-box)] p-4 rounded-xl border border-[var(--card-border)] flex flex-col items-center justify-between gap-4 h-full">
+            <span class="text-xs font-mono text-[var(--text-sub)]">Automated Defense Actuators</span>
+
+            <!-- Warning Strobe & LED Indicators -->
+            <div class="flex items-center gap-3 bg-[var(--card-bg)] px-4 py-2.5 rounded-lg border border-[var(--card-border)] w-full justify-around">
+              <div class="flex items-center gap-1.5 text-[0.7rem] font-mono">
+                <div id="strobeBeacon" class="w-4 h-4 rounded-full bg-[#313244]"></div>
+                <span>STROBE</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-[0.7rem] font-mono">
+                <div id="relayLed" class="status-led led-off"></div>
+                <span>RELAY</span>
+              </div>
+            </div>
+
+            <!-- Shutter Motor Drive Box -->
+            <div class="flex flex-col items-center gap-2">
+              <div id="motorBox" class="w-16 h-16 rounded-xl bg-[var(--card-bg)] border-2 border-[var(--card-border)] flex items-center justify-center">
+                <span id="motorIcon" class="text-2xl">⚙️</span>
+              </div>
+              <span id="relayStatusText" class="text-xs font-mono font-bold text-[#f38ba8]">MOTOR RELAY: OFF (0V)</span>
+            </div>
+
+            <!-- Siren Alert Badge -->
+            <div id="sirenBadge" class="text-[0.7rem] font-mono px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-sub)]">
+              📢 SIREN: SILENT
+            </div>
+          </div>
+
+        </div>
+
+        <!-- System Signal Readouts -->
+        <div class="w-full grid grid-cols-3 gap-2 text-center code-font text-xs bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)]">
+          <div><span class="text-[var(--text-sub)]">Water Depth:</span> <br><strong id="depthText">15.0 cm</strong></div>
+          <div><span class="text-[var(--text-sub)]">ADC Voltage:</span> <br><strong id="voltageText">0.495 V</strong></div>
+          <div><span class="text-[var(--text-sub)]">Relay (GP16):</span> <br><strong id="gpioStateText" class="text-[#f38ba8]">LOW (0)</strong></div>
+        </div>
+      </div>
+
+      <!-- Interactive Controls -->
+      <div class="glass-card p-5 shadow-xl flex flex-col gap-4">
+        <h3 class="text-sm font-bold text-[var(--accent)] font-mono uppercase">🎛️ Flood Threat Controls</h3>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label for="floodSlider" class="text-xs font-mono">Simulated External Water Level (cm):</label>
+            <span id="sliderCmVal" class="text-xs font-mono font-bold text-[var(--accent)]">15 cm</span>
+          </div>
+          <input type="range" id="floodSlider" min="0" max="100" value="15" step="1" oninput="updateSimulation()" class="w-full accent-[var(--accent)] bg-[var(--inner-box)] rounded-lg cursor-pointer">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="triggerThreshInput" class="block text-xs font-mono text-[var(--text-sub)] mb-1">Trigger Height (CLOSE):</label>
+            <input type="number" id="triggerThreshInput" value="40" min="10" max="80" step="5" onchange="updateSimulation()" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none focus:border-[var(--accent)] code-font">
+          </div>
+          <div>
+            <label for="resetThreshInput" class="block text-xs font-mono text-[var(--text-sub)] mb-1">Clear Height (RE-OPEN):</label>
+            <input type="number" id="resetThreshInput" value="20" min="5" max="60" step="5" onchange="updateSimulation()" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2 outline-none focus:border-[var(--accent)] code-font">
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT PANEL: MicroPython Code & Principles (5 Cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- MicroPython Code Box -->
+      <div class="glass-card p-5 shadow-xl flex flex-col gap-3">
+        <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2">
+          <span class="text-xs font-mono font-bold text-[var(--accent)]">🐍 MicroPython Code (RP2040)</span>
+          <button onclick="copyCode()" class="text-[0.7rem] font-mono bg-[var(--inner-box)] hover:bg-[var(--card-border)] border border-[var(--card-border)] px-2 py-1 rounded transition-colors text-[var(--accent)]">📋 Copy</button>
+        </div>
+
+        <pre class="bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] code-font text-xs text-[#cdd6f4] overflow-x-auto leading-relaxed"><code id="codeBlock">import machine
+import time
+
+# Pin Assignments
+water_adc = machine.ADC(machine.Pin(26))  # Water Sensor ADC0
+shutter_relay = machine.Pin(16, machine.Pin.OUT) # Motor Relay
+strobe_light = machine.Pin(17, machine.Pin.OUT)  # Warning Light
+alarm_siren = machine.Pin(18, machine.Pin.OUT)   # Siren
+
+TRIGGER_HEIGHT = 40.0  # Close shutters at >= 40cm
+CLEAR_HEIGHT = 20.0    # Re-open shutters at < 20cm
+
+shutters_closed = False
+
+def read_water_level_cm():
+    raw = water_adc.read_u16()
+    # Map 16-bit ADC reading to 0 - 100 cm
+    level_cm = (raw / 65535.0) * 100.0
+    return level_cm
+
+while True:
+    water_cm = read_water_level_cm()
+    
+    # Dual-Threshold Hysteresis Shutter Trigger
+    if water_cm >= TRIGGER_HEIGHT and not shutters_closed:
+        shutter_relay.value(1) # Energize Relay to Close Shutter
+        strobe_light.value(1)  # Turn ON Beacon Strobe
+        alarm_siren.value(1)   # Sound Warning Siren
+        shutters_closed = True
+        print(f"FLOOD WARNING ({water_cm:.1f}cm): Shutters CLOSING!")
+        
+    elif water_cm < CLEAR_HEIGHT and shutters_closed:
+        shutter_relay.value(0) # De-energize Relay to Open Shutter
+        strobe_light.value(0)  # Turn OFF Strobe
+        alarm_siren.value(0)   # Silence Siren
+        shutters_closed = False
+        print(f"FLOOD CLEAR ({water_cm:.1f}cm): Shutters OPENING.")
+        
+    time.sleep(0.5)</code></pre>
+      </div>
+
+      <!-- Hardware Schematic & Notes -->
+      <div class="glass-card p-5 shadow-xl space-y-3 text-xs">
+        <h4 class="font-bold text-[var(--accent)] font-mono uppercase">🔌 Circuit Schematic Notes</h4>
+        <ul class="space-y-1.5 text-[var(--text-sub)] list-disc pl-4 leading-relaxed">
+          <li><strong>Water Level / Ultrasonic Probe:</strong> Connected to RP2040 GP26 (ADC0).</li>
+          <li><strong>Heavy-Duty Motor Relay:</strong> Powered via GP16 to actuate 24V/220V motorized door coils.</li>
+          <li><strong>Normally Closed vs Normally Open:</strong> Shutter motors use NO contacts so power failures default to safety states.</li>
+          <li><strong>Strobe & Siren:</strong> Triggered via GP17 & GP18 to provide optical and audible site evacuation warnings.</li>
+        </ul>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    let shuttersClosed = false;
+
+    function updateSimulation() {
+      const waterCm = parseFloat(document.getElementById('floodSlider').value);
+      const triggerThresh = parseFloat(document.getElementById('triggerThreshInput').value);
+      const resetThresh = parseFloat(document.getElementById('resetThreshInput').value);
+
+      document.getElementById('sliderCmVal').textContent = `${waterCm} cm`;
+      document.getElementById('depthText').textContent = `${waterCm.toFixed(1)} cm`;
+      document.getElementById('waterGraphic').style.height = `${waterCm}%`;
+
+      // Convert cm depth to simulated ADC raw and voltage
+      const rawAdc = Math.round((waterCm / 100.0) * 65535);
+      const voltage = (waterCm / 100.0) * 3.3;
+
+      document.getElementById('voltageText').textContent = `${voltage.toFixed(3)} V`;
+
+      // Hysteresis Relay Control Logic
+      if (waterCm >= triggerThresh && !shuttersClosed) {
+        shuttersClosed = true;
+      } else if (waterCm < resetThresh && shuttersClosed) {
+        shuttersClosed = false;
+      }
+
+      // Update UI Elements
+      const shutterDoor = document.getElementById('shutterDoor');
+      const shutterStateText = document.getElementById('shutterStateText');
+      const relayStatusText = document.getElementById('relayStatusText');
+      const gpioStateText = document.getElementById('gpioStateText');
+      const statusBadge = document.getElementById('statusBadge');
+      const strobeBeacon = document.getElementById('strobeBeacon');
+      const relayLed = document.getElementById('relayLed');
+      const sirenBadge = document.getElementById('sirenBadge');
+
+      if (shuttersClosed) {
+        shutterDoor.style.height = "100%"; // Fully closed
+        shutterStateText.textContent = "SHUTTER: SEALED (PROTECTED)";
+        shutterStateText.className = "text-xs font-mono font-bold text-[#f38ba8]";
+
+        relayStatusText.textContent = "MOTOR RELAY: ENERGIZED (CLOSED)";
+        relayStatusText.className = "text-xs font-mono font-bold text-[#f38ba8]";
+        gpioStateText.textContent = "HIGH (1)";
+        gpioStateText.className = "text-[#f38ba8]";
+
+        statusBadge.textContent = `CRITICAL FLOOD ALERT (${waterCm.toFixed(0)}cm)`;
+        statusBadge.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#421e25] text-[#f38ba8] border border-[#f38ba8] animate-pulse";
+
+        strobeBeacon.className = "w-4 h-4 rounded-full strobe-active";
+        relayLed.className = "status-led led-red";
+
+        sirenBadge.textContent = "📢 SIREN: WARNING SOUNDING";
+        sirenBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[#421e25] border border-[#f38ba8] text-[#f38ba8] animate-pulse";
+      } else {
+        shutterDoor.style.height = "0%"; // Fully open
+        shutterStateText.textContent = "SHUTTER: OPEN (PASSABLE)";
+        shutterStateText.className = "text-xs font-mono font-bold text-[#a6e3a1]";
+
+        relayStatusText.textContent = "MOTOR RELAY: IDLE (OFF)";
+        relayStatusText.className = "text-xs font-mono font-bold text-[#a6e3a1]";
+        gpioStateText.textContent = "LOW (0)";
+        gpioStateText.className = "text-[#a6e3a1]";
+
+        statusBadge.textContent = "STATUS: CLEAR (SAFE)";
+        statusBadge.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#274029] text-[#a6e3a1] border border-[#a6e3a1]";
+
+        strobeBeacon.className = "w-4 h-4 rounded-full bg-[#313244]";
+        relayLed.className = "status-led led-off";
+
+        sirenBadge.textContent = "📢 SIREN: SILENT";
+        sirenBadge.className = "text-[0.7rem] font-mono px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-sub)]";
+      }
+    }
+
+    function copyCode() {
+      const codeText = document.getElementById('codeBlock').innerText;
+      navigator.clipboard.writeText(codeText).then(() => {
+        alert("MicroPython code copied to clipboard!");
+      });
+    }
+
+    // Initialize
+    updateSimulation();
+  </script>
+  <script src="./theme.js"></script>
+</body>
+</html>
