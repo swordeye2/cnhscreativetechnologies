@@ -557,3 +557,113 @@
       <!-- PIR Interrupt Visualizer -->
       <div class="card">
         <div>
+          <h3>🚨 PIR Motion Sensor & Hardware IRQs</h3>
+          <p>
+            Compare hardware edge interrupts (.irq()) against continuous polling loops in low-power embedded computing.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Pin.IRQ_RISING</span>
+            <span class="tag">ISR Handler</span>
+            <span class="tag">Power Efficiency</span>
+          </div>
+        </div>
+        <a href="./pir_interrupt.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- I2C Bus Sensor -->
+      <div class="card">
+        <div>
+          <h3>🌐 I2C Bus & Proximity Sensor</h3>
+          <p>
+            Understand 2-wire SDA/SCL serial protocols, 7-bit slave device addresses, and register byte buffer reads.
+          </p>
+          <div class="tag-container">
+            <span class="tag">I2C Protocol</span>
+            <span class="tag">SDA / SCL</span>
+            <span class="tag">7-Bit Addressing</span>
+          </div>
+        </div>
+        <a href="./i2c_sensor.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- I2C Event Interrupts -->
+      <div class="card">
+        <div>
+          <h3>⚡ I2C Event Interrupts & Handlers</h3>
+          <p>
+            Simulate interrupt-driven I2C bus communications for real-time sensor processing without blocking main CPU loops.
+          </p>
+          <div class="tag-container">
+            <span class="tag">I2C IRQ</span>
+            <span class="tag">Bus Events</span>
+            <span class="tag">Non-blocking</span>
+          </div>
+        </div>
+        <a href="./i2c_interrupt.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+      <!-- Drone Flight Dynamics -->
+      <div class="card">
+        <div>
+          <h3>🚁 6-DoF Flight Dynamics & Quadcopter Physics</h3>
+          <p>
+            Apply rotational mechanics, moments of inertia, counter-rotational torque, and motor thrust vectors to simulated drone flight.
+          </p>
+          <div class="tag-container">
+            <span class="tag">Pitch & Roll</span>
+            <span class="tag">Yaw Torque</span>
+            <span class="tag">MPU6050 IMU</span>
+          </div>
+        </div>
+        <a href="./drone_sim.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+    </div>
+
+    <footer class="flex items-center justify-center gap-3">
+      <img src="./icon-512.png" alt="Logo" class="w-6 h-6 rounded-md opacity-80">
+      <span>RP2040 MicroPython Visualizers for CNHS Creative Technologies | © 2026 Jorge Victor M. Sales</span>
+    </footer>
+  </div>
+
+  <script src="./theme.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const splashOverlay = document.getElementById("splashAdOverlay");
+      const skipBtn = document.getElementById("skipSplashBtn");
+      const timerText = document.getElementById("splashTimerText");
+
+      // Check if user already saw the splash overlay in this session
+      if (sessionStorage.getItem("splashAdShown") === "true") {
+        if (splashOverlay) splashOverlay.style.display = "none";
+        return;
+      }
+
+      let countdown = 5;
+
+      const interval = setInterval(() => {
+        countdown--;
+
+        if (countdown > 0) {
+          if (timerText) timerText.textContent = `Entering Lab in ${countdown}s...`;
+          if (skipBtn) skipBtn.textContent = `Skip (${countdown})`;
+        } else {
+          clearInterval(interval);
+          if (timerText) timerText.textContent = "Ready!";
+          if (skipBtn) {
+            skipBtn.disabled = false;
+            skipBtn.textContent = "Continue to Lab →";
+            skipBtn.className = "bg-[var(--accent)] text-[#11111b] text-xs font-bold py-2 px-4 rounded cursor-pointer hover:opacity-90 shadow-md transition-all";
+          }
+        }
+      }, 1000);
+    });
+
+    function closeSplashAd() {
+      const splashOverlay = document.getElementById("splashAdOverlay");
+      if (splashOverlay) splashOverlay.style.display = "none";
+      sessionStorage.setItem("splashAdShown", "true");
+    }
+  </script>
+</body>
+</html>
