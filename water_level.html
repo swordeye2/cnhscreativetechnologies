@@ -100,6 +100,37 @@
     .led-green { background-color: #a6e3a1; box-shadow: 0 0 10px #a6e3a1; }
     .led-yellow { background-color: #f9e2af; box-shadow: 0 0 10px #f9e2af; }
     .led-red { background-color: #f38ba8; box-shadow: 0 0 10px #f38ba8; }
+
+    /* Interactive Quiz Styling */
+    .quiz-opt {
+      background: var(--inner-box, #11111b);
+      border: 1px solid var(--card-border, #313244);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--text-main, #cdd6f4);
+      text-align: left;
+      width: 100%;
+    }
+
+    .quiz-opt:hover {
+      border-color: var(--accent, #89b4fa);
+      background: var(--card-border, #313244);
+    }
+
+    .quiz-opt.correct {
+      background: #274029 !important;
+      border-color: #a6e3a1 !important;
+      color: #a6e3a1 !important;
+    }
+
+    .quiz-opt.wrong {
+      background: #421e25 !important;
+      border-color: #f38ba8 !important;
+      color: #f38ba8 !important;
+    }
   </style>
 </head>
 <body class="p-3 md:p-6">
@@ -230,7 +261,7 @@
 
     </section>
 
-    <!-- RIGHT PANEL: MicroPython Code & Principles (5 Cols) -->
+    <!-- RIGHT PANEL: MicroPython Code, Principles & Concept Check Quiz (5 Cols) -->
     <section class="lg:col-span-5 flex flex-col gap-6">
       
       <!-- MicroPython Code Box -->
@@ -289,6 +320,35 @@ while True:
           <li><strong>Refill Pump Motor:</strong> Wired through Relay NO (Normally Open) contact terminal.</li>
           <li><strong>Buzzer:</strong> GP17 (Active Piezo Buzzer) triggers audio click on refill state changes.</li>
         </ul>
+      </div>
+
+      <!-- INTERACTIVE CONCEPT CHECK QUIZ PANEL -->
+      <div class="glass-card p-5 shadow-xl flex flex-col gap-3">
+        <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-2">
+          <span class="text-xs font-mono font-bold text-[var(--accent)] uppercase">💡 Quick Concept Check</span>
+          <span class="text-[10px] font-mono text-[var(--text-sub)]">1 Question</span>
+        </div>
+
+        <div class="text-xs font-semibold text-[var(--text-main)] leading-relaxed">
+          Which terminal configuration on an optocoupled relay ensures a water refill pump motor remains safely DE-ENERGIZED (OFF) if power to the microcontroller fails?
+        </div>
+
+        <div class="flex flex-col gap-2 mt-1">
+          <button class="quiz-opt" onclick="checkQuizAnswer(this, true)">
+            A. Normally Open (NO) and Common (COM)
+          </button>
+          <button class="quiz-opt" onclick="checkQuizAnswer(this, false)">
+            B. Normally Closed (NC) and Common (COM)
+          </button>
+          <button class="quiz-opt" onclick="checkQuizAnswer(this, false)">
+            C. VCC and Ground (GND)
+          </button>
+          <button class="quiz-opt" onclick="checkQuizAnswer(this, false)">
+            D. Signal Input (IN) and VCC
+          </button>
+        </div>
+
+        <div id="quizFeedback" class="mt-2 text-xs font-mono font-bold hidden p-3 rounded-lg border"></div>
       </div>
 
     </section>
@@ -373,6 +433,23 @@ while True:
         ledNormal.className = "status-led led-green";
         levelBadge.textContent = `LEVEL: NORMAL (${level.toFixed(0)}%)`;
         levelBadge.className = "text-xs font-mono px-2.5 py-1 rounded bg-[#274029] text-[#a6e3a1] border border-[#a6e3a1]";
+      }
+    }
+
+    function checkQuizAnswer(buttonEl, isCorrect) {
+      const fb = document.getElementById('quizFeedback');
+      document.querySelectorAll('.quiz-opt').forEach(btn => btn.classList.remove('correct', 'wrong'));
+
+      fb.classList.remove('hidden');
+
+      if (isCorrect) {
+        buttonEl.classList.add('correct');
+        fb.className = "mt-2 text-xs font-mono font-bold p-3 rounded-lg border bg-[#274029] border-[#a6e3a1] text-[#a6e3a1]";
+        fb.textContent = "✓ Correct! Wiring through Normally Open (NO) and Common (COM) ensures that if MCU or relay coil power vanishes, the mechanical contact opens automatically, keeping the refill pump safely OFF.";
+      } else {
+        buttonEl.classList.add('wrong');
+        fb.className = "mt-2 text-xs font-mono font-bold p-3 rounded-lg border bg-[#421e25] border-[#f38ba8] text-[#f38ba8]";
+        fb.textContent = "✗ Incorrect. Review relay safety contacts! Normally Open (NO) keeps the pump circuit broken until the microcontroller actively energizes the relay coil.";
       }
     }
 
