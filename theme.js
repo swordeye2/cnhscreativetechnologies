@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
     adContainer.id = "stickyBottomAdBox";
     adContainer.className = "fixed bottom-0 left-0 right-0 z-50 p-2 md:p-3 border-t shadow-2xl flex flex-col items-center justify-center";
     
-    // Solid background styles to stop text bleed/transparency issues
+    // Solid background styles to prevent bleed/transparency issues
     adContainer.style.backgroundColor = "var(--card-bg, #181825)";
     adContainer.style.borderColor = "var(--card-border, #313244)";
     
@@ -77,8 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
         <ins class="adsbygoogle"
              style="display:block; width:100%; height:60px;"
              data-ad-client="ca-pub-7612819391368136"
-             data-ad-slot="7135124606"
-             data-ad-format="horizontal"
+             data-ad-slot="7886162554"
+             data-ad-layout-key="-fb+5w+4e-db+86"
+             data-ad-format="fluid"
              data-full-width-responsive="true"></ins>
       </div>
     `;
