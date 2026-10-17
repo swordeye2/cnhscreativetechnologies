@@ -1,0 +1,5 @@
+{
+  "version": "1.1.1",
+  "downloadUrl": "https://github.com/swordeye2/cnhscreativetechnologies/raw/main/app_version/RPi%20MicroPython%20Sims%201.1.1.apk",
+  "changelog": "Added Water Level & Flood Shutter Modules with sirens and code inspectors."
+}
