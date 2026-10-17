@@ -51,22 +51,29 @@ document.addEventListener("DOMContentLoaded", () => {
       window.adsbygoogle.requestNonPersonalizedAds = 1;
     }
 
-    // 2. Inject Sticky Bottom Ad Container
+    // 2. Inject Solid Sticky Bottom Ad Container
     const adContainer = document.createElement("div");
-    adContainer.className = "fixed bottom-0 left-0 right-0 z-40 p-2 md:p-3 bg-[var(--card-bg)] border-t border-[var(--card-border)] shadow-2xl flex flex-col items-center justify-center";
     adContainer.id = "stickyBottomAdBox";
+    adContainer.className = "fixed bottom-0 left-0 right-0 z-50 p-2 md:p-3 border-t shadow-2xl flex flex-col items-center justify-center";
+    
+    // Solid background styles to stop text bleed/transparency issues
+    adContainer.style.backgroundColor = "var(--card-bg, #181825)";
+    adContainer.style.borderColor = "var(--card-border, #313244)";
     
     adContainer.innerHTML = `
       <div class="max-w-6xl w-full flex justify-between items-center mb-1 px-2">
-        <span class="text-[10px] font-mono text-[var(--accent)] uppercase font-bold tracking-wider">
+        <span class="text-[10px] font-mono uppercase font-bold tracking-wider" style="color: var(--accent, #89b4fa);">
           ⚡ Educational Hardware Sponsor
         </span>
-        <button onclick="document.getElementById('stickyBottomAdBox').remove()" class="text-[10px] font-mono text-[var(--text-sub)] hover:text-white px-2 py-0.5 rounded border border-[var(--card-border)] bg-[var(--inner-box)] cursor-pointer">
+        <button onclick="document.getElementById('stickyBottomAdBox').remove()" 
+                class="text-[10px] font-mono px-2 py-0.5 rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                style="color: var(--text-sub, #a6adc8); background-color: var(--inner-box, #11111b); border-color: var(--card-border, #313244);">
           ✕ Dismiss
         </button>
       </div>
 
-      <div class="w-full max-w-4xl overflow-hidden min-h-[60px] flex items-center justify-center">
+      <div class="w-full max-w-4xl overflow-hidden min-h-[60px] flex items-center justify-center rounded border"
+           style="background-color: var(--inner-box, #11111b); border-color: var(--card-border, #313244);">
         <ins class="adsbygoogle"
              style="display:block; width:100%; height:60px;"
              data-ad-client="ca-pub-7612819391368136"
@@ -78,8 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.body.appendChild(adContainer);
 
-    // Add extra bottom padding to body so the sticky ad doesn't overlap content/footers
-    document.body.style.paddingBottom = "90px";
+    // Provide 120px buffer padding so students can scroll cleanly above the sticky bar
+    document.body.style.paddingBottom = "120px";
 
     // Trigger AdSense Render
     try {
