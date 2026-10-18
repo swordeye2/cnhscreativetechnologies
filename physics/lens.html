@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Geometric Optics & Thin Lens Visualizer | CNHS Physics Suite</title>
+  <title>Single Thin Lens Engine | Just in Time "GIT GUD" Physics</title>
 
-  <!-- PWA & Branding Icons -->
-  <link rel="icon" type="image/png" sizes="512x512" href="../icon-512.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="../icon-512.png">
+  <!-- Local Physics Suite Assets -->
+  <link rel="icon" type="image/png" href="./icon-512.png">
+  <link rel="apple-touch-icon" href="./icon-512.png">
   <link rel="manifest" href="./manifest.json">
+
+  <!-- Shared Parent Theme -->
+  <link rel="stylesheet" href="../theme.css">
 
   <!-- Legal IP & Copyright Assertions -->
   <meta name="author" content="Jorge Victor M. Sales">
@@ -18,16 +21,6 @@
   <meta name="alias" content="swordeye, thearbiter">
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" type="image/png" href="./icon-512.png">
-<link rel="apple-touch-icon" href="./icon-512.png">
-<link rel="manifest" href="./manifest.json">
-<!-- Local Physics Suite Assets -->
-<link rel="icon" type="image/png" href="./icon-512.png">
-<link rel="apple-touch-icon" href="./icon-512.png">
-<link rel="manifest" href="./manifest.json">
-
-<!-- Shared Parent Theme -->
-<link rel="stylesheet" href="../theme.css">
 
   <!-- Google AdSense Script (COPPA & Non-Personalized Student-Safe Configuration) -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136" crossorigin="anonymous"></script>
@@ -64,6 +57,7 @@
       display: flex;
       flex-direction: column;
       overflow-x: hidden;
+      padding-bottom: 120px; /* COPPA Safety Buffer */
     }
 
     header {
@@ -343,21 +337,26 @@
 </head>
 <body>
 
-  <!-- HEADER NAVIGATION -->
+  <!-- STANDARDIZED HEADER NAVIGATION -->
   <header class="flex flex-wrap items-center justify-between gap-2 p-3 bg-[var(--panel-bg)] border-b border-[var(--panel-border)]">
-    <h1 class="text-base font-semibold text-[var(--accent-blue)] flex items-center gap-2">
-      🔬 Pure Physics: Single Lens Optics Visualizer
-    </h1>
+    <div class="flex items-center gap-3">
+      <a href="./index.html" class="nav-btn flex items-center gap-1">
+        <span>⬅</span> <span>Physics Hub</span>
+      </a>
+      <img src="./icon-512.png" alt="App Icon" class="w-8 h-8 rounded-md">
+      <div>
+        <h1 class="text-base font-bold text-[var(--accent-blue)] flex items-center gap-2 m-0">
+          Single Thin Lens Optics Engine
+        </h1>
+        <div class="text-[11px] text-[var(--text-muted)]">
+          Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | CC BY-NC-SA 4.0
+        </div>
+      </div>
+    </div>
 
     <div class="flex items-center gap-2 flex-wrap">
-      <a href="../index.html" class="nav-btn flex items-center gap-1">
-        <span>🏠</span> <span>Main Lab Hub</span>
-      </a>
-      <a href="./index.html" class="nav-btn flex items-center gap-1">
-        <span>🔬</span> <span>Physics Suite</span>
-      </a>
-      <button class="nav-btn flex items-center gap-1" onclick="toggleTheme()">
-        <span>🌙</span> <span>Theme</span>
+      <button id="themeToggle" class="nav-btn flex items-center gap-1" onclick="toggleTheme()">
+        <span>🌙</span> <span>Dark Theme</span>
       </button>
     </div>
   </header>
@@ -542,7 +541,7 @@
   </div>
 
   <script src="../theme.js"></script>
-<script>
+  <script>
     // Synchronized Theme Switcher Engine
     function toggleTheme() {
         const html = document.documentElement;
@@ -567,7 +566,8 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
         updateThemeButtonText(savedTheme);
     });
-</script>
+  </script>
+
   <script>
     let lensType = 'biconvex';
     let isFlipped = false;
@@ -609,6 +609,68 @@
     }
 
     window.addEventListener('resize', resizeCanvas);
+
+    function setLensType(type) {
+      lensType = type;
+      ['biconvex', 'planoconvex', 'biconcave', 'planoconcave'].forEach(id => {
+        const btn = document.getElementById(`btn-${id}`);
+        if (btn) btn.classList.toggle('active', type === id);
+      });
+      draw();
+    }
+
+    function setLensFlip(flipState) {
+      isFlipped = flipState;
+      document.getElementById('btn-flip-normal').classList.toggle('active', !isFlipped);
+      document.getElementById('btn-flip-flipped').classList.toggle('active', isFlipped);
+      draw();
+    }
+
+    function applyPreset(preset) {
+      if (preset === 'real-image') {
+        setLensType('biconvex');
+        setLensFlip(false);
+        focalLength = 150;
+        objectDistance = 280;
+        objectHeight = 80;
+      } else if (preset === 'magnifier') {
+        setLensType('planoconvex');
+        setLensFlip(false);
+        focalLength = 150;
+        objectDistance = 90;
+        objectHeight = 60;
+      } else if (preset === 'diverging') {
+        setLensType('planoconcave');
+        setLensFlip(false);
+        focalLength = 150;
+        objectDistance = 220;
+        objectHeight = 80;
+      } else if (preset === '2f-equal') {
+        setLensType('biconvex');
+        setLensFlip(false);
+        focalLength = 140;
+        objectDistance = 280;
+        objectHeight = 80;
+      }
+      updateSlidersFromState();
+      draw();
+    }
+
+    function resetSimulation() {
+      setLensType('biconvex');
+      setLensFlip(false);
+      focalLength = 150;
+      objectDistance = 250;
+      objectHeight = 80;
+      updateSlidersFromState();
+      draw();
+    }
+
+    function updateSlidersFromState() {
+      sliderFocal.value = focalLength;
+      sliderDo.value = objectDistance;
+      sliderHo.value = objectHeight;
+    }
 
     function getPhysics() {
       const isConverging = (lensType === 'biconvex' || lensType === 'planoconvex');
@@ -936,67 +998,6 @@
         stepDi.innerHTML = `d<sub>i</sub> = (${phys.f} &middot; ${phys.do_val}) / (0) = <strong>&infin; (Parallel Rays)</strong>`;
         stepM.innerHTML = `m = undefined &nbsp;|&nbsp; h<sub>i</sub> = undefined`;
       }
-    }
-
-    function setLensType(type) {
-      lensType = type;
-      ['biconvex', 'planoconvex', 'biconcave', 'planoconcave'].forEach(id => {
-        document.getElementById(`btn-${id}`).classList.toggle('active', type === id);
-      });
-      draw();
-    }
-
-    function setLensFlip(flipState) {
-      isFlipped = flipState;
-      document.getElementById('btn-flip-normal').classList.toggle('active', !isFlipped);
-      document.getElementById('btn-flip-flipped').classList.toggle('active', isFlipped);
-      draw();
-    }
-
-    function applyPreset(preset) {
-      if (preset === 'real-image') {
-        setLensType('biconvex');
-        setLensFlip(false);
-        focalLength = 150;
-        objectDistance = 280;
-        objectHeight = 80;
-      } else if (preset === 'magnifier') {
-        setLensType('planoconvex');
-        setLensFlip(false);
-        focalLength = 150;
-        objectDistance = 90;
-        objectHeight = 60;
-      } else if (preset === 'diverging') {
-        setLensType('planoconcave');
-        setLensFlip(false);
-        focalLength = 150;
-        objectDistance = 220;
-        objectHeight = 80;
-      } else if (preset === '2f-equal') {
-        setLensType('biconvex');
-        setLensFlip(false);
-        focalLength = 140;
-        objectDistance = 280;
-        objectHeight = 80;
-      }
-      updateSlidersFromState();
-      draw();
-    }
-
-    function resetSimulation() {
-      setLensType('biconvex');
-      setLensFlip(false);
-      focalLength = 150;
-      objectDistance = 250;
-      objectHeight = 80;
-      updateSlidersFromState();
-      draw();
-    }
-
-    function updateSlidersFromState() {
-      sliderFocal.value = focalLength;
-      sliderDo.value = objectDistance;
-      sliderHo.value = objectHeight;
     }
 
     sliderFocal.addEventListener('input', (e) => { focalLength = parseFloat(e.target.value); draw(); });
