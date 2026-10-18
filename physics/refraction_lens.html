@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spherical Refracting Surface & Medium Engine | Just in Time "GIT GUD" Physics</title>
+  <title>Spherical Refracting Surface & Submerged Lens Engine | Just in Time "GIT GUD" Physics</title>
 
   <!-- Local Physics Suite Assets -->
   <link rel="icon" type="image/png" href="./icon-512.png">
@@ -315,7 +315,7 @@
       <img src="./icon-512.png" alt="App Icon" class="w-8 h-8 rounded-md">
       <div>
         <h1 class="text-base font-bold text-[var(--accent-blue)] flex items-center gap-2 m-0">
-          Spherical Refracting Surface & Refracting Medium Engine
+          Spherical Refracting Surface & Refraction Lens Engine
         </h1>
         <div class="text-[11px] text-[var(--text-muted)]">
           Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | CC BY-NC-SA 4.0
@@ -463,7 +463,7 @@
 
         <div class="space-y-3">
           <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
-            <p class="font-bold text-slate-200 mb-1">Q1: What happens to the lateral magnification (m) formula for a single spherical refracting surface?</p>
+            <p class="font-bold text-slate-200 mb-1">Q1: What is the lateral magnification (m) formula for a single spherical refracting surface?</p>
             <div class="flex gap-4 text-slate-300">
               <label><input type="radio" name="q1" value="A" onclick="checkQuiz()"> A) m = -s'/s</label>
               <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) m = - (nₐ &middot; s') / (n<sub>b</sub> &middot; s)</label>
@@ -496,7 +496,6 @@
 
   <script src="../theme.js"></script>
   <script>
-    // Synchronized Theme Switcher Engine
     function toggleTheme() {
         const html = document.documentElement;
         const currentTheme = html.getAttribute('data-theme') || 'dark';
@@ -522,7 +521,7 @@
   </script>
 
   <script>
-    let simMode = 'surface'; // 'surface' or 'submerged'
+    let simMode = 'surface';
     let na = 1.000;
     let nb = 1.520;
     let R = 100;
@@ -578,7 +577,6 @@
         let yp = y * m;
         return { sp, m, yp };
       } else {
-        // Submerged Thin Lens Lensmaker Formula: 1/f = (n_lens/n_med - 1)*(2/R)
         const f_eff = (1 / ((nb / na) - 1)) * (R / 2);
         let sp = Infinity;
         if (Math.abs(s - f_eff) > 0.001) {
@@ -596,15 +594,12 @@
       const centerX = canvas.width * 0.45;
       const centerY = canvas.height / 2;
 
-      // Draw Medium 2 Background Fill (Right of Surface)
       ctx.fillStyle = getMediumColor(nb);
       ctx.fillRect(centerX, 0, canvas.width - centerX, canvas.height);
 
-      // Draw Medium 1 Background Fill (Left of Surface)
       ctx.fillStyle = getMediumColor(na);
       ctx.fillRect(0, 0, centerX, canvas.height);
 
-      // Optical Axis
       ctx.beginPath();
       ctx.strokeStyle = '#475569';
       ctx.lineWidth = 1.5;
@@ -614,15 +609,12 @@
 
       const phys = getRefractionPhysics();
 
-      // Draw Spherical Refracting Boundary
       drawRefractingInterface(centerX, centerY);
 
-      // Object Arrow
       const objX = centerX - s;
       const objY = centerY - y;
       drawArrow(objX, centerY, objX, objY, '#38bdf8', 'Object (s)', true);
 
-      // Image Arrow
       if (isFinite(phys.sp) && Math.abs(phys.sp) < 4000) {
         const imgX = centerX + phys.sp;
         const imgY = centerY - phys.yp;
@@ -630,7 +622,6 @@
         const imgColor = isVirtual ? '#f38ba8' : '#a6e3a1';
         drawArrow(imgX, centerY, imgX, imgY, imgColor, isVirtual ? "Virtual Img (s')" : "Real Img (s')", !isVirtual, isVirtual);
 
-        // Ray Tracing
         drawRayTracing(centerX, centerY, objX, objY, imgX, imgY, phys);
       }
 
@@ -639,10 +630,10 @@
     }
 
     function getMediumColor(nVal) {
-      if (nVal <= 1.01) return 'rgba(30, 30, 46, 0.2)'; // Air / Vacuum
-      if (nVal <= 1.35) return 'rgba(56, 189, 248, 0.12)'; // Water
-      if (nVal <= 1.6) return 'rgba(166, 227, 161, 0.15)'; // Glass
-      return 'rgba(249, 226, 175, 0.2)'; // Diamond / High Index
+      if (nVal <= 1.01) return 'rgba(30, 30, 46, 0.2)';
+      if (nVal <= 1.35) return 'rgba(56, 189, 248, 0.12)';
+      if (nVal <= 1.6) return 'rgba(166, 227, 161, 0.15)';
+      return 'rgba(249, 226, 175, 0.2)';
     }
 
     function drawRefractingInterface(cx, cy) {
@@ -668,7 +659,6 @@
 
       ctx.stroke();
 
-      // Center of Curvature (C) Marker
       const CenterX = cx + R;
       ctx.fillStyle = '#fab387';
       ctx.beginPath();
@@ -683,11 +673,9 @@
     }
 
     function drawRayTracing(cx, cy, objX, objY, imgX, imgY, phys) {
-      // Ray 1: Parallel to Axis
       drawSegment(objX, objY, cx, objY, '#f87171', 2);
       drawSegment(cx, objY, imgX, imgY, '#f87171', 2);
 
-      // Ray 2: Through Center of Curvature (C)
       const CenterX = cx + R;
       drawSegment(objX, objY, CenterX, cy, '#89b4fa', 2);
       if (phys.sp > 0) {
