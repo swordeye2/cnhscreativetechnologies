@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Simulation Laboratory Suite | CNHS Creative Technologies</title>
+
+  <!-- PWA & Branding Icons -->
+  <link rel="icon" type="image/png" sizes="512x512" href="../icon-512.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="../icon-512.png">
+  <link rel="manifest" href="../manifest.json">
+  
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../theme.css">
+
+  <!-- Google AdSense Script (COPPA & Non-Personalized Student-Safe Configuration) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136" crossorigin="anonymous"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
+  </script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      padding: 25px 20px;
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 8px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-content h1 {
+      margin: 0 0 5px 0;
+      font-size: 1.8rem;
+      color: var(--accent, #89b4fa);
+    }
+
+    .header-content p {
+      margin: 0;
+      color: var(--text-sub, #a6adc8);
+      font-size: 0.95rem;
+    }
+
+    .author-badge {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: var(--text-sub, #a6adc8);
+    }
+
+    .theme-toggle-btn, .back-btn {
+      background: var(--card-border, #313244);
+      color: var(--text-main, #cdd6f4);
+      border: 1px solid var(--card-border, #313244);
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .theme-toggle-btn:hover, .back-btn:hover {
+      background: var(--btn-hover, #b4befe);
+      color: #11111b;
+    }
+
+    .category-title {
+      font-size: 1.3rem;
+      color: var(--accent, #89b4fa);
+      margin: 30px 0 15px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--card-border, #313244);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent, #89b4fa);
+    }
+
+    .card h3 {
+      margin: 0 0 10px 0;
+      color: var(--accent, #89b4fa);
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card p {
+      color: var(--text-sub, #a6adc8);
+      font-size: 0.88rem;
+      line-height: 1.4;
+      margin-bottom: 15px;
+      flex-grow: 1;
+    }
+
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 15px;
+    }
+
+    .tag {
+      background: var(--inner-box, #11111b);
+      color: var(--tag-color, #fab387);
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--card-border, #313244);
+    }
+
+    .card-btn {
+      display: block;
+      text-align: center;
+      background: var(--accent, #89b4fa);
+      color: #11111b;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 6px;
+      transition: opacity 0.2s;
+    }
+
+    .card-btn:hover {
+      opacity: 0.9;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-sub, #a6adc8);
+      border-top: 1px solid var(--card-border, #313244);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MAIN PHYSICS SUITE CONTAINER -->
+  <div class="container">
+    <header class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <!-- Suite Brand Logo Badge -->
+        <img src="../icon-512.png" alt="Physics Suite Logo" class="w-14 h-14 md:w-16 md:h-16 rounded-xl border border-[var(--card-border)] shadow-md object-cover bg-[var(--inner-box)] p-1">
+        
+        <div class="header-content">
+          <h1>🔬 Pure Physics & Optics Suite</h1>
+          <p>Interactive Physics Visualizers, Ray Optics, and Mathematical Mechanics Curriculum</p>
+          <div class="author-badge">
+            Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons: Back to Main Hub & Theme Toggle -->
+      <div class="flex items-center gap-3 flex-wrap">
+        <a href="../index.html" class="back-btn">
+          <span>🏠</span> <span>Main Lab Suite</span>
+        </a>
+
+        <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">
+          <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Section 1: Optics & Waves -->
+    <div class="category-title">🔍 Optics, Refraction & Ray Tracing</div>
+    <div class="card-grid">
+
+      <!-- Thin Lens & Ray Optics Visualizer -->
+      <div class="card" style="border-color: #89b4fa;">
+        <div>
+          <h3>🔬 Geometric Optics & Thin Lens Visualizer</h3>
+          <p>
+            Simulate real and virtual image formation using the Thin Lens Equation ($\frac{1}{f} = \frac{1}{d_o} + \frac{1}{d_i}$). Adjust focal lengths, object distances, real-time principal ray paths (parallel, focal, central), and lateral magnification ($m = -\frac{d_i}{d_o}$).
+          </p>
+          <div class="tag-container">
+            <span class="tag">Convex & Concave Lenses</span>
+            <span class="tag">Thin Lens Formula</span>
+            <span class="tag">Principal Ray Tracing</span>
+            <span class="tag">Lateral Magnification</span>
+          </div>
+        </div>
+        <a href="./lens.html" class="card-btn">Launch Simulator →</a>
+      </div>
+
+    </div>
+
+    <footer class="flex items-center justify-center gap-3">
+      <img src="../icon-512.png" alt="Logo" class="w-6 h-6 rounded-md opacity-80">
+      <span>Pure Physics Visualizers for CNHS Creative Technologies | © 2026 Jorge Victor M. Sales</span>
+    </footer>
+  </div>
+
+  <script src="../theme.js"></script>
+</body>
+</html>
