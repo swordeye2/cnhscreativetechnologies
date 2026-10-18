@@ -309,14 +309,21 @@
 <body>
 
   <!-- HEADER NAVIGATION -->
-  <header>
-    <h1>
+  <header class="flex flex-wrap items-center justify-between gap-2 p-3 bg-[var(--panel-bg)] border-b border-[var(--panel-border)]">
+    <h1 class="text-base font-semibold text-[var(--accent-blue)] flex items-center gap-2">
       🔭 Pure Physics: Double Lens System & Telescope Visualizer
     </h1>
 
-    <div class="flex items-center gap-2">
-      <a href="./index.html" class="nav-btn">🏠 Physics Suite</a>
-      <button class="nav-btn" onclick="toggleTheme()">🌙 Theme</button>
+    <div class="flex items-center gap-2 flex-wrap">
+      <a href="../index.html" class="nav-btn flex items-center gap-1">
+        <span>🏠</span> <span>Main Lab Hub</span>
+      </a>
+      <a href="./index.html" class="nav-btn flex items-center gap-1">
+        <span>🔬</span> <span>Physics Suite</span>
+      </a>
+      <button class="nav-btn flex items-center gap-1" onclick="toggleTheme()">
+        <span>🌙</span> <span>Theme</span>
+      </button>
     </div>
   </header>
 
@@ -473,12 +480,11 @@
 
   <script src="../theme.js"></script>
   <script>
-    // State variables
-    let f1 = 120;            // Objective focal length (mm)
-    let f2 = 40;             // Eyepiece focal length (mm)
-    let L = 160;             // Lens separation distance (mm)
-    let do1 = 300;           // Objective object distance (mm)
-    let ho1 = 50;            // Object height (mm)
+    let f1 = 120;
+    let f2 = 40;
+    let L = 160;
+    let do1 = 300;
+    let ho1 = 50;
 
     let isDraggingObject = false;
 
@@ -513,9 +519,7 @@
 
     window.addEventListener('resize', resizeCanvas);
 
-    // Double Lens Optics Computations
     function getDoubleLensPhysics() {
-      // Stage 1: Objective Lens
       let di1 = Infinity;
       if (Math.abs(do1 - f1) > 0.001) {
         di1 = (f1 * do1) / (do1 - f1);
@@ -523,7 +527,6 @@
       let m1 = isFinite(di1) ? -di1 / do1 : 0;
       let hi1 = ho1 * m1;
 
-      // Stage 2: Eyepiece Lens
       let do2 = L - di1;
       let di2 = Infinity;
       if (isFinite(do2) && Math.abs(do2 - f2) > 0.001) {
@@ -542,12 +545,10 @@
 
       const phys = getDoubleLensPhysics();
 
-      // Optical bench axis alignment
       const L1_x = canvas.width * 0.35;
       const L2_x = L1_x + L;
       const centerY = canvas.height / 2;
 
-      // Principal Axis
       ctx.beginPath();
       ctx.setLineDash([]);
       ctx.strokeStyle = '#475569';
@@ -556,22 +557,18 @@
       ctx.lineTo(canvas.width, centerY);
       ctx.stroke();
 
-      // Draw Lens 1 (Objective) & Lens 2 (Eyepiece)
       drawSingleLensShape(L1_x, centerY, f1, "L₁ (Obj)");
       drawSingleLensShape(L2_x, centerY, f2, "L₂ (Eye)");
 
-      // Draw Focal Markers
       drawMarker(L1_x - f1, centerY, "F₁");
       drawMarker(L1_x + f1, centerY, "F₁'");
       drawMarker(L2_x - f2, centerY, "F₂");
       drawMarker(L2_x + f2, centerY, "F₂'");
 
-      // Draw Primary Object Arrow
       const objX = L1_x - do1;
       const objY = centerY - ho1;
       drawArrow(objX, centerY, objX, objY, '#38bdf8', 'Object', true);
 
-      // Intermediate Image (Stage 1 Output / Stage 2 Input)
       let img1X = 0, img1Y = 0;
       if (isFinite(phys.di1) && Math.abs(phys.di1) < 3000) {
         img1X = L1_x + phys.di1;
@@ -580,7 +577,6 @@
         drawArrow(img1X, centerY, img1X, img1Y, isVirtual1 ? '#cba6f7' : '#f9e2af', 'Img 1', !isVirtual1, isVirtual1);
       }
 
-      // Final Image (Stage 2 Output)
       if (isFinite(phys.di2) && Math.abs(phys.di2) < 4000) {
         const finalX = L2_x + phys.di2;
         const finalY = centerY - phys.hi2;
@@ -588,7 +584,6 @@
         drawArrow(finalX, centerY, finalX, finalY, isVirtual2 ? '#f38ba8' : '#a6e3a1', 'Final Image', !isVirtual2, isVirtual2);
       }
 
-      // Ray Tracing Visualization across L1 and L2
       drawCompoundRayTracing(L1_x, L2_x, centerY, objX, objY, img1X, img1Y, phys);
 
       updateHUD(phys);
@@ -637,7 +632,6 @@
     }
 
     function drawCompoundRayTracing(L1_x, L2_x, cy, objX, objY, img1X, img1Y, phys) {
-      // Ray 1: Parallel to L1, through F1' to L2
       drawSegment(objX, objY, L1_x, objY, '#f87171', 1.8);
       if (f1 > 0) {
         drawSegment(L1_x, objY, L2_x, img1Y, '#f87171', 1.8);
@@ -645,7 +639,6 @@
         drawSegment(L1_x, objY, L2_x, objY + (objY - cy), '#f87171', 1.8);
       }
 
-      // Ray 2: Chief Ray through L1 center
       drawSegment(objX, objY, L1_x, cy, '#60a5fa', 1.8);
       if (isFinite(phys.di1)) {
         drawSegment(L1_x, cy, img1X, img1Y, '#60a5fa', 1.8);
