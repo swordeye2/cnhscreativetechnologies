@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>4 Pillars of Mechatronics - Immersive Inquiry & Discussion</title>
+  <title>4 Pillars of Mechatronics - Dynamic Focused View</title>
   <style>
     :root {
       --bg-color: #1e1e2e;
@@ -20,9 +20,7 @@
       --accent-core: #cba6f7;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -57,7 +55,6 @@
       line-height: 1.4;
     }
 
-    /* TOP INTERACTIVE SECTION */
     .main-layout {
       display: flex;
       flex-wrap: wrap;
@@ -65,7 +62,7 @@
       justify-content: center;
       max-width: 1100px;
       width: 100%;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
     }
 
     .viewport-card {
@@ -99,7 +96,24 @@
       transform-origin: 200px 200px;
     }
 
-    .node-group { cursor: pointer; }
+    .node-group {
+      cursor: pointer;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .node-group.hidden-node {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .connecting-line {
+      transition: opacity 0.5s ease;
+    }
+
+    .connecting-line.hidden-line {
+      opacity: 0;
+    }
+
     .node-circle { transition: all 0.3s ease; stroke-width: 3px; }
     .node-group:hover .node-circle { filter: brightness(1.25); stroke-width: 5px; }
 
@@ -235,25 +249,9 @@
       font-weight: 600;
     }
 
-    /* SECTION DIVIDER & DEEP-DIVE DISCUSSION CARDS */
-    .section-divider {
-      width: 100%;
-      max-width: 1100px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin: 20px 0 30px 0;
-    }
-
-    .divider-line { flex: 1; height: 1px; background-color: var(--border-color); }
-    .divider-title { font-size: 1.1rem; font-weight: bold; color: var(--accent-core); letter-spacing: 0.5px; }
-
     .discussion-container {
       width: 100%;
       max-width: 1100px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
       margin-bottom: 50px;
     }
 
@@ -265,6 +263,11 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.25);
       position: relative;
       overflow: hidden;
+      display: none;
+    }
+
+    .pillar-card.active-card {
+      display: block;
     }
 
     .pillar-card::before {
@@ -276,6 +279,7 @@
       height: 100%;
     }
 
+    .pillar-card.card-core::before { background-color: var(--accent-core); }
     .pillar-card.card-mech::before { background-color: var(--accent-mech); }
     .pillar-card.card-elec::before { background-color: var(--accent-elec); }
     .pillar-card.card-cs::before { background-color: var(--accent-cs); }
@@ -318,9 +322,6 @@
       color: var(--text-sub);
       text-transform: uppercase;
       margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
 
     .concept-box ul {
@@ -338,7 +339,7 @@
 
   <header>
     <h1>🤖 Interactive 4 Pillars of Mechatronics</h1>
-    <p class="subtitle">Click on any pillar in the diagram below to zoom the camera and test the inquiry lab!</p>
+    <p class="subtitle">Click on any pillar to isolate its component and open its focused lab.</p>
   </header>
 
   <!-- TOP INTERACTIVE CANVAS & LAB -->
@@ -352,18 +353,20 @@
             </marker>
           </defs>
 
-          <line x1="200" y1="100" x2="300" y2="200" stroke="#313244" stroke-width="4" stroke-dasharray="6,6"/>
-          <line x1="300" y1="200" x2="200" y2="300" stroke="#313244" stroke-width="4" stroke-dasharray="6,6"/>
-          <line x1="200" y1="300" x2="100" y2="200" stroke="#313244" stroke-width="4" stroke-dasharray="6,6"/>
-          <line x1="100" y1="200" x2="200" y2="100" stroke="#313244" stroke-width="4" stroke-dasharray="6,6"/>
+          <!-- Intersecting Connection Lines -->
+          <line class="connecting-line" id="line-outer1" x1="200" y1="100" x2="300" y2="200" stroke="#313244" stroke-width="4" stroke-dasharray="6,6"/>
+          <line class="connecting-line" id="line-outer2" x1="300" y1="200" x2="200" y2="300" stroke="#313244" stroke-width="4" stroke-dasharray="6,6"/>
+          <line class="connecting-line" id="line-outer3" x1="200" y1="300" x2="100" y2="200" stroke="#313244" stroke-width="4" stroke-dasharray="6,6"/>
+          <line class="connecting-line" id="line-outer4" x1="100" y1="200" x2="200" y2="100" stroke="#313244" stroke-width="4" stroke-dasharray="6,6"/>
 
-          <line x1="200" y1="200" x2="200" y2="100" stroke="#cba6f7" stroke-width="3"/>
-          <line x1="200" y1="200" x2="300" y2="200" stroke="#cba6f7" stroke-width="3"/>
-          <line x1="200" y1="200" x2="200" y2="300" stroke="#cba6f7" stroke-width="3"/>
-          <line x1="200" y1="200" x2="100" y2="200" stroke="#cba6f7" stroke-width="3"/>
+          <!-- Core Ray Lines -->
+          <line class="connecting-line" id="line-mech" x1="200" y1="200" x2="200" y2="100" stroke="#cba6f7" stroke-width="3"/>
+          <line class="connecting-line" id="line-elec" x1="200" y1="200" x2="300" y2="200" stroke="#cba6f7" stroke-width="3"/>
+          <line class="connecting-line" id="line-cs" x1="200" y1="200" x2="200" y2="300" stroke="#cba6f7" stroke-width="3"/>
+          <line class="connecting-line" id="line-ctrl" x1="200" y1="200" x2="100" y2="200" stroke="#cba6f7" stroke-width="3"/>
 
           <!-- 1. MECHANICAL -->
-          <g class="node-group" onclick="zoomTo('mech', 200, 100, 2.2)">
+          <g class="node-group" id="node-mech" onclick="zoomTo('mech', 200, 100, 2.2)">
             <circle class="node-circle" cx="200" cy="100" r="52" fill="#f38ba8" stroke="#ffffff"/>
             <g transform="translate(200, 80) scale(0.7)">
               <circle cx="0" cy="0" r="10" fill="none" stroke="#11111b" stroke-width="3"/>
@@ -374,7 +377,7 @@
           </g>
 
           <!-- 2. ELECTRONICS -->
-          <g class="node-group" onclick="zoomTo('elec', 300, 200, 2.2)">
+          <g class="node-group" id="node-elec" onclick="zoomTo('elec', 300, 200, 2.2)">
             <circle class="node-circle" cx="300" cy="200" r="52" fill="#fab387" stroke="#ffffff"/>
             <path d="M 285 182 L 300 182 L 315 195" fill="none" stroke="#11111b" stroke-width="3"/>
             <circle cx="315" cy="195" r="4" fill="#11111b"/>
@@ -383,7 +386,7 @@
           </g>
 
           <!-- 3. SOFTWARE -->
-          <g class="node-group" onclick="zoomTo('cs', 200, 300, 2.2)">
+          <g class="node-group" id="node-cs" onclick="zoomTo('cs', 200, 300, 2.2)">
             <circle class="node-circle" cx="200" cy="300" r="52" fill="#89b4fa" stroke="#ffffff"/>
             <text x="200" y="282" fill="#11111b" font-family="monospace" font-weight="900" font-size="16" text-anchor="middle">&lt;code/&gt;</text>
             <text class="node-label" x="200" y="306">SOFTWARE</text>
@@ -391,7 +394,7 @@
           </g>
 
           <!-- 4. CONTROL -->
-          <g class="node-group" onclick="zoomTo('ctrl', 100, 200, 2.2)">
+          <g class="node-group" id="node-ctrl" onclick="zoomTo('ctrl', 100, 200, 2.2)">
             <circle class="node-circle" cx="100" cy="200" r="52" fill="#a6e3a1" stroke="#ffffff"/>
             <circle cx="100" cy="182" r="8" fill="none" stroke="#11111b" stroke-width="3"/>
             <circle cx="100" cy="182" r="3" fill="#11111b"/>
@@ -400,7 +403,7 @@
           </g>
 
           <!-- CENTER HUB -->
-          <g class="node-group" onclick="zoomTo('core', 200, 200, 1.0)">
+          <g class="node-group" id="node-core" onclick="zoomTo('core', 200, 200, 1.0)">
             <circle class="node-circle core-node" cx="200" cy="200" r="44" fill="#cba6f7" stroke="#ffffff"/>
             <text class="node-label" x="200" y="196" font-size="10">MECHATRONICS</text>
             <text class="sub-label" x="200" y="210">(SMART CORE)</text>
@@ -408,7 +411,7 @@
         </svg>
       </div>
 
-      <button class="reset-cam-btn" onclick="zoomTo('core', 200, 200, 1.0)">🔍 Reset Camera View</button>
+      <button class="reset-cam-btn" onclick="zoomTo('core', 200, 200, 1.0)">🔍 Reset / Show All Pillars</button>
     </div>
 
     <div class="lab-card" id="labCard">
@@ -416,18 +419,51 @@
     </div>
   </div>
 
-  <!-- SECTION DIVIDER -->
-  <div class="section-divider">
-    <div class="divider-line"></div>
-    <div class="divider-title">📖 DETAILED PILLAR CONCEPT BREAKDOWN</div>
-    <div class="divider-line"></div>
-  </div>
-
-  <!-- LOWER DEEP-DIVE DISCUSSION SECTION -->
+  <!-- LOWER FOCUSED DISCUSSION CARDS -->
   <div class="discussion-container">
 
+    <!-- MECHATRONICS OVERVIEW CARD (ACTIVE ON RESET/CORE) -->
+    <div class="pillar-card card-core active-card" id="card-core">
+      <div class="pillar-card-header">
+        <h2 class="pillar-card-title" style="color: var(--accent-core);">
+          ⚡ What is Mechatronics? (The Synergy Core)
+        </h2>
+        <span class="badge" style="background-color: var(--accent-core);">Interdisciplinary Engineering</span>
+      </div>
+      <p style="color: var(--text-sub); line-height: 1.6; margin-bottom: 15px;">
+        <strong>Mechatronics</strong> is a modern field of engineering that combines mechanical machinery, electronics, software programming, and feedback control systems to build smart, automated technology. Instead of treating machines as standalone physical structures, mechatronics designs systems where physical moving parts work in harmony with electronic circuits and computer algorithms.
+      </p>
+
+      <div class="concept-grid">
+        <div class="concept-box">
+          <div class="concept-box-title">🧠 Core Philosophy</div>
+          <ul>
+            <li><strong>Synergy:</strong> The whole system is greater than the sum of its four individual engineering parts.</li>
+            <li><strong>Intelligence:</strong> Giving physical mechanisms the ability to observe conditions, make computational decisions, and self-correct.</li>
+            <li><strong>Automation:</strong> Reducing human intervention by creating predictable, precise closed-loop behaviors.</li>
+          </ul>
+        </div>
+        <div class="concept-box">
+          <div class="concept-box-title">🌐 Everyday Applications</div>
+          <ul>
+            <li><strong>Robotic Vacuum Cleaners:</strong> Motors drive wheels while infrared sensors detect room drop-offs and code plans cleaning routes.</li>
+            <li><strong>Modern Automobiles (ABS & Steering):</strong> Sensors detect slipping wheels and microcontrollers pulse hydraulic brake valves automatically.</li>
+            <li><strong>Smart Home Appliances:</strong> Inverter washing machines adjusting drum speeds based on real-time load sensors.</li>
+          </ul>
+        </div>
+        <div class="concept-box">
+          <div class="concept-box-title">🛠️ Why Learn Mechatronics?</div>
+          <ul>
+            <li>Prepares students for advanced robotics, industrial automation, and modern IoT system development.</li>
+            <li>Bridges the gap between physical mechanics and computer science.</li>
+            <li>Encourages hands-on problem solving across hardware design and software logic.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
     <!-- PILLAR 1: MECHANICAL -->
-    <div class="pillar-card card-mech" id="scroll-mech">
+    <div class="pillar-card card-mech" id="card-mech">
       <div class="pillar-card-header">
         <h2 class="pillar-card-title" style="color: var(--accent-mech);">
           🦾 Pillar 1: Mechanical Systems (The Physical Body)
@@ -452,13 +488,13 @@
           <ul>
             <li>3D-printed plastic gears and aluminum extrusion frames.</li>
             <li>Linear lead-screws, shafts, bearings, and pulleys.</li>
-            <li>Robotic gripper joints, chassis wheels, and axles[cite: 1, 2].</li>
+            <li>Robotic gripper joints, chassis wheels, and axles.</li>
           </ul>
         </div>
         <div class="concept-box">
           <div class="concept-box-title">🚗 Real-World Example</div>
           <ul>
-            <li><strong>3D Printers:</strong> Precision belts and lead-screws moving the extruder head cleanly along $X$, $Y$, and $Z$ axes[cite: 1, 2].</li>
+            <li><strong>3D Printers:</strong> Precision belts and lead-screws moving the extruder head cleanly along X, Y, and Z axes.</li>
             <li><strong>Robotic Arms:</strong> Mechanical joint links driven by motorized gearboxes.</li>
           </ul>
         </div>
@@ -466,7 +502,7 @@
     </div>
 
     <!-- PILLAR 2: ELECTRONICS -->
-    <div class="pillar-card card-elec" id="scroll-elec">
+    <div class="pillar-card card-elec" id="card-elec">
       <div class="pillar-card-header">
         <h2 class="pillar-card-title" style="color: var(--accent-elec);">
           ⚡ Pillar 2: Electronics & Circuits (Nerves & Power)
@@ -481,31 +517,31 @@
         <div class="concept-box">
           <div class="concept-box-title">⚙️ Key Concepts</div>
           <ul>
-            <li><strong>Voltage Regulation:</strong> Stepping down higher supply power (e.g., 12V to 3.3V) to safely power microcontrollers[cite: 1, 3].</li>
-            <li><strong>Driver Switching:</strong> Using H-Bridges (like the DRV8833) so low-power pins can drive high-current motors safely[cite: 1, 2].</li>
-            <li><strong>Logic States:</strong> Transmitting active HIGH (3.3V) and LOW (0V/GND) digital signals[cite: 1, 3].</li>
+            <li><strong>Voltage Regulation:</strong> Stepping down higher supply power (e.g., 12V to 3.3V) to safely power microcontrollers.</li>
+            <li><strong>Driver Switching:</strong> Using H-Bridges (like the DRV8833) so low-power pins can drive high-current motors safely.</li>
+            <li><strong>Logic States:</strong> Transmitting active HIGH (3.3V) and LOW (0V/GND) digital signals.</li>
           </ul>
         </div>
         <div class="concept-box">
           <div class="concept-box-title">🔧 Common Hardware</div>
           <ul>
-            <li>DRV8833 dual H-bridge motor drivers[cite: 1, 2].</li>
-            <li>Optocoupled relay modules and power MOSFET switches[cite: 2, 3].</li>
+            <li>DRV8833 dual H-bridge motor drivers.</li>
+            <li>Optocoupled relay modules and power MOSFET switches.</li>
             <li>Voltage regulators, capacitors, and PCB trace pathways.</li>
           </ul>
         </div>
         <div class="concept-box">
           <div class="concept-box-title">🚗 Real-World Example</div>
           <ul>
-            <li><strong>Mobile Robots:</strong> Motor driver shields stepping up logic commands to power DC wheels[cite: 1, 2].</li>
-            <li><strong>Drones:</strong> ESC (Electronic Speed Controller) boards managing high brush-less motor currents.</li>
+            <li><strong>Mobile Robots:</strong> Motor driver shields stepping up logic commands to power DC wheels.</li>
+            <li><strong>Drones:</strong> ESC (Electronic Speed Controller) boards managing high brushless motor currents.</li>
           </ul>
         </div>
       </div>
     </div>
 
     <!-- PILLAR 3: SOFTWARE -->
-    <div class="pillar-card card-cs" id="scroll-cs">
+    <div class="pillar-card card-cs" id="card-cs">
       <div class="pillar-card-header">
         <h2 class="pillar-card-title" style="color: var(--accent-cs);">
           💻 Pillar 3: Computer Science & Software (The Computational Brain)
@@ -521,22 +557,22 @@
           <div class="concept-box-title">⚙️ Key Concepts</div>
           <ul>
             <li><strong>Control Loops:</strong> Constantly running active evaluation loops to monitor pin states.</li>
-            <li><strong>PWM Signals:</strong> Toggling output pins ON/OFF rapidly to control motor speed or servo angles[cite: 1, 3].</li>
-            <li><strong>GPIO Management:</strong> Reading registers and controlling hardware pins with languages like MicroPython or C++[cite: 1, 2].</li>
+            <li><strong>PWM Signals:</strong> Toggling output pins ON/OFF rapidly to control motor speed or servo angles.</li>
+            <li><strong>GPIO Management:</strong> Reading registers and controlling hardware pins with languages like MicroPython or C++.</li>
           </ul>
         </div>
         <div class="concept-box">
           <div class="concept-box-title">🔧 Common Hardware</div>
           <ul>
-            <li>RP2040 (Raspberry Pi Pico) microcontrollers[cite: 1, 2].</li>
-            <li>Arduino boards and Raspberry Pi single-board computers[cite: 1, 2].</li>
-            <li>MicroPython, C++, or embedded C firmware code[cite: 1, 2].</li>
+            <li>RP2040 (Raspberry Pi Pico) microcontrollers.</li>
+            <li>Arduino boards and Raspberry Pi single-board computers.</li>
+            <li>MicroPython, C++, or embedded C firmware code.</li>
           </ul>
         </div>
         <div class="concept-box">
           <div class="concept-box-title">🚗 Real-World Example</div>
           <ul>
-            <li><strong>Smart Vacuums:</strong> Navigation scripts reading obstacle distances and adjusting wheel motors[cite: 1, 2].</li>
+            <li><strong>Smart Vacuums:</strong> Navigation scripts reading obstacle distances and adjusting wheel motors.</li>
             <li><strong>Autonomous Lawnmowers:</strong> Embedded algorithms processing perimeter wire boundary loops.</li>
           </ul>
         </div>
@@ -544,7 +580,7 @@
     </div>
 
     <!-- PILLAR 4: CONTROL SYSTEMS -->
-    <div class="pillar-card card-ctrl" id="scroll-ctrl">
+    <div class="pillar-card card-ctrl" id="card-ctrl">
       <div class="pillar-card-header">
         <h2 class="pillar-card-title" style="color: var(--accent-ctrl);">
           🎯 Pillar 4: Control Systems & Sensors (Senses & Self-Correction)
@@ -559,23 +595,23 @@
         <div class="concept-box">
           <div class="concept-box-title">⚙️ Key Concepts</div>
           <ul>
-            <li><strong>Transducers:</strong> Converting physical phenomena (heat, gas, distance) into analog/digital voltage[cite: 1, 3].</li>
-            <li><strong>Closed-Loop Feedback:</strong> Comparing real-world output against target goals and correcting errors automatically[cite: 1, 3].</li>
-            <li><strong>Thresholds & Hysteresis:</strong> Preventing noisy rapid ON/OFF fluttering[cite: 2, 3].</li>
+            <li><strong>Transducers:</strong> Converting physical phenomena (heat, gas, distance) into analog/digital voltage.</li>
+            <li><strong>Closed-Loop Feedback:</strong> Comparing real-world output against target goals and correcting errors automatically.</li>
+            <li><strong>Thresholds & Hysteresis:</strong> Preventing noisy rapid ON/OFF fluttering.</li>
           </ul>
         </div>
         <div class="concept-box">
           <div class="concept-box-title">🔧 Common Hardware</div>
           <ul>
-            <li>MQ-135 air quality gas sensors and capacitive soil moisture probes[cite: 2, 3].</li>
-            <li>Ultrasonic distance sensors, optical encoders, and thermistors[cite: 1, 2, 3].</li>
-            <li>Closed-loop PID controllers and feedback relays[cite: 1, 2, 3].</li>
+            <li>MQ-135 air quality gas sensors and capacitive soil moisture probes.</li>
+            <li>Ultrasonic distance sensors, optical encoders, and thermistors.</li>
+            <li>Closed-loop PID controllers and feedback relays.</li>
           </ul>
         </div>
         <div class="concept-box">
           <div class="concept-box-title">🚗 Real-World Example</div>
           <ul>
-            <li><strong>Smart Greenhouse:</strong> Soil moisture probes reading dielectric voltage to automatically run irrigation pumps until target moisture is restored[cite: 2, 3].</li>
+            <li><strong>Smart Greenhouse:</strong> Soil moisture probes reading dielectric voltage to automatically run irrigation pumps until target moisture is restored.</li>
             <li><strong>Car ABS Brakes:</strong> Speed sensors detecting wheel lockup and pulsing hydraulic valves dynamically.</li>
           </ul>
         </div>
@@ -586,6 +622,7 @@
 
   <script>
     const svg = document.getElementById('systemSvg');
+    const allPillars = ['mech', 'elec', 'cs', 'ctrl'];
 
     function zoomTo(pillarKey, cx, cy, scale) {
       const originX = 200;
@@ -595,16 +632,42 @@
       const translateY = (originY - cy) * scale;
 
       svg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-      
-      renderLab(pillarKey);
 
-      // Auto-scroll to detailed section if a specific pillar card was clicked
-      if (pillarKey !== 'core') {
-        const targetCard = document.getElementById(`scroll-${pillarKey}`);
-        if (targetCard) {
-          targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+      if (pillarKey === 'core') {
+        allPillars.forEach(p => {
+          document.getElementById(`node-${p}`).classList.remove('hidden-node');
+          document.getElementById(`line-${p}`).classList.remove('hidden-line');
+          document.getElementById(`card-${p}`).classList.remove('active-card');
+        });
+        
+        document.querySelectorAll('.connecting-line').forEach(line => line.classList.remove('hidden-line'));
+        document.getElementById('card-core').classList.add('active-card');
+      } else {
+        document.getElementById('card-core').classList.remove('active-card');
+
+        allPillars.forEach(p => {
+          const node = document.getElementById(`node-${p}`);
+          const line = document.getElementById(`line-${p}`);
+          const card = document.getElementById(`card-${p}`);
+
+          if (p === pillarKey) {
+            node.classList.remove('hidden-node');
+            line.classList.remove('hidden-line');
+            card.classList.add('active-card');
+          } else {
+            node.classList.add('hidden-node');
+            line.classList.add('hidden-line');
+            card.classList.remove('active-card');
+          }
+        });
+
+        document.getElementById('line-outer1').classList.add('hidden-line');
+        document.getElementById('line-outer2').classList.add('hidden-line');
+        document.getElementById('line-outer3').classList.add('hidden-line');
+        document.getElementById('line-outer4').classList.add('hidden-line');
       }
+
+      renderLab(pillarKey);
     }
 
     const labData = {
@@ -618,7 +681,7 @@
           <div class="pg-controls">
             <button class="btn" id="pgFanBtn" onclick="toggleCoreFan()">Toggle Manual Power</button>
           </div>
-          <div class="output-indicator" id="coreFanStatus">Status: Fan IDLE (0 RPM) | Moisture/Gas Sensor: Ready[cite: 1, 2]</div>
+          <div class="output-indicator" id="coreFanStatus">Status: Fan IDLE (0 RPM) | Moisture/Gas Sensor: Ready</div>
         `,
         question: "Q: What primary component makes a system 'Mechatronic' rather than purely mechanical?",
         options: [
@@ -651,7 +714,7 @@
         title: "⚡ Electronics & Electrical Systems",
         badge: "Pillar 2: Power & Nerves",
         color: "#fab387",
-        desc: "Routes electrical current, regulates supply voltages (e.g. 12V to 3.3V), and manages motor driver switching circuits like H-Bridges[cite: 1, 2].",
+        desc: "Routes electrical current, regulates supply voltages (e.g. 12V to 3.3V), and manages motor driver switching circuits like H-Bridges.",
         playgroundHtml: `
           <div class="pg-title">🔌 Circuit Lab: DRV8833 Motor Driver Switching</div>
           <div class="pg-controls">
@@ -660,7 +723,7 @@
           </div>
           <div class="output-indicator" id="elecStatus">Driver State: IDLE | Motor Direction: STOPPED</div>
         `,
-        question: "Q: Why do microcontrollers need an electronic motor driver board (like DRV8833) to power motors[cite: 1, 2]?",
+        question: "Q: Why do microcontrollers need an electronic motor driver board (like DRV8833) to power motors?",
         options: [
           { text: "A. Microcontroller pins carry low signal currents and cannot supply high motor current directly", correct: true },
           { text: "B. Motor drivers write the Python code for the motor", correct: false },
@@ -671,14 +734,14 @@
         title: "💻 Computer Science & Software",
         badge: "Pillar 3: The Brain",
         color: "#89b4fa",
-        desc: "Processes inputs, evaluates conditional rules, and generates precise pulse-width modulation (PWM) signals to drive actuators[cite: 1, 2].",
+        desc: "Processes inputs, evaluates conditional rules, and generates precise pulse-width modulation (PWM) signals to drive actuators.",
         playgroundHtml: `
           <div class="pg-title">🐍 MicroPython Loop Inspector</div>
           <div class="pg-controls">
             <button class="btn" onclick="runCodeSim(25)">PWM Duty: 25%</button>
             <button class="btn" onclick="runCodeSim(90)">PWM Duty: 90%</button>
           </div>
-          <div class="output-indicator" id="codeStatus">MicroPython output: pwm.duty_u16(16384) ➔ Average Voltage: ~0.82V[cite: 2]</div>
+          <div class="output-indicator" id="codeStatus">MicroPython output: pwm.duty_u16(16384) ➔ Average Voltage: ~0.82V</div>
         `,
         question: "Q: What role does software code play in a mechatronic machine?",
         options: [
@@ -691,14 +754,14 @@
         title: "🎯 Control Systems & Sensors",
         badge: "Pillar 4: Senses & Self-Correction",
         color: "#a6e3a1",
-        desc: "Uses feedback loops and sensors (gas, ultrasonic, soil moisture) to continuously measure output and adjust behavior automatically[cite: 1, 2].",
+        desc: "Uses feedback loops and sensors (gas, ultrasonic, soil moisture) to continuously measure output and adjust behavior automatically.",
         playgroundHtml: `
           <div class="pg-title">🔄 Closed-Loop Feedback Lab</div>
           <div class="pg-controls">
             <button class="btn" onclick="simSensor(1.1)">Soil Moisture: 1.1V (Dry)</button>
             <button class="btn" onclick="simSensor(2.8)">Soil Moisture: 2.8V (Wet)</button>
           </div>
-          <div class="output-indicator" id="ctrlStatus">Sensor Voltage: 2.8V ➔ Status: Target Moisture Reached (Pump OFF)[cite: 2]</div>
+          <div class="output-indicator" id="ctrlStatus">Sensor Voltage: 2.8V ➔ Status: Target Moisture Reached (Pump OFF)</div>
         `,
         question: "Q: What is the defining difference of a Closed-Loop Control System?",
         options: [
