@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Double Lens & Telescope Simulation | CNHS Physics Suite</title>
+
+  <!-- PWA & Branding Icons -->
+  <link rel="icon" type="image/png" sizes="512x512" href="../icon-512.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="../icon-512.png">
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../theme.css">
+
+  <!-- Google AdSense Script (COPPA & Non-Personalized Student-Safe Configuration) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136" crossorigin="anonymous"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
+  </script>
+
+  <style>
+    :root {
+      --bg-dark: var(--bg-color, #1e1e2e);
+      --panel-bg: var(--card-bg, #181825);
+      --panel-border: var(--card-border, #313244);
+      --text-main: var(--text-main, #cdd6f4);
+      --text-muted: var(--text-sub, #a6adc8);
+      --accent-blue: var(--accent, #89b4fa);
+      --accent-green: #a6e3a1;
+      --accent-red: #f38ba8;
+      --accent-purple: #cba6f7;
+      --accent-yellow: #f9e2af;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: var(--panel-bg);
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-btn {
+      background: var(--panel-border);
+      color: var(--text-main);
+      border: 1px solid var(--panel-border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: bold;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .nav-btn:hover {
+      opacity: 0.85;
+    }
+
+    .main-container {
+      display: flex;
+      flex: 1;
+      flex-direction: row;
+      min-height: 520px;
+    }
+
+    @media (max-width: 900px) {
+      .main-container {
+        flex-direction: column;
+      }
+    }
+
+    .controls-sidebar {
+      width: 330px;
+      background-color: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 900px) {
+      .controls-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--panel-border);
+      }
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      background: var(--inner-box, #11111b);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--panel-border);
+    }
+
+    .control-group label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .control-group label span.value {
+      color: var(--accent-blue);
+      font-family: monospace;
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--panel-border);
+      outline: none;
+      accent-color: var(--accent-blue);
+      cursor: pointer;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+    }
+
+    .btn {
+      padding: 0.5rem 0.4rem;
+      border-radius: 0.375rem;
+      border: 1px solid var(--panel-border);
+      background-color: var(--panel-border);
+      color: var(--text-main);
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .btn:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .btn.active {
+      background-color: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #11111b;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-blue);
+      color: #11111b;
+      font-weight: bold;
+      grid-column: span 2;
+    }
+
+    .canvas-area {
+      flex: 1;
+      position: relative;
+      background-color: var(--inner-box, #11111b);
+      display: flex;
+      flex-direction: column;
+      min-height: 480px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+
+    .hud-panel {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: var(--text-main);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .hud-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1.2rem;
+    }
+
+    .hud-label {
+      color: var(--text-muted);
+    }
+
+    .hud-val {
+      font-weight: 600;
+      color: var(--accent-blue);
+    }
+
+    .hud-badge {
+      display: inline-block;
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.25rem;
+      font-size: 0.7rem;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 0.2rem;
+    }
+
+    .badge-real {
+      background-color: rgba(166, 227, 161, 0.2);
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+    }
+
+    .badge-virtual {
+      background-color: rgba(243, 139, 168, 0.2);
+      color: var(--accent-red);
+      border: 1px solid var(--accent-red);
+    }
+
+    .instruction-banner {
+      position: absolute;
+      bottom: 0.8rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      padding: 0.35rem 0.85rem;
+      border-radius: 2rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .inspector-section {
+      background-color: var(--panel-bg);
+      border-top: 1px solid var(--panel-border);
+      padding: 1.25rem;
+    }
+
+    .tab-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      background: var(--inner-box, #11111b);
+      color: var(--text-muted);
+      border: 1px solid var(--panel-border);
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-blue);
+      color: #11111b;
+      border-color: var(--accent-blue);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER NAVIGATION -->
+  <header>
+    <h1>
+      🔭 Pure Physics: Double Lens System & Telescope Visualizer
+    </h1>
+
+    <div class="flex items-center gap-2">
+      <a href="./index.html" class="nav-btn">🏠 Physics Suite</a>
+      <button class="nav-btn" onclick="toggleTheme()">🌙 Theme</button>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <!-- Controls Sidebar -->
+    <div class="controls-sidebar">
+      
+      <!-- System Presets -->
+      <div class="control-group">
+        <label>Compound System Presets</label>
+        <div class="btn-grid">
+          <button id="preset-astro" class="btn active" onclick="applySystemPreset('astro')">Astro Telescope</button>
+          <button id="preset-galileo" class="btn" onclick="applySystemPreset('galileo')">Galilean Telescope</button>
+          <button id="preset-micro" class="btn" onclick="applySystemPreset('micro')">Microscope</button>
+          <button id="preset-relay" class="btn" onclick="applySystemPreset('relay')">Relay Lenses</button>
+        </div>
+      </div>
+
+      <!-- Objective Lens Controls -->
+      <div class="control-group">
+        <label for="slider-f1">
+          Objective Lens f<sub>1</sub>
+          <span id="val-f1" class="value">+120 mm</span>
+        </label>
+        <input type="range" id="slider-f1" min="-200" max="250" step="5" value="120">
+      </div>
+
+      <!-- Eyepiece Lens Controls -->
+      <div class="control-group">
+        <label for="slider-f2">
+          Eyepiece Lens f<sub>2</sub>
+          <span id="val-f2" class="value">+40 mm</span>
+        </label>
+        <input type="range" id="slider-f2" min="-150" max="150" step="5" value="40">
+      </div>
+
+      <!-- Lens Separation Distance (L) -->
+      <div class="control-group">
+        <label for="slider-L">
+          Lens Separation (L)
+          <span id="val-L" class="value">160 mm</span>
+        </label>
+        <input type="range" id="slider-L" min="50" max="400" step="2" value="160">
+      </div>
+
+      <!-- Object Distance (do1) -->
+      <div class="control-group">
+        <label for="slider-do1">
+          Object Distance (d<sub>o1</sub>)
+          <span id="val-do1" class="value">300 mm</span>
+        </label>
+        <input type="range" id="slider-do1" min="30" max="600" step="5" value="300">
+      </div>
+
+      <!-- Object Height (ho1) -->
+      <div class="control-group">
+        <label for="slider-ho1">
+          Object Height (h<sub>o1</sub>)
+          <span id="val-ho1" class="value">50 mm</span>
+        </label>
+        <input type="range" id="slider-ho1" min="-100" max="100" step="2" value="50">
+      </div>
+
+    </div>
+
+    <!-- Interactive Canvas Viewport -->
+    <div class="canvas-area">
+      <canvas id="doubleOpticsCanvas"></canvas>
+
+      <!-- Real-Time Telemetry HUD -->
+      <div class="hud-panel">
+        <div class="hud-row"><span class="hud-label">Obj Img Dist (d<sub>i1</sub>):</span><span id="hud-di1" class="hud-val">+200.0 mm</span></div>
+        <div class="hud-row"><span class="hud-label">Obj Mag (m<sub>1</sub>):</span><span id="hud-m1" class="hud-val">-0.67x</span></div>
+        <div class="hud-row"><span class="hud-label">Eye Obj Dist (d<sub>o2</sub>):</span><span id="hud-do2" class="hud-val">-40.0 mm</span></div>
+        <div class="hud-row"><span class="hud-label">Final Img Dist (d<sub>i2</sub>):</span><span id="hud-di2" class="hud-val">∞ mm</span></div>
+        <div class="hud-row"><span class="hud-label">Total Mag (M<sub>tot</sub>):</span><span id="hud-mtot" class="hud-val">-3.00x</span></div>
+        <div id="hud-badge" class="hud-badge badge-real">FINAL IMAGE: VIRTUAL &amp; INVERTED</div>
+      </div>
+
+      <div class="instruction-banner">
+        💡 Click &amp; Drag the <b>Object Arrow Tip</b> to adjust distance and height interactively.
+      </div>
+    </div>
+  </div>
+
+  <!-- CONCEPTUAL & FORMULA INSPECTOR SECTION -->
+  <div class="inspector-section">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center gap-2 mb-3 border-b border-[var(--panel-border)] pb-2">
+        <button id="tab-formula-btn" class="tab-btn active" onclick="switchTab('formula')">📐 Compound Derivations</button>
+        <button id="tab-quiz-btn" class="tab-btn" onclick="switchTab('quiz')">📝 Telescope Quiz Check</button>
+      </div>
+
+      <!-- Tab 1: Live Derivation Breakdown -->
+      <div id="tab-formula" class="p-3 bg-[var(--inner-box)] border border-[var(--panel-border)] rounded-lg font-mono text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <span class="text-[var(--accent-blue)] font-bold">1. Objective Lens Stage (L1):</span>
+            <p class="mt-1 text-[var(--text-muted)]">d<sub>i1</sub> = (f₁ &middot; d<sub>o1</sub>) / (d<sub>o1</sub> - f₁) &nbsp;|&nbsp; m₁ = -d<sub>i1</sub> / d<sub>o1</sub></p>
+            <div id="math-stage1-step" class="mt-2 p-2 bg-[var(--panel-bg)] rounded text-amber-300">
+              d<sub>i1</sub> = +200.0 mm | m₁ = -0.67x
+            </div>
+          </div>
+
+          <div>
+            <span class="text-[var(--accent-blue)] font-bold">2. Eyepiece Stage (L2) & Total Magnification:</span>
+            <p class="mt-1 text-[var(--text-muted)]">d<sub>o2</sub> = L - d<sub>i1</sub> &nbsp;|&nbsp; d<sub>i2</sub> = (f₂ &middot; d<sub>o2</sub>) / (d<sub>o2</sub> - f₂) &nbsp;|&nbsp; M<sub>tot</sub> = m₁ &middot; m₂</p>
+            <div id="math-stage2-step" class="mt-2 p-2 bg-[var(--panel-bg)] rounded text-emerald-300">
+              d<sub>o2</sub> = -40.0 mm | d<sub>i2</sub> = ∞ | M<sub>tot</sub> = -3.00x
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Interactive Mini Quiz -->
+      <div id="tab-quiz" class="hidden p-3 bg-[var(--inner-box)] border border-[var(--panel-border)] rounded-lg text-xs">
+        <div class="flex justify-between items-center mb-3">
+          <span class="font-bold text-[var(--accent-blue)]">Compound Telescope Review:</span>
+          <span id="quiz-score" class="font-mono text-amber-400 font-bold">Score: 0 / 3</span>
+        </div>
+
+        <div class="space-y-3">
+          <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
+            <p class="font-bold text-slate-200 mb-1">Q1: In an Astronomical Refracting Telescope adjusted for parallel relaxed viewing, the tube length (L) equals:</p>
+            <div class="flex gap-4 text-slate-300">
+              <label><input type="radio" name="q1" value="A" onclick="checkQuiz()"> A) L = f₁ - f₂</label>
+              <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) L = f₁ + f₂</label>
+              <label><input type="radio" name="q1" value="C" onclick="checkQuiz()"> C) L = f₁ &middot; f₂</label>
+            </div>
+          </div>
+
+          <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
+            <p class="font-bold text-slate-200 mb-1">Q2: Why does a Galilean Telescope produce an upright image while an Astronomical Telescope produces an inverted image?</p>
+            <div class="flex gap-4 text-slate-300">
+              <label><input type="radio" name="q2" value="A" onclick="checkQuiz()"> A) Galilean uses a concave eyepiece (f₂ &lt; 0) placed before the intermediate focus</label>
+              <label><input type="radio" name="q2" value="B" onclick="checkQuiz()"> B) Galilean uses mirrors instead of glass lenses</label>
+              <label><input type="radio" name="q2" value="C" onclick="checkQuiz()"> C) Galilean lens focal length is infinite</label>
+            </div>
+          </div>
+
+          <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
+            <p class="font-bold text-slate-200 mb-1">Q3: How is the total magnification (M<sub>tot</sub>) computed for a compound two-lens system?</p>
+            <div class="flex gap-4 text-slate-300">
+              <label><input type="radio" name="q3" value="A" onclick="checkQuiz()"> A) M<sub>tot</sub> = m₁ + m₂</label>
+              <label><input type="radio" name="q3" value="B" onclick="checkQuiz()"> B) M<sub>tot</sub> = m₁ &middot; m₂</label>
+              <label><input type="radio" name="q3" value="C" onclick="checkQuiz()"> C) M<sub>tot</sub> = m₁ / m₂</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../theme.js"></script>
+  <script>
+    // State variables
+    let f1 = 120;            // Objective focal length (mm)
+    let f2 = 40;             // Eyepiece focal length (mm)
+    let L = 160;             // Lens separation distance (mm)
+    let do1 = 300;           // Objective object distance (mm)
+    let ho1 = 50;            // Object height (mm)
+
+    let isDraggingObject = false;
+
+    const canvas = document.getElementById('doubleOpticsCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const sliderF1 = document.getElementById('slider-f1');
+    const sliderF2 = document.getElementById('slider-f2');
+    const sliderL = document.getElementById('slider-L');
+    const sliderDo1 = document.getElementById('slider-do1');
+    const sliderHo1 = document.getElementById('slider-ho1');
+
+    const valF1 = document.getElementById('val-f1');
+    const valF2 = document.getElementById('val-f2');
+    const valL = document.getElementById('val-L');
+    const valDo1 = document.getElementById('val-do1');
+    const valHo1 = document.getElementById('val-ho1');
+
+    const hudDi1 = document.getElementById('hud-di1');
+    const hudM1 = document.getElementById('hud-m1');
+    const hudDo2 = document.getElementById('hud-do2');
+    const hudDi2 = document.getElementById('hud-di2');
+    const hudMtot = document.getElementById('hud-mtot');
+    const hudBadge = document.getElementById('hud-badge');
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      draw();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    // Double Lens Optics Computations
+    function getDoubleLensPhysics() {
+      // Stage 1: Objective Lens
+      let di1 = Infinity;
+      if (Math.abs(do1 - f1) > 0.001) {
+        di1 = (f1 * do1) / (do1 - f1);
+      }
+      let m1 = isFinite(di1) ? -di1 / do1 : 0;
+      let hi1 = ho1 * m1;
+
+      // Stage 2: Eyepiece Lens
+      let do2 = L - di1;
+      let di2 = Infinity;
+      if (isFinite(do2) && Math.abs(do2 - f2) > 0.001) {
+        di2 = (f2 * do2) / (do2 - f2);
+      }
+      let m2 = (isFinite(di2) && do2 !== 0) ? -di2 / do2 : 1;
+      let hi2 = hi1 * m2;
+
+      let Mtot = m1 * m2;
+
+      return { di1, m1, hi1, do2, di2, m2, hi2, Mtot };
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const phys = getDoubleLensPhysics();
+
+      // Optical bench axis alignment
+      const L1_x = canvas.width * 0.35;
+      const L2_x = L1_x + L;
+      const centerY = canvas.height / 2;
+
+      // Principal Axis
+      ctx.beginPath();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.5;
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(canvas.width, centerY);
+      ctx.stroke();
+
+      // Draw Lens 1 (Objective) & Lens 2 (Eyepiece)
+      drawSingleLensShape(L1_x, centerY, f1, "L₁ (Obj)");
+      drawSingleLensShape(L2_x, centerY, f2, "L₂ (Eye)");
+
+      // Draw Focal Markers
+      drawMarker(L1_x - f1, centerY, "F₁");
+      drawMarker(L1_x + f1, centerY, "F₁'");
+      drawMarker(L2_x - f2, centerY, "F₂");
+      drawMarker(L2_x + f2, centerY, "F₂'");
+
+      // Draw Primary Object Arrow
+      const objX = L1_x - do1;
+      const objY = centerY - ho1;
+      drawArrow(objX, centerY, objX, objY, '#38bdf8', 'Object', true);
+
+      // Intermediate Image (Stage 1 Output / Stage 2 Input)
+      let img1X = 0, img1Y = 0;
+      if (isFinite(phys.di1) && Math.abs(phys.di1) < 3000) {
+        img1X = L1_x + phys.di1;
+        img1Y = centerY - phys.hi1;
+        const isVirtual1 = phys.di1 < 0;
+        drawArrow(img1X, centerY, img1X, img1Y, isVirtual1 ? '#cba6f7' : '#f9e2af', 'Img 1', !isVirtual1, isVirtual1);
+      }
+
+      // Final Image (Stage 2 Output)
+      if (isFinite(phys.di2) && Math.abs(phys.di2) < 4000) {
+        const finalX = L2_x + phys.di2;
+        const finalY = centerY - phys.hi2;
+        const isVirtual2 = phys.di2 < 0;
+        drawArrow(finalX, centerY, finalX, finalY, isVirtual2 ? '#f38ba8' : '#a6e3a1', 'Final Image', !isVirtual2, isVirtual2);
+      }
+
+      // Ray Tracing Visualization across L1 and L2
+      drawCompoundRayTracing(L1_x, L2_x, centerY, objX, objY, img1X, img1Y, phys);
+
+      updateHUD(phys);
+      updateFormulaSteps(phys);
+    }
+
+    function drawSingleLensShape(cx, cy, fVal, label) {
+      const lensHeight = Math.min(canvas.height * 0.7, 300);
+      const isConvex = fVal > 0;
+      const thickness = Math.max(12, Math.abs(fVal) * 0.12);
+      const topY = cy - lensHeight / 2;
+      const bottomY = cy + lensHeight / 2;
+
+      ctx.save();
+      const glassGrad = ctx.createLinearGradient(cx - 20, cy, cx + 20, cy);
+      glassGrad.addColorStop(0, 'rgba(186, 230, 253, 0.25)');
+      glassGrad.addColorStop(0.5, 'rgba(56, 189, 248, 0.45)');
+      glassGrad.addColorStop(1, 'rgba(186, 230, 253, 0.25)');
+
+      ctx.fillStyle = glassGrad;
+      ctx.strokeStyle = '#7dd3fc';
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      if (isConvex) {
+        ctx.moveTo(cx, topY);
+        ctx.quadraticCurveTo(cx + thickness, cy, cx, bottomY);
+        ctx.quadraticCurveTo(cx - thickness, cy, cx, topY);
+      } else {
+        ctx.moveTo(cx - thickness, topY);
+        ctx.lineTo(cx + thickness, topY);
+        ctx.quadraticCurveTo(cx + 4, cy, cx + thickness, bottomY);
+        ctx.lineTo(cx - thickness, bottomY);
+        ctx.quadraticCurveTo(cx - 4, cy, cx - thickness, topY);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#89b4fa';
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, cx, topY - 12);
+
+      ctx.restore();
+    }
+
+    function drawCompoundRayTracing(L1_x, L2_x, cy, objX, objY, img1X, img1Y, phys) {
+      // Ray 1: Parallel to L1, through F1' to L2
+      drawSegment(objX, objY, L1_x, objY, '#f87171', 1.8);
+      if (f1 > 0) {
+        drawSegment(L1_x, objY, L2_x, img1Y, '#f87171', 1.8);
+      } else {
+        drawSegment(L1_x, objY, L2_x, objY + (objY - cy), '#f87171', 1.8);
+      }
+
+      // Ray 2: Chief Ray through L1 center
+      drawSegment(objX, objY, L1_x, cy, '#60a5fa', 1.8);
+      if (isFinite(phys.di1)) {
+        drawSegment(L1_x, cy, img1X, img1Y, '#60a5fa', 1.8);
+      }
+    }
+
+    function drawSegment(x1, y1, x2, y2, color, width, dash = []) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.setLineDash(dash);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawMarker(x, y, label) {
+      ctx.save();
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, x, y + 16);
+      ctx.restore();
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, label, isSolid = true, isDashed = false) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 2.5;
+
+      if (isDashed) ctx.setLineDash([4, 4]);
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      const headLen = 10;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      const labelY = (y2 < y1) ? y2 - 10 : y2 + 16;
+      ctx.fillText(label, x2, labelY);
+      ctx.restore();
+    }
+
+    function updateHUD(phys) {
+      hudDi1.textContent = isFinite(phys.di1) ? `${phys.di1 > 0 ? '+' : ''}${phys.di1.toFixed(1)} mm` : '∞';
+      hudM1.textContent = `${phys.m1.toFixed(2)}x`;
+      hudDo2.textContent = isFinite(phys.do2) ? `${phys.do2.toFixed(1)} mm` : '∞';
+      hudDi2.textContent = isFinite(phys.di2) ? `${phys.di2 > 0 ? '+' : ''}${phys.di2.toFixed(1)} mm` : '∞ (Relaxed)';
+      hudMtot.textContent = isFinite(phys.Mtot) ? `${phys.Mtot.toFixed(2)}x` : '∞';
+
+      const isVirtualFinal = phys.di2 < 0 || !isFinite(phys.di2);
+      const isInvertedFinal = phys.Mtot < 0;
+
+      let badgeStr = isVirtualFinal ? 'VIRTUAL' : 'REAL';
+      badgeStr += isInvertedFinal ? ' • INVERTED' : ' • UPRIGHT';
+
+      hudBadge.textContent = `FINAL IMAGE: ${badgeStr}`;
+      hudBadge.className = `hud-badge ${isVirtualFinal ? 'badge-virtual' : 'badge-real'}`;
+
+      valF1.textContent = `${f1 > 0 ? '+' : ''}${f1} mm`;
+      valF2.textContent = `${f2 > 0 ? '+' : ''}${f2} mm`;
+      valL.textContent = `${L} mm`;
+      valDo1.textContent = `${do1} mm`;
+      valHo1.textContent = `${ho1} mm`;
+    }
+
+    function updateFormulaSteps(phys) {
+      const step1 = document.getElementById("math-stage1-step");
+      const step2 = document.getElementById("math-stage2-step");
+
+      step1.innerHTML = `d<sub>i1</sub> = (${f1} &middot; ${do1}) / (${do1} - ${f1}) = <strong>${isFinite(phys.di1) ? phys.di1.toFixed(1) : '∞'} mm</strong> | m₁ = <strong>${phys.m1.toFixed(2)}x</strong>`;
+      step2.innerHTML = `d<sub>o2</sub> = ${L} - ${phys.di1.toFixed(1)} = <strong>${phys.do2.toFixed(1)} mm</strong> | M<sub>tot</sub> = <strong>${isFinite(phys.Mtot) ? phys.Mtot.toFixed(2) : '∞'}x</strong>`;
+    }
+
+    function applySystemPreset(type) {
+      ['astro', 'galileo', 'micro', 'relay'].forEach(id => {
+        document.getElementById(`preset-${id}`).classList.toggle('active', type === id);
+      });
+
+      if (type === 'astro') {
+        f1 = 120; f2 = 40; L = 160; do1 = 400; ho1 = 50;
+      } else if (type === 'galileo') {
+        f1 = 140; f2 = -40; L = 100; do1 = 400; ho1 = 50;
+      } else if (type === 'micro') {
+        f1 = 40; f2 = 50; L = 180; do1 = 50; ho1 = 20;
+      } else if (type === 'relay') {
+        f1 = 80; f2 = 80; L = 240; do1 = 160; ho1 = 40;
+      }
+
+      sliderF1.value = f1;
+      sliderF2.value = f2;
+      sliderL.value = L;
+      sliderDo1.value = do1;
+      sliderHo1.value = ho1;
+      draw();
+    }
+
+    sliderF1.addEventListener('input', (e) => { f1 = parseFloat(e.target.value); draw(); });
+    sliderF2.addEventListener('input', (e) => { f2 = parseFloat(e.target.value); draw(); });
+    sliderL.addEventListener('input', (e) => { L = parseFloat(e.target.value); draw(); });
+    sliderDo1.addEventListener('input', (e) => { do1 = parseFloat(e.target.value); draw(); });
+    sliderHo1.addEventListener('input', (e) => { ho1 = parseFloat(e.target.value); draw(); });
+
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function onPointerDown(e) {
+      const { x, y } = getCanvasCoords(e);
+      const L1_x = canvas.width * 0.35;
+      const centerY = canvas.height / 2;
+      const objX = L1_x - do1;
+      const objY = centerY - ho1;
+
+      if (Math.hypot(x - objX, y - objY) < 25) isDraggingObject = true;
+    }
+
+    function onPointerMove(e) {
+      if (!isDraggingObject) return;
+      const { x, y } = getCanvasCoords(e);
+      const L1_x = canvas.width * 0.35;
+      const centerY = canvas.height / 2;
+
+      do1 = Math.max(30, Math.min(600, L1_x - x));
+      ho1 = Math.max(-100, Math.min(100, centerY - y));
+
+      sliderDo1.value = do1;
+      sliderHo1.value = ho1;
+      draw();
+    }
+
+    function onPointerUp() { isDraggingObject = false; }
+
+    canvas.addEventListener('mousedown', onPointerDown);
+    canvas.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+    canvas.addEventListener('touchstart', onPointerDown);
+    canvas.addEventListener('touchmove', onPointerMove);
+    window.addEventListener('touchend', onPointerUp);
+
+    function switchTab(tab) {
+      document.getElementById('tab-formula').classList.toggle('hidden', tab !== 'formula');
+      document.getElementById('tab-quiz').classList.toggle('hidden', tab !== 'quiz');
+      document.getElementById('tab-formula-btn').classList.toggle('active', tab === 'formula');
+      document.getElementById('tab-quiz-btn').classList.toggle('active', tab === 'quiz');
+    }
+
+    function checkQuiz() {
+      let score = 0;
+      const q1 = document.querySelector('input[name="q1"]:checked');
+      const q2 = document.querySelector('input[name="q2"]:checked');
+      const q3 = document.querySelector('input[name="q3"]:checked');
+
+      if (q1 && q1.value === 'B') score++;
+      if (q2 && q2.value === 'A') score++;
+      if (q3 && q3.value === 'B') score++;
+
+      document.getElementById('quiz-score').textContent = `Score: ${score} / 3`;
+    }
+
+    window.addEventListener('load', () => {
+      resizeCanvas();
+    });
+  </script>
+</body>
+</html>
