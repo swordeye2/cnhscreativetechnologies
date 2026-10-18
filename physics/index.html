@@ -94,6 +94,12 @@
             -webkit-text-fill-color: transparent;
         }
 
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .btn {
             background: var(--canvas-bg);
             color: var(--text-main);
@@ -114,6 +120,17 @@
             color: var(--accent-blue);
         }
 
+        .version-badge {
+            font-size: 11px;
+            font-family: monospace;
+            background: rgba(137, 180, 250, 0.15);
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
         /* Container Layout */
         .hub-container {
             max-width: 1400px;
@@ -130,6 +147,14 @@
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .hero-left {
             display: flex;
             align-items: center;
             gap: 20px;
@@ -279,6 +304,103 @@
             color: var(--accent-orange);
         }
 
+        /* Version Update Modal System */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(17, 11, 27, 0.75);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            max-width: 480px;
+            width: 90%;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+            transition: transform 0.25s ease;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--accent-yellow);
+        }
+
+        .modal-body {
+            font-size: 14px;
+            color: var(--text-sub);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notes-list {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 13px;
+        }
+
+        .notes-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .notes-list li::before {
+            content: "•";
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 14px;
+        }
+
         /* Copyright & IP Footer Notice */
         .ip-footer {
             margin-top: 20px;
@@ -295,25 +417,34 @@
 </head>
 <body>
 
-    <!-- Header Navigation with App Icon -->
+    <!-- Header Navigation with App Icon & Version Badge -->
     <header>
         <div class="nav-brand">
             <a href="../index.html" class="btn">🏠 Main Lab Hub</a>
             <img src="./icon-512.png" alt="App Icon" class="app-header-icon">
             <span class="brand-title">Just in Time "GIT GUD" Physics</span>
+            <span class="version-badge" id="headerVersionTag">v1.0.0</span>
         </div>
-        <button id="themeToggle" class="btn">🌙 Theme</button>
+        <div class="nav-actions">
+            <button id="updateCheckBtn" class="btn" onclick="checkPhysicsUpdate(true)">🔄 Check Updates</button>
+            <button id="themeToggle" class="btn">🌙 Theme</button>
+        </div>
     </header>
 
     <div class="hub-container">
         
-        <!-- Hero Section with Larger Badge Icon -->
+        <!-- Hero Section -->
         <section class="hub-hero">
-            <img src="./icon-512.png" alt="Pure Physics Logo" class="hero-icon">
-            <div class="hero-text-group">
-                <h1>Just in Time "GIT GUD" Physics</h1>
-                <p>Interactive web-based and standalone offline simulation engine for optics, ballistics kinematics, harmonic motion, and field dynamics under the CNHS Creative Technologies platform.</p>
+            <div class="hero-left">
+                <img src="./icon-512.png" alt="Pure Physics Logo" class="hero-icon">
+                <div class="hero-text-group">
+                    <h1>Just in Time "GIT GUD" Physics</h1>
+                    <p>Interactive web-based and standalone offline simulation engine for optics, ballistics kinematics, harmonic motion, and field dynamics under the CNHS Creative Technologies platform.</p>
+                </div>
             </div>
+            <button class="btn" style="border-color: var(--accent-blue); color: var(--accent-blue);" onclick="checkPhysicsUpdate(true)">
+                📦 Version Status
+            </button>
         </section>
 
         <!-- Category Tabs -->
@@ -499,8 +630,28 @@
 
     </div>
 
+    <!-- Dynamic Update Modal System -->
+    <div id="updateModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span class="modal-title" id="modalTitle">🚀 Update Available</span>
+                <span style="cursor:pointer;" onclick="closeModal()">✕</span>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Injected dynamically -->
+            </div>
+            <div class="modal-actions" id="modalActions">
+                <button class="btn" onclick="closeModal()">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../theme.js"></script>
     <script>
+        const CURRENT_PHYSICS_VERSION = "1.0.0";
+        const CURRENT_PHYSICS_BUILD = 100;
+        const REMOTE_VERSION_URL = "./version_physics.json";
+
         function switchCategory(catId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
@@ -508,6 +659,83 @@
             document.querySelectorAll('.tab-content').forEach(grid => grid.classList.remove('active'));
             document.getElementById(`cat-${catId}`).classList.add('active');
         }
+
+        // Automated GitHub Version Checker Engine
+        async function checkPhysicsUpdate(userTriggered = false) {
+            const btn = document.getElementById('updateCheckBtn');
+            if (userTriggered && btn) btn.innerText = "⌛ Checking...";
+
+            try {
+                // Fetch version manifest with cache-busting timestamp query
+                const res = await fetch(`${REMOTE_VERSION_URL}?t=${Date.now()}`);
+                if (!res.ok) throw new Error("Could not fetch version manifest");
+                
+                const data = await res.json();
+                
+                if (data.version_code > CURRENT_PHYSICS_BUILD) {
+                    showUpdateModal(data, true);
+                } else if (userTriggered) {
+                    showUpdateModal(data, false);
+                }
+            } catch (err) {
+                console.warn("Physics update check failed:", err);
+                if (userTriggered) {
+                    alert("Could not reach update server. Please check your internet connection.");
+                }
+            } finally {
+                if (btn) btn.innerText = "🔄 Check Updates";
+            }
+        }
+
+        function showUpdateModal(data, updateAvailable) {
+            const modal = document.getElementById('updateModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            const actions = document.getElementById('modalActions');
+
+            if (updateAvailable) {
+                title.innerText = `🚀 Update v${data.version} Available!`;
+                title.style.color = "var(--accent-green)";
+
+                let notesHtml = (data.release_notes || [])
+                    .map(note => `<li>${note}</li>`).join('');
+
+                body.innerHTML = `
+                    <div>A new version of <strong>${data.app}</strong> is ready for download.</div>
+                    <div style="font-size:12px; color:var(--text-sub);">Installed: <code>v${CURRENT_PHYSICS_VERSION}</code> | Latest: <code style="color:var(--accent-green);">v${data.version}</code></div>
+                    <div style="font-weight:bold; margin-top:6px;">Release Notes:</div>
+                    <ul class="notes-list">${notesHtml}</ul>
+                `;
+
+                actions.innerHTML = `
+                    <button class="btn" onclick="closeModal()">Later</button>
+                    <a href="${data.apk_url}" class="btn" style="background-color:var(--accent-blue); color:#11111b; border:none; font-weight:bold;" target="_blank">📥 Download APK</a>
+                `;
+            } else {
+                title.innerText = "✅ Up to Date";
+                title.style.color = "var(--accent-blue)";
+
+                body.innerHTML = `
+                    <div>You are currently running the latest version of <strong>Just in Time "GIT GUD" Physics</strong> (<code>v${CURRENT_PHYSICS_VERSION}</code>).</div>
+                    <div style="font-size:12px; color:var(--text-sub); margin-top:6px;">Build Date: ${data.build_date || '2026-10-18'}</div>
+                `;
+
+                actions.innerHTML = `
+                    <button class="btn" onclick="closeModal()">OK</button>
+                `;
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('updateModal').classList.remove('active');
+        }
+
+        // Silent check on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkPhysicsUpdate(false);
+        });
     </script>
 </body>
 </html>
