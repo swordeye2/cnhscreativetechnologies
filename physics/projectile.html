@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projectile Motion & Kinematics - Pure Physics</title>
+    <link rel="stylesheet" href="../theme.css">
+    <style>
+        :root {
+            --canvas-bg: #1e1e2e;
+            --panel-bg: #181825;
+            --border-color: #313244;
+            --text-main: #cdd6f4;
+            --text-sub: #a6adc8;
+            --accent-blue: #89b4fa;
+            --accent-green: #a6e3a1;
+            --accent-red: #f38ba8;
+            --accent-yellow: #f9e2af;
+            --accent-purple: #cba6f7;
+            --accent-orange: #fab387;
+        }
+
+        [data-theme="light"] {
+            --canvas-bg: #eff1f5;
+            --panel-bg: #e6e9ef;
+            --border-color: #ccd0da;
+            --text-main: #4c4f69;
+            --text-sub: #6c6f85;
+            --accent-blue: #1e66f5;
+            --accent-green: #40a02b;
+            --accent-red: #d20f39;
+            --accent-yellow: #df8e1d;
+            --accent-purple: #8839ef;
+            --accent-orange: #fe640b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--canvas-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 120px; /* COPPA Buffer */
+        }
+
+        /* Dual Nav Header */
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--canvas-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: #11111b;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            color: #11111b;
+        }
+
+        .btn-danger {
+            background-color: var(--accent-red);
+            color: #11111b;
+            border: none;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+            padding: 16px;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Canvas Viewport */
+        .viewport-container {
+            position: relative;
+            background-color: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 520px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+        }
+
+        .telemetry-hud {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(24, 24, 37, 0.85);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-family: monospace;
+            font-size: 13px;
+            pointer-events: none;
+            display: grid;
+            grid-template-columns: repeat(2, auto);
+            gap: 6px 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .hud-item {
+            display: flex;
+            gap: 6px;
+        }
+
+        .hud-label {
+            color: var(--text-sub);
+        }
+
+        .hud-val {
+            color: var(--accent-green);
+            font-weight: bold;
+        }
+
+        /* Sidebar Control Panel */
+        .control-panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .panel-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--accent-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+        }
+
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-sub);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent-blue);
+        }
+
+        select {
+            background: var(--canvas-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        /* Conceptual & Formula Inspector */
+        .inspector-panel {
+            grid-column: 1 / -1;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .tab-headers {
+            display: flex;
+            background-color: var(--canvas-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            cursor: pointer;
+            font-weight: bold;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+            background-color: var(--panel-bg);
+        }
+
+        .tab-content {
+            padding: 16px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .derivation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .math-card {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .math-title {
+            color: var(--accent-yellow);
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        /* Quiz Layout */
+        .quiz-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .quiz-card {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 14px;
+        }
+
+        .quiz-q {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .quiz-opt {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .quiz-opt label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--panel-bg);
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            border: 1px solid transparent;
+        }
+
+        .quiz-opt label:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .quiz-feedback {
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="nav-links">
+            <a href="../index.html" class="btn">🏠 Main Lab Hub</a>
+            <a href="./index.html" class="btn">🔬 Physics Suite</a>
+            <span style="font-weight: bold; margin-left: 10px;">Projectile Motion & Kinematics</span>
+        </div>
+        <button id="themeToggle" class="btn">🌙 Theme</button>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <main class="main-layout">
+        
+        <!-- Interactive Canvas Viewport -->
+        <div class="viewport-container">
+            <canvas id="simCanvas"></canvas>
+
+            <!-- Overlay Telemetry HUD -->
+            <div class="telemetry-hud">
+                <div class="hud-item"><span class="hud-label">Time (t):</span><span class="hud-val" id="hudTime">0.00 s</span></div>
+                <div class="hud-item"><span class="hud-label">Range (x):</span><span class="hud-val" id="hudX">0.00 m</span></div>
+                <div class="hud-item"><span class="hud-label">Height (y):</span><span class="hud-val" id="hudY">0.00 m</span></div>
+                <div class="hud-item"><span class="hud-label">Velocity (v):</span><span class="hud-val" id="hudV">0.00 m/s</span></div>
+                <div class="hud-item"><span class="hud-label">Max Height (H):</span><span class="hud-val" id="hudH">0.00 m</span></div>
+                <div class="hud-item"><span class="hud-label">Total Range (R):</span><span class="hud-val" id="hudR">0.00 m</span></div>
+            </div>
+        </div>
+
+        <!-- Control Sidebar Panel -->
+        <aside class="control-panel">
+            
+            <div class="panel-group">
+                <div class="panel-title">Presets</div>
+                <select id="presetSelect">
+                    <option value="custom">Custom Parameters</option>
+                    <option value="standard">Standard 45° Launch</option>
+                    <option value="cliff">Cliff Launch (h0 = 50m)</option>
+                    <option value="moon">Lunar Gravity (1.62 m/s²)</option>
+                    <option value="high_drag">High Air Resistance</option>
+                </select>
+            </div>
+
+            <div class="panel-group">
+                <div class="panel-title">Initial Conditions</div>
+                
+                <div class="control-item">
+                    <div class="control-label"><span>Initial Velocity (v₀):</span><span id="v0Val">25 m/s</span></div>
+                    <input type="range" id="v0Slider" min="5" max="60" value="25" step="1">
+                </div>
+
+                <div class="control-item">
+                    <div class="control-label"><span>Launch Angle (θ):</span><span id="angleVal">45°</span></div>
+                    <input type="range" id="angleSlider" min="0" max="90" value="45" step="1">
+                </div>
+
+                <div class="control-item">
+                    <div class="control-label"><span>Initial Height (y₀):</span><span id="y0Val">0 m</span></div>
+                    <input type="range" id="y0Slider" min="0" max="80" value="0" step="1">
+                </div>
+            </div>
+
+            <div class="panel-group">
+                <div class="panel-title">Environment & Drag</div>
+                
+                <div class="control-item">
+                    <div class="control-label"><span>Gravity (g):</span><span id="gVal">9.81 m/s²</span></div>
+                    <input type="range" id="gSlider" min="1.6" max="25.0" value="9.81" step="0.1">
+                </div>
+
+                <div class="control-item">
+                    <div class="control-label"><span>Air Drag Coeff (k):</span><span id="dragVal">0.00</span></div>
+                    <input type="range" id="dragSlider" min="0" max="0.05" value="0" step="0.005">
+                </div>
+            </div>
+
+            <div class="panel-group">
+                <div class="panel-title">Overlays & Visuals</div>
+                <label class="checkbox-group">
+                    <input type="checkbox" id="showVectors" checked> Show Velocity Components (Vx, Vy)
+                </label>
+                <label class="checkbox-group">
+                    <input type="checkbox" id="showTrajectory" checked> Show Ideal Path (No Drag)
+                </label>
+            </div>
+
+            <div class="btn-grid">
+                <button id="fireBtn" class="btn btn-primary">🚀 Launch</button>
+                <button id="resetBtn" class="btn btn-danger">🔄 Reset</button>
+            </div>
+        </aside>
+
+        <!-- Conceptual & Formula Inspector -->
+        <section class="inspector-panel">
+            <div class="tab-headers">
+                <button class="tab-btn active" onclick="switchTab('derivations')">📐 Live Kinematic Derivations</button>
+                <button class="tab-btn" onclick="switchTab('quiz')">📝 Concept Mastery Quiz</button>
+            </div>
+
+            <div id="derivations" class="tab-content active">
+                <div class="derivation-grid">
+                    <div class="math-card">
+                        <div class="math-title">Velocity Components</div>
+                        vₓ₀ = v₀ · cos(θ) = <span id="m_vx0">17.68</span> m/s<br>
+                        vᵧ₀ = v₀ · sin(θ) = <span id="m_vy0">17.68</span> m/s<br>
+                        vᵧ(t) = vᵧ₀ - g·t
+                    </div>
+                    <div class="math-card">
+                        <div class="math-title">Time of Flight & Range</div>
+                        t_flight = [vᵧ₀ + √(vᵧ₀² + 2gy₀)] / g = <span id="m_tflight">3.60</span> s<br>
+                        R_ideal = vₓ₀ · t_flight = <span id="m_range">63.71</span> m
+                    </div>
+                    <div class="math-card">
+                        <div class="math-title">Maximum Peak Height</div>
+                        H_max = y₀ + (vᵧ₀²) / (2g)<br>
+                        H_max = <span id="m_hmax">15.93</span> m
+                    </div>
+                </div>
+            </div>
+
+            <div id="quiz" class="tab-content">
+                <div class="quiz-container">
+                    <div class="quiz-card">
+                        <div class="quiz-q">1. At what launch angle is maximum horizontal range achieved over flat ground (ignoring air drag)?</div>
+                        <div class="quiz-opt">
+                            <label><input type="radio" name="q1" value="a"> 30°</label>
+                            <label><input type="radio" name="q1" value="b"> 45°</label>
+                            <label><input type="radio" name="q1" value="c"> 60°</label>
+                        </div>
+                        <div id="q1Feedback" class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-card">
+                        <div class="quiz-q">2. At the apex (highest point) of a projectile's trajectory, what is its vertical velocity component (Vy)?</div>
+                        <div class="quiz-opt">
+                            <label><input type="radio" name="q1_2" value="a"> Equal to initial velocity (v₀)</label>
+                            <label><input type="radio" name="q1_2" value="b"> Exactly 0 m/s</label>
+                            <label><input type="radio" name="q1_2" value="c"> Maximum velocity</label>
+                        </div>
+                        <div id="q2Feedback" class="quiz-feedback"></div>
+                    </div>
+
+                    <div class="quiz-card">
+                        <div class="quiz-q">3. How does adding quadratic air resistance affect projectile trajectory?</div>
+                        <div class="quiz-opt">
+                            <label><input type="radio" name="q3" value="a"> Reduces range and causes a steeper descent path</label>
+                            <label><input type="radio" name="q3" value="b"> Increases peak height while keeping range identical</label>
+                            <label><input type="radio" name="q3" value="c"> Maintains a perfectly symmetrical parabolic shape</label>
+                        </div>
+                        <div id="q3Feedback" class="quiz-feedback"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="../theme.js"></script>
+    <script>
+        // Interactive Engine Logic
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Inputs
+        const v0Slider = document.getElementById('v0Slider');
+        const angleSlider = document.getElementById('angleSlider');
+        const y0Slider = document.getElementById('y0Slider');
+        const gSlider = document.getElementById('gSlider');
+        const dragSlider = document.getElementById('dragSlider');
+        const presetSelect = document.getElementById('presetSelect');
+        const fireBtn = document.getElementById('fireBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Simulation State
+        let v0 = parseFloat(v0Slider.value);
+        let angle = parseFloat(angleSlider.value);
+        let y0 = parseFloat(y0Slider.value);
+        let g = parseFloat(gSlider.value);
+        let dragK = parseFloat(dragSlider.value);
+
+        let isAnimating = false;
+        let simTime = 0;
+        let trajectoryPath = [];
+        let idealPath = [];
+
+        let currentPos = { x: 0, y: y0 };
+        let currentVel = { x: 0, y: 0 };
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function updateInputs() {
+            v0 = parseFloat(v0Slider.value);
+            angle = parseFloat(angleSlider.value);
+            y0 = parseFloat(y0Slider.value);
+            g = parseFloat(gSlider.value);
+            dragK = parseFloat(dragSlider.value);
+
+            document.getElementById('v0Val').innerText = `${v0} m/s`;
+            document.getElementById('angleVal').innerText = `${angle}°`;
+            document.getElementById('y0Val').innerText = `${y0} m`;
+            document.getElementById('gVal').innerText = `${g} m/s²`;
+            document.getElementById('dragVal').innerText = dragK.toFixed(3);
+
+            calculateIdealKinematics();
+            if (!isAnimating) resetSim();
+        }
+
+        function calculateIdealKinematics() {
+            const rad = (angle * Math.PI) / 180;
+            const vx0 = v0 * Math.cos(rad);
+            const vy0 = v0 * Math.sin(rad);
+
+            const tFlight = (vy0 + Math.sqrt(vy0 * vy0 + 2 * g * y0)) / g;
+            const range = vx0 * tFlight;
+            const hMax = y0 + (vy0 * vy0) / (2 * g);
+
+            document.getElementById('m_vx0').innerText = vx0.toFixed(2);
+            document.getElementById('m_vy0').innerText = vy0.toFixed(2);
+            document.getElementById('m_tflight').innerText = tFlight.toFixed(2);
+            document.getElementById('m_range').innerText = range.toFixed(2);
+            document.getElementById('m_hmax').innerText = hMax.toFixed(2);
+
+            // Pre-calculate ideal path
+            idealPath = [];
+            const steps = 100;
+            for (let i = 0; i <= steps; i++) {
+                let t = (tFlight / steps) * i;
+                let x = vx0 * t;
+                let y = y0 + vy0 * t - 0.5 * g * t * t;
+                idealPath.push({ x, y: Math.max(0, y) });
+            }
+        }
+
+        function resetSim() {
+            isAnimating = false;
+            simTime = 0;
+            const rad = (angle * Math.PI) / 180;
+            currentPos = { x: 0, y: y0 };
+            currentVel = { x: v0 * Math.cos(rad), y: v0 * Math.sin(rad) };
+            trajectoryPath = [{ ...currentPos }];
+            fireBtn.innerText = "🚀 Launch";
+            updateHUD(0, 0, y0, v0);
+            draw();
+        }
+
+        function updateHUD(t, x, y, v) {
+            document.getElementById('hudTime').innerText = `${t.toFixed(2)} s`;
+            document.getElementById('hudX').innerText = `${x.toFixed(2)} m`;
+            document.getElementById('hudY').innerText = `${y.toFixed(2)} m`;
+            document.getElementById('hudV').innerText = `${v.toFixed(2)} m/s`;
+
+            const rad = (angle * Math.PI) / 180;
+            const vy0 = v0 * Math.sin(rad);
+            const tFlight = (vy0 + Math.sqrt(vy0 * vy0 + 2 * g * y0)) / g;
+            
+            document.getElementById('hudH').innerText = `${(y0 + (vy0*vy0)/(2*g)).toFixed(2)} m`;
+            document.getElementById('hudR').innerText = `${(v0*Math.cos(rad)*tFlight).toFixed(2)} m`;
+        }
+
+        function stepSimulation(dt) {
+            if (!isAnimating) return;
+
+            const dtSub = dt / 10;
+            for (let i = 0; i < 10; i++) {
+                const vMag = Math.sqrt(currentVel.x * currentVel.x + currentVel.y * currentVel.y);
+                const FdragX = -dragK * currentVel.x * vMag;
+                const FdragY = -dragK * currentVel.y * vMag;
+
+                const ax = FdragX;
+                const ay = -g + FdragY;
+
+                currentVel.x += ax * dtSub;
+                currentVel.y += ay * dtSub;
+
+                currentPos.x += currentVel.x * dtSub;
+                currentPos.y += currentVel.y * dtSub;
+
+                simTime += dtSub;
+
+                if (currentPos.y <= 0) {
+                    currentPos.y = 0;
+                    isAnimating = false;
+                    fireBtn.innerText = "🚀 Launch";
+                    break;
+                }
+            }
+
+            trajectoryPath.push({ ...currentPos });
+            const speed = Math.sqrt(currentVel.x * currentVel.x + currentVel.y * currentVel.y);
+            updateHUD(simTime, currentPos.x, currentPos.y, speed);
+            draw();
+
+            if (isAnimating) {
+                requestAnimationFrame(() => stepSimulation(0.03));
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const scale = Math.min(canvas.width / 120, canvas.height / 80);
+            const originX = 60;
+            const originY = canvas.height - 50;
+
+            // Draw Ground & Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#313244';
+            ctx.fillRect(0, originY, canvas.width, canvas.height - originY);
+
+            // Draw Cannon / Launcher Base
+            ctx.fillStyle = '#89b4fa';
+            ctx.fillRect(originX - 10, originY - y0 * scale, 20, y0 * scale);
+
+            // Draw Ideal Trajectory (Dash)
+            if (document.getElementById('showTrajectory').checked && idealPath.length > 0) {
+                ctx.beginPath();
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = 'rgba(166, 227, 161, 0.5)';
+                ctx.lineWidth = 2;
+                idealPath.forEach((pt, i) => {
+                    let cx = originX + pt.x * scale;
+                    let cy = originY - pt.y * scale;
+                    if (i === 0) ctx.moveTo(cx, cy);
+                    else ctx.lineTo(cx, cy);
+                });
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Draw Actual Trajectory Path
+            if (trajectoryPath.length > 1) {
+                ctx.beginPath();
+                ctx.strokeStyle = '#f38ba8';
+                ctx.lineWidth = 3;
+                trajectoryPath.forEach((pt, i) => {
+                    let cx = originX + pt.x * scale;
+                    let cy = originY - pt.y * scale;
+                    if (i === 0) ctx.moveTo(cx, cy);
+                    else ctx.lineTo(cx, cy);
+                });
+                ctx.stroke();
+            }
+
+            // Draw Projectile Object
+            const projX = originX + currentPos.x * scale;
+            const projY = originY - currentPos.y * scale;
+
+            ctx.fillStyle = '#f9e2af';
+            ctx.beginPath();
+            ctx.arc(projX, projY, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw Velocity Components
+            if (document.getElementById('showVectors').checked && (isAnimating || simTime === 0)) {
+                ctx.strokeStyle = '#89b4fa';
+                ctx.lineWidth = 2;
+                
+                // Vx Vector
+                ctx.beginPath();
+                ctx.moveTo(projX, projY);
+                ctx.lineTo(projX + currentVel.x * scale * 0.4, projY);
+                ctx.stroke();
+
+                // Vy Vector
+                ctx.strokeStyle = '#cba6f7';
+                ctx.beginPath();
+                ctx.moveTo(projX, projY);
+                ctx.lineTo(projX, projY - currentVel.y * scale * 0.4);
+                ctx.stroke();
+            }
+        }
+
+        // Event Listeners
+        [v0Slider, angleSlider, y0Slider, gSlider, dragSlider].forEach(el => el.addEventListener('input', updateInputs));
+
+        presetSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val === 'standard') {
+                v0Slider.value = 25; angleSlider.value = 45; y0Slider.value = 0; gSlider.value = 9.81; dragSlider.value = 0;
+            } else if (val === 'cliff') {
+                v0Slider.value = 20; angleSlider.value = 30; y0Slider.value = 40; gSlider.value = 9.81; dragSlider.value = 0;
+            } else if (val === 'moon') {
+                v0Slider.value = 25; angleSlider.value = 45; y0Slider.value = 0; gSlider.value = 1.62; dragSlider.value = 0;
+            } else if (val === 'high_drag') {
+                v0Slider.value = 35; angleSlider.value = 55; y0Slider.value = 0; gSlider.value = 9.81; dragSlider.value = 0.03;
+            }
+            updateInputs();
+        });
+
+        fireBtn.addEventListener('click', () => {
+            if (isAnimating) {
+                isAnimating = false;
+                fireBtn.innerText = "🚀 Launch";
+            } else {
+                if (currentPos.y <= 0 && simTime > 0) resetSim();
+                isAnimating = true;
+                fireBtn.innerText = "⏸️ Pause";
+                stepSimulation(0.03);
+            }
+        });
+
+        resetBtn.addEventListener('click', resetSim);
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Quiz Evaluation
+        document.querySelectorAll('input[name="q1"]').forEach(r => {
+            r.addEventListener('change', (e) => {
+                const fb = document.getElementById('q1Feedback');
+                if (e.target.value === 'b') {
+                    fb.innerText = "✓ Correct! 45° maximizes sin(2θ) in flat-ground kinematics.";
+                    fb.style.color = "var(--accent-green)";
+                } else {
+                    fb.innerText = "✗ Incorrect. Try 45°!";
+                    fb.style.color = "var(--accent-red)";
+                }
+            });
+        });
+
+        document.querySelectorAll('input[name="q1_2"]').forEach(r => {
+            r.addEventListener('change', (e) => {
+                const fb = document.getElementById('q2Feedback');
+                if (e.target.value === 'b') {
+                    fb.innerText = "✓ Correct! At apex, Vy momentarily drops to 0 m/s as velocity turns horizontal.";
+                    fb.style.color = "var(--accent-green)";
+                } else {
+                    fb.innerText = "✗ Incorrect. Think about vertical direction turning point.";
+                    fb.style.color = "var(--accent-red)";
+                }
+            });
+        });
+
+        document.querySelectorAll('input[name="q3"]').forEach(r => {
+            r.addEventListener('change', (e) => {
+                const fb = document.getElementById('q3Feedback');
+                if (e.target.value === 'a') {
+                    fb.innerText = "✓ Correct! Drag opposes velocity, draining kinetic energy and steepening descent.";
+                    fb.style.color = "var(--accent-green)";
+                } else {
+                    fb.innerText = "✗ Incorrect. Air drag reduces both height and range.";
+                    fb.style.color = "var(--accent-red)";
+                }
+            });
+        });
+
+        // Initialize
+        resizeCanvas();
+        updateInputs();
+    </script>
+</body>
+</html>
