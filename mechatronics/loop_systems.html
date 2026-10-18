@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open-Loop vs Closed-Loop System Simulator</title>
+  <style>
+    :root {
+      --bg-color: #1e1e2e;
+      --card-bg: #181825;
+      --text-main: #cdd6f4;
+      --text-sub: #a6adc8;
+      --accent-open: #f38ba8;
+      --accent-closed: #a6e3a1;
+      --accent-target: #89b4fa;
+      --accent-core: #cba6f7;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin: 0 0 5px 0;
+      color: var(--accent-core);
+      font-size: 1.8rem;
+      text-align: center;
+    }
+
+    p.subtitle {
+      margin: 0 0 20px 0;
+      color: var(--text-sub);
+      font-size: 0.95rem;
+      text-align: center;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      max-width: 950px;
+      width: 100%;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      border: 1px solid #313244;
+      flex: 1 1 420px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #313244;
+      padding-bottom: 10px;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: #11111b;
+    }
+
+    .badge-open { background-color: var(--accent-open); }
+    .badge-closed { background-color: var(--accent-closed); }
+
+    .vis-area {
+      width: 100%;
+      height: 160px;
+      background-color: #11111b;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+
+    /* Fan Animation */
+    .fan-blade {
+      transform-origin: center;
+      transition: transform 0.1s linear;
+    }
+
+    .data-readout {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .data-box {
+      background-color: #11111b;
+      padding: 8px 12px;
+      border-radius: 6px;
+      text-align: center;
+    }
+
+    .data-label {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      margin-bottom: 2px;
+    }
+
+    .data-value {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .controls {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    button {
+      background-color: #313244;
+      color: var(--text-main);
+      border: 1px solid #45475a;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #45475a;
+    }
+
+    .btn-gust {
+      background-color: #fab387;
+      color: #11111b;
+      border: none;
+    }
+
+    .btn-gust:hover {
+      background-color: #f9e2af;
+    }
+
+    .feedback-path {
+      stroke: var(--accent-closed);
+      stroke-width: 2;
+      stroke-dasharray: 4,4;
+      animation: dash 1s linear infinite;
+    }
+
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -8;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔄 Open-Loop vs. Closed-Loop Systems</h1>
+  <p class="subtitle">Hit "Apply Wind Gust" to test how each system reacts to unexpected disturbances!</p>
+
+  <div class="container">
+
+    <!-- OPEN LOOP CARD -->
+    <div class="card">
+      <div class="card-header">
+        <h3 style="margin:0;">Open-Loop System</h3>
+        <span class="badge badge-open">NO FEEDBACK</span>
+      </div>
+
+      <div class="vis-area">
+        <svg width="220" height="140" viewBox="0 0 220 140">
+          <!-- Controller -->
+          <rect x="10" y="50" width="50" height="40" rx="5" fill="#313244" stroke="#45475a" stroke-width="2"/>
+          <text x="35" y="74" fill="#cdd6f4" font-size="9" text-anchor="middle">Signal</text>
+
+          <!-- Line to motor -->
+          <line x1="60" y1="70" x2="110" y2="70" stroke="#f38ba8" stroke-width="3" marker-end="url(#arrow)"/>
+
+          <!-- Motor -->
+          <circle cx="130" cy="70" r="20" fill="#45475a" stroke="#cdd6f4" stroke-width="2"/>
+          
+          <!-- Fan Blades -->
+          <g id="openFan" class="fan-blade" style="transform-origin: 130px 70px;">
+            <path d="M130 50 L135 68 L125 68 Z" fill="#f38ba8"/>
+            <path d="M130 90 L135 72 L125 72 Z" fill="#f38ba8"/>
+            <path d="M110 70 L128 65 L128 75 Z" fill="#f38ba8"/>
+            <path d="M150 70 L132 65 L132 75 Z" fill="#f38ba8"/>
+          </g>
+
+          <!-- Wind Effect -->
+          <g id="openWind" style="opacity: 0; transition: opacity 0.3s;">
+            <path d="M180 50 Q160 55 150 50" stroke="#fab387" stroke-width="2" fill="none"/>
+            <path d="M190 70 Q170 75 155 70" stroke="#fab387" stroke-width="2" fill="none"/>
+            <path d="M185 90 Q165 95 150 90" stroke="#fab387" stroke-width="2" fill="none"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="data-readout">
+        <div class="data-box">
+          <div class="data-label">Target Speed</div>
+          <div class="data-value" style="color: var(--accent-target)">1000 RPM</div>
+        </div>
+        <div class="data-box">
+          <div class="data-label">Actual Fan Speed</div>
+          <div class="data-value" id="openRpm" style="color: var(--accent-open)">1000 RPM</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn-gust" onclick="triggerWind('open')">💨 Apply Wind Gust (Disturbance)</button>
+      </div>
+    </div>
+
+    <!-- CLOSED LOOP CARD -->
+    <div class="card">
+      <div class="card-header">
+        <h3 style="margin:0;">Closed-Loop System</h3>
+        <span class="badge badge-closed">SENSOR FEEDBACK</span>
+      </div>
+
+      <div class="vis-area">
+        <svg width="220" height="140" viewBox="0 0 220 140">
+          <!-- Controller -->
+          <rect x="10" y="50" width="50" height="40" rx="5" fill="#313244" stroke="#a6e3a1" stroke-width="2"/>
+          <text x="35" y="74" fill="#cdd6f4" font-size="9" text-anchor="middle">PID Logic</text>
+
+          <!-- Forward Line -->
+          <line x1="60" y1="70" x2="110" y2="70" stroke="#a6e3a1" stroke-width="3"/>
+
+          <!-- Motor -->
+          <circle cx="130" cy="70" r="20" fill="#45475a" stroke="#cdd6f4" stroke-width="2"/>
+          
+          <!-- Fan Blades -->
+          <g id="closedFan" class="fan-blade" style="transform-origin: 130px 70px;">
+            <path d="M130 50 L135 68 L125 68 Z" fill="#a6e3a1"/>
+            <path d="M130 90 L135 72 L125 72 Z" fill="#a6e3a1"/>
+            <path d="M110 70 L128 65 L128 75 Z" fill="#a6e3a1"/>
+            <path d="M150 70 L132 65 L132 75 Z" fill="#a6e3a1"/>
+          </g>
+
+          <!-- Optical Encoder Sensor -->
+          <rect x="122" y="100" width="16" height="12" fill="#89b4fa" rx="2"/>
+          <text x="130" y="109" fill="#11111b" font-size="7" font-weight="bold" text-anchor="middle">ENC</text>
+
+          <!-- Feedback Loop Wire -->
+          <path d="M130 112 L130 125 L35 125 L35 90" fill="none" class="feedback-path"/>
+
+          <!-- Wind Effect -->
+          <g id="closedWind" style="opacity: 0; transition: opacity 0.3s;">
+            <path d="M180 50 Q160 55 150 50" stroke="#fab387" stroke-width="2" fill="none"/>
+            <path d="M190 70 Q170 75 155 70" stroke="#fab387" stroke-width="2" fill="none"/>
+            <path d="M185 90 Q165 95 150 90" stroke="#fab387" stroke-width="2" fill="none"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="data-readout">
+        <div class="data-box">
+          <div class="data-label">Target Speed</div>
+          <div class="data-value" style="color: var(--accent-target)">1000 RPM</div>
+        </div>
+        <div class="data-box">
+          <div class="data-label">Actual Fan Speed</div>
+          <div class="data-value" id="closedRpm" style="color: var(--accent-closed)">1000 RPM</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn-gust" onclick="triggerWind('closed')">💨 Apply Wind Gust (Disturbance)</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let openAngle = 0;
+    let closedAngle = 0;
+
+    let openSpeed = 10; // Animation speed step
+    let closedSpeed = 10;
+
+    let openRpmVal = 1000;
+    let closedRpmVal = 1000;
+
+    // Animation Loop
+    function animate() {
+      openAngle = (openAngle + openSpeed) % 360;
+      closedAngle = (closedAngle + closedSpeed) % 360;
+
+      document.getElementById('openFan').style.transform = `rotate(${openAngle}deg)`;
+      document.getElementById('closedFan').style.transform = `rotate(${closedAngle}deg)`;
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    function triggerWind(type) {
+      if (type === 'open') {
+        const wind = document.getElementById('openWind');
+        const rpmText = document.getElementById('openRpm');
+        
+        wind.style.opacity = '1';
+        openSpeed = 3; // Fan slows down significantly
+        openRpmVal = 420;
+        rpmText.textContent = `${openRpmVal} RPM (SLOWED!)`;
+        rpmText.style.color = '#f38ba8';
+
+        setTimeout(() => {
+          wind.style.opacity = '0';
+          openSpeed = 10;
+          openRpmVal = 1000;
+          rpmText.textContent = `${openRpmVal} RPM`;
+          rpmText.style.color = 'var(--accent-open)';
+        }, 3000);
+
+      } else if (type === 'closed') {
+        const wind = document.getElementById('closedWind');
+        const rpmText = document.getElementById('closedRpm');
+
+        wind.style.opacity = '1';
+        // Momentary drop then automatic correction
+        closedSpeed = 5;
+        closedRpmVal = 750;
+        rpmText.textContent = `${closedRpmVal} RPM (Adjusting...)`;
+
+        setTimeout(() => {
+          closedSpeed = 10; // PID controller boosts power to compensate
+          closedRpmVal = 1000;
+          rpmText.textContent = `${closedRpmVal} RPM (Corrected!)`;
+          rpmText.style.color = 'var(--accent-closed)';
+        }, 600);
+
+        setTimeout(() => {
+          wind.style.opacity = '0';
+        }, 3000);
+      }
+    }
+  </script>
+</body>
+</html>
