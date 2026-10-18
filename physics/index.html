@@ -58,43 +58,65 @@
             padding-bottom: 120px; /* COPPA Safety Buffer */
         }
 
-        /* Dual-Navigation Header */
+        /* Dual-Navigation / Header Banner Container */
         header {
             background-color: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
-            padding: 12px 24px;
+            padding: 20px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 16px;
         }
 
-        .nav-brand {
+        .header-brand-group {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
         }
 
         .app-header-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
             object-fit: cover;
             border: 1px solid var(--border-color);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand-text-block {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .brand-title {
             font-weight: 800;
-            font-size: 18px;
-            letter-spacing: 0.5px;
-            background: linear-gradient(135deg, var(--accent-yellow), var(--accent-orange));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 22px;
+            letter-spacing: 0.3px;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .nav-actions {
+        .brand-subtitle {
+            font-size: 13px;
+            color: var(--text-sub);
+        }
+
+        .brand-author {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+
+        .brand-author strong {
+            color: var(--text-main);
+        }
+
+        .header-actions {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -104,14 +126,15 @@
             background: var(--canvas-bg);
             color: var(--text-main);
             border: 1px solid var(--border-color);
-            padding: 8px 14px;
-            border-radius: 6px;
+            padding: 10px 16px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 13px;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             transition: all 0.2s ease;
         }
 
@@ -120,28 +143,19 @@
             color: var(--accent-blue);
         }
 
-        .version-badge {
-            font-size: 11px;
-            font-family: monospace;
-            background: rgba(137, 180, 250, 0.15);
-            color: var(--accent-blue);
-            border: 1px solid var(--accent-blue);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-weight: bold;
+        .btn-apk {
+            background-color: var(--accent-blue);
+            color: #11111b;
+            border: none;
+            font-weight: 700;
         }
 
-        .dev-badge {
-            font-size: 11px;
-            font-weight: bold;
-            color: var(--accent-yellow);
-            background: rgba(249, 226, 175, 0.1);
-            border: 1px solid var(--accent-yellow);
-            padding: 2px 8px;
-            border-radius: 4px;
+        .btn-apk:hover {
+            opacity: 0.9;
+            color: #11111b;
         }
 
-        /* Container Layout */
+        /* Main Container */
         .hub-container {
             max-width: 1400px;
             width: 100%;
@@ -152,48 +166,11 @@
             gap: 20px;
         }
 
-        .hub-hero {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
+        /* Top Nav Hub Link */
+        .nav-hub-bar {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .hero-left {
-            display: flex;
             align-items: center;
-            gap: 20px;
-        }
-
-        .hero-icon {
-            width: 72px;
-            height: 72px;
-            border-radius: 16px;
-            border: 2px solid var(--border-color);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            flex-shrink: 0;
-        }
-
-        .hero-text-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .hub-hero h1 {
-            font-size: 24px;
-            color: var(--text-main);
-        }
-
-        .hub-hero p {
-            color: var(--text-sub);
-            font-size: 14px;
-            line-height: 1.5;
         }
 
         /* Category Tabs Navigation */
@@ -427,36 +404,35 @@
 </head>
 <body>
 
-    <!-- Header Navigation with Developer Attribution -->
+    <!-- Header Banner matching MicroPython Suite Layout -->
     <header>
-        <div class="nav-brand">
-            <a href="../index.html" class="btn">🏠 Main Lab Hub</a>
+        <div class="header-brand-group">
             <img src="./icon-512.png" alt="App Icon" class="app-header-icon">
-            <span class="brand-title">Just in Time "GIT GUD" Physics</span>
-            <span class="version-badge" id="headerVersionTag">v1.0.0</span>
+            <div class="brand-text-block">
+                <div class="brand-title">
+                    <span>⚙️</span> Just in Time "GIT GUD" Physics
+                </div>
+                <div class="brand-subtitle">Interactive Physics Visualizers, Ballistics Dynamics, and Geometric Optics Curriculum</div>
+                <div class="brand-author">
+                    Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
+                </div>
+            </div>
         </div>
-        <div class="nav-actions">
-            <span class="dev-badge">👨‍💻 Dev: Jorge Victor M. Sales</span>
-            <button id="updateCheckBtn" class="btn" onclick="checkPhysicsUpdate(true)">🔄 Check Updates</button>
-            <button id="themeToggle" class="btn">🌙 Theme</button>
+
+        <div class="header-actions">
+            <button class="btn btn-apk" onclick="checkPhysicsUpdate(true)">
+                📦 Download APK (<span id="apkVersionTag">v1.0.0</span>)
+            </button>
+            <button id="themeToggle" class="btn">🌙 Dark Theme</button>
         </div>
     </header>
 
     <div class="hub-container">
         
-        <!-- Hero Section -->
-        <section class="hub-hero">
-            <div class="hero-left">
-                <img src="./icon-512.png" alt="Pure Physics Logo" class="hero-icon">
-                <div class="hero-text-group">
-                    <h1>Just in Time "GIT GUD" Physics</h1>
-                    <p>Interactive web-based and standalone offline simulation engine for optics, ballistics kinematics, harmonic motion, and field dynamics. Developed by <strong>Jorge Victor M. Sales (swordeye / thearbiter)</strong> under the CNHS Creative Technologies platform.</p>
-                </div>
-            </div>
-            <button class="btn" style="border-color: var(--accent-blue); color: var(--accent-blue);" onclick="checkPhysicsUpdate(true)">
-                📦 Version Status
-            </button>
-        </section>
+        <!-- Top Navigation Hub Link -->
+        <div class="nav-hub-bar">
+            <a href="../index.html" class="btn">🏠 Main Lab Hub</a>
+        </div>
 
         <!-- Category Tabs -->
         <nav class="category-tabs">
@@ -636,7 +612,7 @@
         <footer class="ip-footer">
             <strong>Just in Time "GIT GUD" Physics</strong><br>
             Developed under rpithon.com / CNHS Creative Technologies Platform.<br>
-            Lead Developer & Intellectual Property Assertions © <strong>Jorge Victor M. Sales (swordeye / thearbiter)</strong>. All rights reserved.
+            Author & Creator: <strong>Jorge Victor M. Sales (swordeye / thearbiter)</strong> | License: CC BY-NC-SA 4.0
         </footer>
 
     </div>
@@ -673,9 +649,8 @@
 
         // Automated GitHub Version Checker Engine
         async function checkPhysicsUpdate(userTriggered = false) {
-            const btn = document.getElementById('updateCheckBtn');
-            if (userTriggered && btn) btn.innerText = "⌛ Checking...";
-
+            const tag = document.getElementById('apkVersionTag');
+            
             try {
                 const res = await fetch(`${REMOTE_VERSION_URL}?t=${Date.now()}`);
                 if (!res.ok) throw new Error("Could not fetch version manifest");
@@ -692,8 +667,6 @@
                 if (userTriggered) {
                     alert("Could not reach update server. Please check your internet connection.");
                 }
-            } finally {
-                if (btn) btn.innerText = "🔄 Check Updates";
             }
         }
 
@@ -712,7 +685,7 @@
 
                 body.innerHTML = `
                     <div>A new version of <strong>${data.app}</strong> is ready for download.</div>
-                    <div style="font-size:12px; color:var(--text-sub);">Developer: <strong>Jorge Victor M. Sales</strong></div>
+                    <div style="font-size:12px; color:var(--text-sub);">Author & Creator: <strong>Jorge Victor M. Sales</strong></div>
                     <div style="font-size:12px; color:var(--text-sub);">Installed: <code>v${CURRENT_PHYSICS_VERSION}</code> | Latest: <code style="color:var(--accent-green);">v${data.version}</code></div>
                     <div style="font-weight:bold; margin-top:6px;">Release Notes:</div>
                     <ul class="notes-list">${notesHtml}</ul>
@@ -720,7 +693,7 @@
 
                 actions.innerHTML = `
                     <button class="btn" onclick="closeModal()">Later</button>
-                    <a href="${data.apk_url}" class="btn" style="background-color:var(--accent-blue); color:#11111b; border:none; font-weight:bold;" target="_blank">📥 Download APK</a>
+                    <a href="${data.apk_url}" class="btn btn-apk" target="_blank">📥 Download APK</a>
                 `;
             } else {
                 title.innerText = "✅ Up to Date";
@@ -728,7 +701,7 @@
 
                 body.innerHTML = `
                     <div>You are currently running the latest version of <strong>Just in Time "GIT GUD" Physics</strong> (<code>v${CURRENT_PHYSICS_VERSION}</code>).</div>
-                    <div style="font-size:12px; color:var(--text-sub); margin-top:6px;">Lead Developer: <strong>Jorge Victor M. Sales (swordeye / thearbiter)</strong></div>
+                    <div style="font-size:12px; color:var(--text-sub); margin-top:6px;">Author & Creator: <strong>Jorge Victor M. Sales (swordeye / thearbiter)</strong></div>
                     <div style="font-size:12px; color:var(--text-sub);">Build Date: ${data.build_date || '2026-10-18'}</div>
                 `;
 
