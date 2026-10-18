@@ -468,8 +468,8 @@
       <div id="tab-formula" class="p-3 bg-[var(--inner-box)] border border-[var(--panel-border)] rounded-lg font-mono text-xs">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <span class="text-[var(--accent-blue)] font-bold">1. Thin Lens Equation:</span>
-            <p class="mt-1 text-[var(--text-muted)]">1/f = 1/d<sub>o</sub> + 1/d<sub>i</sub> &nbsp;&implies;&nbsp; d<sub>i</sub> = (f &middot; d<sub>o</sub>) / (d<sub>o</sub> - f)</p>
+            <span class="text-[var(--accent-blue)] font-bold">1. Thin Lens & Lens Maker Equations:</span>
+            <p class="mt-1 text-[var(--text-muted)]">1/f = (n - 1)(1/R₁ - 1/R₂) &nbsp;|&nbsp; 1/f = 1/d<sub>o</sub> + 1/d<sub>i</sub></p>
             <div id="math-di-step" class="mt-2 p-2 bg-[var(--panel-bg)] rounded text-amber-300">
               d<sub>i</sub> = (150 &middot; 250) / (250 - 150) = 375.0 mm
             </div>
@@ -497,7 +497,7 @@
             <p class="font-bold text-slate-200 mb-1">Q1: How does flipping a thin Plano-Convex lens horizontally change its focal length (f)?</p>
             <div class="flex gap-4 text-slate-300">
               <label><input type="radio" name="q1" value="A" onclick="checkQuiz()"> A) It changes sign from positive to negative</label>
-              <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) Focal length magnitude remains the same under thin-lens approximation</label>
+              <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) Focal length magnitude remains identical under paraxial thin-lens approximation</label>
               <label><input type="radio" name="q1" value="C" onclick="checkQuiz()"> C) It doubles the focal length</label>
             </div>
           </div>
@@ -885,8 +885,20 @@
       const stepDi = document.getElementById("math-di-step");
       const stepM = document.getElementById("math-m-step");
 
+      let R1_str = "R₁ = +R, R₂ = -R";
+      if (lensType === 'planoconvex') {
+        R1_str = !isFlipped ? "R₁ = ∞, R₂ = -R (Optimal Curved Refraction)" : "R₁ = +R, R₂ = ∞ (Higher Aberration in Real Optics)";
+      } else if (lensType === 'planoconcave') {
+        R1_str = !isFlipped ? "R₁ = ∞, R₂ = +R (Optimal Diverging Interface)" : "R₁ = -R, R₂ = ∞ (Flipped Orientation)";
+      } else if (lensType === 'biconcave') {
+        R1_str = "R₁ = -R, R₂ = +R";
+      }
+
       if (isFinite(phys.di_val)) {
-        stepDi.innerHTML = `d<sub>i</sub> = (${phys.f} &middot; ${phys.do_val}) / (${phys.do_val} - (${phys.f})) = <strong>${phys.di_val.toFixed(1)} mm</strong>`;
+        stepDi.innerHTML = `
+          d<sub>i</sub> = (${phys.f} &middot; ${phys.do_val}) / (${phys.do_val} - (${phys.f})) = <strong>${phys.di_val.toFixed(1)} mm</strong><br>
+          <span class="text-slate-400 text-[11px] block mt-1">Lens Surface Curvature: ${R1_str}</span>
+        `;
         stepM.innerHTML = `m = -(${phys.di_val.toFixed(1)} / ${phys.do_val.toFixed(1)}) = <strong>${phys.m.toFixed(2)}x</strong> &nbsp;|&nbsp; h<sub>i</sub> = <strong>${phys.hi_val.toFixed(1)} mm</strong>`;
       } else {
         stepDi.innerHTML = `d<sub>i</sub> = (${phys.f} &middot; ${phys.do_val}) / (0) = <strong>&infin; (Parallel Rays)</strong>`;
