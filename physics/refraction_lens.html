@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spherical Refracting Surface & Submerged Lens Engine | Just in Time "GIT GUD" Physics</title>
+  <title>Spherical Refracting Surface & Refraction Lens Engine | Just in Time "GIT GUD" Physics</title>
 
   <!-- Local Physics Suite Assets -->
   <link rel="icon" type="image/png" href="./icon-512.png">
@@ -412,6 +412,8 @@
         <div class="hud-row"><span class="hud-label">Medium 1 (n<sub>a</sub>):</span><span id="hud-na" class="hud-val">1.000</span></div>
         <div class="hud-row"><span class="hud-label">Medium 2 (n<sub>b</sub>):</span><span id="hud-nb" class="hud-val">1.520</span></div>
         <div class="hud-row"><span class="hud-label">Curvature (R):</span><span id="hud-R" class="hud-val">+100.0 mm</span></div>
+        <div class="hud-row"><span class="hud-label">First Focus (F₁):</span><span id="hud-f1" class="hud-val">-192.3 mm</span></div>
+        <div class="hud-row"><span class="hud-label">Second Focus (F₂):</span><span id="hud-f2" class="hud-val">+292.3 mm</span></div>
         <div class="hud-row"><span class="hud-label">Object Dist (s):</span><span id="hud-s" class="hud-val">250.0 mm</span></div>
         <div class="hud-row"><span class="hud-label">Image Dist (s'):</span><span id="hud-sp" class="hud-val">+292.3 mm</span></div>
         <div class="hud-row"><span class="hud-label">Magnification (m):</span><span id="hud-m" class="hud-val">-0.77x</span></div>
@@ -445,8 +447,8 @@
           </div>
 
           <div>
-            <span class="text-[var(--accent-blue)] font-bold">2. Lateral Magnification Equation:</span>
-            <p class="mt-1 text-[var(--text-muted)]">m = - (n<sub>a</sub> &middot; s') / (n<sub>b</sub> &middot; s) &nbsp;|&nbsp; y' = m &middot; y</p>
+            <span class="text-[var(--accent-blue)] font-bold">2. Lateral Magnification & Focal Points:</span>
+            <p class="mt-1 text-[var(--text-muted)]">F₁ = n<sub>a</sub> R / (n<sub>b</sub> - n<sub>a</sub>) &nbsp;|&nbsp; F₂ = n<sub>b</sub> R / (n<sub>b</sub> - n<sub>a</sub>)</p>
             <div id="math-step-m" class="mt-2 p-2 bg-[var(--panel-bg)] rounded text-emerald-300">
               m = - (1.000 &middot; 292.3) / (1.520 &middot; 250) = -0.77x
             </div>
@@ -548,6 +550,8 @@
     const hudNa = document.getElementById('hud-na');
     const hudNb = document.getElementById('hud-nb');
     const hudR = document.getElementById('hud-R');
+    const hudF1 = document.getElementById('hud-f1');
+    const hudF2 = document.getElementById('hud-f2');
     const hudS = document.getElementById('hud-s');
     const hudSp = document.getElementById('hud-sp');
     const hudM = document.getElementById('hud-m');
@@ -564,18 +568,26 @@
     window.addEventListener('resize', resizeCanvas);
 
     function getRefractionPhysics() {
+      const deltaN = nb - na;
+      let f1 = Infinity; // First focal point (object side)
+      let f2 = Infinity; // Second focal point (image side)
+
+      if (Math.abs(deltaN) > 0.0001 && Math.abs(R) > 0.001) {
+        f1 = (na * R) / deltaN;
+        f2 = (nb * R) / deltaN;
+      }
+
       if (simMode === 'surface') {
-        const num = nb - na;
         let sp = Infinity;
         if (Math.abs(R) > 0.001) {
-          const denom = (num / R) - (na / s);
+          const denom = (deltaN / R) - (na / s);
           if (Math.abs(denom) > 0.00001) {
             sp = nb / denom;
           }
         }
         let m = isFinite(sp) ? - (na * sp) / (nb * s) : 0;
         let yp = y * m;
-        return { sp, m, yp };
+        return { sp, m, yp, f1, f2 };
       } else {
         const f_eff = (1 / ((nb / na) - 1)) * (R / 2);
         let sp = Infinity;
@@ -584,7 +596,7 @@
         }
         let m = isFinite(sp) ? -sp / s : 0;
         let yp = y * m;
-        return { sp, m, yp, f_eff };
+        return { sp, m, yp, f_eff, f1: f_eff, f2: f_eff };
       }
     }
 
@@ -600,6 +612,7 @@
       ctx.fillStyle = getMediumColor(na);
       ctx.fillRect(0, 0, centerX, canvas.height);
 
+      // Optical Axis
       ctx.beginPath();
       ctx.strokeStyle = '#475569';
       ctx.lineWidth = 1.5;
@@ -609,12 +622,18 @@
 
       const phys = getRefractionPhysics();
 
+      // Refracting Boundary
       drawRefractingInterface(centerX, centerY);
 
+      // Focus Indicators (F1 & F2)
+      drawFocalMarkers(centerX, centerY, phys);
+
+      // Object Arrow
       const objX = centerX - s;
       const objY = centerY - y;
       drawArrow(objX, centerY, objX, objY, '#38bdf8', 'Object (s)', true);
 
+      // Image Arrow & Ray Diagram Tracing
       if (isFinite(phys.sp) && Math.abs(phys.sp) < 4000) {
         const imgX = centerX + phys.sp;
         const imgY = centerY - phys.yp;
@@ -659,6 +678,7 @@
 
       ctx.stroke();
 
+      // Center of Curvature (C) Marker
       const CenterX = cx + R;
       ctx.fillStyle = '#fab387';
       ctx.beginPath();
@@ -672,15 +692,63 @@
       ctx.restore();
     }
 
-    function drawRayTracing(cx, cy, objX, objY, imgX, imgY, phys) {
-      drawSegment(objX, objY, cx, objY, '#f87171', 2);
-      drawSegment(cx, objY, imgX, imgY, '#f87171', 2);
+    function drawFocalMarkers(cx, cy, phys) {
+      ctx.save();
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'center';
 
+      // First Focus (F1)
+      if (isFinite(phys.f1) && Math.abs(phys.f1) < 1500) {
+        const f1X = cx - phys.f1;
+        ctx.fillStyle = '#cba6f7';
+        ctx.beginPath();
+        ctx.arc(f1X, cy, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillText('F₁', f1X, cy - 12);
+      }
+
+      // Second Focus (F2)
+      if (isFinite(phys.f2) && Math.abs(phys.f2) < 1500) {
+        const f2X = cx + phys.f2;
+        ctx.fillStyle = '#f9e2af';
+        ctx.beginPath();
+        ctx.arc(f2X, cy, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillText('F₂', f2X, cy - 12);
+      }
+
+      ctx.restore();
+    }
+
+    function drawRayTracing(cx, cy, objX, objY, imgX, imgY, phys) {
+      // Ray 1: Parallel Ray (Red) -> Refracts toward/away image point
+      drawSegment(objX, objY, cx, objY, '#f87171', 2);
+      if (phys.sp > 0) {
+        drawSegment(cx, objY, imgX, imgY, '#f87171', 2);
+      } else {
+        // Extended Virtual Rays
+        drawRayLine(cx, objY, imgX, imgY, '#f87171', 2);
+        drawSegment(cx, objY, imgX, imgY, '#f87171', 1.5, [4, 4]);
+      }
+
+      // Ray 2: Central Ray through C (Blue) -> Passes undeviated
       const CenterX = cx + R;
       drawSegment(objX, objY, CenterX, cy, '#89b4fa', 2);
       if (phys.sp > 0) {
-        drawSegment(CenterX, cy, imgX, imgY, '#89b4fa', 1.5, [4, 4]);
+        drawSegment(CenterX, cy, imgX, imgY, '#89b4fa', 2);
+      } else {
+        drawSegment(cx, cy, imgX, imgY, '#89b4fa', 1.5, [4, 4]);
       }
+    }
+
+    function drawRayLine(x1, y1, x2, y2, color, width) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      if (length === 0) return;
+      const farX = x1 + (dx / length) * 2000;
+      const farY = y1 + (dy / length) * 2000;
+      drawSegment(x1, y1, farX, farY, color, width);
     }
 
     function drawSegment(x1, y1, x2, y2, color, width, dash = []) {
@@ -731,6 +799,9 @@
       hudNb.textContent = nb.toFixed(3);
       hudR.textContent = `${R > 0 ? '+' : ''}${R.toFixed(1)} mm`;
       hudS.textContent = `${s.toFixed(1)} mm`;
+
+      hudF1.textContent = isFinite(phys.f1) ? `${phys.f1 > 0 ? '+' : ''}${phys.f1.toFixed(1)} mm` : '∞';
+      hudF2.textContent = isFinite(phys.f2) ? `${phys.f2 > 0 ? '+' : ''}${phys.f2.toFixed(1)} mm` : '∞';
 
       if (isFinite(phys.sp)) {
         hudSp.textContent = `${phys.sp > 0 ? '+' : ''}${phys.sp.toFixed(1)} mm`;
