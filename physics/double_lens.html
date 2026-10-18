@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Double Lens & Telescope Simulation | CNHS Physics Suite</title>
+  <title>Compound Optics & Telescope Visualizer | Just in Time "GIT GUD" Physics</title>
 
-  <!-- PWA & Branding Icons -->
-  <link rel="icon" type="image/png" sizes="512x512" href="../icon-512.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="../icon-512.png">
+  <!-- Local Physics Suite Assets -->
+  <link rel="icon" type="image/png" href="./icon-512.png">
+  <link rel="apple-touch-icon" href="./icon-512.png">
   <link rel="manifest" href="./manifest.json">
+
+  <!-- Shared Parent Theme -->
+  <link rel="stylesheet" href="../theme.css">
 
   <!-- Legal IP & Copyright Assertions -->
   <meta name="author" content="Jorge Victor M. Sales">
@@ -18,16 +21,6 @@
   <meta name="alias" content="swordeye, thearbiter">
 
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" type="image/png" href="./icon-512.png">
-<link rel="apple-touch-icon" href="./icon-512.png">
-<link rel="manifest" href="./manifest.json">
-<!-- Local Physics Suite Assets -->
-<link rel="icon" type="image/png" href="./icon-512.png">
-<link rel="apple-touch-icon" href="./icon-512.png">
-<link rel="manifest" href="./manifest.json">
-
-<!-- Shared Parent Theme -->
-<link rel="stylesheet" href="../theme.css">
 
   <!-- Google AdSense Script (COPPA & Non-Personalized Student-Safe Configuration) -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136" crossorigin="anonymous"></script>
@@ -65,6 +58,7 @@
       display: flex;
       flex-direction: column;
       overflow-x: hidden;
+      padding-bottom: 120px; /* COPPA Safety Buffer */
     }
 
     header {
@@ -199,13 +193,6 @@
       font-weight: 600;
     }
 
-    .btn-primary {
-      background-color: var(--accent-blue);
-      color: #11111b;
-      font-weight: bold;
-      grid-column: span 2;
-    }
-
     .canvas-area {
       flex: 1;
       position: relative;
@@ -317,21 +304,26 @@
 </head>
 <body>
 
-  <!-- HEADER NAVIGATION -->
+  <!-- STANDARDIZED HEADER NAVIGATION -->
   <header class="flex flex-wrap items-center justify-between gap-2 p-3 bg-[var(--panel-bg)] border-b border-[var(--panel-border)]">
-    <h1 class="text-base font-semibold text-[var(--accent-blue)] flex items-center gap-2">
-      🔭 Pure Physics: Double Lens System & Telescope Visualizer
-    </h1>
+    <div class="flex items-center gap-3">
+      <a href="./index.html" class="nav-btn flex items-center gap-1">
+        <span>⬅</span> <span>Physics Hub</span>
+      </a>
+      <img src="./icon-512.png" alt="App Icon" class="w-8 h-8 rounded-md">
+      <div>
+        <h1 class="text-base font-bold text-[var(--accent-blue)] flex items-center gap-2 m-0">
+          Compound Optics & Telescope Visualizer
+        </h1>
+        <div class="text-[11px] text-[var(--text-muted)]">
+          Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | CC BY-NC-SA 4.0
+        </div>
+      </div>
+    </div>
 
     <div class="flex items-center gap-2 flex-wrap">
-      <a href="../index.html" class="nav-btn flex items-center gap-1">
-        <span>🏠</span> <span>Main Lab Hub</span>
-      </a>
-      <a href="./index.html" class="nav-btn flex items-center gap-1">
-        <span>🔬</span> <span>Physics Suite</span>
-      </a>
-      <button class="nav-btn flex items-center gap-1" onclick="toggleTheme()">
-        <span>🌙</span> <span>Theme</span>
+      <button id="themeToggle" class="nav-btn flex items-center gap-1" onclick="toggleTheme()">
+        <span>🌙</span> <span>Dark Theme</span>
       </button>
     </div>
   </header>
@@ -488,7 +480,7 @@
   </div>
 
   <script src="../theme.js"></script>
-<script>
+  <script>
     // Synchronized Theme Switcher Engine
     function toggleTheme() {
         const html = document.documentElement;
@@ -513,7 +505,8 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
         updateThemeButtonText(savedTheme);
     });
-</script>
+  </script>
+
   <script>
     let f1 = 120;
     let f2 = 40;
