@@ -3,16 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Just in Time "GIT GUD" Physics</title>
+    <title>Physics Suite | Pure Interactive Physics Engines</title>
     
-    <!-- Physics Suite Local PWA & Favicon Assets -->
+    <!-- Local Suite Branding & PWA Assets -->
     <link rel="icon" type="image/png" href="./icon-512.png">
     <link rel="apple-touch-icon" href="./icon-512.png">
     <link rel="manifest" href="./manifest.json">
-    
+
     <!-- Shared Parent Theme -->
     <link rel="stylesheet" href="../theme.css">
-    
+
+    <!-- Legal IP & Copyright Assertions -->
+    <meta name="author" content="Jorge Victor M. Sales">
+    <meta name="creator" content="Jorge Victor M. Sales">
+    <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+    <meta name="rights" content="All intellectual property, software architecture, educational physics models, and code design belong to Jorge Victor M. Sales.">
+    <meta name="alias" content="swordeye, thearbiter">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         :root {
             --canvas-bg: #1e1e2e;
@@ -22,10 +31,8 @@
             --text-sub: #a6adc8;
             --accent-blue: #89b4fa;
             --accent-green: #a6e3a1;
-            --accent-red: #f38ba8;
-            --accent-yellow: #f9e2af;
             --accent-purple: #cba6f7;
-            --accent-orange: #fab387;
+            --accent-yellow: #f9e2af;
         }
 
         [data-theme="light"] {
@@ -36,10 +43,8 @@
             --text-sub: #6c6f85;
             --accent-blue: #1e66f5;
             --accent-green: #40a02b;
-            --accent-red: #d20f39;
-            --accent-yellow: #df8e1d;
             --accent-purple: #8839ef;
-            --accent-orange: #fe640b;
+            --accent-yellow: #df8e1d;
         }
 
         * {
@@ -55,185 +60,114 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            padding-bottom: 120px; /* COPPA Safety Buffer */
+            padding-bottom: 120px; /* COPPA Safety Padding Buffer */
         }
 
-        /* Standalone Header Banner */
         header {
             background-color: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
-            padding: 20px 24px;
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 16px;
+            gap: 12px;
         }
 
         .header-brand-group {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
 
         .app-header-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
             object-fit: cover;
             border: 1px solid var(--border-color);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .brand-text-block {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
         }
 
         .brand-title {
+            font-size: 18px;
             font-weight: 800;
-            font-size: 22px;
-            letter-spacing: 0.3px;
             color: var(--accent-blue);
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        .brand-subtitle {
-            font-size: 13px;
-            color: var(--text-sub);
+            gap: 6px;
         }
 
         .brand-author {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-sub);
-            margin-top: 2px;
         }
 
-        .brand-author strong {
-            color: var(--text-main);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn {
+        .nav-btn {
             background: var(--canvas-bg);
             color: var(--text-main);
             border: 1px solid var(--border-color);
-            padding: 10px 16px;
-            border-radius: 8px;
+            padding: 8px 14px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
             font-size: 13px;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             transition: all 0.2s ease;
         }
 
-        .btn:hover {
+        .nav-btn:hover {
             border-color: var(--accent-blue);
             color: var(--accent-blue);
         }
 
-        .btn-apk {
-            background-color: var(--accent-blue);
-            color: #11111b;
-            border: none;
-            font-weight: 700;
-        }
-
-        .btn-apk:hover {
-            opacity: 0.9;
-            color: #11111b;
-        }
-
-        /* Main Container Layout */
-        .hub-container {
-            max-width: 1400px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 24px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        /* Category Tabs Navigation */
-        .category-tabs {
-            display: flex;
-            gap: 8px;
-            border-bottom: 2px solid var(--border-color);
-            overflow-x: auto;
-            padding-bottom: 2px;
-        }
-
-        .tab-btn {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-bottom: none;
-            color: var(--text-sub);
-            padding: 10px 18px;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
+        .category-title {
             font-size: 14px;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
-            white-space: nowrap;
-            transition: all 0.2s ease;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
         }
 
-        .tab-btn:hover {
-            color: var(--accent-blue);
-            border-color: var(--accent-blue);
-        }
-
-        .tab-btn.active {
-            background: var(--canvas-bg);
-            color: var(--accent-blue);
-            border-color: var(--accent-blue);
-            border-bottom: 2px solid var(--canvas-bg);
-            margin-bottom: -2px;
-        }
-
-        /* Module Cards Grid */
-        .tab-content {
-            display: none;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        .tab-content.active {
+        .module-grid {
             display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
         }
 
         .module-card {
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 10px;
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            gap: 16px;
-            transition: transform 0.2s ease, border-color 0.2s ease;
             text-decoration: none;
-            color: inherit;
+            color: var(--text-main);
+            transition: all 0.25 ease;
+            position: relative;
+            overflow: hidden;
         }
 
         .module-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             border-color: var(--accent-blue);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
         }
 
         .card-header {
@@ -244,154 +178,47 @@
 
         .card-tag {
             align-self: flex-start;
-            font-size: 11px;
-            font-weight: bold;
+            font-size: 10px;
+            font-weight: 800;
             padding: 3px 8px;
             border-radius: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .tag-optics { background: rgba(137, 180, 250, 0.15); color: var(--accent-blue); }
-        .tag-kinematics { background: rgba(243, 139, 168, 0.15); color: var(--accent-red); }
-        .tag-waves { background: rgba(203, 166, 247, 0.15); color: var(--accent-purple); }
-        .tag-circuits { background: rgba(249, 226, 175, 0.15); color: var(--accent-yellow); }
+        .tag-optics {
+            background-color: rgba(137, 180, 250, 0.15);
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+        }
+
+        .tag-mechanics {
+            background-color: rgba(166, 227, 161, 0.15);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
 
         .card-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: var(--text-main);
         }
 
         .card-desc {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-sub);
             line-height: 1.5;
+            margin-top: 4px;
         }
 
         .card-footer {
+            margin-top: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-top: 1px solid var(--border-color);
-            padding-top: 12px;
-            font-size: 12px;
-            color: var(--accent-green);
+            font-size: 11px;
             font-weight: bold;
-        }
-
-        .badge-dev {
-            color: var(--accent-orange);
-        }
-
-        /* Version Update Modal System */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(17, 11, 27, 0.75);
-            backdrop-filter: blur(6px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-card {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            max-width: 480px;
-            width: 90%;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transform: scale(0.95);
-            transition: transform 0.25s ease;
-        }
-
-        .modal-overlay.active .modal-card {
-            transform: scale(1);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 12px;
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--accent-yellow);
-        }
-
-        .modal-body {
-            font-size: 14px;
-            color: var(--text-sub);
-            line-height: 1.6;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .notes-list {
-            background: var(--canvas-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            font-size: 13px;
-        }
-
-        .notes-list li {
-            display: flex;
-            align-items: flex-start;
-            gap: 6px;
-        }
-
-        .notes-list li::before {
-            content: "•";
             color: var(--accent-blue);
-            font-weight: bold;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 14px;
-        }
-
-        /* Copyright & IP Footer Notice */
-        .ip-footer {
-            margin-top: 20px;
-            padding: 16px;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 12px;
-            color: var(--text-sub);
-            text-align: center;
-            line-height: 1.6;
         }
     </style>
 </head>
@@ -402,249 +229,94 @@
         <div class="header-brand-group">
             <img src="./icon-512.png" alt="App Icon" class="app-header-icon">
             <div class="brand-text-block">
-                <div class="brand-title">
-                    <span>⚙️</span> Just in Time "GIT GUD" Physics
-                </div>
-                <div class="brand-subtitle">Interactive Physics Visualizers, Ballistics Dynamics, and Geometric Optics Curriculum</div>
+                <div class="brand-title">🔬 Pure Physics Simulation Suite</div>
                 <div class="brand-author">
-                    Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
+                    Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | CC BY-NC-SA 4.0
                 </div>
             </div>
         </div>
 
-        <div class="header-actions">
-            <button class="btn btn-apk" onclick="checkPhysicsUpdate(true)">
-                📦 Download APK (<span id="apkVersionTag">v1.0.0</span>)
-            </button>
-            <button id="themeToggle" class="btn" onclick="toggleTheme()">🌙 Dark Theme</button>
+        <div class="flex items-center gap-2">
+            <button id="themeToggle" onclick="toggleTheme()" class="nav-btn">🌙 Dark Theme</button>
         </div>
     </header>
 
-    <div class="hub-container">
+    <!-- Main Content Hub -->
+    <main class="max-w-7xl mx-auto w-full p-6 space-y-8">
 
-        <!-- Category Tabs -->
-        <nav class="category-tabs">
-            <button class="tab-btn active" onclick="switchCategory('all')">🌐 All Modules</button>
-            <button class="tab-btn" onclick="switchCategory('optics')">🔍 Geometric Optics</button>
-            <button class="tab-btn" onclick="switchCategory('kinematics')">🚀 Kinematics & Ballistics</button>
-            <button class="tab-btn" onclick="switchCategory('waves')">🌊 Harmonic Motion & Waves</button>
-            <button class="tab-btn" onclick="switchCategory('circuits')">⚡ Circuit Dynamics</button>
-        </nav>
-
-        <!-- Tab 1: All Modules Grid -->
-        <div id="cat-all" class="tab-content active">
-            <!-- Single Lens -->
-            <a href="./lens.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-optics">Optics</span>
-                    <div class="card-title">Single Thin Lens Engine</div>
-                    <div class="card-desc">Biconvex, Plano-Convex, Biconcave, and Plano-Concave geometries with real-time ray tracing, focal extended virtual rays, and Lens Maker formula Inspector.</div>
-                </div>
-                <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Module ➔</span>
-                </div>
-            </a>
-
-            <!-- Double Lens / Telescope -->
-            <a href="./double_lens.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-optics">Optics</span>
-                    <div class="card-title">Compound Optics & Telescopes</div>
-                    <div class="card-desc">Astronomical Refracting Telescope, Galilean Telescope, Compound Microscope, and Relay Lenses with multi-stage magnification calculation.</div>
-                </div>
-                <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Module ➔</span>
-                </div>
-            </a>
-
-            <!-- Projectile Motion -->
-            <a href="./projectile.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-kinematics">Kinematics</span>
-                    <div class="card-title">Projectile Motion & Trajectories</div>
-                    <div class="card-desc">2D ballistic flight engine with real-time graph overlays (y-x, Vy-t, Vx-t), quadratic air resistance (k), and dynamic solution highlighting.</div>
-                </div>
-                <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Module ➔</span>
-                </div>
-            </a>
-
-            <!-- SHM / Pendulums -->
-            <a href="./pendulum.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-waves">Harmonics</span>
-                    <div class="card-title">Simple Harmonic Motion & Pendulums</div>
-                    <div class="card-desc">Simple, physical, and damped pendulum oscillators with phase-space diagrams and live energy conservation tracking (PE vs KE).</div>
-                </div>
-                <div class="card-footer badge-dev">
-                    <span>STATUS: UPCOMING</span>
-                    <span>View Roadmap ➔</span>
-                </div>
-            </a>
-
-            <!-- Wave Interference -->
-            <a href="./waves.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-waves">Waves</span>
-                    <div class="card-title">Ripple Tank & Wave Interference</div>
-                    <div class="card-desc">2D wave tank simulating Young's double-slit interference, wave superposition, diffraction, and standing wave nodes.</div>
-                </div>
-                <div class="card-footer badge-dev">
-                    <span>STATUS: UPCOMING</span>
-                    <span>View Roadmap ➔</span>
-                </div>
-            </a>
-
-            <!-- Circuit Dynamics -->
-            <a href="./circuits.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-circuits">Circuits</span>
-                    <div class="card-title">DC Circuit Dynamics & Kirchhoff's Laws</div>
-                    <div class="card-desc">Interactive schematic builder with resistor networks, voltage dividers, dynamic current flow vectors, and matrix mesh analysis.</div>
-                </div>
-                <div class="card-footer badge-dev">
-                    <span>STATUS: UPCOMING</span>
-                    <span>View Roadmap ➔</span>
-                </div>
-            </a>
-        </div>
-
-        <!-- Tab 2: Optics Filter -->
-        <div id="cat-optics" class="tab-content">
-            <a href="./lens.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-optics">Optics</span>
-                    <div class="card-title">Single Thin Lens Engine</div>
-                    <div class="card-desc">Biconvex, Plano-Convex, Biconcave, and Plano-Concave geometries with real-time ray tracing.</div>
-                </div>
-                <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Module ➔</span>
-                </div>
-            </a>
-
-            <a href="./double_lens.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-optics">Optics</span>
-                    <div class="card-title">Compound Optics & Telescopes</div>
-                    <div class="card-desc">Astronomical Refracting Telescope, Galilean Telescope, Compound Microscope, and Relay Lenses.</div>
-                </div>
-                <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Module ➔</span>
-                </div>
-            </a>
-        </div>
-
-        <!-- Tab 3: Kinematics Filter -->
-        <div id="cat-kinematics" class="tab-content">
-            <a href="./projectile.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-kinematics">Kinematics</span>
-                    <div class="card-title">Projectile Motion & Trajectories</div>
-                    <div class="card-desc">2D ballistic flight engine with real-time graph overlays and quadratic air resistance.</div>
-                </div>
-                <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Module ➔</span>
-                </div>
-            </a>
-        </div>
-
-        <!-- Tab 4: Waves Filter -->
-        <div id="cat-waves" class="tab-content">
-            <a href="./pendulum.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-waves">Harmonics</span>
-                    <div class="card-title">Simple Harmonic Motion & Pendulums</div>
-                    <div class="card-desc">Simple, physical, and damped pendulum oscillators with phase-space diagrams.</div>
-                </div>
-                <div class="card-footer badge-dev">
-                    <span>STATUS: UPCOMING</span>
-                    <span>View Roadmap ➔</span>
-                </div>
-            </a>
-
-            <a href="./waves.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-waves">Waves</span>
-                    <div class="card-title">Ripple Tank & Wave Interference</div>
-                    <div class="card-desc">2D wave tank simulating Young's double-slit interference and standing wave nodes.</div>
-                </div>
-                <div class="card-footer badge-dev">
-                    <span>STATUS: UPCOMING</span>
-                    <span>View Roadmap ➔</span>
-                </div>
-            </a>
-        </div>
-
-        <!-- Tab 5: Circuits Filter -->
-        <div id="cat-circuits" class="tab-content">
-            <a href="./circuits.html" class="module-card">
-                <div class="card-header">
-                    <span class="card-tag tag-circuits">Circuits</span>
-                    <div class="card-title">DC Circuit Dynamics & Kirchhoff's Laws</div>
-                    <div class="card-desc">Interactive schematic builder with resistor networks, voltage dividers, and mesh analysis.</div>
-                </div>
-                <div class="card-footer badge-dev">
-                    <span>STATUS: UPCOMING</span>
-                    <span>View Roadmap ➔</span>
-                </div>
-            </a>
-        </div>
-
-        <!-- IP Assertions & Copyright Notice -->
-        <footer class="ip-footer">
-            <strong>Just in Time "GIT GUD" Physics</strong><br>
-            Developed under CNHS Creative Technologies Platform.<br>
-            Author & Creator: <strong>Jorge Victor M. Sales (swordeye / thearbiter)</strong> | License: CC BY-NC-SA 4.0
-        </footer>
-
-    </div>
-
-    <!-- Dynamic Update Modal System -->
-    <div id="updateModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <span class="modal-title" id="modalTitle">🚀 Update Available</span>
-                <span style="cursor:pointer;" onclick="closeModal()">✕</span>
+        <!-- CATEGORY 1: GEOMETRIC & PHYSICAL OPTICS -->
+        <section>
+            <div class="category-title">
+                <span>🔦 Geometric Optics & Wave Phenomena</span>
             </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Injected dynamically -->
+            
+            <div class="module-grid">
+                
+                <!-- Card 1: Single Thin Lens Engine -->
+                <a href="./lens.html" class="module-card">
+                    <div class="card-header">
+                        <span class="card-tag tag-optics">Optics</span>
+                        <div class="card-title">Single Thin Lens Visualizer</div>
+                        <div class="card-desc">Interactive thin-lens ray tracer supporting Biconvex, Plano-Convex, Biconcave, and Plano-Concave geometries with live magnification derivations.</div>
+                    </div>
+                    <div class="card-footer">
+                        <span>STATUS: ACTIVE</span>
+                        <span>Launch Engine ➔</span>
+                    </div>
+                </a>
+
+                <!-- Card 2: Spherical Refracting Surface & Refraction Lens Engine -->
+                <a href="./refraction_lens.html" class="module-card">
+                    <div class="card-header">
+                        <span class="card-tag tag-optics">Optics</span>
+                        <div class="card-title">Spherical Refracting Surface & Lens</div>
+                        <div class="card-desc">Models single boundary refraction across media ($n_a$ vs $n_b$), curvature shifts ($R$), and submerged lens focal inversion effects.</div>
+                    </div>
+                    <div class="card-footer">
+                        <span>STATUS: ACTIVE</span>
+                        <span>Launch Engine ➔</span>
+                    </div>
+                </a>
+
             </div>
-            <div class="modal-actions" id="modalActions">
-                <button class="btn" onclick="closeModal()">Dismiss</button>
+        </section>
+
+        <!-- CATEGORY 2: CLASSICAL MECHANICS & KINEMATICS -->
+        <section>
+            <div class="category-title">
+                <span>🎯 Classical Mechanics & Kinematics</span>
             </div>
-        </div>
-    </div>
+            
+            <div class="module-grid">
+                
+                <!-- Card 3: Projectile Motion Engine -->
+                <a href="./projectile.html" class="module-card">
+                    <div class="card-header">
+                        <span class="card-tag tag-mechanics">Mechanics</span>
+                        <div class="card-title">Projectile Motion & Drag Kinematics</div>
+                        <div class="card-desc">Interactive 2D trajectory engine simulating air drag resistance, gravity adjustments, cliff launches, and real-time velocity graphs.</div>
+                    </div>
+                    <div class="card-footer">
+                        <span>STATUS: ACTIVE</span>
+                        <span>Launch Engine ➔</span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+    </main>
 
     <script src="../theme.js"></script>
     <script>
-        const CURRENT_PHYSICS_VERSION = "1.0.0";
-        const CURRENT_PHYSICS_BUILD = 100;
-        const REMOTE_VERSION_URL = "./version_physics.json";
-
-        // Tab Switching Engine
-        function switchCategory(catId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            document.querySelectorAll('.tab-content').forEach(grid => grid.classList.remove('active'));
-            document.getElementById(`cat-${catId}`).classList.add('active');
-        }
-
-        // Reliable Theme Switcher Engine
+        // Synchronized Theme Switcher Engine
         function toggleTheme() {
             const html = document.documentElement;
             const currentTheme = html.getAttribute('data-theme') || 'dark';
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
+
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            
             updateThemeButtonText(newTheme);
         }
 
@@ -655,81 +327,10 @@
             }
         }
 
-        // Automated GitHub Version Checker Engine
-        async function checkPhysicsUpdate(userTriggered = false) {
-            try {
-                const res = await fetch(`${REMOTE_VERSION_URL}?t=${Date.now()}`);
-                if (!res.ok) throw new Error("Could not fetch version manifest");
-                
-                const data = await res.json();
-                
-                if (data.version_code > CURRENT_PHYSICS_BUILD) {
-                    showUpdateModal(data, true);
-                } else if (userTriggered) {
-                    showUpdateModal(data, false);
-                }
-            } catch (err) {
-                console.warn("Physics update check failed:", err);
-                if (userTriggered) {
-                    alert("Could not reach update server. Please check your internet connection.");
-                }
-            }
-        }
-
-        function showUpdateModal(data, updateAvailable) {
-            const modal = document.getElementById('updateModal');
-            const title = document.getElementById('modalTitle');
-            const body = document.getElementById('modalBody');
-            const actions = document.getElementById('modalActions');
-
-            if (updateAvailable) {
-                title.innerText = `🚀 Update v${data.version} Available!`;
-                title.style.color = "var(--accent-green)";
-
-                let notesHtml = (data.release_notes || [])
-                    .map(note => `<li>${note}</li>`).join('');
-
-                body.innerHTML = `
-                    <div>A new version of <strong>${data.app}</strong> is ready for download.</div>
-                    <div style="font-size:12px; color:var(--text-sub);">Author & Creator: <strong>Jorge Victor M. Sales</strong></div>
-                    <div style="font-size:12px; color:var(--text-sub);">Installed: <code>v${CURRENT_PHYSICS_VERSION}</code> | Latest: <code style="color:var(--accent-green);">v${data.version}</code></div>
-                    <div style="font-weight:bold; margin-top:6px;">Release Notes:</div>
-                    <ul class="notes-list">${notesHtml}</ul>
-                `;
-
-                actions.innerHTML = `
-                    <button class="btn" onclick="closeModal()">Later</button>
-                    <a href="${data.apk_url}" class="btn btn-apk" target="_blank">📥 Download APK</a>
-                `;
-            } else {
-                title.innerText = "✅ Up to Date";
-                title.style.color = "var(--accent-blue)";
-
-                body.innerHTML = `
-                    <div>You are currently running the latest version of <strong>Just in Time "GIT GUD" Physics</strong> (<code>v${CURRENT_PHYSICS_VERSION}</code>).</div>
-                    <div style="font-size:12px; color:var(--text-sub); margin-top:6px;">Author & Creator: <strong>Jorge Victor M. Sales (swordeye / thearbiter)</strong></div>
-                    <div style="font-size:12px; color:var(--text-sub);">Build Date: ${data.build_date || '2026-10-18'}</div>
-                `;
-
-                actions.innerHTML = `
-                    <button class="btn" onclick="closeModal()">OK</button>
-                `;
-            }
-
-            modal.classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('updateModal').classList.remove('active');
-        }
-
-        // Initialize Theme & Background Checks on Page Load
         window.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
             updateThemeButtonText(savedTheme);
-            
-            checkPhysicsUpdate(false);
         });
     </script>
 </body>
