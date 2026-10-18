@@ -335,14 +335,21 @@
 <body>
 
   <!-- HEADER NAVIGATION -->
-  <header>
-    <h1>
-      🔬 Pure Physics: Optics Visualizer (Convex & Concave Lenses)
+  <header class="flex flex-wrap items-center justify-between gap-2 p-3 bg-[var(--panel-bg)] border-b border-[var(--panel-border)]">
+    <h1 class="text-base font-semibold text-[var(--accent-blue)] flex items-center gap-2">
+      🔬 Pure Physics: Single Lens Optics Visualizer
     </h1>
 
-    <div class="flex items-center gap-2">
-      <a href="./index.html" class="nav-btn">🏠 Physics Suite</a>
-      <button class="nav-btn" onclick="toggleTheme()">🌙 Theme</button>
+    <div class="flex items-center gap-2 flex-wrap">
+      <a href="../index.html" class="nav-btn flex items-center gap-1">
+        <span>🏠</span> <span>Main Lab Hub</span>
+      </a>
+      <a href="./index.html" class="nav-btn flex items-center gap-1">
+        <span>🔬</span> <span>Physics Suite</span>
+      </a>
+      <button class="nav-btn flex items-center gap-1" onclick="toggleTheme()">
+        <span>🌙</span> <span>Theme</span>
+      </button>
     </div>
   </header>
 
@@ -527,20 +534,17 @@
 
   <script src="../theme.js"></script>
   <script>
-    // State variables
-    let lensType = 'biconvex'; // 'biconvex', 'planoconvex', 'biconcave', 'planoconcave'
-    let isFlipped = false;      // false = Normal, true = Flipped horizontally 180°
-    let focalLength = 150;     // Positive magnitude in mm
-    let objectDistance = 250;  // Positive distance in mm
-    let objectHeight = 80;     // Positive = upwards, negative = downwards
+    let lensType = 'biconvex';
+    let isFlipped = false;
+    let focalLength = 150;
+    let objectDistance = 250;
+    let objectHeight = 80;
 
     let isDraggingObject = false;
 
-    // Canvas element and context
     const canvas = document.getElementById('opticsCanvas');
     const ctx = canvas.getContext('2d');
 
-    // UI Element References
     const sliderFocal = document.getElementById('slider-focal');
     const sliderDo = document.getElementById('slider-do');
     const sliderHo = document.getElementById('slider-ho');
@@ -571,7 +575,6 @@
 
     window.addEventListener('resize', resizeCanvas);
 
-    // Core Physics Calculations
     function getPhysics() {
       const isConverging = (lensType === 'biconvex' || lensType === 'planoconvex');
       const f = isConverging ? focalLength : -focalLength;
@@ -598,7 +601,6 @@
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
 
-      // Principal Axis
       ctx.beginPath();
       ctx.setLineDash([]);
       ctx.strokeStyle = '#475569';
@@ -644,7 +646,6 @@
       updateFormulaSteps(phys);
     }
 
-    // Glass Geometry Renderer with Horizontal Flip Support
     function drawLens(cx, cy) {
       const lensHeight = Math.min(canvas.height * 0.75, 340);
       const lensThickness = Math.max(16, focalLength * 0.18);
@@ -672,12 +673,10 @@
       } else if (lensType === 'planoconvex') {
         const bulge = lensThickness * 1.5;
         if (!isFlipped) {
-          // Flat left, curved right
           ctx.moveTo(cx - 4, topY);
           ctx.lineTo(cx - 4, bottomY);
           ctx.quadraticCurveTo(cx + bulge, cy, cx - 4, topY);
         } else {
-          // Curved left, flat right
           ctx.moveTo(cx + 4, topY);
           ctx.lineTo(cx + 4, bottomY);
           ctx.quadraticCurveTo(cx - bulge, cy, cx + 4, topY);
@@ -694,14 +693,12 @@
         const edgeWidth = lensThickness * 1.2;
         const centerIndent = 4;
         if (!isFlipped) {
-          // Flat left, curved indent right
           ctx.moveTo(cx - edgeWidth, topY);
           ctx.lineTo(cx + edgeWidth, topY);
           ctx.quadraticCurveTo(cx + centerIndent, cy, cx + edgeWidth, bottomY);
           ctx.lineTo(cx - edgeWidth, bottomY);
           ctx.lineTo(cx - edgeWidth, topY);
         } else {
-          // Curved indent left, flat right
           ctx.moveTo(cx + edgeWidth, topY);
           ctx.lineTo(cx - edgeWidth, topY);
           ctx.quadraticCurveTo(cx - centerIndent, cy, cx - edgeWidth, bottomY);
