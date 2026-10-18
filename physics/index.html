@@ -1,261 +1,482 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Physics Simulation Laboratory Suite | CNHS Creative Technologies</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIT GUD PHYSICS - Just In Time Pure Physics Suite</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="../theme.css">
+    <style>
+        :root {
+            --canvas-bg: #1e1e2e;
+            --panel-bg: #181825;
+            --border-color: #313244;
+            --text-main: #cdd6f4;
+            --text-sub: #a6adc8;
+            --accent-blue: #89b4fa;
+            --accent-green: #a6e3a1;
+            --accent-red: #f38ba8;
+            --accent-yellow: #f9e2af;
+            --accent-purple: #cba6f7;
+            --accent-orange: #fab387;
+        }
 
-  <!-- PWA & Branding Icons -->
-  <link rel="icon" type="image/png" sizes="512x512" href="../icon-512.png">
-  <link rel="apple-touch-icon" sizes="512x512" href="../icon-512.png">
-  <link rel="manifest" href="../manifest.json">
-  
-  <!-- Legal IP & Copyright Assertions -->
-  <meta name="author" content="Jorge Victor M. Sales">
-  <meta name="creator" content="Jorge Victor M. Sales">
-  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
-  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and code design belong to Jorge Victor M. Sales.">
-  <meta name="alias" content="swordeye, thearbiter">
+        [data-theme="light"] {
+            --canvas-bg: #eff1f5;
+            --panel-bg: #e6e9ef;
+            --border-color: #ccd0da;
+            --text-main: #4c4f69;
+            --text-sub: #6c6f85;
+            --accent-blue: #1e66f5;
+            --accent-green: #40a02b;
+            --accent-red: #d20f39;
+            --accent-yellow: #df8e1d;
+            --accent-purple: #8839ef;
+            --accent-orange: #fe640b;
+        }
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="../theme.css">
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
 
-  <!-- Google AdSense Script (COPPA & Non-Personalized Student-Safe Configuration) -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136" crossorigin="anonymous"></script>
-  <script>
-    (adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
-  </script>
+        body {
+            background-color: var(--canvas-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 120px; /* COPPA Safety Buffer */
+        }
 
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-color, #1e1e2e);
-      color: var(--text-main, #cdd6f4);
-    }
+        /* Dual-Navigation Header */
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    header {
-      padding: 25px 20px;
-      background: var(--card-bg, #181825);
-      border: 1px solid var(--card-border, #313244);
-      border-radius: 8px;
-      margin-bottom: 25px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        .brand-title {
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, var(--accent-yellow), var(--accent-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    .header-content h1 {
-      margin: 0 0 5px 0;
-      font-size: 1.8rem;
-      color: var(--accent, #89b4fa);
-    }
+        .btn {
+            background: var(--canvas-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
 
-    .header-content p {
-      margin: 0;
-      color: var(--text-sub, #a6adc8);
-      font-size: 0.95rem;
-    }
+        .btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
 
-    .author-badge {
-      margin-top: 10px;
-      font-size: 0.85rem;
-      color: var(--text-sub, #a6adc8);
-    }
+        /* Container Layout */
+        .hub-container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-    .theme-toggle-btn, .back-btn {
-      background: var(--card-border, #313244);
-      color: var(--text-main, #cdd6f4);
-      border: 1px solid var(--card-border, #313244);
-      padding: 10px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-      text-decoration: none;
-    }
+        .hub-hero {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-    .theme-toggle-btn:hover, .back-btn:hover {
-      background: var(--btn-hover, #b4befe);
-      color: #11111b;
-    }
+        .hub-hero h1 {
+            font-size: 24px;
+            color: var(--text-main);
+        }
 
-    .category-title {
-      font-size: 1.3rem;
-      color: var(--accent, #89b4fa);
-      margin: 30px 0 15px 0;
-      padding-bottom: 5px;
-      border-bottom: 1px solid var(--card-border, #313244);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+        .hub-hero p {
+            color: var(--text-sub);
+            font-size: 14px;
+            line-height: 1.5;
+        }
 
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 20px;
-    }
+        /* Category Tabs Navigation */
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 2px solid var(--border-color);
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
 
-    .card {
-      background: var(--card-bg, #181825);
-      border: 1px solid var(--card-border, #313244);
-      border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s, border-color 0.2s;
-    }
+        .tab-btn {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            color: var(--text-sub);
+            padding: 10px 18px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
 
-    .card:hover {
-      transform: translateY(-3px);
-      border-color: var(--accent, #89b4fa);
-    }
+        .tab-btn:hover {
+            color: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
 
-    .card h3 {
-      margin: 0 0 10px 0;
-      color: var(--accent, #89b4fa);
-      font-size: 1.15rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+        .tab-btn.active {
+            background: var(--canvas-bg);
+            color: var(--accent-blue);
+            border-color: var(--accent-blue);
+            border-bottom: 2px solid var(--canvas-bg);
+            margin-bottom: -2px;
+        }
 
-    .card p {
-      color: var(--text-sub, #a6adc8);
-      font-size: 0.88rem;
-      line-height: 1.4;
-      margin-bottom: 15px;
-      flex-grow: 1;
-    }
+        /* Module Cards Grid */
+        .tab-content {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
 
-    .tag-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 15px;
-    }
+        .tab-content.active {
+            display: grid;
+        }
 
-    .tag {
-      background: var(--inner-box, #11111b);
-      color: var(--tag-color, #fab387);
-      font-size: 0.75rem;
-      padding: 3px 8px;
-      border-radius: 4px;
-      border: 1px solid var(--card-border, #313244);
-    }
+        .module-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 16px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
 
-    .card-btn {
-      display: block;
-      text-align: center;
-      background: var(--accent, #89b4fa);
-      color: #11111b;
-      text-decoration: none;
-      font-weight: bold;
-      padding: 10px;
-      border-radius: 6px;
-      transition: opacity 0.2s;
-    }
+        .module-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-blue);
+        }
 
-    .card-btn:hover {
-      opacity: 0.9;
-    }
+        .card-header {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-    footer {
-      margin-top: 40px;
-      padding: 20px;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--text-sub, #a6adc8);
-      border-top: 1px solid var(--card-border, #313244);
-    }
-  </style>
+        .card-tag {
+            align-self: flex-start;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-optics { background: rgba(137, 180, 250, 0.15); color: var(--accent-blue); }
+        .tag-kinematics { background: rgba(243, 139, 168, 0.15); color: var(--accent-red); }
+        .tag-waves { background: rgba(203, 166, 247, 0.15); color: var(--accent-purple); }
+        .tag-circuits { background: rgba(249, 226, 175, 0.15); color: var(--accent-yellow); }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--text-sub);
+            line-height: 1.5;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            font-size: 12px;
+            color: var(--accent-green);
+            font-weight: bold;
+        }
+
+        .badge-dev {
+            color: var(--accent-orange);
+        }
+
+        /* Copyright & IP Footer Notice */
+        .ip-footer {
+            margin-top: 20px;
+            padding: 16px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-sub);
+            text-align: center;
+            line-height: 1.6;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- MAIN PHYSICS SUITE CONTAINER -->
-  <div class="container">
-    <header class="flex flex-wrap items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <!-- Suite Brand Logo Badge -->
-        <img src="../icon-512.png" alt="Physics Suite Logo" class="w-14 h-14 md:w-16 md:h-16 rounded-xl border border-[var(--card-border)] shadow-md object-cover bg-[var(--inner-box)] p-1">
-        
-        <div class="header-content">
-          <h1>🔬 Pure Physics & Optics Suite</h1>
-          <p>Interactive Physics Visualizers, Ray Optics, and Mathematical Mechanics Curriculum</p>
-          <div class="author-badge">
-            Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
-          </div>
+    <!-- Header Navigation -->
+    <header>
+        <div class="nav-brand">
+            <a href="../index.html" class="btn">🏠 Main Lab Hub</a>
+            <span class="brand-title">⚡ GIT GUD PHYSICS</span>
         </div>
-      </div>
-
-      <!-- Action Buttons: Back to Main Hub & Theme Toggle -->
-      <div class="flex items-center gap-3 flex-wrap">
-        <a href="../index.html" class="back-btn">
-          <span>🏠</span> <span>Main Lab Suite</span>
-        </a>
-
-        <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">
-          <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
-        </button>
-      </div>
+        <button id="themeToggle" class="btn">🌙 Theme</button>
     </header>
 
-    <!-- Section 1: Optics & Waves -->
-    <div class="category-title">🔍 Optics, Refraction & Ray Tracing</div>
-    <div class="card-grid">
+    <div class="hub-container">
+        
+        <!-- Hero Section -->
+        <section class="hub-hero">
+            <h1>Just In Time Pure Physics Sims</h1>
+            <p>Interactive web-based and standalone offline simulation engine for optics, ballistics kinematics, harmonic motion, and field dynamics under the CNHS Creative Technologies platform.</p>
+        </section>
 
-      <!-- Thin Lens & Ray Optics Visualizer -->
-      <div class="card" style="border-color: #89b4fa;">
-        <div>
-          <h3>🔬 Geometric Optics & Thin Lens Visualizer</h3>
-          <p>
-            Simulate real and virtual image formation using the Thin Lens Equation ($\frac{1}{f} = \frac{1}{d_o} + \frac{1}{d_i}$). Adjust focal lengths, object distances, real-time principal ray paths (parallel, focal, central), and lateral magnification ($m = -\frac{d_i}{d_o}$).
-          </p>
-          <div class="tag-container">
-            <span class="tag">Convex & Concave Lenses</span>
-            <span class="tag">Thin Lens Formula</span>
-            <span class="tag">Principal Ray Tracing</span>
-            <span class="tag">Lateral Magnification</span>
-          </div>
+        <!-- Category Tabs -->
+        <nav class="category-tabs">
+            <button class="tab-btn active" onclick="switchCategory('all')">🌐 All Modules</button>
+            <button class="tab-btn" onclick="switchCategory('optics')">🔍 Geometric Optics</button>
+            <button class="tab-btn" onclick="switchCategory('kinematics')">🚀 Kinematics & Ballistics</button>
+            <button class="tab-btn" onclick="switchCategory('waves')">🌊 Harmonic Motion & Waves</button>
+            <button class="tab-btn" onclick="switchCategory('circuits')">⚡ Circuit Dynamics</button>
+        </nav>
+
+        <!-- Tab 1: All Modules Grid -->
+        <div id="cat-all" class="tab-content active">
+            <!-- Single Lens -->
+            <a href="./lens.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-optics">Optics</span>
+                    <div class="card-title">Single Thin Lens Engine</div>
+                    <div class="card-desc">Biconvex, Plano-Convex, Biconcave, and Plano-Concave geometries with real-time ray tracing, focal extended virtual rays, and Lens Maker formula Inspector.</div>
+                </div>
+                <div class="card-footer">
+                    <span>STATUS: ACTIVE</span>
+                    <span>Launch Module ➔</span>
+                </div>
+            </a>
+
+            <!-- Double Lens / Telescope -->
+            <a href="./double_lens.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-optics">Optics</span>
+                    <div class="card-title">Compound Optics & Telescopes</div>
+                    <div class="card-desc">Astronomical Refracting Telescope, Galilean Telescope, Compound Microscope, and Relay Lenses with multi-stage magnification calculation.</div>
+                </div>
+                <div class="card-footer">
+                    <span>STATUS: ACTIVE</span>
+                    <span>Launch Module ➔</span>
+                </div>
+            </a>
+
+            <!-- Projectile Motion -->
+            <a href="./projectile.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-kinematics">Kinematics</span>
+                    <div class="card-title">Projectile Motion & Trajectories</div>
+                    <div class="card-desc">2D ballistic flight engine with real-time graph overlays (y-x, Vy-t, Vx-t), quadratic air resistance (k), and dynamic solution highlighting.</div>
+                </div>
+                <div class="card-footer">
+                    <span>STATUS: ACTIVE</span>
+                    <span>Launch Module ➔</span>
+                </div>
+            </a>
+
+            <!-- SHM / Pendulums -->
+            <a href="./pendulum.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-waves">Harmonics</span>
+                    <div class="card-title">Simple Harmonic Motion & Pendulums</div>
+                    <div class="card-desc">Simple, physical, and damped pendulum oscillators with phase-space diagrams and live energy conservation tracking (PE vs KE).</div>
+                </div>
+                <div class="card-footer badge-dev">
+                    <span>STATUS: UPCOMING</span>
+                    <span>View Roadmap ➔</span>
+                </div>
+            </a>
+
+            <!-- Wave Interference -->
+            <a href="./waves.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-waves">Waves</span>
+                    <div class="card-title">Ripple Tank & Wave Interference</div>
+                    <div class="card-desc">2D wave tank simulating Young's double-slit interference, wave superposition, diffraction, and standing wave nodes.</div>
+                </div>
+                <div class="card-footer badge-dev">
+                    <span>STATUS: UPCOMING</span>
+                    <span>View Roadmap ➔</span>
+                </div>
+            </a>
+
+            <!-- Circuit Dynamics -->
+            <a href="./circuits.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-circuits">Circuits</span>
+                    <div class="card-title">DC Circuit Dynamics & Kirchhoff's Laws</div>
+                    <div class="card-desc">Interactive schematic builder with resistor networks, voltage dividers, dynamic current flow vectors, and matrix mesh analysis.</div>
+                </div>
+                <div class="card-footer badge-dev">
+                    <span>STATUS: UPCOMING</span>
+                    <span>View Roadmap ➔</span>
+                </div>
+            </a>
         </div>
-        <a href="./lens.html" class="card-btn">Launch Simulator →</a>
-      </div>
-<!-- Double Lens & Telescope Visualizer Card -->
-<div class="card" style="border-color: #89b4fa;">
-  <div>
-    <h3>🔭 Compound Double Lens & Telescope Visualizer</h3>
-    <p>
-      Simulate multi-lens systems including Astronomical Refracting Telescopes, Galilean Telescopes, and Compound Microscopes. Track intermediate real images, secondary object positioning ($d_{o2} = L - d_{i1}$), and total magnification ($M_{tot} = m_1 \cdot m_2$).
-    </p>
-    <div class="tag-container">
-      <span class="tag">Refracting Telescopes</span>
-      <span class="tag">Compound Microscopes</span>
-      <span class="tag">Intermediate Images</span>
-      <span class="tag">Total Magnification</span>
-    </div>
-  </div>
-  <a href="./double_lens.html" class="card-btn">Launch Telescope Simulator →</a>
-</div>
+
+        <!-- Tab 2: Optics Filter -->
+        <div id="cat-optics" class="tab-content">
+            <a href="./lens.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-optics">Optics</span>
+                    <div class="card-title">Single Thin Lens Engine</div>
+                    <div class="card-desc">Biconvex, Plano-Convex, Biconcave, and Plano-Concave geometries with real-time ray tracing.</div>
+                </div>
+                <div class="card-footer">
+                    <span>STATUS: ACTIVE</span>
+                    <span>Launch Module ➔</span>
+                </div>
+            </a>
+
+            <a href="./double_lens.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-optics">Optics</span>
+                    <div class="card-title">Compound Optics & Telescopes</div>
+                    <div class="card-desc">Astronomical Refracting Telescope, Galilean Telescope, Compound Microscope, and Relay Lenses.</div>
+                </div>
+                <div class="card-footer">
+                    <span>STATUS: ACTIVE</span>
+                    <span>Launch Module ➔</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tab 3: Kinematics Filter -->
+        <div id="cat-kinematics" class="tab-content">
+            <a href="./projectile.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-kinematics">Kinematics</span>
+                    <div class="card-title">Projectile Motion & Trajectories</div>
+                    <div class="card-desc">2D ballistic flight engine with real-time graph overlays and quadratic air resistance.</div>
+                </div>
+                <div class="card-footer">
+                    <span>STATUS: ACTIVE</span>
+                    <span>Launch Module ➔</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tab 4: Waves Filter -->
+        <div id="cat-waves" class="tab-content">
+            <a href="./pendulum.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-waves">Harmonics</span>
+                    <div class="card-title">Simple Harmonic Motion & Pendulums</div>
+                    <div class="card-desc">Simple, physical, and damped pendulum oscillators with phase-space diagrams.</div>
+                </div>
+                <div class="card-footer badge-dev">
+                    <span>STATUS: UPCOMING</span>
+                    <span>View Roadmap ➔</span>
+                </div>
+            </a>
+
+            <a href="./waves.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-waves">Waves</span>
+                    <div class="card-title">Ripple Tank & Wave Interference</div>
+                    <div class="card-desc">2D wave tank simulating Young's double-slit interference and standing wave nodes.</div>
+                </div>
+                <div class="card-footer badge-dev">
+                    <span>STATUS: UPCOMING</span>
+                    <span>View Roadmap ➔</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tab 5: Circuits Filter -->
+        <div id="cat-circuits" class="tab-content">
+            <a href="./circuits.html" class="module-card">
+                <div class="card-header">
+                    <span class="card-tag tag-circuits">Circuits</span>
+                    <div class="card-title">DC Circuit Dynamics & Kirchhoff's Laws</div>
+                    <div class="card-desc">Interactive schematic builder with resistor networks, voltage dividers, and mesh analysis.</div>
+                </div>
+                <div class="card-footer badge-dev">
+                    <span>STATUS: UPCOMING</span>
+                    <span>View Roadmap ➔</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- IP Assertions & Copyright Notice -->
+        <footer class="ip-footer">
+            <strong>GIT GUD PHYSICS (Just In Time Physics Suite)</strong><br>
+            Developed under rpithon.com / CNHS Creative Technologies Platform.<br>
+            Intellectual Property Assertions & Physics Engine © Jorge Victor M. Sales (swordeye / thearbiter). All rights reserved.
+        </footer>
+
     </div>
 
-    <footer class="flex items-center justify-center gap-3">
-      <img src="../icon-512.png" alt="Logo" class="w-6 h-6 rounded-md opacity-80">
-      <span>Pure Physics Visualizers for CNHS Creative Technologies | © 2026 Jorge Victor M. Sales</span>
-    </footer>
-  </div>
+    <script src="../theme.js"></script>
+    <script>
+        function switchCategory(catId) {
+            // Update Tab Button Active States
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
 
-  <script src="../theme.js"></script>
+            // Hide All Tab Grids
+            document.querySelectorAll('.tab-content').forEach(grid => grid.classList.remove('active'));
+
+            // Show Target Category Grid
+            document.getElementById(`cat-${catId}`).classList.add('active');
+        }
+    </script>
 </body>
 </html>
