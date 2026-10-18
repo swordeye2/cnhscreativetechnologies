@@ -361,6 +361,15 @@
         </div>
       </div>
 
+      <!-- Horizontal Flip / Orientation Option -->
+      <div class="control-group">
+        <label>Lens Facing / Orientation</label>
+        <div class="btn-grid">
+          <button id="btn-flip-normal" class="btn active" onclick="setLensFlip(false)">↔ Normal (0°)</button>
+          <button id="btn-flip-flipped" class="btn" onclick="setLensFlip(true)">🔄 Flipped (180°)</button>
+        </div>
+      </div>
+
       <!-- Focal Length Slider -->
       <div class="control-group">
         <label for="slider-focal">
@@ -432,6 +441,7 @@
       <!-- Real-Time Telemetry HUD -->
       <div class="hud-panel">
         <div class="hud-row"><span class="hud-label">Lens Mode:</span><span id="hud-mode" class="hud-val">Biconvex</span></div>
+        <div class="hud-row"><span class="hud-label">Orientation:</span><span id="hud-flip" class="hud-val">Normal</span></div>
         <div class="hud-row"><span class="hud-label">Focal Length (f):</span><span id="hud-f" class="hud-val">+150.0 mm</span></div>
         <div class="hud-row"><span class="hud-label">Object Dist (d<sub>o</sub>):</span><span id="hud-do" class="hud-val">250.0 mm</span></div>
         <div class="hud-row"><span class="hud-label">Image Dist (d<sub>i</sub>):</span><span id="hud-di" class="hud-val">+375.0 mm</span></div>
@@ -484,11 +494,11 @@
 
         <div class="space-y-3">
           <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
-            <p class="font-bold text-slate-200 mb-1">Q1: How does a Plano-Convex lens differ in focal sign (+/-) from a Biconvex lens?</p>
+            <p class="font-bold text-slate-200 mb-1">Q1: How does flipping a thin Plano-Convex lens horizontally change its focal length (f)?</p>
             <div class="flex gap-4 text-slate-300">
-              <label><input type="radio" name="q1" value="A" onclick="checkQuiz()"> A) Plano-Convex is negative</label>
-              <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) Both are positive converging lenses</label>
-              <label><input type="radio" name="q1" value="C" onclick="checkQuiz()"> C) Plano-Convex has infinite focus</label>
+              <label><input type="radio" name="q1" value="A" onclick="checkQuiz()"> A) It changes sign from positive to negative</label>
+              <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) Focal length magnitude remains the same under thin-lens approximation</label>
+              <label><input type="radio" name="q1" value="C" onclick="checkQuiz()"> C) It doubles the focal length</label>
             </div>
           </div>
 
@@ -519,6 +529,7 @@
   <script>
     // State variables
     let lensType = 'biconvex'; // 'biconvex', 'planoconvex', 'biconcave', 'planoconcave'
+    let isFlipped = false;      // false = Normal, true = Flipped horizontally 180°
     let focalLength = 150;     // Positive magnitude in mm
     let objectDistance = 250;  // Positive distance in mm
     let objectHeight = 80;     // Positive = upwards, negative = downwards
@@ -538,6 +549,7 @@
     const valHo = document.getElementById('val-ho');
 
     const hudMode = document.getElementById('hud-mode');
+    const hudFlip = document.getElementById('hud-flip');
     const hudF = document.getElementById('hud-f');
     const hudDo = document.getElementById('hud-do');
     const hudDi = document.getElementById('hud-di');
@@ -632,7 +644,7 @@
       updateFormulaSteps(phys);
     }
 
-    // Glass Geometry Renderer for 4 Lens Types
+    // Glass Geometry Renderer with Horizontal Flip Support
     function drawLens(cx, cy) {
       const lensHeight = Math.min(canvas.height * 0.75, 340);
       const lensThickness = Math.max(16, focalLength * 0.18);
@@ -659,9 +671,17 @@
         ctx.quadraticCurveTo(cx - bulge, cy, cx, topY);
       } else if (lensType === 'planoconvex') {
         const bulge = lensThickness * 1.5;
-        ctx.moveTo(cx - 4, topY);
-        ctx.lineTo(cx - 4, bottomY);
-        ctx.quadraticCurveTo(cx + bulge, cy, cx - 4, topY);
+        if (!isFlipped) {
+          // Flat left, curved right
+          ctx.moveTo(cx - 4, topY);
+          ctx.lineTo(cx - 4, bottomY);
+          ctx.quadraticCurveTo(cx + bulge, cy, cx - 4, topY);
+        } else {
+          // Curved left, flat right
+          ctx.moveTo(cx + 4, topY);
+          ctx.lineTo(cx + 4, bottomY);
+          ctx.quadraticCurveTo(cx - bulge, cy, cx + 4, topY);
+        }
       } else if (lensType === 'biconcave') {
         const edgeWidth = lensThickness;
         const centerIndent = 6;
@@ -673,11 +693,21 @@
       } else if (lensType === 'planoconcave') {
         const edgeWidth = lensThickness * 1.2;
         const centerIndent = 4;
-        ctx.moveTo(cx - edgeWidth, topY);
-        ctx.lineTo(cx + edgeWidth, topY);
-        ctx.quadraticCurveTo(cx + centerIndent, cy, cx + edgeWidth, bottomY);
-        ctx.lineTo(cx - edgeWidth, bottomY);
-        ctx.lineTo(cx - edgeWidth, topY);
+        if (!isFlipped) {
+          // Flat left, curved indent right
+          ctx.moveTo(cx - edgeWidth, topY);
+          ctx.lineTo(cx + edgeWidth, topY);
+          ctx.quadraticCurveTo(cx + centerIndent, cy, cx + edgeWidth, bottomY);
+          ctx.lineTo(cx - edgeWidth, bottomY);
+          ctx.lineTo(cx - edgeWidth, topY);
+        } else {
+          // Curved indent left, flat right
+          ctx.moveTo(cx + edgeWidth, topY);
+          ctx.lineTo(cx - edgeWidth, topY);
+          ctx.quadraticCurveTo(cx - centerIndent, cy, cx - edgeWidth, bottomY);
+          ctx.lineTo(cx + edgeWidth, bottomY);
+          ctx.lineTo(cx + edgeWidth, topY);
+        }
       }
 
       ctx.closePath();
@@ -818,6 +848,7 @@
         'planoconcave': 'Plano-Concave (-f)'
       };
       hudMode.textContent = titles[lensType] || 'Custom Lens';
+      hudFlip.textContent = isFlipped ? 'Flipped (180°)' : 'Normal (0°)';
       hudF.textContent = `${phys.f > 0 ? '+' : ''}${phys.f.toFixed(1)} mm`;
       hudDo.textContent = `${phys.do_val.toFixed(1)} mm`;
 
@@ -871,24 +902,35 @@
       draw();
     }
 
+    function setLensFlip(flipState) {
+      isFlipped = flipState;
+      document.getElementById('btn-flip-normal').classList.toggle('active', !isFlipped);
+      document.getElementById('btn-flip-flipped').classList.toggle('active', isFlipped);
+      draw();
+    }
+
     function applyPreset(preset) {
       if (preset === 'real-image') {
         setLensType('biconvex');
+        setLensFlip(false);
         focalLength = 150;
         objectDistance = 280;
         objectHeight = 80;
       } else if (preset === 'magnifier') {
         setLensType('planoconvex');
+        setLensFlip(false);
         focalLength = 150;
         objectDistance = 90;
         objectHeight = 60;
       } else if (preset === 'diverging') {
         setLensType('planoconcave');
+        setLensFlip(false);
         focalLength = 150;
         objectDistance = 220;
         objectHeight = 80;
       } else if (preset === '2f-equal') {
         setLensType('biconvex');
+        setLensFlip(false);
         focalLength = 140;
         objectDistance = 280;
         objectHeight = 80;
@@ -899,6 +941,7 @@
 
     function resetSimulation() {
       setLensType('biconvex');
+      setLensFlip(false);
       focalLength = 150;
       objectDistance = 250;
       objectHeight = 80;
