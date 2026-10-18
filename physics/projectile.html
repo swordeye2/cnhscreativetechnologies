@@ -121,7 +121,13 @@
             }
         }
 
-        /* Canvas Viewport */
+        /* Viewport & Graph Split Container */
+        .viewport-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .viewport-container {
             position: relative;
             background-color: var(--canvas-bg);
@@ -130,21 +136,29 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            min-height: 520px;
+            height: 380px;
+        }
+
+        .graph-container {
+            position: relative;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            height: 220px;
         }
 
         canvas {
             width: 100%;
             height: 100%;
             display: block;
-            cursor: crosshair;
         }
 
         .telemetry-hud {
             position: absolute;
             top: 12px;
             left: 12px;
-            background: rgba(24, 24, 37, 0.85);
+            background: rgba(24, 24, 37, 0.88);
             backdrop-filter: blur(4px);
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -365,18 +379,25 @@
     <!-- Main Workspace Layout -->
     <main class="main-layout">
         
-        <!-- Interactive Canvas Viewport -->
-        <div class="viewport-container">
-            <canvas id="simCanvas"></canvas>
+        <!-- Canvas Viewport + Graph Overlay -->
+        <div class="viewport-wrapper">
+            <div class="viewport-container">
+                <canvas id="simCanvas"></canvas>
 
-            <!-- Overlay Telemetry HUD -->
-            <div class="telemetry-hud">
-                <div class="hud-item"><span class="hud-label">Time (t):</span><span class="hud-val" id="hudTime">0.00 s</span></div>
-                <div class="hud-item"><span class="hud-label">Range (x):</span><span class="hud-val" id="hudX">0.00 m</span></div>
-                <div class="hud-item"><span class="hud-label">Height (y):</span><span class="hud-val" id="hudY">0.00 m</span></div>
-                <div class="hud-item"><span class="hud-label">Velocity (v):</span><span class="hud-val" id="hudV">0.00 m/s</span></div>
-                <div class="hud-item"><span class="hud-label">Max Height (H):</span><span class="hud-val" id="hudH">0.00 m</span></div>
-                <div class="hud-item"><span class="hud-label">Total Range (R):</span><span class="hud-val" id="hudR">0.00 m</span></div>
+                <!-- Overlay Telemetry HUD -->
+                <div class="telemetry-hud">
+                    <div class="hud-item"><span class="hud-label">Time (t):</span><span class="hud-val" id="hudTime">0.00 s</span></div>
+                    <div class="hud-item"><span class="hud-label">Range (x):</span><span class="hud-val" id="hudX">0.00 m</span></div>
+                    <div class="hud-item"><span class="hud-label">Height (y):</span><span class="hud-val" id="hudY">0.00 m</span></div>
+                    <div class="hud-item"><span class="hud-label">Velocity (v):</span><span class="hud-val" id="hudV">0.00 m/s</span></div>
+                    <div class="hud-item"><span class="hud-label">Drag Force (F_d):</span><span class="hud-val" id="hudFd">0.00 N</span></div>
+                    <div class="hud-item"><span class="hud-label">Total Range (R):</span><span class="hud-val" id="hudR">0.00 m</span></div>
+                </div>
+            </div>
+
+            <!-- Real-Time Kinematic Graph Overlay -->
+            <div class="graph-container">
+                <canvas id="graphCanvas"></canvas>
             </div>
         </div>
 
@@ -388,7 +409,7 @@
                 <select id="presetSelect">
                     <option value="custom">Custom Parameters</option>
                     <option value="standard">Standard 45° Launch</option>
-                    <option value="cliff">Cliff Launch (h0 = 50m)</option>
+                    <option value="cliff">Cliff Launch (y₀ = 40m)</option>
                     <option value="moon">Lunar Gravity (1.62 m/s²)</option>
                     <option value="high_drag">High Air Resistance</option>
                 </select>
@@ -422,18 +443,27 @@
                 </div>
 
                 <div class="control-item">
-                    <div class="control-label"><span>Air Drag Coeff (k):</span><span id="dragVal">0.00</span></div>
-                    <input type="range" id="dragSlider" min="0" max="0.05" value="0" step="0.005">
+                    <div class="control-label"><span>Air Drag Coeff (k):</span><span id="dragVal">0.000</span></div>
+                    <input type="range" id="dragSlider" min="0" max="0.05" value="0" step="0.002">
+                </div>
+
+                <div class="control-item">
+                    <div class="control-label"><span>Graph Mode:</span></div>
+                    <select id="graphModeSelect">
+                        <option value="yx">Trajectory: Height (y) vs Range (x)</option>
+                        <option value="vyt">Vertical Velocity (v_y) vs Time (t)</option>
+                        <option value="vxt">Horizontal Velocity (v_x) vs Time (t)</option>
+                    </select>
                 </div>
             </div>
 
             <div class="panel-group">
                 <div class="panel-title">Overlays & Visuals</div>
                 <label class="checkbox-group">
-                    <input type="checkbox" id="showVectors" checked> Show Velocity Components (Vx, Vy)
+                    <input type="checkbox" id="showVectors" checked> Show Velocity Vectors (v_x, v_y)
                 </label>
                 <label class="checkbox-group">
-                    <input type="checkbox" id="showTrajectory" checked> Show Ideal Path (No Drag)
+                    <input type="checkbox" id="showTrajectory" checked> Show Vacuum Path (No Drag)
                 </label>
             </div>
 
@@ -446,27 +476,32 @@
         <!-- Conceptual & Formula Inspector -->
         <section class="inspector-panel">
             <div class="tab-headers">
-                <button class="tab-btn active" onclick="switchTab('derivations')">📐 Live Kinematic Derivations</button>
+                <button class="tab-btn active" onclick="switchTab('derivations')">📐 Live Kinematic & Drag Calculations</button>
                 <button class="tab-btn" onclick="switchTab('quiz')">📝 Concept Mastery Quiz</button>
             </div>
 
             <div id="derivations" class="tab-content active">
                 <div class="derivation-grid">
                     <div class="math-card">
-                        <div class="math-title">Velocity Components</div>
+                        <div class="math-title">Ideal Kinematics (Vacuum)</div>
                         vₓ₀ = v₀ · cos(θ) = <span id="m_vx0">17.68</span> m/s<br>
                         vᵧ₀ = v₀ · sin(θ) = <span id="m_vy0">17.68</span> m/s<br>
-                        vᵧ(t) = vᵧ₀ - g·t
-                    </div>
-                    <div class="math-card">
-                        <div class="math-title">Time of Flight & Range</div>
                         t_flight = [vᵧ₀ + √(vᵧ₀² + 2gy₀)] / g = <span id="m_tflight">3.60</span> s<br>
                         R_ideal = vₓ₀ · t_flight = <span id="m_range">63.71</span> m
                     </div>
                     <div class="math-card">
-                        <div class="math-title">Maximum Peak Height</div>
-                        H_max = y₀ + (vᵧ₀²) / (2g)<br>
-                        H_max = <span id="m_hmax">15.93</span> m
+                        <div class="math-title">Drag Force Equations</div>
+                        F_drag = k · v²<br>
+                        aₓ = -(k/m) · v · vₓ = <span id="m_ax">-0.00</span> m/s²<br>
+                        aᵧ = -g - (k/m) · v · vᵧ = <span id="m_ay">-9.81</span> m/s²<br>
+                        Terminal Velocity: v_term = √(m·g / k)
+                    </div>
+                    <div class="math-card">
+                        <div class="math-title">Step-by-Step Integration</div>
+                        vₓ(t+Δt) = vₓ(t) + aₓ · Δt<br>
+                        vᵧ(t+Δt) = vᵧ(t) + aᵧ · Δt<br>
+                        x(t+Δt) = x(t) + vₓ · Δt<br>
+                        y(t+Δt) = y(t) + vᵧ · Δt
                     </div>
                 </div>
             </div>
@@ -474,7 +509,7 @@
             <div id="quiz" class="tab-content">
                 <div class="quiz-container">
                     <div class="quiz-card">
-                        <div class="quiz-q">1. At what launch angle is maximum horizontal range achieved over flat ground (ignoring air drag)?</div>
+                        <div class="quiz-q">1. At what launch angle is maximum horizontal range achieved over flat ground in a vacuum?</div>
                         <div class="quiz-opt">
                             <label><input type="radio" name="q1" value="a"> 30°</label>
                             <label><input type="radio" name="q1" value="b"> 45°</label>
@@ -484,11 +519,11 @@
                     </div>
 
                     <div class="quiz-card">
-                        <div class="quiz-q">2. At the apex (highest point) of a projectile's trajectory, what is its vertical velocity component (Vy)?</div>
+                        <div class="quiz-q">2. At the apex (highest point) of a projectile's trajectory, what is its vertical velocity component (vᵧ)?</div>
                         <div class="quiz-opt">
-                            <label><input type="radio" name="q1_2" value="a"> Equal to initial velocity (v₀)</label>
-                            <label><input type="radio" name="q1_2" value="b"> Exactly 0 m/s</label>
-                            <label><input type="radio" name="q1_2" value="c"> Maximum velocity</label>
+                            <label><input type="radio" name="q2" value="a"> Equal to initial velocity (v₀)</label>
+                            <label><input type="radio" name="q2" value="b"> Exactly 0 m/s</label>
+                            <label><input type="radio" name="q2" value="c"> Maximum velocity</label>
                         </div>
                         <div id="q2Feedback" class="quiz-feedback"></div>
                     </div>
@@ -509,21 +544,21 @@
 
     <script src="../theme.js"></script>
     <script>
-        // Interactive Engine Logic
-        const canvas = document.getElementById('simCanvas');
-        const ctx = canvas.getContext('2d');
+        const simCanvas = document.getElementById('simCanvas');
+        const simCtx = simCanvas.getContext('2d');
+        const graphCanvas = document.getElementById('graphCanvas');
+        const graphCtx = graphCanvas.getContext('2d');
 
-        // Inputs
         const v0Slider = document.getElementById('v0Slider');
         const angleSlider = document.getElementById('angleSlider');
         const y0Slider = document.getElementById('y0Slider');
         const gSlider = document.getElementById('gSlider');
         const dragSlider = document.getElementById('dragSlider');
         const presetSelect = document.getElementById('presetSelect');
+        const graphModeSelect = document.getElementById('graphModeSelect');
         const fireBtn = document.getElementById('fireBtn');
         const resetBtn = document.getElementById('resetBtn');
 
-        // Simulation State
         let v0 = parseFloat(v0Slider.value);
         let angle = parseFloat(angleSlider.value);
         let y0 = parseFloat(y0Slider.value);
@@ -537,14 +572,18 @@
 
         let currentPos = { x: 0, y: y0 };
         let currentVel = { x: 0, y: 0 };
+        let currentAcc = { x: 0, y: -g };
 
-        function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
+        function resizeCanvases() {
+            simCanvas.width = simCanvas.parentElement.clientWidth;
+            simCanvas.height = simCanvas.parentElement.clientHeight;
+            graphCanvas.width = graphCanvas.parentElement.clientWidth;
+            graphCanvas.height = graphCanvas.parentElement.clientHeight;
             draw();
+            drawGraph();
         }
 
-        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('resize', resizeCanvases);
 
         function updateInputs() {
             v0 = parseFloat(v0Slider.value);
@@ -570,22 +609,19 @@
 
             const tFlight = (vy0 + Math.sqrt(vy0 * vy0 + 2 * g * y0)) / g;
             const range = vx0 * tFlight;
-            const hMax = y0 + (vy0 * vy0) / (2 * g);
 
             document.getElementById('m_vx0').innerText = vx0.toFixed(2);
             document.getElementById('m_vy0').innerText = vy0.toFixed(2);
             document.getElementById('m_tflight').innerText = tFlight.toFixed(2);
             document.getElementById('m_range').innerText = range.toFixed(2);
-            document.getElementById('m_hmax').innerText = hMax.toFixed(2);
 
-            // Pre-calculate ideal path
             idealPath = [];
             const steps = 100;
             for (let i = 0; i <= steps; i++) {
                 let t = (tFlight / steps) * i;
                 let x = vx0 * t;
                 let y = y0 + vy0 * t - 0.5 * g * t * t;
-                idealPath.push({ x, y: Math.max(0, y) });
+                idealPath.push({ x, y: Math.max(0, y), t, vx: vx0, vy: vy0 - g * t });
             }
         }
 
@@ -595,24 +631,37 @@
             const rad = (angle * Math.PI) / 180;
             currentPos = { x: 0, y: y0 };
             currentVel = { x: v0 * Math.cos(rad), y: v0 * Math.sin(rad) };
-            trajectoryPath = [{ ...currentPos }];
+            
+            const vMag = Math.sqrt(currentVel.x * currentVel.x + currentVel.y * currentVel.y);
+            currentAcc = {
+                x: -dragK * currentVel.x * vMag,
+                y: -g - dragK * currentVel.y * vMag
+            };
+
+            trajectoryPath = [{ ...currentPos, t: 0, vx: currentVel.x, vy: currentVel.y }];
             fireBtn.innerText = "🚀 Launch";
-            updateHUD(0, 0, y0, v0);
+            updateHUD(0, 0, y0, v0, 0);
+            updateMathInspector();
             draw();
+            drawGraph();
         }
 
-        function updateHUD(t, x, y, v) {
+        function updateHUD(t, x, y, v, fd) {
             document.getElementById('hudTime').innerText = `${t.toFixed(2)} s`;
             document.getElementById('hudX').innerText = `${x.toFixed(2)} m`;
             document.getElementById('hudY').innerText = `${y.toFixed(2)} m`;
             document.getElementById('hudV').innerText = `${v.toFixed(2)} m/s`;
+            document.getElementById('hudFd').innerText = `${fd.toFixed(2)} N`;
 
             const rad = (angle * Math.PI) / 180;
             const vy0 = v0 * Math.sin(rad);
             const tFlight = (vy0 + Math.sqrt(vy0 * vy0 + 2 * g * y0)) / g;
-            
-            document.getElementById('hudH').innerText = `${(y0 + (vy0*vy0)/(2*g)).toFixed(2)} m`;
-            document.getElementById('hudR').innerText = `${(v0*Math.cos(rad)*tFlight).toFixed(2)} m`;
+            document.getElementById('hudR').innerText = `${(v0 * Math.cos(rad) * tFlight).toFixed(2)} m`;
+        }
+
+        function updateMathInspector() {
+            document.getElementById('m_ax').innerText = currentAcc.x.toFixed(2);
+            document.getElementById('m_ay').innerText = currentAcc.y.toFixed(2);
         }
 
         function stepSimulation(dt) {
@@ -624,11 +673,11 @@
                 const FdragX = -dragK * currentVel.x * vMag;
                 const FdragY = -dragK * currentVel.y * vMag;
 
-                const ax = FdragX;
-                const ay = -g + FdragY;
+                currentAcc.x = FdragX;
+                currentAcc.y = -g + FdragY;
 
-                currentVel.x += ax * dtSub;
-                currentVel.y += ay * dtSub;
+                currentVel.x += currentAcc.x * dtSub;
+                currentVel.y += currentAcc.y * dtSub;
 
                 currentPos.x += currentVel.x * dtSub;
                 currentPos.y += currentVel.y * dtSub;
@@ -643,10 +692,14 @@
                 }
             }
 
-            trajectoryPath.push({ ...currentPos });
+            trajectoryPath.push({ ...currentPos, t: simTime, vx: currentVel.x, vy: currentVel.y });
             const speed = Math.sqrt(currentVel.x * currentVel.x + currentVel.y * currentVel.y);
-            updateHUD(simTime, currentPos.x, currentPos.y, speed);
+            const FdTotal = dragK * speed * speed;
+
+            updateHUD(simTime, currentPos.x, currentPos.y, speed, FdTotal);
+            updateMathInspector();
             draw();
+            drawGraph();
 
             if (isAnimating) {
                 requestAnimationFrame(() => stepSimulation(0.03));
@@ -654,90 +707,189 @@
         }
 
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            simCtx.clearRect(0, 0, simCanvas.width, simCanvas.height);
 
-            const scale = Math.min(canvas.width / 120, canvas.height / 80);
+            const scale = Math.min(simCanvas.width / 120, simCanvas.height / 80);
             const originX = 60;
-            const originY = canvas.height - 50;
+            const originY = simCanvas.height - 40;
 
-            // Draw Ground & Grid
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.lineWidth = 1;
-            for (let x = 0; x < canvas.width; x += 40) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
+            // Background Grid
+            simCtx.strokeStyle = 'rgba(255,255,255,0.08)';
+            simCtx.lineWidth = 1;
+            for (let x = 0; x < simCanvas.width; x += 40) {
+                simCtx.beginPath();
+                simCtx.moveTo(x, 0);
+                simCtx.lineTo(x, simCanvas.height);
+                simCtx.stroke();
             }
 
-            ctx.fillStyle = '#313244';
-            ctx.fillRect(0, originY, canvas.width, canvas.height - originY);
+            // Ground Line
+            simCtx.fillStyle = '#313244';
+            simCtx.fillRect(0, originY, simCanvas.width, simCanvas.height - originY);
 
-            // Draw Cannon / Launcher Base
-            ctx.fillStyle = '#89b4fa';
-            ctx.fillRect(originX - 10, originY - y0 * scale, 20, y0 * scale);
+            // Launcher Platform
+            simCtx.fillStyle = '#89b4fa';
+            simCtx.fillRect(originX - 10, originY - y0 * scale, 20, y0 * scale);
 
-            // Draw Ideal Trajectory (Dash)
+            // Vacuum Trajectory Path (Dashed Green)
             if (document.getElementById('showTrajectory').checked && idealPath.length > 0) {
-                ctx.beginPath();
-                ctx.setLineDash([5, 5]);
-                ctx.strokeStyle = 'rgba(166, 227, 161, 0.5)';
-                ctx.lineWidth = 2;
+                simCtx.beginPath();
+                simCtx.setLineDash([5, 5]);
+                simCtx.strokeStyle = 'rgba(166, 227, 161, 0.5)';
+                simCtx.lineWidth = 2;
                 idealPath.forEach((pt, i) => {
                     let cx = originX + pt.x * scale;
                     let cy = originY - pt.y * scale;
-                    if (i === 0) ctx.moveTo(cx, cy);
-                    else ctx.lineTo(cx, cy);
+                    if (i === 0) simCtx.moveTo(cx, cy);
+                    else simCtx.lineTo(cx, cy);
                 });
-                ctx.stroke();
-                ctx.setLineDash([]);
+                simCtx.stroke();
+                simCtx.setLineDash([]);
             }
 
-            // Draw Actual Trajectory Path
+            // Actual Trajectory Path (Solid Red)
             if (trajectoryPath.length > 1) {
-                ctx.beginPath();
-                ctx.strokeStyle = '#f38ba8';
-                ctx.lineWidth = 3;
+                simCtx.beginPath();
+                simCtx.strokeStyle = '#f38ba8';
+                simCtx.lineWidth = 3;
                 trajectoryPath.forEach((pt, i) => {
                     let cx = originX + pt.x * scale;
                     let cy = originY - pt.y * scale;
-                    if (i === 0) ctx.moveTo(cx, cy);
-                    else ctx.lineTo(cx, cy);
+                    if (i === 0) simCtx.moveTo(cx, cy);
+                    else simCtx.lineTo(cx, cy);
                 });
-                ctx.stroke();
+                simCtx.stroke();
             }
 
-            // Draw Projectile Object
+            // Projectile Object
             const projX = originX + currentPos.x * scale;
             const projY = originY - currentPos.y * scale;
 
-            ctx.fillStyle = '#f9e2af';
-            ctx.beginPath();
-            ctx.arc(projX, projY, 8, 0, Math.PI * 2);
-            ctx.fill();
+            simCtx.fillStyle = '#f9e2af';
+            simCtx.beginPath();
+            simCtx.arc(projX, projY, 8, 0, Math.PI * 2);
+            simCtx.fill();
 
-            // Draw Velocity Components
+            // Velocity Vector Overlays
             if (document.getElementById('showVectors').checked && (isAnimating || simTime === 0)) {
-                ctx.strokeStyle = '#89b4fa';
-                ctx.lineWidth = 2;
-                
-                // Vx Vector
-                ctx.beginPath();
-                ctx.moveTo(projX, projY);
-                ctx.lineTo(projX + currentVel.x * scale * 0.4, projY);
-                ctx.stroke();
+                // Vx Vector (Blue)
+                simCtx.strokeStyle = '#89b4fa';
+                simCtx.lineWidth = 2;
+                simCtx.beginPath();
+                simCtx.moveTo(projX, projY);
+                simCtx.lineTo(projX + currentVel.x * scale * 0.4, projY);
+                simCtx.stroke();
 
-                // Vy Vector
-                ctx.strokeStyle = '#cba6f7';
-                ctx.beginPath();
-                ctx.moveTo(projX, projY);
-                ctx.lineTo(projX, projY - currentVel.y * scale * 0.4);
-                ctx.stroke();
+                // Vy Vector (Purple)
+                simCtx.strokeStyle = '#cba6f7';
+                simCtx.beginPath();
+                simCtx.moveTo(projX, projY);
+                simCtx.lineTo(projX, projY - currentVel.y * scale * 0.4);
+                simCtx.stroke();
+            }
+        }
+
+        function drawGraph() {
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+            const mode = graphModeSelect.value;
+
+            const margin = { top: 20, right: 20, bottom: 30, left: 50 };
+            const w = graphCanvas.width - margin.left - margin.right;
+            const h = graphCanvas.height - margin.top - margin.bottom;
+
+            // Graph Title & Axes Formatting
+            graphCtx.strokeStyle = '#313244';
+            graphCtx.lineWidth = 1;
+
+            // X Axis
+            graphCtx.beginPath();
+            graphCtx.moveTo(margin.left, margin.top + h);
+            graphCtx.lineTo(margin.left + w, margin.top + h);
+            graphCtx.stroke();
+
+            // Y Axis
+            graphCtx.beginPath();
+            graphCtx.moveTo(margin.left, margin.top);
+            graphCtx.lineTo(margin.left, margin.top + h);
+            graphCtx.stroke();
+
+            graphCtx.fillStyle = '#a6adc8';
+            graphCtx.font = '11px monospace';
+
+            if (mode === 'yx') {
+                graphCtx.fillText('Height (y) vs Range (x)', margin.left + 10, margin.top + 12);
+                
+                // Plot Ideal vs Actual
+                if (idealPath.length > 0) {
+                    graphCtx.beginPath();
+                    graphCtx.setLineDash([4, 4]);
+                    graphCtx.strokeStyle = 'rgba(166, 227, 161, 0.6)';
+                    idealPath.forEach((pt, i) => {
+                        let gx = margin.left + (pt.x / 100) * w;
+                        let gy = margin.top + h - (pt.y / 60) * h;
+                        if (i === 0) graphCtx.moveTo(gx, gy);
+                        else graphCtx.lineTo(gx, gy);
+                    });
+                    graphCtx.stroke();
+                    graphCtx.setLineDash([]);
+                }
+
+                if (trajectoryPath.length > 0) {
+                    graphCtx.beginPath();
+                    graphCtx.strokeStyle = '#f38ba8';
+                    graphCtx.lineWidth = 2;
+                    trajectoryPath.forEach((pt, i) => {
+                        let gx = margin.left + (pt.x / 100) * w;
+                        let gy = margin.top + h - (pt.y / 60) * h;
+                        if (i === 0) graphCtx.moveTo(gx, gy);
+                        else graphCtx.lineTo(gx, gy);
+                    });
+                    graphCtx.stroke();
+                }
+            } else if (mode === 'vyt') {
+                graphCtx.fillText('Vertical Velocity (v_y) vs Time (t)', margin.left + 10, margin.top + 12);
+
+                // Zero line for velocity
+                let zeroY = margin.top + h / 2;
+                graphCtx.strokeStyle = 'rgba(255,255,255,0.15)';
+                graphCtx.beginPath();
+                graphCtx.moveTo(margin.left, zeroY);
+                graphCtx.lineTo(margin.left + w, zeroY);
+                graphCtx.stroke();
+
+                if (trajectoryPath.length > 0) {
+                    graphCtx.beginPath();
+                    graphCtx.strokeStyle = '#cba6f7';
+                    graphCtx.lineWidth = 2;
+                    trajectoryPath.forEach((pt, i) => {
+                        let gx = margin.left + (pt.t / 6) * w;
+                        let gy = zeroY - (pt.vy / 40) * (h / 2);
+                        if (i === 0) graphCtx.moveTo(gx, gy);
+                        else graphCtx.lineTo(gx, gy);
+                    });
+                    graphCtx.stroke();
+                }
+            } else if (mode === 'vxt') {
+                graphCtx.fillText('Horizontal Velocity (v_x) vs Time (t)', margin.left + 10, margin.top + 12);
+
+                if (trajectoryPath.length > 0) {
+                    graphCtx.beginPath();
+                    graphCtx.strokeStyle = '#89b4fa';
+                    graphCtx.lineWidth = 2;
+                    trajectoryPath.forEach((pt, i) => {
+                        let gx = margin.left + (pt.t / 6) * w;
+                        let gy = margin.top + h - (pt.vx / 40) * h;
+                        if (i === 0) graphCtx.moveTo(gx, gy);
+                        else graphCtx.lineTo(gx, gy);
+                    });
+                    graphCtx.stroke();
+                }
             }
         }
 
         // Event Listeners
         [v0Slider, angleSlider, y0Slider, gSlider, dragSlider].forEach(el => el.addEventListener('input', updateInputs));
+        graphModeSelect.addEventListener('change', drawGraph);
 
         presetSelect.addEventListener('change', (e) => {
             const val = e.target.value;
@@ -775,7 +927,7 @@
             document.getElementById(tabId).classList.add('active');
         }
 
-        // Quiz Evaluation
+        // Quiz Logic
         document.querySelectorAll('input[name="q1"]').forEach(r => {
             r.addEventListener('change', (e) => {
                 const fb = document.getElementById('q1Feedback');
@@ -789,14 +941,14 @@
             });
         });
 
-        document.querySelectorAll('input[name="q1_2"]').forEach(r => {
+        document.querySelectorAll('input[name="q2"]').forEach(r => {
             r.addEventListener('change', (e) => {
                 const fb = document.getElementById('q2Feedback');
                 if (e.target.value === 'b') {
-                    fb.innerText = "✓ Correct! At apex, Vy momentarily drops to 0 m/s as velocity turns horizontal.";
+                    fb.innerText = "✓ Correct! At apex, vᵧ momentarily drops to 0 m/s as vertical direction reverses.";
                     fb.style.color = "var(--accent-green)";
                 } else {
-                    fb.innerText = "✗ Incorrect. Think about vertical direction turning point.";
+                    fb.innerText = "✗ Incorrect. Think about the vertical direction turning point.";
                     fb.style.color = "var(--accent-red)";
                 }
             });
@@ -815,8 +967,8 @@
             });
         });
 
-        // Initialize
-        resizeCanvas();
+        // Initialize Module
+        resizeCanvases();
         updateInputs();
     </script>
 </body>
