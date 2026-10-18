@@ -423,7 +423,7 @@
             <button class="btn btn-apk" onclick="checkPhysicsUpdate(true)">
                 📦 Download APK (<span id="apkVersionTag">v1.0.0</span>)
             </button>
-            <button id="themeToggle" class="btn">🌙 Dark Theme</button>
+            <button id="themeToggle" class="btn" onclick="toggleTheme()">🌙 Dark Theme</button>
         </div>
     </header>
 
@@ -639,6 +639,7 @@
         const CURRENT_PHYSICS_BUILD = 100;
         const REMOTE_VERSION_URL = "./version_physics.json";
 
+        // Tab Switching Engine
         function switchCategory(catId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
@@ -647,10 +648,27 @@
             document.getElementById(`cat-${catId}`).classList.add('active');
         }
 
+        // Reliable Theme Switcher Engine
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            updateThemeButtonText(newTheme);
+        }
+
+        function updateThemeButtonText(theme) {
+            const btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.innerHTML = theme === 'dark' ? '🌙 Dark Theme' : '☀️ Light Theme';
+            }
+        }
+
         // Automated GitHub Version Checker Engine
         async function checkPhysicsUpdate(userTriggered = false) {
-            const tag = document.getElementById('apkVersionTag');
-            
             try {
                 const res = await fetch(`${REMOTE_VERSION_URL}?t=${Date.now()}`);
                 if (!res.ok) throw new Error("Could not fetch version manifest");
@@ -717,7 +735,12 @@
             document.getElementById('updateModal').classList.remove('active');
         }
 
+        // Initialize Theme & Background Checks on Page Load
         window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeButtonText(savedTheme);
+            
             checkPhysicsUpdate(false);
         });
     </script>
