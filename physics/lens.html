@@ -167,12 +167,12 @@
     }
 
     .btn {
-      padding: 0.55rem 0.75rem;
+      padding: 0.55rem 0.5rem;
       border-radius: 0.375rem;
       border: 1px solid var(--panel-border);
       background-color: var(--panel-border);
       color: var(--text-main);
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -337,7 +337,7 @@
   <!-- HEADER NAVIGATION -->
   <header>
     <h1>
-      🔬 Pure Physics: Geometric Optics & Thin Lens Visualizer
+      🔬 Pure Physics: Optics Visualizer (Convex & Concave Lenses)
     </h1>
 
     <div class="flex items-center gap-2">
@@ -350,12 +350,14 @@
     <!-- Controls Sidebar -->
     <div class="controls-sidebar">
       
-      <!-- Lens Mode Toggle -->
+      <!-- Lens Type Selection -->
       <div class="control-group">
-        <label>Lens Type Geometry</label>
+        <label>Lens Geometry Type</label>
         <div class="btn-grid">
-          <button id="btn-convex" class="btn active" onclick="setLensType('biconvex')">Biconvex (+f)</button>
-          <button id="btn-concave" class="btn" onclick="setLensType('biconcave')">Biconcave (-f)</button>
+          <button id="btn-biconvex" class="btn active" onclick="setLensType('biconvex')">Biconvex (+f)</button>
+          <button id="btn-planoconvex" class="btn" onclick="setLensType('planoconvex')">Plano-Convex (+f)</button>
+          <button id="btn-biconcave" class="btn" onclick="setLensType('biconcave')">Biconcave (-f)</button>
+          <button id="btn-planoconcave" class="btn" onclick="setLensType('planoconcave')">Plano-Concave (-f)</button>
         </div>
       </div>
 
@@ -439,7 +441,7 @@
       </div>
 
       <div class="instruction-banner">
-        💡 Click &amp; Drag the <b>Object Arrow Tip</b> or <b>Focal Points (F)</b> directly on the canvas.
+        💡 Click &amp; Drag the <b>Object Arrow Tip</b> directly on the canvas.
       </div>
     </div>
   </div>
@@ -482,25 +484,25 @@
 
         <div class="space-y-3">
           <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
-            <p class="font-bold text-slate-200 mb-1">Q1: When an object is placed inside the focal length (d<sub>o</sub> &lt; f) of a biconvex lens, the resulting image is:</p>
+            <p class="font-bold text-slate-200 mb-1">Q1: How does a Plano-Convex lens differ in focal sign (+/-) from a Biconvex lens?</p>
             <div class="flex gap-4 text-slate-300">
-              <label><input type="radio" name="q1" value="A" onclick="checkQuiz()"> A) Real and Inverted</label>
-              <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) Virtual and Upright</label>
-              <label><input type="radio" name="q1" value="C" onclick="checkQuiz()"> C) Real and Upright</label>
+              <label><input type="radio" name="q1" value="A" onclick="checkQuiz()"> A) Plano-Convex is negative</label>
+              <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) Both are positive converging lenses</label>
+              <label><input type="radio" name="q1" value="C" onclick="checkQuiz()"> C) Plano-Convex has infinite focus</label>
             </div>
           </div>
 
           <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
-            <p class="font-bold text-slate-200 mb-1">Q2: A biconcave (diverging) lens ALWAYS forms an image that is:</p>
+            <p class="font-bold text-slate-200 mb-1">Q2: Both Biconcave and Plano-Concave lenses form images that are ALWAYS:</p>
             <div class="flex gap-4 text-slate-300">
               <label><input type="radio" name="q2" value="A" onclick="checkQuiz()"> A) Virtual, Upright, and Reduced</label>
               <label><input type="radio" name="q2" value="B" onclick="checkQuiz()"> B) Real, Inverted, and Enlarged</label>
-              <label><input type="radio" name="q2" value="C" onclick="checkQuiz()"> C) Virtual, Inverted, and Enlarged</label>
+              <label><input type="radio" name="q2" value="C" onclick="checkQuiz()"> C) Real and Upright</label>
             </div>
           </div>
 
           <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
-            <p class="font-bold text-slate-200 mb-1">Q3: What object distance yields an image distance exactly equal to the object distance (d<sub>i</sub> = d<sub>o</sub>)?</p>
+            <p class="font-bold text-slate-200 mb-1">Q3: At what object distance does a converging lens produce an image with m = -1.0x?</p>
             <div class="flex gap-4 text-slate-300">
               <label><input type="radio" name="q3" value="A" onclick="checkQuiz()"> A) d<sub>o</sub> = f</label>
               <label><input type="radio" name="q3" value="B" onclick="checkQuiz()"> B) d<sub>o</sub> = 2f</label>
@@ -516,15 +518,12 @@
   <script src="../theme.js"></script>
   <script>
     // State variables
-    let lensType = 'biconvex'; // 'biconvex' or 'biconcave'
+    let lensType = 'biconvex'; // 'biconvex', 'planoconvex', 'biconcave', 'planoconcave'
     let focalLength = 150;     // Positive magnitude in mm
     let objectDistance = 250;  // Positive distance in mm
     let objectHeight = 80;     // Positive = upwards, negative = downwards
 
-    // Dragging states
     let isDraggingObject = false;
-    let isDraggingFocusNear = false;
-    let isDraggingFocusFar = false;
 
     // Canvas element and context
     const canvas = document.getElementById('opticsCanvas');
@@ -551,7 +550,6 @@
     const chkRay3 = document.getElementById('chk-ray3');
     const chkVirtual = document.getElementById('chk-virtual');
 
-    // Resize Canvas dynamically
     function resizeCanvas() {
       const rect = canvas.parentElement.getBoundingClientRect();
       canvas.width = rect.width;
@@ -563,16 +561,15 @@
 
     // Core Physics Calculations
     function getPhysics() {
-      const f = (lensType === 'biconvex') ? focalLength : -focalLength;
+      const isConverging = (lensType === 'biconvex' || lensType === 'planoconvex');
+      const f = isConverging ? focalLength : -focalLength;
       const do_val = objectDistance;
       
-      // Thin Lens Equation: 1/f = 1/do + 1/di => di = (f * do) / (do - f)
       let di_val = Infinity;
       if (Math.abs(do_val - f) > 0.001) {
         di_val = (f * do_val) / (do_val - f);
       }
 
-      // Magnification: m = -di / do
       let m = 0;
       if (isFinite(di_val) && do_val !== 0) {
         m = -di_val / do_val;
@@ -580,17 +577,16 @@
 
       const hi_val = objectHeight * m;
 
-      return { f, do_val, di_val, m, hi_val };
+      return { f, do_val, di_val, m, hi_val, isConverging };
     }
 
-    // Draw Optical Bench and Components
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
 
-      // 1. Principal Axis Line
+      // Principal Axis
       ctx.beginPath();
       ctx.setLineDash([]);
       ctx.strokeStyle = '#475569';
@@ -601,27 +597,22 @@
 
       const phys = getPhysics();
 
-      // Focal Points Positions
-      const F1_x = centerX - focalLength; // Left Focal Point
-      const F2_x = centerX + focalLength; // Right Focal Point
-      const F2_2x = centerX - 2 * focalLength; // 2F Left
-      const F2_2x_R = centerX + 2 * focalLength; // 2F Right
+      const F1_x = centerX - focalLength;
+      const F2_x = centerX + focalLength;
+      const F2_2x = centerX - 2 * focalLength;
+      const F2_2x_R = centerX + 2 * focalLength;
 
-      // 2. Draw Focal Markers
       drawFocalMarker(F1_x, centerY, "F1");
       drawFocalMarker(F2_x, centerY, "F2");
       drawFocalMarker(F2_2x, centerY, "2F1");
       drawFocalMarker(F2_2x_R, centerY, "2F2");
 
-      // 3. Draw Lens Geometry (Physical Biconvex / Biconcave Shapes)
       drawLens(centerX, centerY);
 
-      // 4. Draw Object Arrow
       const objX = centerX - objectDistance;
       const objY = centerY - objectHeight;
       drawArrow(objX, centerY, objX, objY, '#38bdf8', 'Object', true);
 
-      // 5. Calculate and Draw Image Arrow (if finite)
       let imgX = 0, imgY = 0;
       const isImageValid = isFinite(phys.di_val) && Math.abs(phys.di_val) < 5000;
 
@@ -633,17 +624,15 @@
         drawArrow(imgX, centerY, imgX, imgY, imgColor, isVirtual ? 'Virtual Image' : 'Real Image', !isVirtual, isVirtual);
       }
 
-      // 6. Ray Tracing Logic
       if (isImageValid) {
         drawRayTracing(centerX, centerY, objX, objY, imgX, imgY, phys);
       }
 
-      // 7. Update HUD Overlay & Math Inspector Step
       updateHUD(phys);
       updateFormulaSteps(phys);
     }
 
-    // Draw Custom Lens Shape
+    // Glass Geometry Renderer for 4 Lens Types
     function drawLens(cx, cy) {
       const lensHeight = Math.min(canvas.height * 0.75, 340);
       const lensThickness = Math.max(16, focalLength * 0.18);
@@ -668,7 +657,12 @@
         ctx.moveTo(cx, topY);
         ctx.quadraticCurveTo(cx + bulge, cy, cx, bottomY);
         ctx.quadraticCurveTo(cx - bulge, cy, cx, topY);
-      } else {
+      } else if (lensType === 'planoconvex') {
+        const bulge = lensThickness * 1.5;
+        ctx.moveTo(cx - 4, topY);
+        ctx.lineTo(cx - 4, bottomY);
+        ctx.quadraticCurveTo(cx + bulge, cy, cx - 4, topY);
+      } else if (lensType === 'biconcave') {
         const edgeWidth = lensThickness;
         const centerIndent = 6;
         ctx.moveTo(cx - edgeWidth, topY);
@@ -676,6 +670,14 @@
         ctx.quadraticCurveTo(cx + centerIndent, cy, cx + edgeWidth, bottomY);
         ctx.lineTo(cx - edgeWidth, bottomY);
         ctx.quadraticCurveTo(cx - centerIndent, cy, cx - edgeWidth, topY);
+      } else if (lensType === 'planoconcave') {
+        const edgeWidth = lensThickness * 1.2;
+        const centerIndent = 4;
+        ctx.moveTo(cx - edgeWidth, topY);
+        ctx.lineTo(cx + edgeWidth, topY);
+        ctx.quadraticCurveTo(cx + centerIndent, cy, cx + edgeWidth, bottomY);
+        ctx.lineTo(cx - edgeWidth, bottomY);
+        ctx.lineTo(cx - edgeWidth, topY);
       }
 
       ctx.closePath();
@@ -693,11 +695,10 @@
       ctx.restore();
     }
 
-    // Ray Tracing Mechanics
     function drawRayTracing(cx, cy, objX, objY, imgX, imgY, phys) {
       if (chkRay1.checked) {
         drawSegment(objX, objY, cx, objY, '#f87171', 2);
-        if (lensType === 'biconvex') {
+        if (phys.isConverging) {
           const fFarX = cx + focalLength;
           drawRayLine(cx, objY, fFarX, cy, '#f87171', 2);
           if (phys.di_val < 0 && chkVirtual.checked) {
@@ -720,7 +721,7 @@
       }
 
       if (chkRay3.checked) {
-        if (lensType === 'biconvex') {
+        if (phys.isConverging) {
           const fNearX = cx - focalLength;
           const slope = (cy - objY) / (fNearX - objX);
           const yAtLens = objY + slope * (cx - objX);
@@ -810,7 +811,13 @@
     }
 
     function updateHUD(phys) {
-      hudMode.textContent = lensType === 'biconvex' ? 'Biconvex (+f)' : 'Biconcave (-f)';
+      const titles = {
+        'biconvex': 'Biconvex (+f)',
+        'planoconvex': 'Plano-Convex (+f)',
+        'biconcave': 'Biconcave (-f)',
+        'planoconcave': 'Plano-Concave (-f)'
+      };
+      hudMode.textContent = titles[lensType] || 'Custom Lens';
       hudF.textContent = `${phys.f > 0 ? '+' : ''}${phys.f.toFixed(1)} mm`;
       hudDo.textContent = `${phys.do_val.toFixed(1)} mm`;
 
@@ -858,8 +865,9 @@
 
     function setLensType(type) {
       lensType = type;
-      document.getElementById('btn-convex').classList.toggle('active', type === 'biconvex');
-      document.getElementById('btn-concave').classList.toggle('active', type === 'biconcave');
+      ['biconvex', 'planoconvex', 'biconcave', 'planoconcave'].forEach(id => {
+        document.getElementById(`btn-${id}`).classList.toggle('active', type === id);
+      });
       draw();
     }
 
@@ -870,12 +878,12 @@
         objectDistance = 280;
         objectHeight = 80;
       } else if (preset === 'magnifier') {
-        setLensType('biconvex');
+        setLensType('planoconvex');
         focalLength = 150;
         objectDistance = 90;
         objectHeight = 60;
       } else if (preset === 'diverging') {
-        setLensType('biconcave');
+        setLensType('planoconcave');
         focalLength = 150;
         objectDistance = 220;
         objectHeight = 80;
@@ -910,7 +918,6 @@
 
     [chkRay1, chkRay2, chkRay3, chkVirtual].forEach(chk => chk.addEventListener('change', draw));
 
-    // Pointer & Drag Interactions
     function getCanvasCoords(e) {
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -950,7 +957,6 @@
     canvas.addEventListener('touchmove', onPointerMove);
     window.addEventListener('touchend', onPointerUp);
 
-    // Inspector Tab Switching Logic
     function switchTab(tab) {
       document.getElementById('tab-formula').classList.toggle('hidden', tab !== 'formula');
       document.getElementById('tab-quiz').classList.toggle('hidden', tab !== 'quiz');
@@ -971,7 +977,6 @@
       document.getElementById('quiz-score').textContent = `Score: ${score} / 3`;
     }
 
-    // Initialize Layout & First Draw
     window.addEventListener('load', () => {
       resizeCanvas();
     });
