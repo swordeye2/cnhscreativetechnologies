@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIT GUD PHYSICS - Just In Time Pure Physics Suite</title>
-    <link rel="manifest" href="./manifest.json">
+    <title>Just in Time "GIT GUD" Physics</title>
+    
+    <!-- Physics Suite Local PWA & Favicon Assets -->
     <link rel="icon" type="image/png" href="./icon-512.png">
-<link rel="apple-touch-icon" href="./icon-512.png">
-<link rel="manifest" href="./manifest.json">
-<link rel="stylesheet" href="../theme.css">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Shared Parent Theme -->
+    <link rel="stylesheet" href="../theme.css">
+    
     <style>
         :root {
             --canvas-bg: #1e1e2e;
@@ -58,7 +62,7 @@
         header {
             background-color: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
-            padding: 14px 24px;
+            padding: 12px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -69,7 +73,16 @@
         .nav-brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+        }
+
+        .app-header-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
         .brand-title {
@@ -118,8 +131,23 @@
             border-radius: 12px;
             padding: 24px;
             display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .hero-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 16px;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            flex-shrink: 0;
+        }
+
+        .hero-text-group {
+            display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .hub-hero h1 {
@@ -267,21 +295,25 @@
 </head>
 <body>
 
-    <!-- Header Navigation -->
+    <!-- Header Navigation with App Icon -->
     <header>
         <div class="nav-brand">
             <a href="../index.html" class="btn">🏠 Main Lab Hub</a>
-            <span class="brand-title">⚡ GIT GUD PHYSICS</span>
+            <img src="./icon-512.png" alt="App Icon" class="app-header-icon">
+            <span class="brand-title">Just in Time "GIT GUD" Physics</span>
         </div>
         <button id="themeToggle" class="btn">🌙 Theme</button>
     </header>
 
     <div class="hub-container">
         
-        <!-- Hero Section -->
+        <!-- Hero Section with Larger Badge Icon -->
         <section class="hub-hero">
-            <h1>Just In Time Pure Physics Sims</h1>
-            <p>Interactive web-based and standalone offline simulation engine for optics, ballistics kinematics, harmonic motion, and field dynamics under the CNHS Creative Technologies platform.</p>
+            <img src="./icon-512.png" alt="Pure Physics Logo" class="hero-icon">
+            <div class="hero-text-group">
+                <h1>Just in Time "GIT GUD" Physics</h1>
+                <p>Interactive web-based and standalone offline simulation engine for optics, ballistics kinematics, harmonic motion, and field dynamics under the CNHS Creative Technologies platform.</p>
+            </div>
         </section>
 
         <!-- Category Tabs -->
@@ -460,7 +492,7 @@
 
         <!-- IP Assertions & Copyright Notice -->
         <footer class="ip-footer">
-            <strong>GIT GUD PHYSICS (Just In Time Physics Suite)</strong><br>
+            <strong>Just in Time "GIT GUD" Physics</strong><br>
             Developed under rpithon.com / CNHS Creative Technologies Platform.<br>
             Intellectual Property Assertions & Physics Engine © Jorge Victor M. Sales (swordeye / thearbiter). All rights reserved.
         </footer>
@@ -470,14 +502,10 @@
     <script src="../theme.js"></script>
     <script>
         function switchCategory(catId) {
-            // Update Tab Button Active States
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
 
-            // Hide All Tab Grids
             document.querySelectorAll('.tab-content').forEach(grid => grid.classList.remove('active'));
-
-            // Show Target Category Grid
             document.getElementById(`cat-${catId}`).classList.add('active');
         }
     </script>
