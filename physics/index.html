@@ -11,7 +11,13 @@
     <link rel="manifest" href="./manifest.json">
     
     <!-- Shared Parent Theme -->
-    <link rel="stylesheet" href="../theme.css">
+    <!-- Local Physics Suite Assets -->
+<link rel="icon" type="image/png" href="./icon-512.png">
+<link rel="apple-touch-icon" href="./icon-512.png">
+<link rel="manifest" href="./manifest.json">
+
+<!-- Shared Parent Theme -->
+<link rel="stylesheet" href="../theme.css">
     
     <style>
         :root {
@@ -423,7 +429,7 @@
             <button class="btn btn-apk" onclick="checkPhysicsUpdate(true)">
                 📦 Download APK (<span id="apkVersionTag">v1.0.0</span>)
             </button>
-            <button id="themeToggle" class="btn" onclick="toggleTheme()">🌙 Dark Theme</button>
+            <button id="themeToggle" onclick="toggleTheme()" class="btn" onclick="toggleTheme()">🌙 Dark Theme</button>
         </div>
     </header>
 
@@ -634,6 +640,32 @@
     </div>
 
     <script src="../theme.js"></script>
+<script>
+    // Synchronized Theme Switcher Engine
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeButtonText(newTheme);
+    }
+
+    function updateThemeButtonText(theme) {
+        const btn = document.getElementById('themeToggle');
+        if (btn) {
+            btn.innerHTML = theme === 'dark' ? '🌙 Dark Theme' : '☀️ Light Theme';
+        }
+    }
+
+    // Restore Saved Theme Preference on Load
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeButtonText(savedTheme);
+    });
+</script>
     <script>
         const CURRENT_PHYSICS_VERSION = "1.0.0";
         const CURRENT_PHYSICS_BUILD = 100;

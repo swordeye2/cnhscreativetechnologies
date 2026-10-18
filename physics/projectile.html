@@ -7,6 +7,12 @@
     <link rel="icon" type="image/png" href="./icon-512.png">
 <link rel="apple-touch-icon" href="./icon-512.png">
 <link rel="manifest" href="./manifest.json">
+<!-- Local Physics Suite Assets -->
+<link rel="icon" type="image/png" href="./icon-512.png">
+<link rel="apple-touch-icon" href="./icon-512.png">
+<link rel="manifest" href="./manifest.json">
+
+<!-- Shared Parent Theme -->
 <link rel="stylesheet" href="../theme.css">
     <style>
         :root {
@@ -400,7 +406,7 @@
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
             <span style="font-weight: bold; margin-left: 10px;">Projectile Motion & Kinematics</span>
         </div>
-        <button id="themeToggle" class="btn">🌙 Theme</button>
+        <button id="themeToggle" onclick="toggleTheme()" class="btn">🌙 Theme</button>
     </header>
 
     <!-- Main Layout -->
@@ -570,6 +576,32 @@
     </main>
 
     <script src="../theme.js"></script>
+<script>
+    // Synchronized Theme Switcher Engine
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeButtonText(newTheme);
+    }
+
+    function updateThemeButtonText(theme) {
+        const btn = document.getElementById('themeToggle');
+        if (btn) {
+            btn.innerHTML = theme === 'dark' ? '🌙 Dark Theme' : '☀️ Light Theme';
+        }
+    }
+
+    // Restore Saved Theme Preference on Load
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeButtonText(savedTheme);
+    });
+</script>
     <script>
         const simCanvas = document.getElementById('simCanvas');
         const simCtx = simCanvas.getContext('2d');
