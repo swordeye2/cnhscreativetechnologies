@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projectile Motion & Kinematics - Pure Physics</title>
+    <title>Projectile Motion & Kinematics Engine | Just in Time "GIT GUD" Physics</title>
+    
+    <!-- Local Physics Suite Assets -->
     <link rel="icon" type="image/png" href="./icon-512.png">
-<link rel="apple-touch-icon" href="./icon-512.png">
-<link rel="manifest" href="./manifest.json">
-<!-- Local Physics Suite Assets -->
-<link rel="icon" type="image/png" href="./icon-512.png">
-<link rel="apple-touch-icon" href="./icon-512.png">
-<link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+    <link rel="manifest" href="./manifest.json">
 
-<!-- Shared Parent Theme -->
-<link rel="stylesheet" href="../theme.css">
+    <!-- Shared Parent Theme -->
+    <link rel="stylesheet" href="../theme.css">
+
+    <!-- Legal IP & Copyright Assertions -->
+    <meta name="author" content="Jorge Victor M. Sales">
+    <meta name="creator" content="Jorge Victor M. Sales">
+    <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+    <meta name="rights" content="All intellectual property, software architecture, educational physics models, and code design belong to Jorge Victor M. Sales.">
+    <meta name="alias" content="swordeye, thearbiter">
+
     <style>
         :root {
             --canvas-bg: #1e1e2e;
@@ -59,7 +65,7 @@
             padding-bottom: 120px; /* COPPA Buffer */
         }
 
-        /* Dual Nav Header */
+        /* Standalone Header Banner */
         header {
             background-color: var(--panel-bg);
             border-bottom: 1px solid var(--border-color);
@@ -68,13 +74,41 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
 
-        .nav-links {
+        .header-brand-group {
             display: flex;
-            gap: 10px;
             align-items: center;
+            gap: 12px;
+        }
+
+        .app-header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+        }
+
+        .brand-text-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .brand-author {
+            font-size: 11px;
+            color: var(--text-sub);
         }
 
         .btn {
@@ -84,7 +118,8 @@
             padding: 8px 14px;
             border-radius: 6px;
             cursor: pointer;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 13px;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
@@ -399,14 +434,19 @@
 </head>
 <body>
 
-    <!-- Header Navigation -->
+    <!-- Standardized Header Navigation -->
     <header>
-        <div class="nav-links">
-            <a href="../index.html" class="btn">🏠 Main Lab Hub</a>
-            <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <span style="font-weight: bold; margin-left: 10px;">Projectile Motion & Kinematics</span>
+        <div class="header-brand-group">
+            <a href="./index.html" class="btn">⬅ Physics Hub</a>
+            <img src="./icon-512.png" alt="App Icon" class="app-header-icon">
+            <div class="brand-text-block">
+                <div class="brand-title">🚀 Projectile Motion & Kinematics Engine</div>
+                <div class="brand-author">
+                    Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | CC BY-NC-SA 4.0
+                </div>
+            </div>
         </div>
-        <button id="themeToggle" onclick="toggleTheme()" class="btn">🌙 Theme</button>
+        <button id="themeToggle" onclick="toggleTheme()" class="btn">🌙 Dark Theme</button>
     </header>
 
     <!-- Main Layout -->
@@ -576,32 +616,32 @@
     </main>
 
     <script src="../theme.js"></script>
-<script>
-    // Synchronized Theme Switcher Engine
-    function toggleTheme() {
-        const html = document.documentElement;
-        const currentTheme = html.getAttribute('data-theme') || 'dark';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    <script>
+        // Synchronized Theme Switcher Engine
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-        html.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateThemeButtonText(newTheme);
-    }
-
-    function updateThemeButtonText(theme) {
-        const btn = document.getElementById('themeToggle');
-        if (btn) {
-            btn.innerHTML = theme === 'dark' ? '🌙 Dark Theme' : '☀️ Light Theme';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeButtonText(newTheme);
         }
-    }
 
-    // Restore Saved Theme Preference on Load
-    window.addEventListener('DOMContentLoaded', () => {
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        updateThemeButtonText(savedTheme);
-    });
-</script>
+        function updateThemeButtonText(theme) {
+            const btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.innerHTML = theme === 'dark' ? '🌙 Dark Theme' : '☀️ Light Theme';
+            }
+        }
+
+        // Restore Saved Theme Preference on Load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeButtonText(savedTheme);
+        });
+    </script>
     <script>
         const simCanvas = document.getElementById('simCanvas');
         const simCtx = simCanvas.getContext('2d');
@@ -724,7 +764,6 @@
             document.getElementById('m_ax').innerText = currentAcc.x.toFixed(2);
             document.getElementById('m_ay').innerText = currentAcc.y.toFixed(2);
 
-            // Highlight Cards when drag coefficient > 0
             const cardDrag = document.getElementById('cardDrag');
             const cardObserved = document.getElementById('cardObserved');
 
