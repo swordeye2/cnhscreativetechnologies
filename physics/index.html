@@ -131,6 +131,16 @@
             font-weight: bold;
         }
 
+        .dev-badge {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            background: rgba(249, 226, 175, 0.1);
+            border: 1px solid var(--accent-yellow);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
         /* Container Layout */
         .hub-container {
             max-width: 1400px;
@@ -417,7 +427,7 @@
 </head>
 <body>
 
-    <!-- Header Navigation with App Icon & Version Badge -->
+    <!-- Header Navigation with Developer Attribution -->
     <header>
         <div class="nav-brand">
             <a href="../index.html" class="btn">🏠 Main Lab Hub</a>
@@ -426,6 +436,7 @@
             <span class="version-badge" id="headerVersionTag">v1.0.0</span>
         </div>
         <div class="nav-actions">
+            <span class="dev-badge">👨‍💻 Dev: Jorge Victor M. Sales</span>
             <button id="updateCheckBtn" class="btn" onclick="checkPhysicsUpdate(true)">🔄 Check Updates</button>
             <button id="themeToggle" class="btn">🌙 Theme</button>
         </div>
@@ -439,7 +450,7 @@
                 <img src="./icon-512.png" alt="Pure Physics Logo" class="hero-icon">
                 <div class="hero-text-group">
                     <h1>Just in Time "GIT GUD" Physics</h1>
-                    <p>Interactive web-based and standalone offline simulation engine for optics, ballistics kinematics, harmonic motion, and field dynamics under the CNHS Creative Technologies platform.</p>
+                    <p>Interactive web-based and standalone offline simulation engine for optics, ballistics kinematics, harmonic motion, and field dynamics. Developed by <strong>Jorge Victor M. Sales (swordeye / thearbiter)</strong> under the CNHS Creative Technologies platform.</p>
                 </div>
             </div>
             <button class="btn" style="border-color: var(--accent-blue); color: var(--accent-blue);" onclick="checkPhysicsUpdate(true)">
@@ -625,7 +636,7 @@
         <footer class="ip-footer">
             <strong>Just in Time "GIT GUD" Physics</strong><br>
             Developed under rpithon.com / CNHS Creative Technologies Platform.<br>
-            Intellectual Property Assertions & Physics Engine © Jorge Victor M. Sales (swordeye / thearbiter). All rights reserved.
+            Lead Developer & Intellectual Property Assertions © <strong>Jorge Victor M. Sales (swordeye / thearbiter)</strong>. All rights reserved.
         </footer>
 
     </div>
@@ -666,7 +677,6 @@
             if (userTriggered && btn) btn.innerText = "⌛ Checking...";
 
             try {
-                // Fetch version manifest with cache-busting timestamp query
                 const res = await fetch(`${REMOTE_VERSION_URL}?t=${Date.now()}`);
                 if (!res.ok) throw new Error("Could not fetch version manifest");
                 
@@ -702,6 +712,7 @@
 
                 body.innerHTML = `
                     <div>A new version of <strong>${data.app}</strong> is ready for download.</div>
+                    <div style="font-size:12px; color:var(--text-sub);">Developer: <strong>Jorge Victor M. Sales</strong></div>
                     <div style="font-size:12px; color:var(--text-sub);">Installed: <code>v${CURRENT_PHYSICS_VERSION}</code> | Latest: <code style="color:var(--accent-green);">v${data.version}</code></div>
                     <div style="font-weight:bold; margin-top:6px;">Release Notes:</div>
                     <ul class="notes-list">${notesHtml}</ul>
@@ -717,7 +728,8 @@
 
                 body.innerHTML = `
                     <div>You are currently running the latest version of <strong>Just in Time "GIT GUD" Physics</strong> (<code>v${CURRENT_PHYSICS_VERSION}</code>).</div>
-                    <div style="font-size:12px; color:var(--text-sub); margin-top:6px;">Build Date: ${data.build_date || '2026-10-18'}</div>
+                    <div style="font-size:12px; color:var(--text-sub); margin-top:6px;">Lead Developer: <strong>Jorge Victor M. Sales (swordeye / thearbiter)</strong></div>
+                    <div style="font-size:12px; color:var(--text-sub);">Build Date: ${data.build_date || '2026-10-18'}</div>
                 `;
 
                 actions.innerHTML = `
@@ -732,7 +744,6 @@
             document.getElementById('updateModal').classList.remove('active');
         }
 
-        // Silent check on load
         window.addEventListener('DOMContentLoaded', () => {
             checkPhysicsUpdate(false);
         });
