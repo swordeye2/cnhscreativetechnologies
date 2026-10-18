@@ -1,0 +1,20 @@
+{
+  "short_name": "GIT GUD PHYSICS",
+  "name": "Just In Time Physics",
+  "icons": [
+    {
+      "src": "../icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "/physics/",
+  "start_url": "./index.html",
+  "background_color": "#1e1e2e",
+  "theme_color": "#181825",
+  "display": "standalone",
+  "orientation": "any",
+  "description": "Interactive web-based and offline optics, kinematics, and pure physics simulation engine.",
+  "categories": ["education", "utilities"]
+}
