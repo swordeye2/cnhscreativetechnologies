@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spherical Refracting Surface & Medium Engine | Just in Time "GIT GUD" Physics</title>
+
+  <!-- Local Physics Suite Assets -->
+  <link rel="icon" type="image/png" href="./icon-512.png">
+  <link rel="apple-touch-icon" href="./icon-512.png">
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- Shared Parent Theme -->
+  <link rel="stylesheet" href="../theme.css">
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google AdSense Script (COPPA & Non-Personalized Student-Safe Configuration) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136" crossorigin="anonymous"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
+  </script>
+
+  <style>
+    :root {
+      --bg-dark: var(--bg-color, #1e1e2e);
+      --panel-bg: var(--card-bg, #181825);
+      --panel-border: var(--card-border, #313244);
+      --text-main: var(--text-main, #cdd6f4);
+      --text-muted: var(--text-sub, #a6adc8);
+      --accent-blue: var(--accent, #89b4fa);
+      --accent-green: #a6e3a1;
+      --accent-red: #f38ba8;
+      --accent-purple: #cba6f7;
+      --accent-yellow: #f9e2af;
+      --accent-orange: #fab387;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding-bottom: 120px; /* COPPA Safety Buffer */
+    }
+
+    header {
+      background-color: var(--panel-bg);
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      background: var(--panel-border);
+      color: var(--text-main);
+      border: 1px solid var(--panel-border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: bold;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .nav-btn:hover {
+      opacity: 0.85;
+    }
+
+    .main-container {
+      display: flex;
+      flex: 1;
+      flex-direction: row;
+      min-height: 520px;
+    }
+
+    @media (max-width: 900px) {
+      .main-container {
+        flex-direction: column;
+      }
+    }
+
+    /* Sidebar Control Panel */
+    .controls-sidebar {
+      width: 330px;
+      background-color: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 900px) {
+      .controls-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--panel-border);
+      }
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      background: var(--inner-box, #11111b);
+      padding: 0.85rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--panel-border);
+    }
+
+    .control-group label {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .control-group label span.value {
+      color: var(--accent-blue);
+      font-family: monospace;
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--panel-border);
+      outline: none;
+      accent-color: var(--accent-blue);
+      cursor: pointer;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.55rem 0.5rem;
+      border-radius: 0.375rem;
+      border: 1px solid var(--panel-border);
+      background-color: var(--panel-border);
+      color: var(--text-main);
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .btn:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .btn.active {
+      background-color: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #11111b;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-blue);
+      color: #11111b;
+      font-weight: bold;
+      grid-column: span 2;
+    }
+
+    /* Canvas Workspace */
+    .canvas-area {
+      flex: 1;
+      position: relative;
+      background-color: var(--inner-box, #11111b);
+      display: flex;
+      flex-direction: column;
+      min-height: 480px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Overlay Telemetry HUD */
+    .hud-panel {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: var(--text-main);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .hud-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1.2rem;
+    }
+
+    .hud-label {
+      color: var(--text-muted);
+    }
+
+    .hud-val {
+      font-weight: 600;
+      color: var(--accent-blue);
+    }
+
+    .hud-badge {
+      display: inline-block;
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.25rem;
+      font-size: 0.72rem;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 0.25rem;
+    }
+
+    .badge-real {
+      background-color: rgba(166, 227, 161, 0.2);
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+    }
+
+    .badge-virtual {
+      background-color: rgba(243, 139, 168, 0.2);
+      color: var(--accent-red);
+      border: 1px solid var(--accent-red);
+    }
+
+    .instruction-banner {
+      position: absolute;
+      bottom: 0.8rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      padding: 0.35rem 0.85rem;
+      border-radius: 2rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .inspector-section {
+      background-color: var(--panel-bg);
+      border-top: 1px solid var(--panel-border);
+      padding: 1.25rem;
+    }
+
+    .tab-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      background: var(--inner-box, #11111b);
+      color: var(--text-muted);
+      border: 1px solid var(--panel-border);
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-blue);
+      color: #11111b;
+      border-color: var(--accent-blue);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- STANDARDIZED HEADER NAVIGATION -->
+  <header class="flex flex-wrap items-center justify-between gap-2 p-3 bg-[var(--panel-bg)] border-b border-[var(--panel-border)]">
+    <div class="flex items-center gap-3">
+      <a href="./index.html" class="nav-btn flex items-center gap-1">
+        <span>⬅</span> <span>Physics Hub</span>
+      </a>
+      <img src="./icon-512.png" alt="App Icon" class="w-8 h-8 rounded-md">
+      <div>
+        <h1 class="text-base font-bold text-[var(--accent-blue)] flex items-center gap-2 m-0">
+          Spherical Refracting Surface & Refracting Medium Engine
+        </h1>
+        <div class="text-[11px] text-[var(--text-muted)]">
+          Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | CC BY-NC-SA 4.0
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 flex-wrap">
+      <button id="themeToggle" class="nav-btn flex items-center gap-1" onclick="toggleTheme()">
+        <span>🌙</span> <span>Dark Theme</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <!-- Controls Sidebar Panel -->
+    <div class="controls-sidebar">
+      
+      <!-- Simulation Mode Selector -->
+      <div class="control-group">
+        <label>Simulation Mode</label>
+        <div class="btn-grid">
+          <button id="btn-mode-surface" class="btn active" onclick="setSimMode('surface')">Single Surface</button>
+          <button id="btn-mode-lens" class="btn" onclick="setSimMode('submerged')">Submerged Lens</button>
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="control-group">
+        <label>Refracting Medium Presets</label>
+        <div class="btn-grid">
+          <button id="preset-air-glass" class="btn active" onclick="applyMediumPreset('air-glass')">Air ➔ Glass</button>
+          <button id="preset-water-glass" class="btn" onclick="applyMediumPreset('water-glass')">Water ➔ Glass</button>
+          <button id="preset-submerged-inv" class="btn" onclick="applyMediumPreset('submerged-inv')">Inversion (nₐ > n<sub>b</sub>)</button>
+          <button id="preset-diamond" class="btn" onclick="applyMediumPreset('diamond')">Air ➔ Diamond</button>
+        </div>
+      </div>
+
+      <!-- Incident Medium (na) -->
+      <div class="control-group">
+        <label for="slider-na">
+          Medium 1 Index (n<sub>a</sub>)
+          <span id="val-na" class="value">1.000 (Air)</span>
+        </label>
+        <input type="range" id="slider-na" min="1.000" max="2.420" step="0.01" value="1.000">
+      </div>
+
+      <!-- Transmitted Medium (nb) -->
+      <div class="control-group">
+        <label for="slider-nb">
+          Medium 2 Index (n<sub>b</sub>)
+          <span id="val-nb" class="value">1.520 (Glass)</span>
+        </label>
+        <input type="range" id="slider-nb" min="1.000" max="2.420" step="0.01" value="1.520">
+      </div>
+
+      <!-- Radius of Curvature (R) -->
+      <div class="control-group">
+        <label for="slider-R">
+          Radius of Curvature (R)
+          <span id="val-R" class="value">+100 mm</span>
+        </label>
+        <input type="range" id="slider-R" min="-200" max="200" step="5" value="100">
+      </div>
+
+      <!-- Object Distance (s) -->
+      <div class="control-group">
+        <label for="slider-s">
+          Object Distance (s)
+          <span id="val-s" class="value">250 mm</span>
+        </label>
+        <input type="range" id="slider-s" min="30" max="500" step="5" value="250">
+      </div>
+
+      <!-- Object Height (y) -->
+      <div class="control-group">
+        <label for="slider-y">
+          Object Height (y)
+          <span id="val-y" class="value">50 mm</span>
+        </label>
+        <input type="range" id="slider-y" min="-100" max="100" step="2" value="50">
+      </div>
+
+      <button class="btn btn-primary" onclick="resetSim()">Reset Parameters</button>
+
+    </div>
+
+    <!-- Interactive Canvas Viewport -->
+    <div class="canvas-area">
+      <canvas id="refractionCanvas"></canvas>
+
+      <!-- Real-Time Telemetry HUD -->
+      <div class="hud-panel">
+        <div class="hud-row"><span class="hud-label">Medium 1 (n<sub>a</sub>):</span><span id="hud-na" class="hud-val">1.000</span></div>
+        <div class="hud-row"><span class="hud-label">Medium 2 (n<sub>b</sub>):</span><span id="hud-nb" class="hud-val">1.520</span></div>
+        <div class="hud-row"><span class="hud-label">Curvature (R):</span><span id="hud-R" class="hud-val">+100.0 mm</span></div>
+        <div class="hud-row"><span class="hud-label">Object Dist (s):</span><span id="hud-s" class="hud-val">250.0 mm</span></div>
+        <div class="hud-row"><span class="hud-label">Image Dist (s'):</span><span id="hud-sp" class="hud-val">+292.3 mm</span></div>
+        <div class="hud-row"><span class="hud-label">Magnification (m):</span><span id="hud-m" class="hud-val">-0.77x</span></div>
+        <div class="hud-row"><span class="hud-label">Image Height (y'):</span><span id="hud-yp" class="hud-val">-38.5 mm</span></div>
+        <div id="hud-badge" class="hud-badge badge-real">REAL • INVERTED • REDUCED</div>
+      </div>
+
+      <div class="instruction-banner">
+        💡 Click &amp; Drag the <b>Object Arrow Tip</b> directly on the canvas viewport.
+      </div>
+    </div>
+  </div>
+
+  <!-- CONCEPTUAL & FORMULA INSPECTOR SECTION -->
+  <div class="inspector-section">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center gap-2 mb-3 border-b border-[var(--panel-border)] pb-2">
+        <button id="tab-formula-btn" class="tab-btn active" onclick="switchTab('formula')">📐 Live Formula Derivations</button>
+        <button id="tab-quiz-btn" class="tab-btn" onclick="switchTab('quiz')">📝 Refraction Quiz Check</button>
+      </div>
+
+      <!-- Tab 1: Live Derivation Breakdown -->
+      <div id="tab-formula" class="p-3 bg-[var(--inner-box)] border border-[var(--panel-border)] rounded-lg font-mono text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <span class="text-[var(--accent-blue)] font-bold">1. Single Spherical Refracting Surface Equation:</span>
+            <p class="mt-1 text-[var(--text-muted)]">n<sub>a</sub> / s + n<sub>b</sub> / s' = (n<sub>b</sub> - n<sub>a</sub>) / R</p>
+            <div id="math-step-sp" class="mt-2 p-2 bg-[var(--panel-bg)] rounded text-amber-300">
+              s' = (n<sub>b</sub> &middot; s &middot; R) / [s(n<sub>b</sub> - n<sub>a</sub>) - n<sub>a</sub> &middot; R]
+            </div>
+          </div>
+
+          <div>
+            <span class="text-[var(--accent-blue)] font-bold">2. Lateral Magnification Equation:</span>
+            <p class="mt-1 text-[var(--text-muted)]">m = - (n<sub>a</sub> &middot; s') / (n<sub>b</sub> &middot; s) &nbsp;|&nbsp; y' = m &middot; y</p>
+            <div id="math-step-m" class="mt-2 p-2 bg-[var(--panel-bg)] rounded text-emerald-300">
+              m = - (1.000 &middot; 292.3) / (1.520 &middot; 250) = -0.77x
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Interactive Mini Quiz -->
+      <div id="tab-quiz" class="hidden p-3 bg-[var(--inner-box)] border border-[var(--panel-border)] rounded-lg text-xs">
+        <div class="flex justify-between items-center mb-3">
+          <span class="font-bold text-[var(--accent-blue)]">Refraction Optics Mastery Check:</span>
+          <span id="quiz-score" class="font-mono text-amber-400 font-bold">Score: 0 / 3</span>
+        </div>
+
+        <div class="space-y-3">
+          <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
+            <p class="font-bold text-slate-200 mb-1">Q1: What happens to the lateral magnification (m) formula for a single spherical refracting surface?</p>
+            <div class="flex gap-4 text-slate-300">
+              <label><input type="radio" name="q1" value="A" onclick="checkQuiz()"> A) m = -s'/s</label>
+              <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) m = - (nₐ &middot; s') / (n<sub>b</sub> &middot; s)</label>
+              <label><input type="radio" name="q1" value="C" onclick="checkQuiz()"> C) m = + (n<sub>b</sub> &middot; s) / (nₐ &middot; s')</label>
+            </div>
+          </div>
+
+          <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
+            <p class="font-bold text-slate-200 mb-1">Q2: If a glass biconvex lens (n_lens = 1.5) is submerged in a liquid with a HIGHER refractive index (n_medium = 1.7), it behaves as a:</p>
+            <div class="flex gap-4 text-slate-300">
+              <label><input type="radio" name="q2" value="A" onclick="checkQuiz()"> A) Diverging Lens</label>
+              <label><input type="radio" name="q2" value="B" onclick="checkQuiz()"> B) Converging Lens with double power</label>
+              <label><input type="radio" name="q2" value="C" onclick="checkQuiz()"> C) Flat glass plate with f = ∞</label>
+            </div>
+          </div>
+
+          <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
+            <p class="font-bold text-slate-200 mb-1">Q3: When light travels from a higher index medium to a lower index medium (nₐ > n<sub>b</sub>) through a convex surface (R > 0), the refracted ray bends:</p>
+            <div class="flex gap-4 text-slate-300">
+              <label><input type="radio" name="q3" value="A" onclick="checkQuiz()"> A) Toward the normal</label>
+              <label><input type="radio" name="q3" value="B" onclick="checkQuiz()"> B) Away from the normal</label>
+              <label><input type="radio" name="q3" value="C" onclick="checkQuiz()"> C) Does not refract at all</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../theme.js"></script>
+  <script>
+    // Synchronized Theme Switcher Engine
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeButtonText(newTheme);
+    }
+
+    function updateThemeButtonText(theme) {
+        const btn = document.getElementById('themeToggle');
+        if (btn) {
+            btn.innerHTML = theme === 'dark' ? '🌙 Dark Theme' : '☀️ Light Theme';
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeButtonText(savedTheme);
+    });
+  </script>
+
+  <script>
+    let simMode = 'surface'; // 'surface' or 'submerged'
+    let na = 1.000;
+    let nb = 1.520;
+    let R = 100;
+    let s = 250;
+    let y = 50;
+
+    let isDraggingObject = false;
+
+    const canvas = document.getElementById('refractionCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const sliderNa = document.getElementById('slider-na');
+    const sliderNb = document.getElementById('slider-nb');
+    const sliderR = document.getElementById('slider-R');
+    const sliderS = document.getElementById('slider-s');
+    const sliderY = document.getElementById('slider-y');
+
+    const valNa = document.getElementById('val-na');
+    const valNb = document.getElementById('val-nb');
+    const valR = document.getElementById('val-R');
+    const valS = document.getElementById('val-s');
+    const valY = document.getElementById('val-y');
+
+    const hudNa = document.getElementById('hud-na');
+    const hudNb = document.getElementById('hud-nb');
+    const hudR = document.getElementById('hud-R');
+    const hudS = document.getElementById('hud-s');
+    const hudSp = document.getElementById('hud-sp');
+    const hudM = document.getElementById('hud-m');
+    const hudYp = document.getElementById('hud-yp');
+    const hudBadge = document.getElementById('hud-badge');
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      draw();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function getRefractionPhysics() {
+      if (simMode === 'surface') {
+        const num = nb - na;
+        let sp = Infinity;
+        if (Math.abs(R) > 0.001) {
+          const denom = (num / R) - (na / s);
+          if (Math.abs(denom) > 0.00001) {
+            sp = nb / denom;
+          }
+        }
+        let m = isFinite(sp) ? - (na * sp) / (nb * s) : 0;
+        let yp = y * m;
+        return { sp, m, yp };
+      } else {
+        // Submerged Thin Lens Lensmaker Formula: 1/f = (n_lens/n_med - 1)*(2/R)
+        const f_eff = (1 / ((nb / na) - 1)) * (R / 2);
+        let sp = Infinity;
+        if (Math.abs(s - f_eff) > 0.001) {
+          sp = (f_eff * s) / (s - f_eff);
+        }
+        let m = isFinite(sp) ? -sp / s : 0;
+        let yp = y * m;
+        return { sp, m, yp, f_eff };
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const centerX = canvas.width * 0.45;
+      const centerY = canvas.height / 2;
+
+      // Draw Medium 2 Background Fill (Right of Surface)
+      ctx.fillStyle = getMediumColor(nb);
+      ctx.fillRect(centerX, 0, canvas.width - centerX, canvas.height);
+
+      // Draw Medium 1 Background Fill (Left of Surface)
+      ctx.fillStyle = getMediumColor(na);
+      ctx.fillRect(0, 0, centerX, canvas.height);
+
+      // Optical Axis
+      ctx.beginPath();
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.5;
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(canvas.width, centerY);
+      ctx.stroke();
+
+      const phys = getRefractionPhysics();
+
+      // Draw Spherical Refracting Boundary
+      drawRefractingInterface(centerX, centerY);
+
+      // Object Arrow
+      const objX = centerX - s;
+      const objY = centerY - y;
+      drawArrow(objX, centerY, objX, objY, '#38bdf8', 'Object (s)', true);
+
+      // Image Arrow
+      if (isFinite(phys.sp) && Math.abs(phys.sp) < 4000) {
+        const imgX = centerX + phys.sp;
+        const imgY = centerY - phys.yp;
+        const isVirtual = phys.sp < 0;
+        const imgColor = isVirtual ? '#f38ba8' : '#a6e3a1';
+        drawArrow(imgX, centerY, imgX, imgY, imgColor, isVirtual ? "Virtual Img (s')" : "Real Img (s')", !isVirtual, isVirtual);
+
+        // Ray Tracing
+        drawRayTracing(centerX, centerY, objX, objY, imgX, imgY, phys);
+      }
+
+      updateHUD(phys);
+      updateFormulaSteps(phys);
+    }
+
+    function getMediumColor(nVal) {
+      if (nVal <= 1.01) return 'rgba(30, 30, 46, 0.2)'; // Air / Vacuum
+      if (nVal <= 1.35) return 'rgba(56, 189, 248, 0.12)'; // Water
+      if (nVal <= 1.6) return 'rgba(166, 227, 161, 0.15)'; // Glass
+      return 'rgba(249, 226, 175, 0.2)'; // Diamond / High Index
+    }
+
+    function drawRefractingInterface(cx, cy) {
+      const height = canvas.height * 0.8;
+      const topY = cy - height / 2;
+      const bottomY = cy + height / 2;
+
+      ctx.save();
+      ctx.strokeStyle = '#7dd3fc';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      if (simMode === 'surface') {
+        const curveOffset = Math.min(80, Math.max(-80, R * 0.4));
+        ctx.moveTo(cx, topY);
+        ctx.quadraticCurveTo(cx + curveOffset, cy, cx, bottomY);
+      } else {
+        const bulge = Math.min(60, Math.abs(R) * 0.3);
+        ctx.moveTo(cx, topY);
+        ctx.quadraticCurveTo(cx + bulge, cy, cx, bottomY);
+        ctx.quadraticCurveTo(cx - bulge, cy, cx, topY);
+      }
+
+      ctx.stroke();
+
+      // Center of Curvature (C) Marker
+      const CenterX = cx + R;
+      ctx.fillStyle = '#fab387';
+      ctx.beginPath();
+      ctx.arc(CenterX, cy, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#a6adc8';
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('C', CenterX, cy + 16);
+
+      ctx.restore();
+    }
+
+    function drawRayTracing(cx, cy, objX, objY, imgX, imgY, phys) {
+      // Ray 1: Parallel to Axis
+      drawSegment(objX, objY, cx, objY, '#f87171', 2);
+      drawSegment(cx, objY, imgX, imgY, '#f87171', 2);
+
+      // Ray 2: Through Center of Curvature (C)
+      const CenterX = cx + R;
+      drawSegment(objX, objY, CenterX, cy, '#89b4fa', 2);
+      if (phys.sp > 0) {
+        drawSegment(CenterX, cy, imgX, imgY, '#89b4fa', 1.5, [4, 4]);
+      }
+    }
+
+    function drawSegment(x1, y1, x2, y2, color, width, dash = []) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.setLineDash(dash);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawArrow(x1, y1, x2, y2, color, label, isSolid = true, isDashed = false) {
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 2.5;
+
+      if (isDashed) ctx.setLineDash([4, 4]);
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      const headLen = 10;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      const labelY = (y2 < y1) ? y2 - 10 : y2 + 16;
+      ctx.fillText(label, x2, labelY);
+      ctx.restore();
+    }
+
+    function updateHUD(phys) {
+      hudNa.textContent = na.toFixed(3);
+      hudNb.textContent = nb.toFixed(3);
+      hudR.textContent = `${R > 0 ? '+' : ''}${R.toFixed(1)} mm`;
+      hudS.textContent = `${s.toFixed(1)} mm`;
+
+      if (isFinite(phys.sp)) {
+        hudSp.textContent = `${phys.sp > 0 ? '+' : ''}${phys.sp.toFixed(1)} mm`;
+        hudM.textContent = `${phys.m.toFixed(2)}x`;
+        hudYp.textContent = `${phys.yp.toFixed(1)} mm`;
+
+        const isReal = phys.sp > 0;
+        const isInverted = phys.m < 0;
+
+        let badgeStr = isReal ? 'REAL' : 'VIRTUAL';
+        badgeStr += isInverted ? ' • INVERTED' : ' • UPRIGHT';
+
+        hudBadge.textContent = badgeStr;
+        hudBadge.className = `hud-badge ${isReal ? 'badge-real' : 'badge-virtual'}`;
+      } else {
+        hudSp.textContent = '∞';
+        hudM.textContent = 'undefined';
+        hudYp.textContent = 'undefined';
+        hudBadge.textContent = 'NO DEFINED IMAGE';
+        hudBadge.className = 'hud-badge badge-virtual';
+      }
+
+      valNa.textContent = `${na.toFixed(3)}`;
+      valNb.textContent = `${nb.toFixed(3)}`;
+      valR.textContent = `${R > 0 ? '+' : ''}${R} mm`;
+      valS.textContent = `${s} mm`;
+      valY.textContent = `${y} mm`;
+    }
+
+    function updateFormulaSteps(phys) {
+      const stepSp = document.getElementById("math-step-sp");
+      const stepM = document.getElementById("math-step-m");
+
+      if (isFinite(phys.sp)) {
+        stepSp.innerHTML = `s' = (${nb.toFixed(3)} &middot; ${s} &middot; ${R}) / [${s}(${nb.toFixed(3)} - ${na.toFixed(3)}) - ${na.toFixed(3)} &middot; ${R}] = <strong>${phys.sp.toFixed(1)} mm</strong>`;
+        stepM.innerHTML = `m = - (${na.toFixed(3)} &middot; ${phys.sp.toFixed(1)}) / (${nb.toFixed(3)} &middot; ${s}) = <strong>${phys.m.toFixed(2)}x</strong> &nbsp;|&nbsp; y' = <strong>${phys.yp.toFixed(1)} mm</strong>`;
+      } else {
+        stepSp.innerHTML = `s' = <strong>&infin; (Parallel Rays)</strong>`;
+        stepM.innerHTML = `m = <strong>undefined</strong> &nbsp;|&nbsp; y' = <strong>undefined</strong>`;
+      }
+    }
+
+    function setSimMode(mode) {
+      simMode = mode;
+      document.getElementById('btn-mode-surface').classList.toggle('active', mode === 'surface');
+      document.getElementById('btn-mode-lens').classList.toggle('active', mode === 'submerged');
+      draw();
+    }
+
+    function applyMediumPreset(preset) {
+      ['air-glass', 'water-glass', 'submerged-inv', 'diamond'].forEach(p => {
+        const btn = document.getElementById(`preset-${p}`);
+        if (btn) btn.classList.toggle('active', p === preset);
+      });
+
+      if (preset === 'air-glass') {
+        na = 1.000; nb = 1.520; R = 100; s = 250; y = 50;
+      } else if (preset === 'water-glass') {
+        na = 1.333; nb = 1.520; R = 100; s = 250; y = 50;
+      } else if (preset === 'submerged-inv') {
+        na = 1.700; nb = 1.500; R = 100; s = 250; y = 50;
+      } else if (preset === 'diamond') {
+        na = 1.000; nb = 2.420; R = 80; s = 200; y = 40;
+      }
+
+      sliderNa.value = na;
+      sliderNb.value = nb;
+      sliderR.value = R;
+      sliderS.value = s;
+      sliderY.value = y;
+      draw();
+    }
+
+    function resetSim() {
+      applyMediumPreset('air-glass');
+    }
+
+    sliderNa.addEventListener('input', (e) => { na = parseFloat(e.target.value); draw(); });
+    sliderNb.addEventListener('input', (e) => { nb = parseFloat(e.target.value); draw(); });
+    sliderR.addEventListener('input', (e) => { R = parseFloat(e.target.value); draw(); });
+    sliderS.addEventListener('input', (e) => { s = parseFloat(e.target.value); draw(); });
+    sliderY.addEventListener('input', (e) => { y = parseFloat(e.target.value); draw(); });
+
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function onPointerDown(e) {
+      const { x, y: pY } = getCanvasCoords(e);
+      const cx = canvas.width * 0.45;
+      const cy = canvas.height / 2;
+      const objX = cx - s;
+      const objY = cy - y;
+
+      if (Math.hypot(x - objX, pY - objY) < 25) isDraggingObject = true;
+    }
+
+    function onPointerMove(e) {
+      if (!isDraggingObject) return;
+      const { x, y: pY } = getCanvasCoords(e);
+      const cx = canvas.width * 0.45;
+      const cy = canvas.height / 2;
+
+      s = Math.max(30, Math.min(500, cx - x));
+      y = Math.max(-100, Math.min(100, cy - pY));
+
+      sliderS.value = s;
+      sliderY.value = y;
+      draw();
+    }
+
+    function onPointerUp() { isDraggingObject = false; }
+
+    canvas.addEventListener('mousedown', onPointerDown);
+    canvas.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+    canvas.addEventListener('touchstart', onPointerDown);
+    canvas.addEventListener('touchmove', onPointerMove);
+    window.addEventListener('touchend', onPointerUp);
+
+    function switchTab(tab) {
+      document.getElementById('tab-formula').classList.toggle('hidden', tab !== 'formula');
+      document.getElementById('tab-quiz').classList.toggle('hidden', tab !== 'quiz');
+      document.getElementById('tab-formula-btn').classList.toggle('active', tab === 'formula');
+      document.getElementById('tab-quiz-btn').classList.toggle('active', tab === 'quiz');
+    }
+
+    function checkQuiz() {
+      let score = 0;
+      const q1 = document.querySelector('input[name="q1"]:checked');
+      const q2 = document.querySelector('input[name="q2"]:checked');
+      const q3 = document.querySelector('input[name="q3"]:checked');
+
+      if (q1 && q1.value === 'B') score++;
+      if (q2 && q2.value === 'A') score++;
+      if (q3 && q3.value === 'B') score++;
+
+      document.getElementById('quiz-score').textContent = `Score: ${score} / 3`;
+    }
+
+    window.addEventListener('load', () => {
+      resizeCanvas();
+    });
+  </script>
+</body>
+</html>
