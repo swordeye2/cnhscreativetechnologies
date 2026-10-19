@@ -39,6 +39,7 @@
             --accent-green: #a6e3a1;
             --accent-purple: #cba6f7;
             --accent-yellow: #f9e2af;
+            --accent-red: #f38ba8;
         }
 
         [data-theme="light"] {
@@ -51,6 +52,7 @@
             --accent-green: #40a02b;
             --accent-purple: #8839ef;
             --accent-yellow: #df8e1d;
+            --accent-red: #d20f39;
         }
 
         * {
@@ -203,6 +205,12 @@
             background-color: rgba(166, 227, 161, 0.15);
             color: var(--accent-green);
             border: 1px solid var(--accent-green);
+        }
+
+        .tag-quantum {
+            background-color: rgba(203, 166, 247, 0.15);
+            color: var(--accent-purple);
+            border: 1px solid var(--accent-purple);
         }
 
         .card-title {
@@ -371,12 +379,25 @@
                     </div>
                 </div>
 
-                <!-- Card 2: Spherical Refracting Surface & Refraction Lens Engine -->
+                <!-- Card 2: Compound Double Lens System -->
+                <div class="module-card" onclick="launchWithSplash('./double_lens.html')">
+                    <div class="card-header">
+                        <span class="card-tag tag-optics">Optics</span>
+                        <div class="card-title">Compound Double Lens Engine</div>
+                        <div class="card-desc">Simulates multi-lens systems, intermediate real/virtual image formations, variable lens separation ($d$), and total effective magnification ($M = m_1 \cdot m_2$).</div>
+                    </div>
+                    <div class="card-footer">
+                        <span>STATUS: ACTIVE</span>
+                        <span>Launch Engine ➔</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Spherical Refracting Surface & Refraction Lens Engine -->
                 <div class="module-card" onclick="launchWithSplash('./refraction_lens.html')">
                     <div class="card-header">
                         <span class="card-tag tag-optics">Optics</span>
                         <div class="card-title">Spherical Refracting Surface & Lens</div>
-                        <div class="card-desc">Models single boundary refraction across media ($n_a$ vs $n_b$), curvature shifts ($R$), and submerged lens focal inversion effects.</div>
+                        <div class="card-desc">Models single boundary refraction across media ($n_a$ vs $n_b$), curvature shifts ($R$), focal points ($F_1, F_2$), and submerged lens focal inversion effects.</div>
                     </div>
                     <div class="card-footer">
                         <span>STATUS: ACTIVE</span>
@@ -387,7 +408,31 @@
             </div>
         </section>
 
-        <!-- CATEGORY 2: CLASSICAL MECHANICS & KINEMATICS -->
+        <!-- CATEGORY 2: ATOMIC & QUANTUM PHYSICS -->
+        <section>
+            <div class="category-title">
+                <span>⚛️ Atomic & Quantum Physics</span>
+            </div>
+            
+            <div class="module-grid">
+                
+                <!-- Card 4: Bohr Atomic Model Engine -->
+                <div class="module-card" onclick="launchWithSplash('./atom.html')">
+                    <div class="card-header">
+                        <span class="card-tag tag-quantum">Atomic</span>
+                        <div class="card-title">Bohr Model & Quantum Transitions</div>
+                        <div class="card-desc">Interactive electron energy level transitions ($n_1 \rightarrow n_2$), photon emission/absorption spectra, Rydberg calculations, and orbital velocity visualizer.</div>
+                    </div>
+                    <div class="card-footer">
+                        <span>STATUS: ACTIVE</span>
+                        <span>Launch Engine ➔</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- CATEGORY 3: CLASSICAL MECHANICS & KINEMATICS -->
         <section>
             <div class="category-title">
                 <span>🎯 Classical Mechanics & Kinematics</span>
@@ -395,7 +440,7 @@
             
             <div class="module-grid">
                 
-                <!-- Card 3: Projectile Motion Engine -->
+                <!-- Card 5: Projectile Motion Engine -->
                 <div class="module-card" onclick="launchWithSplash('./projectile.html')">
                     <div class="card-header">
                         <span class="card-tag tag-mechanics">Mechanics</span>
