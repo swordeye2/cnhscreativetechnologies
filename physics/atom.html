@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atomic & Quark Structure - GIT GUD Physics</title>
+    
+    <!-- Local Physics Suite Assets -->
+    <link rel="icon" type="image/png" href="./icon-512.png">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Parent Root Theme -->
+    <link rel="stylesheet" href="../theme.css">
+
+    <style>
+        :root {
+            --canvas-bg: #1e1e2e;
+            --panel-bg: #181825;
+            --border-color: #313244;
+            --text-main: #cdd6f4;
+            --text-sub: #a6adc8;
+            --accent-blue: #89b4fa;
+            --accent-green: #a6e3a1;
+            --accent-red: #f38ba8;
+            --accent-yellow: #f9e2af;
+            --accent-purple: #cba6f7;
+            --accent-orange: #fab387;
+        }
+
+        [data-theme="light"] {
+            --canvas-bg: #eff1f5;
+            --panel-bg: #e6e9ef;
+            --border-color: #ccd0da;
+            --text-main: #4c4f69;
+            --text-sub: #6c6f85;
+            --accent-blue: #1e66f5;
+            --accent-green: #40a02b;
+            --accent-red: #d20f39;
+            --accent-yellow: #df8e1d;
+            --accent-purple: #8839ef;
+            --accent-orange: #fe640b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--canvas-bg);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 40px;
+        }
+
+        /* Header Navigation */
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* Main Workspace Layout */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 15px;
+            padding: 15px;
+            flex: 1;
+        }
+
+        @media (max-width: 960px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Viewport Canvas */
+        .viewport-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            min-height: 520px;
+        }
+
+        .hud-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(24, 24, 37, 0.85);
+            backdrop-filter: blur(6px);
+            border: 1px solid var(--border-color);
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            pointer-events: none;
+            z-index: 5;
+            line-height: 1.5;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+
+        .badge-stable { background: rgba(166, 227, 161, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .badge-unstable { background: rgba(243, 139, 168, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+
+        .instruction-banner {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            pointer-events: none;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+
+        /* Sidebar Control Panel */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .panel-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+            color: var(--text-sub);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent-blue);
+        }
+
+        select, button.control-btn {
+            width: 100%;
+            padding: 8px;
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button.control-btn:hover {
+            border-color: var(--accent-blue);
+        }
+
+        /* Inspector Panel */
+        .inspector-panel {
+            grid-column: 1 / -1;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .math-card {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            line-height: 1.6;
+            font-size: 0.88rem;
+        }
+
+        .highlight-var {
+            color: var(--accent-orange);
+            font-weight: bold;
+            background: rgba(250, 179, 135, 0.15);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        .highlight-up { color: var(--accent-green); font-weight: bold; }
+        .highlight-down { color: var(--accent-red); font-weight: bold; }
+        .highlight-lepton { color: var(--accent-blue); font-weight: bold; }
+
+        /* Bottom Sponsor Ad Banner (Matching Image Style) */
+        .sponsor-ad-wrapper {
+            grid-column: 1 / -1;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sponsor-ad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sponsor-ad-label {
+            font-size: 0.72rem;
+            font-weight: bold;
+            font-family: monospace;
+            color: var(--text-sub);
+            letter-spacing: 0.8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sponsor-dismiss-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sponsor-dismiss-btn:hover {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .sponsor-ad-content {
+            width: 100%;
+            height: 90px;
+            background-color: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Quiz Styling */
+        .quiz-item {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .quiz-qtext {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .quiz-option {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--accent-blue);
+            background: rgba(137, 180, 250, 0.08);
+        }
+
+        .quiz-option.correct-sel {
+            background: rgba(166, 227, 161, 0.2) !important;
+            border-color: var(--accent-green) !important;
+            color: var(--accent-green) !important;
+            font-weight: bold;
+        }
+
+        .quiz-option.wrong-sel {
+            background: rgba(243, 139, 168, 0.2) !important;
+            border-color: var(--accent-red) !important;
+            color: var(--accent-red) !important;
+        }
+
+        .quiz-explain {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            display: none;
+            padding: 6px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="nav-group">
+            <a href="../index.html" class="btn">🏠 Main Lab Hub</a>
+            <a href="./index.html" class="btn">🔬 Physics Suite</a>
+            <h2 style="font-size: 1rem; margin-left: 5px;">Atomic Structure, Fundamental Leptons & Isotope Physics</h2>
+        </div>
+        <div class="nav-group">
+            <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+
+        <!-- Viewport Canvas -->
+        <div class="viewport-card">
+            <div class="hud-overlay" id="hud">
+                <div><strong>Isotope:</strong> <span id="hud-element" style="color: var(--accent-yellow)">Carbon-12 (¹²C)</span></div>
+                <div><strong>Protons (Z):</strong> <span id="hud-z" style="color: var(--accent-orange)">6</span> | <strong>Neutrons (N):</strong> <span id="hud-n">6</span></div>
+                <div><strong>Electrons (e⁻):</strong> <span id="hud-e" style="color: var(--accent-blue)">6</span> <span style="font-size: 0.75rem; color: var(--accent-purple);">(Fundamental Lepton)</span></div>
+                <div><strong>N/Z Ratio:</strong> <span id="hud-nz" style="color: var(--accent-yellow)">1.000</span></div>
+                <div><strong>Total Quarks:</strong> <span id="hud-up" style="color: var(--accent-green)">18 u</span> (+2/3e) | <span id="hud-down" style="color: var(--accent-red)">18 d</span> (-1/3e)</div>
+                <div><strong>Theoretical Mass:</strong> <span id="hud-mass" style="color: var(--accent-purple)">12.0989 amu</span></div>
+                <div id="hud-status" class="status-badge badge-stable">STABLE ISOTOPE</div>
+            </div>
+
+            <canvas id="simCanvas"></canvas>
+
+            <div class="instruction-banner">
+                💡 Click any <b>Proton</b> or <b>Neutron</b> to inspect Quarks. Check the <b>N/Z Ratio Tab</b> for stability physics!
+            </div>
+        </div>
+
+        <!-- Control Sidebar Panel -->
+        <div class="sidebar">
+            <div class="panel-card">
+                <div class="panel-title">Isotope Presets</div>
+                <div class="control-group">
+                    <select id="presetSelect" onchange="loadPreset(this.value)">
+                        <option value="H1">Protium (¹H) - [Stable Isotope]</option>
+                        <option value="H2">Deuterium (²H) - [Stable Isotope]</option>
+                        <option value="H3">Tritium (³H) - [Unstable β⁻ Decay]</option>
+                        <option value="He4">Helium-4 (⁴He) - [Stable Isotope]</option>
+                        <option value="C12" selected>Carbon-12 (¹²C) - [Stable Isotope]</option>
+                        <option value="C14">Carbon-14 (¹⁴C) - [Unstable β⁻ Decay]</option>
+                        <option value="O16">Oxygen-16 (¹⁶O) - [Stable Isotope]</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">Subatomic Parameters</div>
+                <div class="control-group">
+                    <label>Protons (Z): <span id="valProtons">6</span></label>
+                    <input type="range" id="sliderProtons" min="1" max="10" value="6" oninput="manualUpdate()">
+                </div>
+                <div class="control-group">
+                    <label>Neutrons (N): <span id="valNeutrons">6</span></label>
+                    <input type="range" id="sliderNeutrons" min="0" max="14" value="6" oninput="manualUpdate()">
+                </div>
+                <div class="control-group">
+                    <label>Electrons (e⁻): <span id="valElectrons">6</span></label>
+                    <input type="range" id="sliderElectrons" min="1" max="10" value="6" oninput="manualUpdate()">
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">Camera Inspector</div>
+                <div class="control-group">
+                    <button class="control-btn" id="zoomToggleBtn" onclick="toggleCameraZoom()">🔍 Zoom into Nucleon Quarks</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formula, N/Z Ratio, & Inspector Panel -->
+        <div class="inspector-panel">
+            <div class="tab-bar">
+                <button class="tab-btn active" id="btn-tab-math" onclick="switchTab('tab-math')">🧮 Mass Defect & Subatomic Taxonomy</button>
+                <button class="tab-btn" id="btn-tab-nz" onclick="switchTab('tab-nz')">📊 N/Z Ratio & Stability Analysis</button>
+                <button class="tab-btn" id="btn-tab-quiz" onclick="switchTab('tab-quiz')">📝 Concept Check</button>
+            </div>
+
+            <!-- Tab 1: Live Calculations -->
+            <div id="tab-math" class="tab-content active">
+                <div class="math-card" id="mathBreakdown">
+                    <!-- Dynamic physics injected here -->
+                </div>
+            </div>
+
+            <!-- Tab 2: N/Z Stability Analysis -->
+            <div id="tab-nz" class="tab-content">
+                <div class="math-card" id="nzBreakdown">
+                    <!-- Dynamic N/Z breakdown injected here -->
+                </div>
+            </div>
+
+            <!-- Tab 3: Concept Check Quiz -->
+            <div id="tab-quiz" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <span style="font-weight: bold; color: var(--accent-blue);">Concept Review & Subatomic Physics Mastery:</span>
+                    <span id="quizScoreText" style="font-family: monospace; font-weight: bold; color: var(--accent-yellow); font-size: 0.9rem;">Score: 0 / 5</span>
+                </div>
+
+                <div id="quizContainer">
+
+                    <!-- Question 1 -->
+                    <div class="quiz-item">
+                        <div class="quiz-qtext">Q1: Are electrons composed of quarks?</div>
+                        <div class="quiz-options">
+                            <div class="quiz-option" onclick="answerQuiz(1, this, false, 'Electrons are fundamental leptons and contain zero quarks!')">A) Yes, electrons are made of 3 Up quarks.</div>
+                            <div class="quiz-option" onclick="answerQuiz(1, this, true, 'Correct! Electrons are fundamental leptons with no known sub-structure.')">B) No, electrons are elementary leptons and have no quark composition.</div>
+                            <div class="quiz-option" onclick="answerQuiz(1, this, false, 'Electrons are elementary leptons, not composite hadrons.')">C) Yes, electrons are composed of 1 Up quark and 1 Down quark.</div>
+                        </div>
+                        <div class="quiz-explain" id="qexp-1"></div>
+                    </div>
+
+                    <!-- Question 2 -->
+                    <div class="quiz-item">
+                        <div class="quiz-qtext">Q2: What is the exact valence quark structure of a single Proton?</div>
+                        <div class="quiz-options">
+                            <div class="quiz-option" onclick="answerQuiz(2, this, false, 'udd gives 1/3e - 1/3e - 1/3e = 0 charge (Neutron).')">A) 1 Up Quark + 2 Down Quarks (udd)</div>
+                            <div class="quiz-option" onclick="answerQuiz(2, this, true, 'Correct! uud gives (+2/3e) + (+2/3e) + (-1/3e) = +1e charge.')">B) 2 Up Quarks + 1 Down Quark (uud)</div>
+                            <div class="quiz-option" onclick="answerQuiz(2, this, false, 'ddd gives -1e charge, which is a negative delta resonance.')">C) 3 Down Quarks (ddd)</div>
+                        </div>
+                        <div class="quiz-explain" id="qexp-2"></div>
+                    </div>
+
+                    <!-- Question 3 -->
+                    <div class="quiz-item">
+                        <div class="quiz-qtext">Q3: How many electrons can maximum occupy the n=1 (K-Shell) quantum energy level?</div>
+                        <div class="quiz-options">
+                            <div class="quiz-option" onclick="answerQuiz(3, this, true, 'Correct! By 2n², shell n=1 holds 2(1)² = 2 electrons with opposite spin (s = +1/2, -1/2).')">A) 2 electrons</div>
+                            <div class="quiz-option" onclick="answerQuiz(3, this, false, '8 electrons is the capacity of the L-shell (n=2).')">B) 8 electrons</div>
+                            <div class="quiz-option" onclick="answerQuiz(3, this, false, '18 electrons is the capacity of the M-shell (n=3).')">C) 18 electrons</div>
+                        </div>
+                        <div class="quiz-explain" id="qexp-3"></div>
+                    </div>
+
+                    <!-- Question 4 -->
+                    <div class="quiz-item">
+                        <div class="quiz-qtext">Q4: If a nuclide has an N/Z ratio that is too high (neutron-rich), what radioactive decay process occurs to restore stability?</div>
+                        <div class="quiz-options">
+                            <div class="quiz-option" onclick="answerQuiz(4, this, true, 'Correct! In Beta-minus (β⁻) decay, a neutron transforms into a proton, emitting an e⁻ and lowering the N/Z ratio.')">A) Beta-Minus (β⁻) Decay</div>
+                            <div class="quiz-option" onclick="answerQuiz(4, this, false, 'Beta-plus (β⁺) decay occurs in proton-rich nuclides with low N/Z ratios.')">B) Beta-Plus (β⁺) Positron Emission</div>
+                            <div class="quiz-option" onclick="answerQuiz(4, this, false, 'Alpha emission occurs predominantly in heavy elements (Z > 82).')">C) Alpha Decay</div>
+                        </div>
+                        <div class="quiz-explain" id="qexp-4"></div>
+                    </div>
+
+                    <!-- Question 5 -->
+                    <div class="quiz-item">
+                        <div class="quiz-qtext">Q5: What happens to the required N/Z ratio for nuclear stability as atomic number Z increases toward heavy elements?</div>
+                        <div class="quiz-options">
+                            <div class="quiz-option" onclick="answerQuiz(5, this, false, 'As Z increases, electrostatic repulsion between protons increases, requiring more neutrons.')">A) It remains strictly 1.0 for all elements.</div>
+                            <div class="quiz-option" onclick="answerQuiz(5, this, true, 'Correct! Heavy nuclides require an N/Z ratio near ~1.5 to provide enough strong nuclear force buffering against proton repulsion.')">B) It increases from ~1.0 up to ~1.5 to buffer against proton repulsion.</div>
+                            <div class="quiz-option" onclick="answerQuiz(5, this, false, 'The ratio increases, it does not decrease.')">C) It decreases below 0.5.</div>
+                        </div>
+                        <div class="quiz-explain" id="qexp-5"></div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Educational Sponsor Ad Unit (Matching Image Reference) -->
+        <div class="sponsor-ad-wrapper" id="sponsorAdBanner">
+            <div class="sponsor-ad-header">
+                <span class="sponsor-ad-label">⚡ EDUCATIONAL HARDWARE SPONSOR</span>
+                <button class="sponsor-dismiss-btn" onclick="dismissSponsorAd()">✕ Dismiss</button>
+            </div>
+            <div class="sponsor-ad-content">
+                <!-- AdSense / Custom Ad Script Placement Slot -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Theme and Simulation Mechanics -->
+    <script src="../theme.js"></script>
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Physical Constants (Atomic Mass Units - amu)
+        const M_PROTON = 1.007276;
+        const M_NEUTRON = 1.008665;
+        const M_ELECTRON = 0.00054858;
+
+        // State Variables
+        let Z = 6; // Protons
+        let N = 6; // Neutrons
+        let E = 6; // Electrons
+
+        let nucleons = []; 
+        let selectedNucleon = null; 
+        let isUnstable = false;
+        let shakeOffset = { x: 0, y: 0 };
+
+        // Quiz State
+        let quizAnswers = [false, false, false, false, false];
+
+        // Camera Engine
+        let camera = {
+            x: 0, y: 0, zoom: 1.0,
+            targetX: 0, targetY: 0, targetZoom: 1.0
+        };
+
+        const presets = {
+            'H1':  { Z: 1, N: 0, E: 1, name: 'Protium (¹H)' },
+            'H2':  { Z: 1, N: 1, E: 1, name: 'Deuterium (²H)' },
+            'H3':  { Z: 1, N: 2, E: 1, name: 'Tritium (³H)' },
+            'He4': { Z: 2, N: 2, E: 2, name: 'Helium-4 (⁴He)' },
+            'C12': { Z: 6, N: 6, E: 6, name: 'Carbon-12 (¹²C)' },
+            'C14': { Z: 6, N: 8, E: 6, name: 'Carbon-14 (¹⁴C)' },
+            'O16': { Z: 8, N: 8, E: 8, name: 'Oxygen-16 (¹⁶O)' }
+        };
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function dismissSponsorAd() {
+            const ad = document.getElementById('sponsorAdBanner');
+            if (ad) ad.style.display = 'none';
+        }
+
+        function loadPreset(key) {
+            const p = presets[key];
+            Z = p.Z; N = p.N; E = p.E;
+            document.getElementById('sliderProtons').value = Z;
+            document.getElementById('sliderNeutrons').value = N;
+            document.getElementById('sliderElectrons').value = E;
+            document.getElementById('hud-element').innerText = p.name;
+            rebuildNucleus();
+            resetZoom();
+        }
+
+        function manualUpdate() {
+            Z = parseInt(document.getElementById('sliderProtons').value);
+            N = parseInt(document.getElementById('sliderNeutrons').value);
+            E = parseInt(document.getElementById('sliderElectrons').value);
+            document.getElementById('hud-element').innerText = `Custom Nuclide (Z=${Z}, N=${N})`;
+            rebuildNucleus();
+            resetZoom();
+        }
+
+        function checkIsotopeStability(z, n) {
+            if (z === 1 && (n === 0 || n === 1)) return { stable: true, ratio: n/z, ideal: "1.0", reason: "Stable Isotope", decay: "None" };
+            if (z === 2 && n === 2) return { stable: true, ratio: n/z, ideal: "1.0", reason: "Stable Isotope", decay: "None" };
+            if (z === 6 && n === 6) return { stable: true, ratio: n/z, ideal: "1.0", reason: "Stable Isotope", decay: "None" };
+            if (z === 8 && n === 8) return { stable: true, reason: "Stable Isotope", ratio: n/z, ideal: "1.0", decay: "None" };
+
+            const ratio = z > 0 ? (n / z) : 0;
+            const targetRatio = z <= 20 ? 1.0 : (1.0 + (z - 20) * 0.008);
+
+            if (z <= 8) {
+                if (ratio < 0.8) return { stable: false, ratio: ratio, ideal: targetRatio.toFixed(2), reason: "Proton-Rich (Too Low N/Z)", decay: "Beta-Plus (β⁺) / Positron Emission" };
+                if (ratio > 1.5) return { stable: false, ratio: ratio, ideal: targetRatio.toFixed(2), reason: "Neutron-Rich (Too High N/Z)", decay: "Beta-Minus (β⁻) Decay" };
+            } else {
+                if (ratio < 1.0) return { stable: false, ratio: ratio, ideal: targetRatio.toFixed(2), reason: "Proton-Rich (Too Low N/Z)", decay: "Beta-Plus (β⁺) / Electron Capture" };
+                if (ratio > 1.6) return { stable: false, ratio: ratio, ideal: targetRatio.toFixed(2), reason: "Neutron-Rich (Too High N/Z)", decay: "Beta-Minus (β⁻) Decay" };
+            }
+            return { stable: true, ratio: ratio, ideal: targetRatio.toFixed(2), reason: "Within Stability Corridor", decay: "None" };
+        }
+
+        function rebuildNucleus() {
+            document.getElementById('valProtons').innerText = Z;
+            document.getElementById('valNeutrons').innerText = N;
+            document.getElementById('valElectrons').innerText = E;
+
+            nucleons = [];
+            const total = Z + N;
+            let typeTracker = [];
+            for(let i = 0; i < Z; i++) typeTracker.push('proton');
+            for(let i = 0; i < N; i++) typeTracker.push('neutron');
+
+            for (let i = typeTracker.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [typeTracker[i], typeTracker[j]] = [typeTracker[j], typeTracker[i]];
+            }
+
+            const goldenRatio = (1 + Math.sqrt(5)) / 2;
+            const radiusScale = Math.min(Math.pow(total, 1/3) * 12, 45);
+
+            for (let i = 0; i < total; i++) {
+                const theta = 2 * Math.PI * i / goldenRatio;
+                const r = Math.sqrt(i / total) * radiusScale;
+                nucleons.push({
+                    x: r * Math.cos(theta),
+                    y: r * Math.sin(theta),
+                    type: typeTracker[i],
+                    id: i
+                });
+            }
+
+            calculatePhysics();
+        }
+
+        function calculateShells(totalElectrons) {
+            const shellCapacities = [2, 8, 18, 32];
+            let remaining = totalElectrons;
+            let shells = [];
+
+            for (let cap of shellCapacities) {
+                if (remaining <= 0) break;
+                let count = Math.min(remaining, cap);
+                shells.push(count);
+                remaining -= count;
+            }
+            return shells;
+        }
+
+        function calculatePhysics() {
+            const upQuarks = (Z * 2) + (N * 1);
+            const downQuarks = (Z * 1) + (N * 2);
+            const totalConstituentMass = (Z * M_PROTON) + (N * M_NEUTRON) + (E * M_ELECTRON);
+            
+            const stability = checkIsotopeStability(Z, N);
+            isUnstable = !stability.stable;
+
+            const statusBadge = document.getElementById('hud-status');
+            statusBadge.innerText = stability.reason.toUpperCase();
+            statusBadge.className = `status-badge ${isUnstable ? 'badge-unstable' : 'badge-stable'}`;
+
+            document.getElementById('hud-z').innerText = Z;
+            document.getElementById('hud-n').innerText = N;
+            document.getElementById('hud-e').innerText = E;
+            document.getElementById('hud-nz').innerText = stability.ratio.toFixed(3);
+            document.getElementById('hud-up').innerText = upQuarks + " u";
+            document.getElementById('hud-down').innerText = downQuarks + " d";
+            document.getElementById('hud-mass').innerText = totalConstituentMass.toFixed(4) + " amu";
+
+            // Tab 1: Live Inspector Breakdown
+            const breakdown = document.getElementById('mathBreakdown');
+            breakdown.innerHTML = `
+                <div><strong>Particle Taxonomy Breakdown:</strong></div>
+                <div>  • <strong>Electrons (e⁻):</strong> <span class="highlight-lepton">Lepton Family (Elementary, Point-like, NO Quarks)</span></div>
+                <div>  • <strong>Protons (p⁺):</strong> <span class="highlight-up">Baryon / Hadron (2 Up + 1 Down = uud)</span></div>
+                <div>  • <strong>Neutrons (n⁰):</strong> <span class="highlight-down">Baryon / Hadron (1 Up + 2 Down = udd)</span></div>
+                <br>
+                <div><strong>Constituent Mass Calculation:</strong></div>
+                <div>  • Protons Mass (${Z} × ${M_PROTON} amu) = <span class="highlight-var">${(Z * M_PROTON).toFixed(6)} amu</span></div>
+                <div>  • Neutrons Mass (${N} × ${M_NEUTRON} amu) = <span class="highlight-var">${(N * M_NEUTRON).toFixed(6)} amu</span></div>
+                <div>  • Electrons Mass (${E} × ${M_ELECTRON} amu) = <span class="highlight-var">${(E * M_ELECTRON).toFixed(6)} amu</span></div>
+                <div>  • <strong>Total Subatomic Mass:</strong> <span class="highlight-var">${totalConstituentMass.toFixed(6)} amu</span></div>
+            `;
+
+            // Tab 2: N/Z Stability Breakdown
+            const nzBreakdown = document.getElementById('nzBreakdown');
+            nzBreakdown.innerHTML = `
+                <div><strong>Neutron-to-Proton Ratio (N/Z) Stability Analysis:</strong></div>
+                <div>  • Active Neutron Count (N) = <span class="highlight-var">${N}</span> | Active Proton Count (Z) = <span class="highlight-var">${Z}</span></div>
+                <div>  • <strong>Current N/Z Ratio:</strong> <span class="${isUnstable ? 'highlight-down' : 'highlight-up'}">${stability.ratio.toFixed(3)}</span></div>
+                <div>  • Target Stability Benchmark: <span class="highlight-var">N/Z ≈ ${stability.ideal}</span></div>
+                <div>  • Status: <span class="${isUnstable ? 'highlight-down' : 'highlight-up'}">${stability.reason}</span></div>
+                <br>
+                <div><strong>Nuclear Force & Decay Dynamics:</strong></div>
+                <div>  • Predicted Decay Mode: <span class="highlight-var">${stability.decay}</span></div>
+                <div>  • <strong>Physics Summary:</strong> ${isUnstable ? 
+                    'Excess imbalance causes strong nuclear force binding energy deficit. The system undergoes decay to shift N/Z toward the Valley of Stability.' : 
+                    'The strong nuclear force successfully balances electrostatic proton repulsion, placing this nuclide in the Valley of Beta Stability.'}</div>
+            `;
+        }
+
+        function zoomToNucleon(n) {
+            selectedNucleon = n;
+            camera.targetX = n.x;
+            camera.targetY = n.y;
+            camera.targetZoom = 6.5;
+        }
+
+        function resetZoom() {
+            selectedNucleon = null;
+            camera.targetX = 0;
+            camera.targetY = 0;
+            camera.targetZoom = 1.0;
+        }
+
+        function toggleCameraZoom() {
+            if (camera.targetZoom > 2.0) {
+                resetZoom();
+            } else {
+                zoomToNucleon(nucleons[0] || {x: 0, y: 0, type: 'proton'});
+            }
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left - (canvas.width / 2);
+            const clickY = e.clientY - rect.top - (canvas.height / 2);
+
+            const worldX = (clickX / camera.zoom) + camera.x;
+            const worldY = (clickY / camera.zoom) + camera.y;
+
+            if (camera.zoom > 3.0) {
+                resetZoom();
+                return;
+            }
+
+            let clicked = null;
+            for (let n of nucleons) {
+                if (Math.hypot(worldX - n.x, worldY - n.y) < 16) {
+                    clicked = n;
+                    break;
+                }
+            }
+
+            if (clicked) zoomToNucleon(clicked);
+            else resetZoom();
+        });
+
+        // Animation Loop
+        let angle = 0;
+        let electronSpinAngle = 0;
+
+        function render() {
+            if (isUnstable) {
+                shakeOffset.x = (Math.random() - 0.5) * 4;
+                shakeOffset.y = (Math.random() - 0.5) * 4;
+            } else {
+                shakeOffset.x = 0;
+                shakeOffset.y = 0;
+            }
+
+            camera.x += (camera.targetX - camera.x) * 0.08;
+            camera.y += (camera.targetY - camera.y) * 0.08;
+            camera.zoom += (camera.targetZoom - camera.zoom) * 0.08;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate((canvas.width / 2) + shakeOffset.x, (canvas.height / 2) + shakeOffset.y);
+            ctx.scale(camera.zoom, camera.zoom);
+            ctx.translate(-camera.x, -camera.y);
+
+            const shells = calculateShells(E);
+            const baseRadius = 80;
+            const globalAlphaFade = Math.max(0, 1 - (camera.zoom - 1) / 3);
+
+            // Render Orbiting Electrons
+            if (globalAlphaFade > 0.01) {
+                ctx.globalAlpha = globalAlphaFade;
+
+                shells.forEach((electronCount, shellIdx) => {
+                    const radius = baseRadius + (shellIdx * 50);
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(137, 180, 250, 0.25)';
+                    ctx.setLineDash([4, 4]);
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    for (let i = 0; i < electronCount; i++) {
+                        const eAngle = angle * (1 / (shellIdx + 1)) + (i * (Math.PI * 2 / electronCount));
+                        const ex = Math.cos(eAngle) * radius;
+                        const ey = Math.sin(eAngle) * radius;
+
+                        const isSpinUp = i % 2 === 0;
+
+                        ctx.fillStyle = '#89b4fa';
+                        ctx.beginPath();
+                        ctx.arc(ex, ey, 5, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.save();
+                        ctx.translate(ex, ey);
+                        ctx.rotate(isSpinUp ? -electronSpinAngle : electronSpinAngle);
+
+                        ctx.strokeStyle = isSpinUp ? '#a6e3a1' : '#f38ba8';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(0, isSpinUp ? 8 : -8);
+                        ctx.lineTo(0, isSpinUp ? -8 : 8);
+                        ctx.stroke();
+
+                        ctx.fillStyle = isSpinUp ? '#a6e3a1' : '#f38ba8';
+                        ctx.beginPath();
+                        ctx.arc(0, isSpinUp ? -8 : 8, 2, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.restore();
+                    }
+                });
+            }
+
+            // Unstable Pulse
+            if (isUnstable) {
+                const pulse = Math.sin(angle * 10) * 10;
+                ctx.strokeStyle = 'rgba(243, 139, 168, 0.6)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, 55 + pulse, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Render Nucleons & Quarks
+            ctx.globalAlpha = 1.0;
+            nucleons.forEach((n) => {
+                const isTarget = selectedNucleon && selectedNucleon.id === n.id;
+
+                ctx.save();
+                ctx.translate(n.x, n.y);
+
+                if (camera.zoom > 3.0 && isTarget) {
+                    const isProton = n.type === 'proton';
+                    const quarks = isProton ? ['u', 'u', 'd'] : ['u', 'd', 'd'];
+                    const color = isProton ? '#fab387' : '#a6adc8';
+
+                    ctx.fillStyle = color;
+                    ctx.globalAlpha = 0.25;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 22, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    for (let q = 0; q < 3; q++) {
+                        const qAngle = angle * 1.5 + (q * (Math.PI * 2 / 3));
+                        const qx = Math.cos(qAngle) * 11;
+                        const qy = Math.sin(qAngle) * 11;
+
+                        ctx.fillStyle = quarks[q] === 'u' ? '#a6e3a1' : '#f38ba8';
+                        ctx.beginPath();
+                        ctx.arc(qx, qy, 4.5, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.fillStyle = '#11111b';
+                        ctx.font = 'bold 3.5px monospace';
+                        ctx.fillText(quarks[q], qx - 1, qy + 1.2);
+                    }
+
+                    ctx.fillStyle = '#cdd6f4';
+                    ctx.font = '4px monospace';
+                    ctx.fillText(isProton ? "Proton (uud)" : "Neutron (udd)", -12, 29);
+
+                } else {
+                    ctx.fillStyle = n.type === 'proton' ? '#fab387' : '#a6adc8';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 9, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#11111b';
+                    ctx.font = 'bold 5px monospace';
+                    ctx.fillText(n.type === 'proton' ? 'uud' : 'udd', -5, 2);
+
+                    ctx.strokeStyle = '#181825';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            });
+
+            ctx.restore();
+
+            angle += 0.015;
+            electronSpinAngle += 0.05;
+            requestAnimationFrame(render);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function answerQuiz(qNum, element, isCorrect, explanation) {
+            const options = element.parentElement.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.classList.remove('correct-sel', 'wrong-sel'));
+
+            if (isCorrect) {
+                element.classList.add('correct-sel');
+                quizAnswers[qNum - 1] = true;
+            } else {
+                element.classList.add('wrong-sel');
+                quizAnswers[qNum - 1] = false;
+            }
+
+            const expBox = document.getElementById(`qexp-${qNum}`);
+            expBox.style.display = 'block';
+            expBox.style.color = isCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
+            expBox.innerText = explanation;
+
+            const score = quizAnswers.filter(a => a === true).length;
+            document.getElementById('quizScoreText').innerText = `Score: ${score} / 5`;
+        }
+
+        rebuildNucleus();
+        render();
+    </script>
+</body>
+</html>
