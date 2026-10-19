@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Compound Optics & Telescope Visualizer | Just in Time "GIT GUD" Physics</title>
+  <title>Compound Optics & Camera/Telescope Visualizer | Physics Suite</title>
 
   <!-- Local Physics Suite Assets -->
   <link rel="icon" type="image/png" href="./icon-512.png">
@@ -313,7 +313,7 @@
       <img src="./icon-512.png" alt="App Icon" class="w-8 h-8 rounded-md">
       <div>
         <h1 class="text-base font-bold text-[var(--accent-blue)] flex items-center gap-2 m-0">
-          Compound Optics & Telescope Visualizer
+          Compound Optics & Camera Visualizer
         </h1>
         <div class="text-[11px] text-[var(--text-muted)]">
           Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | CC BY-NC-SA 4.0
@@ -338,24 +338,25 @@
         <div class="btn-grid">
           <button id="preset-astro" class="btn active" onclick="applySystemPreset('astro')">Astro Telescope</button>
           <button id="preset-galileo" class="btn" onclick="applySystemPreset('galileo')">Galilean Telescope</button>
+          <button id="preset-camera" class="btn" onclick="applySystemPreset('camera')">📷 Camera Lens</button>
           <button id="preset-micro" class="btn" onclick="applySystemPreset('micro')">Microscope</button>
           <button id="preset-relay" class="btn" onclick="applySystemPreset('relay')">Relay Lenses</button>
         </div>
       </div>
 
-      <!-- Objective Lens Controls -->
+      <!-- Objective / Front Element Controls -->
       <div class="control-group">
         <label for="slider-f1">
-          Objective Lens f<sub>1</sub>
+          Front Element f<sub>1</sub>
           <span id="val-f1" class="value">+120 mm</span>
         </label>
         <input type="range" id="slider-f1" min="-200" max="250" step="5" value="120">
       </div>
 
-      <!-- Eyepiece Lens Controls -->
+      <!-- Eyepiece / Rear Element Controls -->
       <div class="control-group">
         <label for="slider-f2">
-          Eyepiece Lens f<sub>2</sub>
+          Rear Element f<sub>2</sub>
           <span id="val-f2" class="value">+40 mm</span>
         </label>
         <input type="range" id="slider-f2" min="-150" max="150" step="5" value="40">
@@ -396,16 +397,16 @@
 
       <!-- Real-Time Telemetry HUD -->
       <div class="hud-panel">
-        <div class="hud-row"><span class="hud-label">Obj Img Dist (d<sub>i1</sub>):</span><span id="hud-di1" class="hud-val">+200.0 mm</span></div>
-        <div class="hud-row"><span class="hud-label">Obj Mag (m<sub>1</sub>):</span><span id="hud-m1" class="hud-val">-0.67x</span></div>
-        <div class="hud-row"><span class="hud-label">Eye Obj Dist (d<sub>o2</sub>):</span><span id="hud-do2" class="hud-val">-40.0 mm</span></div>
-        <div class="hud-row"><span class="hud-label">Final Img Dist (d<sub>i2</sub>):</span><span id="hud-di2" class="hud-val">∞ mm</span></div>
+        <div class="hud-row"><span class="hud-label">Front Img Dist (d<sub>i1</sub>):</span><span id="hud-di1" class="hud-val">+200.0 mm</span></div>
+        <div class="hud-row"><span class="hud-label">Front Mag (m<sub>1</sub>):</span><span id="hud-m1" class="hud-val">-0.67x</span></div>
+        <div class="hud-row"><span class="hud-label">Rear Obj Dist (d<sub>o2</sub>):</span><span id="hud-do2" class="hud-val">-40.0 mm</span></div>
+        <div class="hud-row"><span class="hud-label">Final Img/Sensor (d<sub>i2</sub>):</span><span id="hud-di2" class="hud-val">∞ mm</span></div>
         <div class="hud-row"><span class="hud-label">Total Mag (M<sub>tot</sub>):</span><span id="hud-mtot" class="hud-val">-3.00x</span></div>
         <div id="hud-badge" class="hud-badge badge-real">FINAL IMAGE: VIRTUAL &amp; INVERTED</div>
       </div>
 
       <div class="instruction-banner">
-        💡 Click &amp; Drag the <b>Object Arrow Tip</b> to adjust distance and height interactively.
+        💡 Click &amp; Drag the <b>Object Arrow Tip</b> to adjust subject distance and height interactively.
       </div>
     </div>
   </div>
@@ -414,15 +415,15 @@
   <div class="inspector-section">
     <div class="max-w-6xl mx-auto">
       <div class="flex items-center gap-2 mb-3 border-b border-[var(--panel-border)] pb-2">
-        <button id="tab-formula-btn" class="tab-btn active" onclick="switchTab('formula')">📐 Compound Derivations</button>
-        <button id="tab-quiz-btn" class="tab-btn" onclick="switchTab('quiz')">📝 Telescope Quiz Check</button>
+        <button id="tab-formula-btn" class="tab-btn active" onclick="switchTab('formula')">📐 Compound & Camera Derivations</button>
+        <button id="tab-quiz-btn" class="tab-btn" onclick="switchTab('quiz')">📝 Optics Quiz Check</button>
       </div>
 
       <!-- Tab 1: Live Derivation Breakdown -->
       <div id="tab-formula" class="p-3 bg-[var(--inner-box)] border border-[var(--panel-border)] rounded-lg font-mono text-xs">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <span class="text-[var(--accent-blue)] font-bold">1. Objective Lens Stage (L1):</span>
+            <span class="text-[var(--accent-blue)] font-bold">1. Front Lens Element (L1):</span>
             <p class="mt-1 text-[var(--text-muted)]">d<sub>i1</sub> = (f₁ &middot; d<sub>o1</sub>) / (d<sub>o1</sub> - f₁) &nbsp;|&nbsp; m₁ = -d<sub>i1</sub> / d<sub>o1</sub></p>
             <div id="math-stage1-step" class="mt-2 p-2 bg-[var(--panel-bg)] rounded text-amber-300">
               d<sub>i1</sub> = +200.0 mm | m₁ = -0.67x
@@ -430,7 +431,7 @@
           </div>
 
           <div>
-            <span class="text-[var(--accent-blue)] font-bold">2. Eyepiece Stage (L2) & Total Magnification:</span>
+            <span class="text-[var(--accent-blue)] font-bold">2. Rear Element (L2) & Sensor Image:</span>
             <p class="mt-1 text-[var(--text-muted)]">d<sub>o2</sub> = L - d<sub>i1</sub> &nbsp;|&nbsp; d<sub>i2</sub> = (f₂ &middot; d<sub>o2</sub>) / (d<sub>o2</sub> - f₂) &nbsp;|&nbsp; M<sub>tot</sub> = m₁ &middot; m₂</p>
             <div id="math-stage2-step" class="mt-2 p-2 bg-[var(--panel-bg)] rounded text-emerald-300">
               d<sub>o2</sub> = -40.0 mm | d<sub>i2</sub> = ∞ | M<sub>tot</sub> = -3.00x
@@ -442,17 +443,17 @@
       <!-- Tab 2: Interactive Mini Quiz -->
       <div id="tab-quiz" class="hidden p-3 bg-[var(--inner-box)] border border-[var(--panel-border)] rounded-lg text-xs">
         <div class="flex justify-between items-center mb-3">
-          <span class="font-bold text-[var(--accent-blue)]">Compound Telescope Review:</span>
+          <span class="font-bold text-[var(--accent-blue)]">Optics & Camera Review:</span>
           <span id="quiz-score" class="font-mono text-amber-400 font-bold">Score: 0 / 3</span>
         </div>
 
         <div class="space-y-3">
           <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
-            <p class="font-bold text-slate-200 mb-1">Q1: In an Astronomical Refracting Telescope adjusted for parallel relaxed viewing, the tube length (L) equals:</p>
+            <p class="font-bold text-slate-200 mb-1">Q1: In a camera lens system, what type of image must be formed on the camera's digital image sensor (CMOS/CCD)?</p>
             <div class="flex gap-4 text-slate-300">
-              <label><input type="radio" name="q1" value="A" onclick="checkQuiz()"> A) L = f₁ - f₂</label>
-              <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) L = f₁ + f₂</label>
-              <label><input type="radio" name="q1" value="C" onclick="checkQuiz()"> C) L = f₁ &middot; f₂</label>
+              <label><input type="radio" name="q1" value="A" onclick="checkQuiz()"> A) Virtual and Upright</label>
+              <label><input type="radio" name="q1" value="B" onclick="checkQuiz()"> B) Real and Inverted</label>
+              <label><input type="radio" name="q1" value="C" onclick="checkQuiz()"> C) Virtual and Inverted</label>
             </div>
           </div>
 
@@ -466,7 +467,7 @@
           </div>
 
           <div class="p-2 bg-[var(--panel-bg)] rounded border border-[var(--panel-border)]">
-            <p class="font-bold text-slate-200 mb-1">Q3: How is the total magnification (M<sub>tot</sub>) computed for a compound two-lens system?</p>
+            <p class="font-bold text-slate-200 mb-1">Q3: How is the total magnification (M<sub>tot</sub>) computed for a compound multi-lens system?</p>
             <div class="flex gap-4 text-slate-300">
               <label><input type="radio" name="q3" value="A" onclick="checkQuiz()"> A) M<sub>tot</sub> = m₁ + m₂</label>
               <label><input type="radio" name="q3" value="B" onclick="checkQuiz()"> B) M<sub>tot</sub> = m₁ &middot; m₂</label>
@@ -481,7 +482,6 @@
 
   <script src="../theme.js"></script>
   <script>
-    // Synchronized Theme Switcher Engine
     function toggleTheme() {
         const html = document.documentElement;
         const currentTheme = html.getAttribute('data-theme') || 'dark';
@@ -499,7 +499,6 @@
         }
     }
 
-    // Restore Saved Theme Preference on Load
     window.addEventListener('DOMContentLoaded', () => {
         const savedTheme = localStorage.getItem('theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
@@ -513,6 +512,7 @@
     let L = 160;
     let do1 = 300;
     let ho1 = 50;
+    let currentMode = 'astro';
 
     let isDraggingObject = false;
 
@@ -585,8 +585,8 @@
       ctx.lineTo(canvas.width, centerY);
       ctx.stroke();
 
-      drawSingleLensShape(L1_x, centerY, f1, "L₁ (Obj)");
-      drawSingleLensShape(L2_x, centerY, f2, "L₂ (Eye)");
+      drawSingleLensShape(L1_x, centerY, f1, currentMode === 'camera' ? "L₁ Front" : "L₁ (Obj)");
+      drawSingleLensShape(L2_x, centerY, f2, currentMode === 'camera' ? "L₂ Rear" : "L₂ (Eye)");
 
       drawMarker(L1_x - f1, centerY, "F₁");
       drawMarker(L1_x + f1, centerY, "F₁'");
@@ -595,7 +595,7 @@
 
       const objX = L1_x - do1;
       const objY = centerY - ho1;
-      drawArrow(objX, centerY, objX, objY, '#38bdf8', 'Object', true);
+      drawArrow(objX, centerY, objX, objY, '#38bdf8', 'Subject', true);
 
       let img1X = 0, img1Y = 0;
       if (isFinite(phys.di1) && Math.abs(phys.di1) < 3000) {
@@ -609,13 +609,35 @@
         const finalX = L2_x + phys.di2;
         const finalY = centerY - phys.hi2;
         const isVirtual2 = phys.di2 < 0;
-        drawArrow(finalX, centerY, finalX, finalY, isVirtual2 ? '#f38ba8' : '#a6e3a1', 'Final Image', !isVirtual2, isVirtual2);
+        drawArrow(finalX, centerY, finalX, finalY, isVirtual2 ? '#f38ba8' : '#a6e3a1', currentMode === 'camera' ? '📷 Sensor Img' : 'Final Image', !isVirtual2, isVirtual2);
+
+        // Render camera sensor plane indicator in camera mode
+        if (currentMode === 'camera' && !isVirtual2) {
+          drawCameraSensorPlane(finalX, centerY);
+        }
       }
 
       drawCompoundRayTracing(L1_x, L2_x, centerY, objX, objY, img1X, img1Y, phys);
 
       updateHUD(phys);
       updateFormulaSteps(phys);
+    }
+
+    function drawCameraSensorPlane(x, cy) {
+      ctx.save();
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 3]);
+      ctx.beginPath();
+      ctx.moveTo(x, cy - 120);
+      ctx.lineTo(x, cy + 120);
+      ctx.stroke();
+
+      ctx.fillStyle = '#f59e0b';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText("🎞️ CMOS SENSOR PLANE", x, cy - 128);
+      ctx.restore();
     }
 
     function drawSingleLensShape(cx, cy, fVal, label) {
@@ -761,14 +783,18 @@
     }
 
     function applySystemPreset(type) {
-      ['astro', 'galileo', 'micro', 'relay'].forEach(id => {
-        document.getElementById(`preset-${id}`).classList.toggle('active', type === id);
+      currentMode = type;
+      ['astro', 'galileo', 'camera', 'micro', 'relay'].forEach(id => {
+        const el = document.getElementById(`preset-${id}`);
+        if (el) el.classList.toggle('active', type === id);
       });
 
       if (type === 'astro') {
         f1 = 120; f2 = 40; L = 160; do1 = 400; ho1 = 50;
       } else if (type === 'galileo') {
         f1 = 140; f2 = -40; L = 100; do1 = 400; ho1 = 50;
+      } else if (type === 'camera') {
+        f1 = 100; f2 = 60; L = 80; do1 = 350; ho1 = 60;
       } else if (type === 'micro') {
         f1 = 40; f2 = 50; L = 180; do1 = 50; ho1 = 20;
       } else if (type === 'relay') {
