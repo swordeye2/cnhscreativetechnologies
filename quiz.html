@@ -91,7 +91,7 @@
 
       <div class="space-y-2 text-xs text-[var(--text-sub)] text-left bg-[var(--inner-box)] p-3.5 rounded-lg border border-[var(--card-border)] mb-4 leading-relaxed">
         <p>• <strong>Exam Structure:</strong> Select your target topic below to generate a 20-question randomized test session.</p>
-        <p>• <strong>Session Duration:</strong> Strictly <strong>40 MINUTES</strong> timer active once launched.</p>
+        <p>• <strong>Session Duration:</strong> Strictly <strong>25 MINUTES</strong> timer active once launched.</p>
         <p>• <strong>Auto-Submission:</strong> Submits scores directly to the cloud Google Sheet upon completion or time expiration.</p>
       </div>
 
@@ -127,7 +127,7 @@
       </div>
 
       <button onclick="startTimedQuiz()" class="w-full bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-sm font-bold py-3 px-4 rounded-lg transition-all shadow-lg">
-        🚀 Start 40-Minute Exam →
+        🚀 Start 25-Minute Exam →
       </button>
     </div>
   </div>
@@ -183,7 +183,7 @@
     <div class="flex items-center gap-3 flex-wrap">
       <div id="timerBox" class="text-xs font-mono bg-[var(--inner-box)] px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-[#f9e2af] flex items-center gap-1.5">
         <span>⏱️ Time Remaining:</span>
-        <span id="timerText" class="font-bold text-sm">40:00</span>
+        <span id="timerText" class="font-bold text-sm">25:00</span>
       </div>
 
       <div class="text-xs font-mono bg-[var(--inner-box)] px-3 py-1.5 rounded-lg border border-[var(--card-border)]">
@@ -204,9 +204,9 @@
 
   <main class="max-w-6xl mx-auto w-full">
     <div class="text-center mb-6">
-      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">📝 20-Question Randomized Timed Review</h1>
+      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">📝 20-Question 25-Minute Timed Review</h1>
       <p class="text-sm text-[var(--text-sub)] mt-1 max-w-3xl mx-auto">
-        Your current session is locked with a strict 40-minute countdown. Complete all questions and click submit when finished!
+        Your current session is locked with a strict 25-minute countdown. Complete all questions and click submit when finished!
       </p>
     </div>
 
@@ -297,7 +297,7 @@
     let activeQuestions = [];
     let userAnswers = {};
     let timerInterval = null;
-    let totalSeconds = 40 * 60; // 40 Minutes
+    let totalSeconds = 25 * 60; // 25 Minutes (1500 Seconds)
     let timeElapsedSeconds = 0;
     let examEnded = false;
 
@@ -333,7 +333,7 @@
 
     function startTimer() {
       if (timerInterval) clearInterval(timerInterval);
-      totalSeconds = 40 * 60;
+      totalSeconds = 25 * 60; // Strictly set timer to 25 minutes
       timeElapsedSeconds = 0;
       examEnded = false;
 
