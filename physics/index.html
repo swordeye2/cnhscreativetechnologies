@@ -22,6 +22,12 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Google AdSense Script (COPPA & Non-Personalized Student-Safe Configuration) -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136" crossorigin="anonymous"></script>
+    <script>
+      (adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
+    </script>
+
     <style>
         :root {
             --canvas-bg: #1e1e2e;
@@ -159,9 +165,10 @@
             justify-content: space-between;
             text-decoration: none;
             color: var(--text-main);
-            transition: all 0.25 ease;
+            transition: all 0.25s ease;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
         }
 
         .module-card:hover {
@@ -220,6 +227,105 @@
             font-weight: bold;
             color: var(--accent-blue);
         }
+
+        /* Fullscreen Splash Ad Overlay */
+        #adSplashOverlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(17, 17, 27, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #adSplashOverlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .splash-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            max-width: 640px;
+            width: 100%;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .splash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .splash-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .splash-timer-badge {
+            font-family: monospace;
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--accent-blue);
+            background: var(--canvas-bg);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .ad-container-box {
+            width: 100%;
+            min-height: 250px;
+            background-color: var(--canvas-bg);
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .skip-btn {
+            background-color: var(--accent-blue);
+            color: #11111b;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 10px 24px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+            width: 100%;
+        }
+
+        .skip-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: var(--border-color);
+            color: var(--text-sub);
+        }
     </style>
 </head>
 <body>
@@ -253,7 +359,7 @@
             <div class="module-grid">
                 
                 <!-- Card 1: Single Thin Lens Engine -->
-                <a href="./lens.html" class="module-card">
+                <div class="module-card" onclick="launchWithSplash('./lens.html')">
                     <div class="card-header">
                         <span class="card-tag tag-optics">Optics</span>
                         <div class="card-title">Single Thin Lens Visualizer</div>
@@ -263,10 +369,10 @@
                         <span>STATUS: ACTIVE</span>
                         <span>Launch Engine ➔</span>
                     </div>
-                </a>
+                </div>
 
                 <!-- Card 2: Spherical Refracting Surface & Refraction Lens Engine -->
-                <a href="./refraction_lens.html" class="module-card">
+                <div class="module-card" onclick="launchWithSplash('./refraction_lens.html')">
                     <div class="card-header">
                         <span class="card-tag tag-optics">Optics</span>
                         <div class="card-title">Spherical Refracting Surface & Lens</div>
@@ -276,7 +382,7 @@
                         <span>STATUS: ACTIVE</span>
                         <span>Launch Engine ➔</span>
                     </div>
-                </a>
+                </div>
 
             </div>
         </section>
@@ -290,7 +396,7 @@
             <div class="module-grid">
                 
                 <!-- Card 3: Projectile Motion Engine -->
-                <a href="./projectile.html" class="module-card">
+                <div class="module-card" onclick="launchWithSplash('./projectile.html')">
                     <div class="card-header">
                         <span class="card-tag tag-mechanics">Mechanics</span>
                         <div class="card-title">Projectile Motion & Drag Kinematics</div>
@@ -300,12 +406,41 @@
                         <span>STATUS: ACTIVE</span>
                         <span>Launch Engine ➔</span>
                     </div>
-                </a>
+                </div>
 
             </div>
         </section>
 
     </main>
+
+    <!-- 5-SECOND INTERSTITIAL SPASH AD MODAL -->
+    <div id="adSplashOverlay">
+        <div class="splash-card">
+            <div class="splash-header">
+                <div class="splash-title">
+                    <span>📢 Loading Simulation Engine...</span>
+                </div>
+                <div id="splashCountdown" class="splash-timer-badge">Launching in 5s</div>
+            </div>
+
+            <div class="ad-container-box">
+                <!-- Google AdSense Unit -->
+                <ins class="adsbygoogle"
+                     style="display:block; width:100%; height:250px;"
+                     data-ad-client="ca-pub-7612819391368136"
+                     data-ad-slot="auto"
+                     data-ad-format="rectangle"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+
+            <button id="skipAdBtn" class="skip-btn" disabled onclick="proceedToTarget()">
+                Please wait 5s...
+            </button>
+        </div>
+    </div>
 
     <script src="../theme.js"></script>
     <script>
@@ -332,6 +467,46 @@
             document.documentElement.setAttribute('data-theme', savedTheme);
             updateThemeButtonText(savedTheme);
         });
+
+        // 5-Second Interstitial Splash Ad Controller
+        let targetUrl = '';
+        let countdownValue = 5;
+        let countdownTimer = null;
+
+        function launchWithSplash(destinationUrl) {
+            targetUrl = destinationUrl;
+            countdownValue = 5;
+
+            const overlay = document.getElementById('adSplashOverlay');
+            const countdownEl = document.getElementById('splashCountdown');
+            const skipBtn = document.getElementById('skipAdBtn');
+
+            overlay.classList.add('active');
+            skipBtn.disabled = true;
+            skipBtn.innerText = `Please wait ${countdownValue}s...`;
+            countdownEl.innerText = `Launching in ${countdownValue}s`;
+
+            clearInterval(countdownTimer);
+            countdownTimer = setInterval(() => {
+                countdownValue--;
+                if (countdownValue > 0) {
+                    skipBtn.innerText = `Please wait ${countdownValue}s...`;
+                    countdownEl.innerText = `Launching in ${countdownValue}s`;
+                } else {
+                    clearInterval(countdownTimer);
+                    skipBtn.disabled = false;
+                    skipBtn.innerText = 'Proceed to Engine ➔';
+                    countdownEl.innerText = 'Ready!';
+                    proceedToTarget(); // Automatically proceed after 5s
+                }
+            }, 1000);
+        }
+
+        function proceedToTarget() {
+            if (targetUrl) {
+                window.location.href = targetUrl;
+            }
+        }
     </script>
 </body>
 </html>
