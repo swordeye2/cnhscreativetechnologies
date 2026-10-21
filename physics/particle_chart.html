@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standard Model & Subatomic Particles - Physics Suite</title>
+    
+    <!-- Local Suite Branding Assets -->
+    <link rel="icon" type="image/png" href="./icon-512.png">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+    <link rel="manifest" href="./manifest.json">
+
+    <!-- Shared Parent Theme -->
+    <link rel="stylesheet" href="../theme.css">
+
+    <!-- Legal Assertions -->
+    <meta name="author" content="Jorge Victor M. Sales">
+    <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+
+    <style>
+        :root {
+            --canvas-bg: #1e1e2e;
+            --panel-bg: #181825;
+            --border-color: #313244;
+            --text-main: #cdd6f4;
+            --text-sub: #a6adc8;
+            --accent-blue: #89b4fa;
+            --accent-green: #a6e3a1;
+            --accent-red: #f38ba8;
+            --accent-yellow: #f9e2af;
+            --accent-purple: #cba6f7;
+            --accent-orange: #fab387;
+            --accent-cyan: #89dceb;
+        }
+
+        [data-theme="light"] {
+            --canvas-bg: #eff1f5;
+            --panel-bg: #e6e9ef;
+            --border-color: #ccd0da;
+            --text-main: #4c4f69;
+            --text-sub: #6c6f85;
+            --accent-blue: #1e66f5;
+            --accent-green: #40a02b;
+            --accent-red: #d20f39;
+            --accent-yellow: #df8e1d;
+            --accent-purple: #8839ef;
+            --accent-orange: #fe640b;
+            --accent-cyan: #04a5e5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--canvas-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 40px;
+        }
+
+        /* Header Navigation */
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* Workspace Grid Layout */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 15px;
+            padding: 15px;
+            flex: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Viewport Container */
+        .viewport-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .filter-chip {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .filter-chip.active {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            background: rgba(137, 180, 250, 0.12);
+        }
+
+        /* Standard Model Interactive Grid */
+        .particle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .particle-card {
+            background: var(--canvas-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            min-height: 160px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .particle-card:hover, .particle-card.selected {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        }
+
+        .p-type-quark { border-color: var(--accent-purple); }
+        .p-type-lepton { border-color: var(--accent-blue); }
+        .p-type-gauge { border-color: var(--accent-yellow); }
+        .p-type-higgs { border-color: var(--accent-green); }
+        .p-type-composite { border-color: var(--accent-orange); }
+
+        .particle-card.dimmed {
+            opacity: 0.25;
+        }
+
+        .p-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-family: monospace;
+            color: var(--text-sub);
+        }
+
+        .p-preview-canvas {
+            width: 70px;
+            height: 55px;
+            margin: 4px 0;
+            pointer-events: none;
+        }
+
+        .p-symbol {
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .p-name {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-main);
+        }
+
+        .p-shape-tag {
+            font-size: 0.62rem;
+            font-family: monospace;
+            text-align: center;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+
+        /* Sidebar Animated Particle Inspector */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .panel-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+        }
+
+        .visualizer-canvas-container {
+            width: 100%;
+            height: 200px;
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        canvas#particleCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.82rem;
+            font-family: monospace;
+        }
+
+        .telemetry-label { color: var(--text-sub); }
+        .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
+
+        /* Hadron Builder */
+        .hadron-builder-box {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .slot-box {
+            flex: 1;
+            height: 45px;
+            border: 1px dashed var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-family: monospace;
+            background: var(--canvas-bg);
+        }
+
+        /* Inspector & Quiz Panel */
+        .inspector-panel {
+            grid-column: 1 / -1;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .math-card {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            line-height: 1.6;
+            font-size: 0.88rem;
+        }
+
+        /* Quiz Styling */
+        .quiz-item {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .quiz-qtext {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .quiz-option {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--accent-blue);
+            background: rgba(137, 180, 250, 0.08);
+        }
+
+        .quiz-option.correct-sel {
+            background: rgba(166, 227, 161, 0.2) !important;
+            border-color: var(--accent-green) !important;
+            color: var(--accent-green) !important;
+            font-weight: bold;
+        }
+
+        .quiz-option.wrong-sel {
+            background: rgba(243, 139, 168, 0.2) !important;
+            border-color: var(--accent-red) !important;
+            color: var(--accent-red) !important;
+        }
+
+        .quiz-explain {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            display: none;
+            padding: 6px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Sponsor Ad Banner */
+        .sponsor-ad-wrapper {
+            grid-column: 1 / -1;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sponsor-ad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sponsor-ad-label {
+            font-size: 0.72rem;
+            font-weight: bold;
+            font-family: monospace;
+            color: var(--text-sub);
+            letter-spacing: 0.8px;
+        }
+
+        .sponsor-dismiss-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-sub);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .sponsor-ad-content {
+            width: 100%;
+            height: 90px;
+            background-color: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="nav-group">
+            <a href="../index.html" class="btn">🏠 Main Lab Hub</a>
+            <a href="./index.html" class="btn">🔬 Physics Suite</a>
+            <h2 style="font-size: 1rem; margin-left: 5px;">Standard Model & Geometric Particle Models</h2>
+        </div>
+        <div class="nav-group">
+            <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+
+        <!-- Interactive Viewport Card -->
+        <div class="viewport-card">
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <button class="filter-chip active" onclick="filterParticles('all')">All Particles</button>
+                <button class="filter-chip" onclick="filterParticles('fermion')">Fermions (Spin 1/2)</button>
+                <button class="filter-chip" onclick="filterParticles('boson')">Bosons (Spin 0, 1)</button>
+                <button class="filter-chip" onclick="filterParticles('quark')">Quarks</button>
+                <button class="filter-chip" onclick="filterParticles('lepton')">Leptons</button>
+                <button class="filter-chip" onclick="filterParticles('gauge')">Gauge Bosons</button>
+                <button class="filter-chip" onclick="filterParticles('higgs')">Higgs Boson</button>
+                <button class="filter-chip" onclick="filterParticles('composite')">Composite Hadrons</button>
+            </div>
+
+            <!-- Standard Model Interactive Grid with Canvas Micro-Previews -->
+            <div class="particle-grid" id="particleGrid">
+                <!-- JS generated particle cards -->
+            </div>
+        </div>
+
+        <!-- Sidebar Animated Particle Inspector Panel -->
+        <div class="sidebar">
+            <div class="panel-card">
+                <div class="panel-title">Particle Model Inspector</div>
+                
+                <!-- Dynamic High-Res 2D Animation Canvas -->
+                <div class="visualizer-canvas-container">
+                    <canvas id="particleCanvas"></canvas>
+                </div>
+
+                <div id="particleDetails">
+                    <!-- Dynamic details injected here -->
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">Hadron Builder (Quark Combinator)</div>
+                <div style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 8px;">
+                    Select 3 Quarks (Baryon):
+                </div>
+                <div class="hadron-builder-box">
+                    <div class="slot-box" id="slot1">?</div>
+                    <div class="slot-box" id="slot2">?</div>
+                    <div class="slot-box" id="slot3">?</div>
+                </div>
+                <button class="btn" style="width: 100%; margin-top: 10px;" onclick="resetHadronBuilder()">Clear Builder</button>
+                <div id="hadronResult" style="margin-top: 10px; font-size: 0.85rem; font-family: monospace;"></div>
+            </div>
+        </div>
+
+        <!-- Formula, Taxonomy & Quiz Inspector Panel -->
+        <div class="inspector-panel">
+            <div class="tab-bar">
+                <button class="tab-btn active" id="btn-tab-taxonomy" onclick="switchTab('tab-taxonomy')">📚 Geometric Shape Representations</button>
+                <button class="tab-btn" id="btn-tab-forces" onclick="switchTab('tab-forces')">⚡ Fundamental Forces & Bosons</button>
+                <button class="tab-btn" id="btn-tab-quiz" onclick="switchTab('tab-quiz')">📝 Concept Check</button>
+            </div>
+
+            <!-- Tab 1: Shape Representation & Taxonomy -->
+            <div id="tab-taxonomy" class="tab-content active">
+                <div class="math-card">
+                    <div><strong>Quantum Geometric Models & Physical Representations:</strong></div>
+                    <div>  • <strong>Quarks (Triangular / Hexagonal Nodes):</strong> Modeled as rotating geometric nodes holding localized color-field vectors ($R, G, B$).</div>
+                    <div>  • <strong>Leptons (Spherical Point-Cloud Probabilities):</strong> Modeled as point-like probability clouds surrounded by spin vector orbits ($s = \pm 1/2$).</div>
+                    <div>  • <strong>Gauge Bosons (Undulating Wave Packets):</strong> Modeled as continuous transverse sine-wave packets ($\gamma, g, W, Z$) radiating force-field energy.</div>
+                    <div>  • <strong>Higgs Boson (Scalar Mass Field Ripple):</strong> Modeled as concentric scalar ripples conferring rest mass via electroweak symmetry breaking.</div>
+                    <div>  • <strong>Composite Hadrons (Multi-Nodular Valence Clusters):</strong> Modeled as orbiting valence quark clusters (Proton: $uud$, Neutron: $udd$) bound by glowing gluon exchange lines inside a color-confinement sphere.</div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Forces Breakdown -->
+            <div id="tab-forces" class="tab-content">
+                <div class="math-card">
+                    <div><strong>Fundamental Interactions & Force Mediators:</strong></div>
+                    <div>  • <strong>Strong Force (Gluon $g$):</strong> Binds quarks into hadrons. Massless, Spin-1, Color Charge.</div>
+                    <div>  • <strong>Electromagnetic Force (Photon $\gamma$):</strong> Interacts with charged particles. Massless, Spin-1.</div>
+                    <div>  • <strong>Weak Force ($W^+, W^-, Z^0$ Bosons):</strong> Responsible for flavor change & radioactive beta decay. Massive ($80.4 \text{ GeV}, 91.2 \text{ GeV}$).</div>
+                    <div>  • <strong>Higgs Field (Higgs Boson $H^0$):</strong> Scalar boson (Spin-0, $125.25 \text{ GeV}$) providing mass coupling.</div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Concept Quiz -->
+            <div id="tab-quiz" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <span style="font-weight: bold; color: var(--accent-blue);">Subatomic Particle Physics Check:</span>
+                    <span id="quizScoreText" style="font-family: monospace; font-weight: bold; color: var(--accent-yellow); font-size: 0.9rem;">Score: 0 / 5</span>
+                </div>
+
+                <div id="quizContainer">
+                    <div class="quiz-item">
+                        <div class="quiz-qtext">Q1: Which particle family carries color charge and interacts via the Strong Nuclear Force?</div>
+                        <div class="quiz-option" onclick="answerQuiz(1, this, false, 'Leptons do not interact via the Strong Force.')">A) Leptons</div>
+                        <div class="quiz-option" onclick="answerQuiz(1, this, true, 'Correct! Quarks carry color charge and exchange gluons.')">B) Quarks</div>
+                        <div class="quiz-option" onclick="answerQuiz(1, this, false, 'Photons mediate the Electromagnetic force.')">C) Photons</div>
+                        <div class="quiz-explain" id="qexp-1"></div>
+                    </div>
+
+                    <div class="quiz-item">
+                        <div class="quiz-qtext">Q2: What spin value defines all fundamental Fermions (Quarks & Leptons)?</div>
+                        <div class="quiz-option" onclick="answerQuiz(2, this, true, 'Correct! All fundamental matter particles have spin 1/2.')">A) Spin 1/2</div>
+                        <div class="quiz-option" onclick="answerQuiz(2, this, false, 'Gauge bosons have spin 1.')">B) Spin 1</div>
+                        <div class="quiz-option" onclick="answerQuiz(2, this, false, 'The Higgs boson is the only spin 0 particle in the Standard Model.')">C) Spin 0</div>
+                        <div class="quiz-explain" id="qexp-2"></div>
+                    </div>
+
+                    <div class="quiz-item">
+                        <div class="quiz-qtext">Q3: Which elementary particle is responsible for providing mass to $W/Z$ bosons and charged fermions?</div>
+                        <div class="quiz-option" onclick="answerQuiz(3, this, false, 'Gluons mediate strong force binding.')">A) Gluon</div>
+                        <div class="quiz-option" onclick="answerQuiz(3, this, true, 'Correct! The Higgs Boson (H⁰) is the scalar excitation of the Higgs field.')">B) Higgs Boson</div>
+                        <div class="quiz-option" onclick="answerQuiz(3, this, false, 'Neutrinos are fundamental leptons with tiny masses.')">C) Electron Neutrino</div>
+                        <div class="quiz-explain" id="qexp-3"></div>
+                    </div>
+
+                    <div class="quiz-item">
+                        <div class="quiz-qtext">Q4: What type of particle is a Proton ($uud$)?</div>
+                        <div class="quiz-option" onclick="answerQuiz(4, this, false, 'Mesons consist of 1 quark and 1 antiquark.')">A) Meson</div>
+                        <div class="quiz-option" onclick="answerQuiz(4, this, true, 'Correct! Baryons are composite hadrons made of 3 valence quarks.')">B) Baryon (Composite Hadron)</div>
+                        <div class="quiz-option" onclick="answerQuiz(4, this, false, 'Electrons are leptons; protons are hadrons.')">C) Fundamental Lepton</div>
+                        <div class="quiz-explain" id="qexp-4"></div>
+                    </div>
+
+                    <div class="quiz-item">
+                        <div class="quiz-qtext">Q5: Is a Positron ($e^+$) composed of quarks?</div>
+                        <div class="quiz-option" onclick="answerQuiz(5, this, false, 'Positrons are leptons.')">A) Yes, 2 Up + 1 Down quark.</div>
+                        <div class="quiz-option" onclick="answerQuiz(5, this, true, 'Correct! Positrons are anti-leptons and have zero quark composition.')">B) No, it is a fundamental anti-lepton.</div>
+                        <div class="quiz-option" onclick="answerQuiz(5, this, false, 'Positrons are point-like leptons.')">C) Yes, 1 Up + 2 Down quarks.</div>
+                        <div class="quiz-explain" id="qexp-5"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sponsor Banner -->
+        <div class="sponsor-ad-wrapper" id="sponsorAdBanner">
+            <div class="sponsor-ad-header">
+                <span class="sponsor-ad-label">⚡ EDUCATIONAL HARDWARE SPONSOR</span>
+                <button class="sponsor-dismiss-btn" onclick="dismissSponsorAd()">✕ Dismiss</button>
+            </div>
+            <div class="sponsor-ad-content">
+                <!-- Ad Slot -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script Engine -->
+    <script src="../theme.js"></script>
+    <script>
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        const particles = [
+            // Quarks
+            { id: 'u', name: 'Up Quark', symbol: 'u', type: 'quark', category: 'fermion', charge: '+2/3', mass: '2.16 MeV/c²', spin: '1/2', force: 'Strong, EM, Weak', shape: 'Triangular Node', color: '#cba6f7' },
+            { id: 'd', name: 'Down Quark', symbol: 'd', type: 'quark', category: 'fermion', charge: '-1/3', mass: '4.67 MeV/c²', spin: '1/2', force: 'Strong, EM, Weak', shape: 'Triangular Node', color: '#f38ba8' },
+            { id: 'c', name: 'Charm Quark', symbol: 'c', type: 'quark', category: 'fermion', charge: '+2/3', mass: '1.27 GeV/c²', spin: '1/2', force: 'Strong, EM, Weak', shape: 'Hexagonal Node', color: '#cba6f7' },
+            { id: 's', name: 'Strange Quark', symbol: 's', type: 'quark', category: 'fermion', charge: '-1/3', mass: '93.4 MeV/c²', spin: '1/2', force: 'Strong, EM, Weak', shape: 'Hexagonal Node', color: '#f38ba8' },
+            { id: 't', name: 'Top Quark', symbol: 't', type: 'quark', category: 'fermion', charge: '+2/3', mass: '172.69 GeV/c²', spin: '1/2', force: 'Strong, EM, Weak', shape: 'Hexagonal Node', color: '#cba6f7' },
+            { id: 'b', name: 'Bottom Quark', symbol: 'b', type: 'quark', category: 'fermion', charge: '-1/3', mass: '4.18 GeV/c²', spin: '1/2', force: 'Strong, EM, Weak', shape: 'Hexagonal Node', color: '#f38ba8' },
+
+            // Leptons
+            { id: 'e', name: 'Electron', symbol: 'e⁻', type: 'lepton', category: 'fermion', charge: '-1', mass: '0.511 MeV/c²', spin: '1/2', force: 'EM, Weak', shape: 'Spherical Cloud', color: '#89b4fa' },
+            { id: 'nu_e', name: 'Electron Neutrino', symbol: 'νₑ', type: 'lepton', category: 'fermion', charge: '0', mass: '< 0.8 eV/c²', spin: '1/2', force: 'Weak', shape: 'Spherical Cloud', color: '#89dceb' },
+            { id: 'mu', name: 'Muon', symbol: 'μ⁻', type: 'lepton', category: 'fermion', charge: '-1', mass: '105.66 MeV/c²', spin: '1/2', force: 'EM, Weak', shape: 'Spherical Cloud', color: '#89b4fa' },
+            { id: 'nu_mu', name: 'Muon Neutrino', symbol: 'ν_μ', type: 'lepton', category: 'fermion', charge: '0', mass: '< 0.17 MeV/c²', spin: '1/2', force: 'Weak', shape: 'Spherical Cloud', color: '#89dceb' },
+            { id: 'tau', name: 'Tau', symbol: 'τ⁻', type: 'lepton', category: 'fermion', charge: '-1', mass: '1.776 GeV/c²', spin: '1/2', force: 'EM, Weak', shape: 'Spherical Cloud', color: '#89b4fa' },
+            { id: 'nu_tau', name: 'Tau Neutrino', symbol: 'ν_τ', type: 'lepton', category: 'fermion', charge: '0', mass: '< 18.2 MeV/c²', spin: '1/2', force: 'Weak', shape: 'Spherical Cloud', color: '#89dceb' },
+
+            // Bosons
+            { id: 'g', name: 'Gluon', symbol: 'g', type: 'gauge', category: 'boson', charge: '0', mass: '0', spin: '1', force: 'Strong', shape: 'Sinusoidal Wave', color: '#f9e2af' },
+            { id: 'gamma', name: 'Photon', symbol: 'γ', type: 'gauge', category: 'boson', charge: '0', mass: '0', spin: '1', force: 'EM', shape: 'Sinusoidal Wave', color: '#f9e2af' },
+            { id: 'w', name: 'W Boson', symbol: 'W±', type: 'gauge', category: 'boson', charge: '±1', mass: '80.377 GeV/c²', spin: '1', force: 'Weak', shape: 'Sinusoidal Wave', color: '#f9e2af' },
+            { id: 'z', name: 'Z Boson', symbol: 'Z⁰', type: 'gauge', category: 'boson', charge: '0', mass: '91.187 GeV/c²', spin: '1', force: 'Weak', shape: 'Sinusoidal Wave', color: '#f9e2af' },
+            { id: 'h', name: 'Higgs Boson', symbol: 'H⁰', type: 'higgs', category: 'boson', charge: '0', mass: '125.25 GeV/c²', spin: '0', force: 'Higgs Coupling', shape: 'Scalar Ripple', color: '#a6e3a1' },
+
+            // Composites
+            { id: 'p', name: 'Proton', symbol: 'p⁺', type: 'composite', category: 'baryon', charge: '+1', mass: '938.27 MeV/c²', spin: '1/2', force: 'Strong, EM, Weak', shape: 'Multi-Nodular Cluster', structure: 'uud', color: '#fab387' },
+            { id: 'n', name: 'Neutron', symbol: 'n⁰', type: 'composite', category: 'baryon', charge: '0', mass: '939.57 MeV/c²', spin: '1/2', force: 'Strong, Weak', shape: 'Multi-Nodular Cluster', structure: 'udd', color: '#a6adc8' }
+        ];
+
+        let selectedParticle = particles[0];
+        let selectedQuarks = [];
+        let quizAnswers = [false, false, false, false, false];
+        let animAngle = 0;
+
+        function renderGrid(filter = 'all') {
+            const grid = document.getElementById('particleGrid');
+            grid.innerHTML = '';
+
+            particles.forEach(p => {
+                let show = false;
+                if (filter === 'all') show = true;
+                else if (filter === 'fermion' && p.category === 'fermion') show = true;
+                else if (filter === 'boson' && p.category === 'boson') show = true;
+                else if (filter === p.type) show = true;
+
+                const card = document.createElement('div');
+                card.className = `particle-card p-type-${p.type} ${show ? '' : 'dimmed'} ${selectedParticle.id === p.id ? 'selected' : ''}`;
+                card.onclick = () => selectParticle(p);
+
+                card.innerHTML = `
+                    <div class="p-header">
+                        <span>${p.charge}e</span>
+                        <span>s=${p.spin}</span>
+                    </div>
+                    <canvas class="p-preview-canvas" id="prev-${p.id}" width="70" height="55"></canvas>
+                    <div class="p-symbol">${p.symbol}</div>
+                    <div class="p-name">${p.name}</div>
+                    <div class="p-shape-tag">${p.shape}</div>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Draw Individual Card Canvas Micro-Previews
+        function drawCardPreviews() {
+            particles.forEach(p => {
+                const c = document.getElementById(`prev-${p.id}`);
+                if (!c) return;
+                const pctx = c.getContext('2d');
+                pctx.clearRect(0, 0, c.width, c.height);
+                const cx = c.width / 2;
+                const cy = c.height / 2;
+
+                pctx.save();
+                if (p.type === 'quark') {
+                    pctx.translate(cx, cy);
+                    pctx.rotate(animAngle * 0.5);
+                    const sides = p.shape.includes('Hexagonal') ? 6 : 3;
+                    pctx.beginPath();
+                    for (let i = 0; i < sides; i++) {
+                        const a = (i * 2 * Math.PI / sides);
+                        const x = Math.cos(a) * 14;
+                        const y = Math.sin(a) * 14;
+                        if (i === 0) pctx.moveTo(x, y);
+                        else pctx.lineTo(x, y);
+                    }
+                    pctx.closePath();
+                    pctx.strokeStyle = p.color;
+                    pctx.lineWidth = 1.5;
+                    pctx.stroke();
+                } else if (p.type === 'lepton') {
+                    pctx.fillStyle = p.color;
+                    pctx.beginPath();
+                    pctx.arc(cx, cy, 6, 0, Math.PI * 2);
+                    pctx.fill();
+                    pctx.strokeStyle = p.color;
+                    pctx.lineWidth = 1;
+                    pctx.beginPath();
+                    pctx.ellipse(cx, cy, 18, 6, animAngle, 0, Math.PI * 2);
+                    pctx.stroke();
+                } else if (p.type === 'gauge') {
+                    pctx.strokeStyle = p.color;
+                    pctx.lineWidth = 1.5;
+                    pctx.beginPath();
+                    for (let x = -22; x <= 22; x += 2) {
+                        const y = Math.sin((x * 0.2) + (animAngle * 3)) * 8;
+                        if (x === -22) pctx.moveTo(cx + x, cy + y);
+                        else pctx.lineTo(cx + x, cy + y);
+                    }
+                    pctx.stroke();
+                } else if (p.type === 'higgs') {
+                    pctx.strokeStyle = p.color;
+                    pctx.lineWidth = 1;
+                    for (let r = 5; r <= 18; r += 6) {
+                        pctx.beginPath();
+                        pctx.arc(cx, cy, r, 0, Math.PI * 2);
+                        pctx.stroke();
+                    }
+                } else if (p.type === 'composite') {
+                    pctx.strokeStyle = p.color;
+                    pctx.lineWidth = 1;
+                    pctx.beginPath();
+                    pctx.arc(cx, cy, 16, 0, Math.PI * 2);
+                    pctx.stroke();
+                    for (let i = 0; i < 3; i++) {
+                        const a = animAngle + (i * 2 * Math.PI / 3);
+                        
+                        // Proton = uud (2 Up = #cba6f7, 1 Down = #f38ba8)
+                        // Neutron = udd (1 Up = #cba6f7, 2 Down = #f38ba8)
+                        let quarkColor = '#cba6f7';
+                        if (p.id === 'p') {
+                            quarkColor = (i === 2) ? '#f38ba8' : '#cba6f7'; // uud
+                        } else if (p.id === 'n') {
+                            quarkColor = (i === 0) ? '#cba6f7' : '#f38ba8'; // udd
+                        }
+
+                        pctx.fillStyle = quarkColor;
+                        pctx.beginPath();
+                        pctx.arc(cx + Math.cos(a) * 8, cy + Math.sin(a) * 8, 3.5, 0, Math.PI * 2);
+                        pctx.fill();
+                    }
+                }
+                pctx.restore();
+            });
+        }
+
+        function selectParticle(p) {
+            selectedParticle = p;
+            const activeChip = document.querySelector('.filter-chip.active');
+            const currentFilter = activeChip ? activeChip.getAttribute('onclick').match(/'([^']+)'/)[1] : 'all';
+            renderGrid(currentFilter);
+
+            const details = document.getElementById('particleDetails');
+            details.innerHTML = `
+                <div style="text-align: center; margin-bottom: 8px;">
+                    <span style="font-size: 1.8rem; font-weight: bold; color: ${p.color};">${p.symbol}</span>
+                    <h3 style="font-size: 1rem; color: var(--text-main);">${p.name}</h3>
+                </div>
+                <div class="telemetry-row"><span class="telemetry-label">Geometric Shape Model:</span><span class="telemetry-val">${p.shape}</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Classification:</span><span class="telemetry-val">${p.type.toUpperCase()} (${p.category})</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Electric Charge:</span><span class="telemetry-val">${p.charge} e</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Rest Mass:</span><span class="telemetry-val">${p.mass}</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Spin State:</span><span class="telemetry-val">${p.spin}</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Force Coupling:</span><span class="telemetry-val">${p.force}</span></div>
+                ${p.structure ? `<div class="telemetry-row"><span class="telemetry-label">Valence Structure:</span><span class="telemetry-val">${p.structure}</span></div>` : ''}
+            `;
+
+            if (p.type === 'quark' && selectedQuarks.length < 3) {
+                selectedQuarks.push(p.symbol);
+                updateHadronSlots();
+            }
+        }
+
+        // Render Particle Model Animation on Sidebar Canvas
+        function renderParticleCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            if (selectedParticle) {
+                const p = selectedParticle;
+
+                if (p.type === 'quark') {
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.rotate(animAngle);
+
+                    const sides = p.shape.includes('Hexagonal') ? 6 : 3;
+                    const radius = 38;
+
+                    ctx.beginPath();
+                    for (let i = 0; i < sides; i++) {
+                        const a = (i * 2 * Math.PI / sides);
+                        const x = Math.cos(a) * radius;
+                        const y = Math.sin(a) * radius;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+                    ctx.closePath();
+                    ctx.strokeStyle = p.color;
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = 0.25;
+                    ctx.fill();
+                    ctx.globalAlpha = 1.0;
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 9, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+
+                    ctx.restore();
+
+                } else if (p.type === 'lepton') {
+                    ctx.save();
+                    ctx.translate(cx, cy);
+
+                    const grad = ctx.createRadialGradient(0, 0, 2, 0, 0, 45);
+                    grad.addColorStop(0, p.color);
+                    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 45, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = p.color;
+                    ctx.lineWidth = 1.8;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 40, 14, animAngle, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 6, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.restore();
+
+                } else if (p.type === 'gauge') {
+                    ctx.save();
+                    ctx.strokeStyle = p.color;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    for (let x = -70; x <= 70; x += 2) {
+                        const y = Math.sin((x * 0.1) + (animAngle * 4)) * 22 * Math.cos(x / 70);
+                        if (x === -70) ctx.moveTo(cx + x, cy + y);
+                        else ctx.lineTo(cx + x, cy + y);
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+
+                } else if (p.type === 'higgs') {
+                    ctx.save();
+                    ctx.translate(cx, cy);
+
+                    for (let r = 10; r <= 55; r += 14) {
+                        const pulseR = ((r + animAngle * 25) % 60);
+                        ctx.beginPath();
+                        ctx.arc(0, 0, pulseR, 0, Math.PI * 2);
+                        ctx.strokeStyle = p.color;
+                        ctx.lineWidth = 1.8;
+                        ctx.globalAlpha = Math.max(0, 1 - (pulseR / 60));
+                        ctx.stroke();
+                    }
+                    ctx.globalAlpha = 1.0;
+                    ctx.restore();
+
+                } else if (p.type === 'composite') {
+                    ctx.save();
+                    ctx.translate(cx, cy);
+
+                    ctx.strokeStyle = 'rgba(250, 179, 135, 0.4)';
+                    ctx.lineWidth = 1.8;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 48, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // Render Valence Quarks inside Hadrons
+                    // Proton (p) = uud -> 2 Up (#cba6f7), 1 Down (#f38ba8)
+                    // Neutron (n) = udd -> 1 Up (#cba6f7), 2 Down (#f38ba8)
+                    for (let i = 0; i < 3; i++) {
+                        const qAngle = animAngle + (i * (Math.PI * 2 / 3));
+                        const qx = Math.cos(qAngle) * 22;
+                        const qy = Math.sin(qAngle) * 22;
+
+                        let qColor = '#cba6f7';
+                        if (p.id === 'p') {
+                            qColor = (i === 2) ? '#f38ba8' : '#cba6f7'; // 2 Up, 1 Down
+                        } else if (p.id === 'n') {
+                            qColor = (i === 0) ? '#cba6f7' : '#f38ba8'; // 1 Up, 2 Down
+                        }
+
+                        ctx.fillStyle = qColor;
+                        ctx.beginPath();
+                        ctx.arc(qx, qy, 9, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.strokeStyle = '#f9e2af';
+                        ctx.lineWidth = 1.2;
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.lineTo(qx, qy);
+                        ctx.stroke();
+                    }
+
+                    ctx.restore();
+                }
+            }
+
+            animAngle += 0.02;
+            drawCardPreviews();
+            requestAnimationFrame(renderParticleCanvas);
+        }
+
+        function updateHadronSlots() {
+            document.getElementById('slot1').innerText = selectedQuarks[0] || '?';
+            document.getElementById('slot2').innerText = selectedQuarks[1] || '?';
+            document.getElementById('slot3').innerText = selectedQuarks[2] || '?';
+
+            const res = document.getElementById('hadronResult');
+            if (selectedQuarks.length === 3) {
+                const str = selectedQuarks.join('');
+                if (str === 'uud') res.innerHTML = "Result: <span style='color: var(--accent-green)'>Proton (p⁺) [Charge +1]</span>";
+                else if (str === 'udd') res.innerHTML = "Result: <span style='color: var(--accent-yellow)'>Neutron (n⁰) [Charge 0]</span>";
+                else res.innerHTML = `Result: Exotic/Unstable Baryon (${str})`;
+            } else {
+                res.innerText = "Add more quarks to test combination...";
+            }
+        }
+
+        function resetHadronBuilder() {
+            selectedQuarks = [];
+            updateHadronSlots();
+        }
+
+        function filterParticles(filter) {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            renderGrid(filter);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function answerQuiz(qNum, element, isCorrect, explanation) {
+            const options = element.parentElement.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.classList.remove('correct-sel', 'wrong-sel'));
+
+            if (isCorrect) {
+                element.classList.add('correct-sel');
+                quizAnswers[qNum - 1] = true;
+            } else {
+                element.classList.add('wrong-sel');
+                quizAnswers[qNum - 1] = false;
+            }
+
+            const expBox = document.getElementById(`qexp-${qNum}`);
+            expBox.style.display = 'block';
+            expBox.style.color = isCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
+            expBox.innerText = explanation;
+
+            const score = quizAnswers.filter(a => a === true).length;
+            document.getElementById('quizScoreText').innerText = `Score: ${score} / 5`;
+        }
+
+        function dismissSponsorAd() {
+            document.getElementById('sponsorAdBanner').style.display = 'none';
+        }
+
+        resizeCanvas();
+        selectParticle(particles[0]);
+        renderGrid('all');
+        renderParticleCanvas();
+    </script>
+</body>
+</html>
