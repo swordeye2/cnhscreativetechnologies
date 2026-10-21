@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subatomic Particle Hierarchy & Hadron Taxonomy - GIT GUD Physics</title>
 
-    <!-- Suite Assets & Theme -->
+    <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
     <link rel="apple-touch-icon" href="./icon-512.png">
     <link rel="manifest" href="./manifest.json">
@@ -98,12 +98,13 @@
             left: 15px;
             display: flex;
             gap: 8px;
-            background: rgba(24, 24, 37, 0.85);
+            background: rgba(24, 24, 37, 0.88);
             backdrop-filter: blur(8px);
             padding: 8px;
             border-radius: 8px;
             border: 1px solid var(--border-color);
             z-index: 5;
+            flex-wrap: wrap;
         }
 
         .sidebar {
@@ -160,9 +161,11 @@
     <div class="app-container">
         <div class="canvas-area" id="canvasArea">
             <div class="floating-controls">
-                <button class="btn" onclick="resetView()">🔍 Reset View</button>
-                <button class="btn" onclick="zoom(1.2)">➕ Zoom In</button>
-                <button class="btn" onclick="zoom(0.8)">➖ Zoom Out</button>
+                <button class="btn" onclick="resetView()">🔍 Center Tree</button>
+                <button class="btn" onclick="expandAll()">➕ Expand All</button>
+                <button class="btn" onclick="collapseAll()">➖ Collapse All</button>
+                <button class="btn" onclick="zoom(1.2)">🔍 In</button>
+                <button class="btn" onclick="zoom(0.8)">🔍 Out</button>
             </div>
             <canvas id="treeCanvas"></canvas>
         </div>
@@ -187,11 +190,10 @@
             </div>
 
             <div class="panel-card">
-                <div class="panel-title">Quantum Spin Animation Legend</div>
+                <div class="panel-title">Node Collapse Controls</div>
                 <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-sub);">
-                    <p style="margin-bottom: 6px;"><strong style="color:var(--accent-blue);">Spin-1/2 Fermions:</strong> Rotates on a tilted intrinsic quantum axis with oscillating spin arrows ($\uparrow / \downarrow$)[cite: 1, 2].</p>
-                    <p style="margin-bottom: 6px;"><strong style="color:var(--accent-green);">Spin-1 Gauge Bosons:</strong> Transverse undulating field waves propagating vector force energy[cite: 1, 2].</p>
-                    <p><strong style="color:var(--accent-yellow);">Spin-0 Scalars:</strong> Concentric expanding scalar field ripples (Higgs Mechanism)[cite: 1, 2].</p>
+                    <p style="margin-bottom: 6px;"><strong style="color:var(--accent-blue);">Interactive Collapse:</strong> Click on any node card to fold or unfold its branches[cite: 1].</p>
+                    <p><strong style="color:var(--accent-green);">Auto-Spacing:</strong> The layout dynamically recalculates horizontal gaps so sub-branches never overlap[cite: 1].</p>
                 </div>
             </div>
         </div>
@@ -202,9 +204,9 @@
         const canvas = document.getElementById('treeCanvas');
         const ctx = canvas.getContext('2d');
 
-        let zoomLevel = 1.0;
-        let panX = 40;
-        let panY = 40;
+        let zoomLevel = 0.9;
+        let panX = 100;
+        let panY = 60;
         let isDragging = false;
         let startX = 0, startY = 0;
         let rotAngle = 0;
@@ -220,54 +222,58 @@
         };
 
         const hierarchyTree = {
-            id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', charge: '0',
+            id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', charge: '0', expanded: true,
             children: [
                 {
-                    id: 'fermions', name: 'FERMIONS (Half-Integer Spin)', style: palette.fermion, spin: '1/2, 3/2', charge: 'Fractional/Integer',
+                    id: 'fermions', name: 'FERMIONS (Half-Integer Spin)', style: palette.fermion, spin: '1/2, 3/2', charge: 'Fractional/Integer', expanded: true,
                     children: [
                         {
-                            id: 'quarks', name: 'QUARKS (Elementary)', style: palette.quark, spin: '1/2', charge: '+2/3, -1/3',
+                            id: 'quarks', name: 'QUARKS (Elementary)', style: palette.quark, spin: '1/2', charge: '+2/3, -1/3', expanded: true,
                             children: [
-                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', charge: '+2/3e' },
-                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', charge: '-1/3e' }
+                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', charge: '+2/3e', expanded: false },
+                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', charge: '-1/3e', expanded: false }
                             ]
                         },
                         {
-                            id: 'leptons', name: 'LEPTONS (Elementary)', style: palette.lepton, spin: '1/2', charge: '-1, 0',
+                            id: 'leptons', name: 'LEPTONS (Elementary)', style: palette.lepton, spin: '1/2', charge: '-1, 0', expanded: true,
                             children: [
-                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', charge: '-1e' },
-                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', charge: '0' }
+                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', charge: '-1e', expanded: false },
+                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', charge: '0', expanded: false }
                             ]
                         },
                         {
-                            id: 'hadrons_baryons', name: 'HADRONS: Baryons (qqq)', style: palette.baryon, spin: '1/2, 3/2', charge: '+1, 0',
+                            id: 'hadrons_baryons', name: 'HADRONS: Baryons (qqq)', style: palette.baryon, spin: '1/2, 3/2', charge: '+1, 0', expanded: true,
                             children: [
-                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', charge: '+1e' },
-                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', charge: '0' }
+                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', charge: '+1e', expanded: false },
+                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', charge: '0', expanded: false }
                             ]
                         }
                     ]
                 },
                 {
-                    id: 'bosons', name: 'BOSONS (Integer Spin)', style: palette.boson, spin: '0, 1', charge: '0, ±1',
+                    id: 'bosons', name: 'BOSONS (Integer Spin)', style: palette.boson, spin: '0, 1', charge: '0, ±1', expanded: true,
                     children: [
                         {
-                            id: 'gauge', name: 'GAUGE BOSONS (Vector)', style: palette.boson, spin: '1', charge: '0, ±1',
+                            id: 'gauge', name: 'GAUGE BOSONS (Vector)', style: palette.boson, spin: '1', charge: '0, ±1', expanded: true,
                             children: [
-                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', charge: '0' },
-                                { id: 'w', name: 'W⁻/W⁺ Boson', style: palette.boson, spin: '1', charge: '±1e' }
+                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', charge: '0', expanded: false },
+                                { id: 'w', name: 'W⁻/W⁺ Boson', style: palette.boson, spin: '1', charge: '±1e', expanded: false }
                             ]
                         },
                         {
-                            id: 'hadrons_mesons', name: 'HADRONS: Mesons (qq̄)', style: palette.hadron, spin: '0, 1', charge: '±1, 0',
+                            id: 'hadrons_mesons', name: 'HADRONS: Mesons (qq̄)', style: palette.hadron, spin: '0, 1', charge: '±1, 0', expanded: true,
                             children: [
-                                { id: 'pion', name: 'Pion (π⁺ [ud̄])', style: palette.hadron, spin: '0', charge: '+1e' }
+                                { id: 'pion', name: 'Pion (π⁺ [ud̄])', style: palette.hadron, spin: '0', charge: '+1e', expanded: false }
                             ]
                         }
                     ]
                 }
             ]
         };
+
+        const CARD_W = 210;
+        const CARD_H = 54;
+        const LEVEL_H = 130;
 
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
@@ -276,63 +282,100 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
+        // Pre-calculate Dynamic Subtree Widths for Auto-Spacing
+        function calculateSubtreeWidth(node) {
+            if (!node.children || node.children.length === 0 || !node.expanded) {
+                node.subtreeWidth = CARD_W + 30;
+                return node.subtreeWidth;
+            }
+            let totalW = 0;
+            node.children.forEach(child => {
+                totalW += calculateSubtreeWidth(child);
+            });
+            node.subtreeWidth = Math.max(CARD_W + 30, totalW);
+            return node.subtreeWidth;
+        }
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             rotAngle += 0.04;
+
+            calculateSubtreeWidth(hierarchyTree);
 
             ctx.save();
             ctx.translate(panX, panY);
             ctx.scale(zoomLevel, zoomLevel);
 
-            renderNodeTree(hierarchyTree, 120, 60, 180);
+            renderNode(hierarchyTree, canvas.width / 2 - panX, 20);
 
             ctx.restore();
             requestAnimationFrame(draw);
         }
 
-        function renderNodeTree(node, x, y, xSpacing) {
-            node.x = x; node.y = y;
-            const w = 190, h = 50;
+        function renderNode(node, x, y) {
+            node.x = x - CARD_W / 2;
+            node.y = y;
 
-            if (node.children && node.children.length > 0) {
-                const totalW = (node.children.length - 1) * xSpacing;
-                let startChildX = x - totalW / 2;
+            // Render Connector Lines to Children if Expanded
+            if (node.children && node.children.length > 0 && node.expanded) {
+                let currentLeft = x - node.subtreeWidth / 2;
 
-                node.children.forEach((child, i) => {
-                    const cx = startChildX + i * xSpacing;
-                    const cy = y + 110;
+                node.children.forEach(child => {
+                    const childCenterX = currentLeft + child.subtreeWidth / 2;
+                    const childY = y + LEVEL_H;
 
-                    ctx.strokeStyle = 'rgba(137, 180, 250, 0.4)';
+                    ctx.strokeStyle = 'rgba(137, 180, 250, 0.45)';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
-                    ctx.moveTo(x + w / 2, y + h);
-                    ctx.lineTo(cx + w / 2, cy);
+                    ctx.moveTo(x, y + CARD_H);
+                    ctx.lineTo(childCenterX, childY);
                     ctx.stroke();
 
-                    renderNodeTree(child, cx, cy, xSpacing * 0.85);
+                    renderNode(child, childCenterX, childY);
+                    currentLeft += child.subtreeWidth;
                 });
             }
 
             // Draw Card Body
+            const cardX = node.x;
+            const cardY = node.y;
+
             ctx.fillStyle = node.style.bg;
             ctx.strokeStyle = node.style.border;
-            ctx.lineWidth = 1.8;
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.roundRect(x, y, w, h, 8);
+            ctx.roundRect(cardX, cardY, CARD_W, CARD_H, 8);
             ctx.fill();
             ctx.stroke();
 
-            // Render Animated Spin Micro-Badge
-            drawSpinMicroBadge(x + 16, y + 25, node.spin, node.style.border);
+            // Animated Spin Micro-Badge
+            drawSpinMicroBadge(cardX + 20, cardY + 27, node.spin, node.style.border);
 
             // Node Text
             ctx.fillStyle = node.style.text;
             ctx.font = 'bold 11px sans-serif';
-            ctx.fillText(node.name, x + 38, y + 22);
+            ctx.fillText(node.name, cardX + 42, cardY + 23);
 
             ctx.fillStyle = 'var(--text-sub)';
             ctx.font = '10px monospace';
-            ctx.fillText(`Spin: ${node.spin} | Q: ${node.charge}`, x + 38, y + 38);
+            ctx.fillText(`Spin: ${node.spin} | Charge: ${node.charge}`, cardX + 42, cardY + 40);
+
+            // Collapse / Expand Indicator Badge
+            if (node.children && node.children.length > 0) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.strokeStyle = node.style.border;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(cardX + CARD_W - 14, cardY + 14, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(node.expanded ? '−' : '+', cardX + CARD_W - 14, cardY + 18);
+                ctx.textAlign = 'left';
+            }
         }
 
         function drawSpinMicroBadge(cx, cy, spinStr, color) {
@@ -340,14 +383,12 @@
             ctx.translate(cx, cy);
 
             if (spinStr.includes('1/2') || spinStr.includes('3/2')) {
-                // Spin-1/2 Oscillating Arrow Animation
                 ctx.rotate(Math.sin(rotAngle) * 0.4);
                 ctx.strokeStyle = color; ctx.lineWidth = 2;
                 ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(0, -10); ctx.stroke();
                 ctx.fillStyle = color;
                 ctx.beginPath(); ctx.moveTo(-3, -6); ctx.lineTo(0, -12); ctx.lineTo(3, -6); ctx.fill();
             } else if (spinStr.includes('1')) {
-                // Spin-1 Transverse Wave
                 ctx.strokeStyle = color; ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 for (let i = -10; i <= 10; i++) {
@@ -356,7 +397,6 @@
                 }
                 ctx.stroke();
             } else {
-                // Spin-0 Scalar Ripple
                 ctx.strokeStyle = color; ctx.lineWidth = 1;
                 const r = (rotAngle * 5) % 12;
                 ctx.beginPath(); ctx.arc(0, 0, Math.max(1, r), 0, Math.PI * 2); ctx.stroke();
@@ -364,19 +404,58 @@
             ctx.restore();
         }
 
-        // Mouse Pan & Zoom Control
+        // Node Click Event for Collapse / Expand Toggle
         const area = document.getElementById('canvasArea');
-        area.addEventListener('mousedown', e => { isDragging = true; startX = e.clientX - panX; startY = e.clientY - panY; });
-        window.addEventListener('mousemove', e => { if (isDragging) { panX = e.clientX - startX; panY = e.clientY - startY; } });
-        window.addEventListener('mouseup', () => isDragging = false);
+        area.addEventListener('click', e => {
+            if (isDragging) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left - panX) / zoomLevel;
+            const mouseY = (e.clientY - rect.top - panY) / zoomLevel;
+
+            const clickedNode = findClickedNode(hierarchyTree, mouseX, mouseY);
+            if (clickedNode && clickedNode.children && clickedNode.children.length > 0) {
+                clickedNode.expanded = !clickedNode.expanded;
+                draw();
+            }
+        });
+
+        function findClickedNode(node, mx, my) {
+            if (mx >= node.x && mx <= node.x + CARD_W && my >= node.y && my <= node.y + CARD_H) {
+                return node;
+            }
+            if (node.children && node.expanded) {
+                for (let child of node.children) {
+                    const found = findClickedNode(child, mx, my);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        // Mouse Pan & Zoom Control
+        area.addEventListener('mousedown', e => { isDragging = false; startX = e.clientX - panX; startY = e.clientY - panY; });
+        window.addEventListener('mousemove', e => {
+            if (e.buttons === 1) {
+                isDragging = true;
+                panX = e.clientX - startX;
+                panY = e.clientY - startY;
+            }
+        });
         area.addEventListener('wheel', e => {
             e.preventDefault();
             const factor = e.deltaY < 0 ? 1.1 : 0.9;
-            zoomLevel = Math.min(Math.max(0.4, zoomLevel * factor), 2.5);
+            zoomLevel = Math.min(Math.max(0.3, zoomLevel * factor), 2.2);
         });
 
-        function resetView() { panX = 40; panY = 40; zoomLevel = 1.0; }
-        function zoom(f) { zoomLevel = Math.min(Math.max(0.4, zoomLevel * f), 2.5); }
+        function resetView() { panX = 100; panY = 60; zoomLevel = 0.9; }
+        function zoom(f) { zoomLevel = Math.min(Math.max(0.3, zoomLevel * f), 2.2); }
+
+        function setExpandState(node, state) {
+            if (node.children && node.children.length > 0) node.expanded = state;
+            if (node.children) node.children.forEach(c => setExpandState(c, state));
+        }
+        function expandAll() { setExpandState(hierarchyTree, true); draw(); }
+        function collapseAll() { setExpandState(hierarchyTree, false); hierarchyTree.expanded = true; draw(); }
 
         resizeCanvas();
     </script>
