@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atomic Structure, Mass Defect & Isotope Decay Simulation - GIT GUD Physics</title>
+    <title>Atomic Structure, Mass Defect & Isotope Decay Visualizer - GIT GUD Physics</title>
 
     <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -76,7 +76,7 @@
 
         .workspace {
             display: grid;
-            grid-template-columns: 1fr 380px;
+            grid-template-columns: 1fr 400px;
             gap: 15px;
             padding: 15px;
             flex: 1;
@@ -155,6 +155,18 @@
         .telemetry-label { color: var(--text-sub); }
         .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
 
+        .calc-box {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        .calc-line { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .calc-highlight { color: var(--accent-red); font-weight: bold; border-top: 1px solid var(--border-color); pt: 4px; }
+
         .status-badge {
             padding: 4px 8px;
             border-radius: 4px;
@@ -181,7 +193,7 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Atomic Structure, Mass Defect & Isotope Decay Visualizer</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Atomic Structure & Mass Defect Visualizer</h2>
         </div>
         <div class="nav-group">
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
@@ -230,23 +242,41 @@
                 </div>
             </div>
 
+            <!-- STEP-BY-STEP MASS DEFECT COMPUTATION CARD -->
             <div class="panel-card">
-                <div class="panel-title">Mass Defect & Binding Energy Telemetry</div>
-                <div class="telemetry-row"><span class="telemetry-label">Nuclide Identifier:</span><span class="telemetry-val" id="nuclideLabel">Carbon-12</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">N/Z Ratio:</span><span class="telemetry-val" id="nzRatioVal">1.000</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">Constituent Mass (Sum):</span><span class="telemetry-val" id="sumMassVal">12.0989 amu</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">Mass Defect (Δm):</span><span class="telemetry-val" id="massDefectVal" style="color:var(--accent-red);">0.0989 amu</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">Binding Energy (Eb):</span><span class="telemetry-val" id="bindingEnergyVal" style="color:var(--accent-green);">92.15 MeV</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">Eb per Nucleon (Eb/A):</span><span class="telemetry-val" id="ebPerNucleonVal">7.68 MeV</span></div>
-                <div id="stabilityBadge" class="status-badge badge-stable">STABLE ISOTOPE</div>
+                <div class="panel-title">📐 Mass Defect Computation & Comparison</div>
+                
+                <div class="calc-box">
+                    <div class="calc-line"><span style="color:var(--accent-purple);">Protons Mass:</span><span id="pSubtotal">6 × 1.007276 = 6.0437 amu</span></div>
+                    <div class="calc-line"><span style="color:var(--accent-orange);">Neutrons Mass:</span><span id="nSubtotal">6 × 1.008665 = 6.0520 amu</span></div>
+                    <div class="calc-line"><span style="color:var(--accent-cyan);">Electrons Mass:</span><span id="eSubtotal">6 × 0.0005485 = 0.0033 amu</span></div>
+                    
+                    <div class="calc-line" style="border-top:1px dashed var(--border-color); padding-top:4px; margin-top:4px;">
+                        <span style="color:var(--accent-yellow);">Constituent Sum Mass:</span>
+                        <span id="calcSumMass" style="font-weight:bold; color:var(--accent-yellow);">12.0989 amu</span>
+                    </div>
+                    <div class="calc-line">
+                        <span style="color:var(--accent-blue);">Actual Bound Atom Mass:</span>
+                        <span id="calcActualMass" style="font-weight:bold; color:var(--accent-blue);">12.0000 amu</span>
+                    </div>
+
+                    <div class="calc-line calc-highlight" style="margin-top:6px;">
+                        <span>Missing Mass Defect (Δm):</span>
+                        <span id="calcDeltaM">0.0989 amu</span>
+                    </div>
+                    <div class="calc-line" style="color:var(--accent-green); font-weight:bold;">
+                        <span>Binding Energy (Eb = Δm · c²):</span>
+                        <span id="calcEb">92.15 MeV</span>
+                    </div>
+                </div>
             </div>
 
             <div class="panel-card">
-                <div class="panel-title">Nuclear Decay Behavior</div>
-                <div style="font-size:0.8rem; line-height:1.5; color:var(--text-sub);">
-                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-green);">Stable Isotopes:</strong> Quarks and nucleons exist in steady balance inside the Valley of Beta Stability[cite: 1].</p>
-                    <p><strong style="color:var(--accent-red);">Unstable Isotopes:</strong> Continuously vibrate and shoot out high-speed beta particles ($e^-$) and antineutrinos ($\bar{\nu}_e$) as neutrons convert to protons ($d \rightarrow u + e^- + \bar{\nu}_e$)[cite: 1].</p>
-                </div>
+                <div class="panel-title">Isotope Telemetry & Stability</div>
+                <div class="telemetry-row"><span class="telemetry-label">Nuclide Identifier:</span><span class="telemetry-val" id="nuclideLabel">Carbon-12</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">N/Z Ratio:</span><span class="telemetry-val" id="nzRatioVal">1.000</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Eb per Nucleon (Eb/A):</span><span class="telemetry-val" id="ebPerNucleonVal">7.68 MeV</span></div>
+                <div id="stabilityBadge" class="status-badge badge-stable">STABLE ISOTOPE</div>
             </div>
         </div>
     </div>
@@ -318,14 +348,24 @@
             const nz = Z > 0 ? (N / Z) : 0;
             document.getElementById('nzRatioVal').innerText = nz.toFixed(3);
 
-            const sumMass = (Z * mp) + (N * mn) + (E * me);
-            document.getElementById('sumMassVal').innerText = `${sumMass.toFixed(4)} amu`;
+            // Step-by-step Subtotal Calculations
+            const pMass = Z * mp;
+            const nMass = N * mn;
+            const eMass = E * me;
+            const sumMass = pMass + nMass + eMass;
+
+            document.getElementById('pSubtotal').innerText = `${Z} × 1.007276 = ${pMass.toFixed(4)} amu`;
+            document.getElementById('nSubtotal').innerText = `${N} × 1.008665 = ${nMass.toFixed(4)} amu`;
+            document.getElementById('eSubtotal').innerText = `${E} × 0.0005485 = ${eMass.toFixed(4)} amu`;
+
+            document.getElementById('calcSumMass').innerText = `${sumMass.toFixed(4)} amu`;
+            document.getElementById('calcActualMass').innerText = `${actualMass.toFixed(4)} amu`;
 
             const deltaM = Math.max(0, sumMass - actualMass);
-            document.getElementById('massDefectVal').innerText = `${deltaM.toFixed(4)} amu`;
+            document.getElementById('calcDeltaM').innerText = `${deltaM.toFixed(4)} amu`;
 
             const eb = deltaM * 931.5; // 1 amu = 931.5 MeV
-            document.getElementById('bindingEnergyVal').innerText = `${eb.toFixed(2)} MeV`;
+            document.getElementById('calcEb').innerText = `${eb.toFixed(2)} MeV`;
 
             const A = Z + N;
             const ebPerA = A > 0 ? (eb / A) : 0;
@@ -393,7 +433,7 @@
                 }
             }
 
-            // 2. Draw Electron Shells & Spin-1/2 Electrons (Always 100% Opacity)
+            // 2. Draw Electron Shells & Spin-1/2 Electrons (Full Opacity)
             ctx.save();
             ctx.globalAlpha = 1.0;
             const shellCapacities = [2, 8, 18];
@@ -431,7 +471,7 @@
             });
             ctx.restore();
 
-            // 3. Draw Central Nucleus Cluster (Always 100% Opacity)
+            // 3. Draw Central Nucleus Cluster (Full Opacity)
             ctx.save();
             ctx.globalAlpha = 1.0;
             const totalNucleons = Z + N;
@@ -455,7 +495,7 @@
             }
             ctx.restore();
 
-            // 4. Render Flying Radioactive Particles with Isolated Transparency
+            // 4. Render Flying Radioactive Particles
             for (let i = decayParticles.length - 1; i >= 0; i--) {
                 const p = decayParticles[i];
                 p.x += p.vx;
@@ -465,7 +505,7 @@
                 p.trail.push({ x: p.x, y: p.y });
                 if (p.trail.length > 20) p.trail.shift();
 
-                // Draw Particle Trail in Isolated State
+                // Draw Particle Trail
                 ctx.save();
                 for (let t = 0; t < p.trail.length; t++) {
                     ctx.fillStyle = p.color;
@@ -476,7 +516,7 @@
                 }
                 ctx.restore();
 
-                // Draw Particle Head in Isolated State
+                // Draw Particle Head
                 ctx.save();
                 ctx.globalAlpha = Math.max(0, p.life);
                 ctx.fillStyle = p.color;
