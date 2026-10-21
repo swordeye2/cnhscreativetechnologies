@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atomic Physics, Mass Defect & Isotope Decay Simulation - GIT GUD Physics</title>
+    <title>Atomic Structure, Mass Defect & Automatic Isotope Decay Simulation - GIT GUD Physics</title>
 
     <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -181,7 +181,7 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Atomic Structure, Mass Defect & Isotope Decay Simulation</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Atomic Structure, Mass Defect & Isotope Decay Visualizer</h2>
         </div>
         <div class="nav-group">
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
@@ -204,8 +204,7 @@
                     </select>
                 </div>
                 <div class="nav-group">
-                    <button class="btn" id="triggerDecayBtn" onclick="triggerRadioactiveDecay()">☢️ Trigger Decay Emission</button>
-                    <button class="btn" onclick="resetView()">🔍 Reset Camera</button>
+                    <button class="btn" onclick="resetView()">🔄 Reset Animation</button>
                 </div>
             </div>
 
@@ -243,10 +242,10 @@
             </div>
 
             <div class="panel-card">
-                <div class="panel-title">Nuclear Physics Summary</div>
+                <div class="panel-title">Nuclear Decay Behavior</div>
                 <div style="font-size:0.8rem; line-height:1.5; color:var(--text-sub);">
-                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-yellow);">Mass Defect ($\Delta m$):</strong> The mass of a bound atom is always LESS than the sum of its individual free protons, neutrons, and electrons[cite: 1].</p>
-                    <p><strong style="color:var(--accent-red);">Unstable Isotope Decay:</strong> If $N/Z$ lies outside the Valley of Beta Stability, a neutron converts to a proton, emitting a beta particle ($e^-$) and antineutrino ($\bar{\nu}_e$)[cite: 1].</p>
+                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-green);">Stable Isotopes:</strong> Quarks and nucleons exist in steady balance inside the Valley of Beta Stability[cite: 1].</p>
+                    <p><strong style="color:var(--accent-red);">Unstable Isotopes:</strong> Continuously vibrate and shoot out high-speed beta particles ($e^-$) and antineutrinos ($\bar{\nu}_e$) as neutrons convert to protons ($d \rightarrow u + e^- + \bar{\nu}_e$)[cite: 1].</p>
                 </div>
             </div>
         </div>
@@ -259,8 +258,9 @@
 
         let Z = 6, N = 6, E = 6;
         let rotAngle = 0;
-        let isDecaying = false;
+        let isUnstable = false;
         let decayParticles = [];
+        let spawnTimer = 0;
 
         const mp = 1.007276; // Proton rest mass (amu)
         const mn = 1.008665; // Neutron rest mass (amu)
@@ -291,6 +291,10 @@
             document.getElementById('protonsSlider').value = Z;
             document.getElementById('neutronsSlider').value = N;
             document.getElementById('electronsSlider').value = E;
+
+            document.getElementById('numProtonsVal').innerText = Z;
+            document.getElementById('numNeutronsVal').innerText = N;
+            document.getElementById('numElectronsVal').innerText = E;
 
             updatePhysicsTelemetry(item.name, item.actualMass);
         }
@@ -327,38 +331,69 @@
             const ebPerA = A > 0 ? (eb / A) : 0;
             document.getElementById('ebPerNucleonVal').innerText = `${ebPerA.toFixed(2)} MeV`;
 
-            // Stability Condition: Valley of Beta Stability Check
-            const isStable = (Z <= 2 && N <= 2) || (nz >= 0.95 && nz <= 1.35 && Z <= 8);
+            // Automatic Stability Check
+            const isPresetUnstable = name.includes('Tritium') || name.includes('Carbon-14');
+            const isRatioUnstable = (Z > 0 && (nz < 0.9 || nz > 1.35)) || (Z === 1 && N >= 2);
+            isUnstable = isPresetUnstable || isRatioUnstable;
+
             const badge = document.getElementById('stabilityBadge');
-            if (isStable) {
+            if (!isUnstable) {
                 badge.innerText = "STABLE ISOTOPE";
                 badge.className = "status-badge badge-stable";
+                decayParticles = [];
             } else {
                 badge.innerText = "RADIOACTIVE UNSTABLE (β⁻ DECAY)";
                 badge.className = "status-badge badge-unstable";
             }
         }
 
-        function triggerRadioactiveDecay() {
-            isDecaying = true;
-            decayParticles = [];
+        function spawnDecayEmission(cx, cy) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 5 + Math.random() * 3;
 
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
+            // Beta Particle (e-)
+            decayParticles.push({
+                x: cx, y: cy,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                color: '#89dceb',
+                label: 'e⁻ (Beta)',
+                life: 1.0,
+                trail: []
+            });
 
-            // Emit High-Speed Beta Electron (e-) and Antineutrino (v_e)
-            decayParticles.push({ x: cx, y: cy, vx: 6, vy: -3, color: '#89dceb', label: 'e⁻ (Beta)', trail: [] });
-            decayParticles.push({ x: cx, y: cy, vx: 4, vy: 5, color: '#a6e3a1', label: 'ν̄ₑ (Antineutrino)', trail: [] });
+            // Electron Antineutrino
+            decayParticles.push({
+                x: cx, y: cy,
+                vx: Math.cos(angle + 0.8) * (speed * 0.7),
+                vy: Math.sin(angle + 0.8) * (speed * 0.7),
+                color: '#a6e3a1',
+                label: 'ν̄ₑ (Antineutrino)',
+                life: 1.0,
+                trail: []
+            });
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             rotAngle += 0.02;
 
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
+            let cx = canvas.width / 2;
+            let cy = canvas.height / 2;
 
-            // 1. Draw Electron Shells & Spin-1/2 Electrons
+            // 1. Instability Camera Jitter Effect
+            if (isUnstable) {
+                cx += (Math.random() - 0.5) * 3;
+                cy += (Math.random() - 0.5) * 3;
+
+                // Continuously Spawn Decay Emissions
+                spawnTimer++;
+                if (spawnTimer % 45 === 0) {
+                    spawnDecayEmission(cx, cy);
+                }
+            }
+
+            // 2. Draw Electron Shells & Spin-1/2 Electrons
             const shellCapacities = [2, 8, 18];
             let remainingE = E;
             let currentRadius = 90;
@@ -368,12 +403,10 @@
                 const countInShell = Math.min(remainingE, cap);
                 remainingE -= countInShell;
 
-                // Shell Track
                 ctx.strokeStyle = 'rgba(137, 180, 250, 0.25)';
                 ctx.lineWidth = 1.5;
                 ctx.beginPath(); ctx.arc(cx, cy, currentRadius, 0, Math.PI * 2); ctx.stroke();
 
-                // Render Orbiting Electrons with Spin-1/2 Arrow Indicator
                 for (let i = 0; i < countInShell; i++) {
                     const angle = (i / countInShell) * Math.PI * 2 + (shellIdx % 2 === 0 ? rotAngle : -rotAngle);
                     const ex = cx + Math.cos(angle) * currentRadius;
@@ -382,20 +415,20 @@
                     ctx.fillStyle = '#89dceb';
                     ctx.beginPath(); ctx.arc(ex, ey, 6, 0, Math.PI * 2); ctx.fill();
 
-                    // Spin Arrow Direction
+                    // Spin-1/2 Arrow Indicator
                     const spinUp = i % 2 === 0;
                     ctx.strokeStyle = '#ffffff';
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
-                    ctx.moveTo(ex, ey + (spinUp ? 8 : -8));
-                    ctx.lineTo(ex, ey - (spinUp ? 8 : -8));
+                    ctx.moveTo(ex, ey + (spinUp ? 7 : -7));
+                    ctx.lineTo(ex, ey - (spinUp ? 7 : -7));
                     ctx.stroke();
                 }
 
                 currentRadius += 50;
             });
 
-            // 2. Draw Central Nucleus Cluster (Protons + Neutrons)
+            // 3. Draw Central Nucleus Cluster
             const totalNucleons = Z + N;
             for (let i = 0; i < totalNucleons; i++) {
                 const isProton = i < Z;
@@ -407,7 +440,7 @@
 
                 ctx.fillStyle = isProton ? '#cba6f7' : '#f38ba8';
                 ctx.shadowColor = isProton ? '#cba6f7' : '#f38ba8';
-                ctx.shadowBlur = 8;
+                ctx.shadowBlur = isUnstable ? 12 : 6;
                 ctx.beginPath(); ctx.arc(nx, ny, 10, 0, Math.PI * 2); ctx.fill();
 
                 ctx.fillStyle = '#ffffff';
@@ -416,34 +449,40 @@
                 ctx.fillText(isProton ? 'p⁺' : 'n⁰', nx, ny + 3);
             }
 
-            // 3. Render Radioactive Particle Decay Emissions
-            if (isDecaying) {
-                for (let i = 0; i < decayParticles.length; i++) {
-                    const p = decayParticles[i];
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.trail.push({ x: p.x, y: p.y });
-                    if (p.trail.length > 25) p.trail.shift();
+            // 4. Render Flying Radioactive Particles
+            for (let i = decayParticles.length - 1; i >= 0; i--) {
+                const p = decayParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.008;
 
-                    // Render Glowing Trail
-                    for (let t = 0; t < p.trail.length; t++) {
-                        ctx.fillStyle = p.color;
-                        ctx.globalAlpha = t / p.trail.length;
-                        ctx.beginPath();
-                        ctx.arc(p.trail[t].x, p.trail[t].y, 3, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                    ctx.globalAlpha = 1.0;
+                p.trail.push({ x: p.x, y: p.y });
+                if (p.trail.length > 20) p.trail.shift();
 
-                    // Particle Head
+                // Draw Particle Trail
+                for (let t = 0; t < p.trail.length; t++) {
                     ctx.fillStyle = p.color;
-                    ctx.shadowColor = p.color;
-                    ctx.shadowBlur = 10;
-                    ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI * 2); ctx.fill();
+                    ctx.globalAlpha = (t / p.trail.length) * p.life;
+                    ctx.beginPath();
+                    ctx.arc(p.trail[t].x, p.trail[t].y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
 
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 11px monospace';
-                    ctx.fillText(p.label, p.x + 12, p.y + 4);
+                // Draw Particle Head
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, p.life);
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = 10;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI * 2); ctx.fill();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 10px monospace';
+                ctx.fillText(p.label, p.x + 10, p.y + 3);
+                ctx.restore();
+
+                if (p.life <= 0) {
+                    decayParticles.splice(i, 1);
                 }
             }
 
@@ -451,7 +490,6 @@
         }
 
         function resetView() {
-            isDecaying = false;
             decayParticles = [];
             applyPreset();
         }
