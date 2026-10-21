@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subatomic Particle Taxonomy & Hierarchy Tree Visualizer - GIT GUD Physics</title>
+    <title>Subatomic Particle Hierarchy & Hadron Taxonomy - GIT GUD Physics</title>
 
     <!-- Suite Assets & Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -150,7 +150,7 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Taxonomy & Spin Hierarchy</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Taxonomy & Hadron Set Visualizer</h2>
         </div>
         <div class="nav-group">
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
@@ -169,18 +169,25 @@
 
         <div class="sidebar">
             <div class="panel-card">
-                <div class="panel-title">Particle Spin & Quantum Inspector</div>
+                <div class="panel-title">Hadron vs. Baryon Rule Inspector</div>
                 <div id="inspectorBox">
-                    <div class="telemetry-row"><span class="telemetry-label">Selected Node:</span><span class="telemetry-val" id="inspName">Select a node...</span></div>
-                    <div class="telemetry-row"><span class="telemetry-label">Quantum Spin (s):</span><span class="telemetry-val" id="inspSpin">-</span></div>
-                    <div class="telemetry-row"><span class="telemetry-label">Spin Behavior:</span><span class="telemetry-val" id="inspSpinType">-</span></div>
-                    <div class="telemetry-row"><span class="telemetry-label">Electric Charge:</span><span class="telemetry-val" id="inspCharge">-</span></div>
-                    <div class="telemetry-row"><span class="telemetry-label">Description:</span><span class="telemetry-val" id="inspDesc" style="font-size:0.75rem; font-family:sans-serif;">Click any node on the tree to inspect its quantum spin rotation and geometry.</span></div>
+                    <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-main);">
+                        <p style="margin-bottom: 8px;"><strong style="color:var(--accent-orange);">Set Theory Rule:</strong></p>
+                        <p style="margin-bottom: 8px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+                            Baryons ⊂ Hadrons<br>
+                            Mesons ⊂ Hadrons<br><br>
+                            ∴ "Every Baryon is a Hadron, but NOT every Hadron is a Baryon!"
+                        </p>
+                        <p style="font-size:0.8rem; color:var(--text-sub);">
+                            • <strong>Baryons ($qqq$):</strong> Made of 3 quarks $\rightarrow$ Half-Integer Spin $\rightarrow$ Composite Fermions[cite: 1].<br>
+                            • <strong>Mesons ($q\bar{q}$):</strong> Made of 1 quark + 1 antiquark $\rightarrow$ Integer Spin $\rightarrow$ Composite Bosons[cite: 1].
+                        </p>
+                    </div>
                 </div>
             </div>
 
             <div class="panel-card">
-                <div class="panel-title">Spin Animation Legend</div>
+                <div class="panel-title">Quantum Spin Animation Legend</div>
                 <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-sub);">
                     <p style="margin-bottom: 6px;"><strong style="color:var(--accent-blue);">Spin-1/2 Fermions:</strong> Rotates on a tilted intrinsic quantum axis with oscillating spin arrows ($\uparrow / \downarrow$)[cite: 1, 2].</p>
                     <p style="margin-bottom: 6px;"><strong style="color:var(--accent-green);">Spin-1 Gauge Bosons:</strong> Transverse undulating field waves propagating vector force energy[cite: 1, 2].</p>
@@ -201,7 +208,6 @@
         let isDragging = false;
         let startX = 0, startY = 0;
         let rotAngle = 0;
-        let selectedNode = null;
 
         const palette = {
             root: { bg: '#2a2b3d', border: '#cba6f7', text: '#cba6f7' },
@@ -209,52 +215,53 @@
             boson: { bg: '#1e332a', border: '#a6e3a1', text: '#a6e3a1' },
             quark: { bg: '#3b2030', border: '#f38ba8', text: '#f38ba8' },
             lepton: { bg: '#1c313a', border: '#89dceb', text: '#89dceb' },
+            hadron: { bg: '#38281e', border: '#fab387', text: '#fab387' },
             baryon: { bg: '#332c1e', border: '#f9e2af', text: '#f9e2af' }
         };
 
         const hierarchyTree = {
-            id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', charge: '0', desc: 'All matter building blocks and fundamental force carriers.',
+            id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', charge: '0',
             children: [
                 {
-                    id: 'fermions', name: 'FERMIONS (Half-Integer Spin)', style: palette.fermion, spin: '1/2, 3/2', charge: 'Fractional/Integer', desc: 'Matter particles obeying Pauli Exclusion Principle.',
+                    id: 'fermions', name: 'FERMIONS (Half-Integer Spin)', style: palette.fermion, spin: '1/2, 3/2', charge: 'Fractional/Integer',
                     children: [
                         {
-                            id: 'quarks', name: 'QUARKS (s = 1/2)', style: palette.quark, spin: '1/2', charge: '+2/3, -1/3', desc: 'Elementary point-like matter carrying color charge.',
+                            id: 'quarks', name: 'QUARKS (Elementary)', style: palette.quark, spin: '1/2', charge: '+2/3, -1/3',
                             children: [
-                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', charge: '+2/3e', desc: 'Lightest quark, component of protons and neutrons.' },
-                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', charge: '-1/3e', desc: 'Second-lightest quark, turns into Up quark in beta decay.' }
+                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', charge: '+2/3e' },
+                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', charge: '-1/3e' }
                             ]
                         },
                         {
-                            id: 'leptons', name: 'LEPTONS (s = 1/2)', style: palette.lepton, spin: '1/2', charge: '-1, 0', desc: 'Elementary matter experiencing no strong force.',
+                            id: 'leptons', name: 'LEPTONS (Elementary)', style: palette.lepton, spin: '1/2', charge: '-1, 0',
                             children: [
-                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', charge: '-1e', desc: 'Fundamental lepton with intrinsic 1/2 spin rotation.' },
-                                { id: 'nue', name: 'Neutrino (νₑ)', style: palette.lepton, spin: '1/2', charge: '0', desc: 'Nearly massless neutral lepton.' }
+                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', charge: '-1e' },
+                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', charge: '0' }
                             ]
                         },
                         {
-                            id: 'baryons', name: 'BARYONS (Composite qqq)', style: palette.baryon, spin: '1/2', charge: '+1, 0', desc: 'Composite fermions formed by 3 valence quarks.',
+                            id: 'hadrons_baryons', name: 'HADRONS: Baryons (qqq)', style: palette.baryon, spin: '1/2, 3/2', charge: '+1, 0',
                             children: [
-                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', charge: '+1e', desc: 'Stable baryon composed of uud valence quarks.' },
-                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', charge: '0', desc: 'Neutral baryon composed of udd valence quarks.' }
+                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', charge: '+1e' },
+                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', charge: '0' }
                             ]
                         }
                     ]
                 },
                 {
-                    id: 'bosons', name: 'BOSONS (Integer Spin)', style: palette.boson, spin: '0, 1', charge: '0, ±1', desc: 'Force carriers and scalar mass couplings.',
+                    id: 'bosons', name: 'BOSONS (Integer Spin)', style: palette.boson, spin: '0, 1', charge: '0, ±1',
                     children: [
                         {
-                            id: 'gauge', name: 'GAUGE BOSONS (s = 1)', style: palette.boson, spin: '1', charge: '0, ±1', desc: 'Vector bosons mediating fundamental interactions.',
+                            id: 'gauge', name: 'GAUGE BOSONS (Vector)', style: palette.boson, spin: '1', charge: '0, ±1',
                             children: [
-                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', charge: '0', desc: 'Strong force carrier binding quarks together.' },
-                                { id: 'w', name: 'W⁻/W⁺ Boson', style: palette.boson, spin: '1', charge: '±1e', desc: 'Weak force carrier mediating flavor transformation.' }
+                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', charge: '0' },
+                                { id: 'w', name: 'W⁻/W⁺ Boson', style: palette.boson, spin: '1', charge: '±1e' }
                             ]
                         },
                         {
-                            id: 'scalars', name: 'HIGGS BOSON (s = 0)', style: palette.boson, spin: '0', charge: '0', desc: 'Scalar boson giving rest mass to fundamental particles.',
+                            id: 'hadrons_mesons', name: 'HADRONS: Mesons (qq̄)', style: palette.hadron, spin: '0, 1', charge: '±1, 0',
                             children: [
-                                { id: 'h', name: 'Higgs (H⁰)', style: palette.boson, spin: '0', charge: '0', desc: 'Pulsing scalar field ripple.' }
+                                { id: 'pion', name: 'Pion (π⁺ [ud̄])', style: palette.hadron, spin: '0', charge: '+1e' }
                             ]
                         }
                     ]
@@ -277,7 +284,7 @@
             ctx.translate(panX, panY);
             ctx.scale(zoomLevel, zoomLevel);
 
-            renderNodeTree(hierarchyTree, 100, 80, 160);
+            renderNodeTree(hierarchyTree, 120, 60, 180);
 
             ctx.restore();
             requestAnimationFrame(draw);
@@ -285,7 +292,7 @@
 
         function renderNodeTree(node, x, y, xSpacing) {
             node.x = x; node.y = y;
-            const w = 180, h = 50;
+            const w = 190, h = 50;
 
             if (node.children && node.children.length > 0) {
                 const totalW = (node.children.length - 1) * xSpacing;
@@ -308,15 +315,15 @@
 
             // Draw Card Body
             ctx.fillStyle = node.style.bg;
-            ctx.strokeStyle = node === selectedNode ? '#f9e2af' : node.style.border;
-            ctx.lineWidth = node === selectedNode ? 3 : 1.5;
+            ctx.strokeStyle = node.style.border;
+            ctx.lineWidth = 1.8;
             ctx.beginPath();
             ctx.roundRect(x, y, w, h, 8);
             ctx.fill();
             ctx.stroke();
 
             // Render Animated Spin Micro-Badge
-            drawSpinMicroBadge(x + 15, y + 25, node.spin, node.style.border);
+            drawSpinMicroBadge(x + 16, y + 25, node.spin, node.style.border);
 
             // Node Text
             ctx.fillStyle = node.style.text;
@@ -332,7 +339,7 @@
             ctx.save();
             ctx.translate(cx, cy);
 
-            if (spinStr.includes('1/2')) {
+            if (spinStr.includes('1/2') || spinStr.includes('3/2')) {
                 // Spin-1/2 Oscillating Arrow Animation
                 ctx.rotate(Math.sin(rotAngle) * 0.4);
                 ctx.strokeStyle = color; ctx.lineWidth = 2;
