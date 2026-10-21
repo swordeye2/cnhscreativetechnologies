@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atomic Structure, Mass Defect & Automatic Isotope Decay Simulation - GIT GUD Physics</title>
+    <title>Atomic Structure, Mass Defect & Isotope Decay Simulation - GIT GUD Physics</title>
 
     <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -388,12 +388,14 @@
 
                 // Continuously Spawn Decay Emissions
                 spawnTimer++;
-                if (spawnTimer % 45 === 0) {
+                if (spawnTimer % 40 === 0) {
                     spawnDecayEmission(cx, cy);
                 }
             }
 
-            // 2. Draw Electron Shells & Spin-1/2 Electrons
+            // 2. Draw Electron Shells & Spin-1/2 Electrons (Always 100% Opacity)
+            ctx.save();
+            ctx.globalAlpha = 1.0;
             const shellCapacities = [2, 8, 18];
             let remainingE = E;
             let currentRadius = 90;
@@ -427,8 +429,11 @@
 
                 currentRadius += 50;
             });
+            ctx.restore();
 
-            // 3. Draw Central Nucleus Cluster
+            // 3. Draw Central Nucleus Cluster (Always 100% Opacity)
+            ctx.save();
+            ctx.globalAlpha = 1.0;
             const totalNucleons = Z + N;
             for (let i = 0; i < totalNucleons; i++) {
                 const isProton = i < Z;
@@ -448,8 +453,9 @@
                 ctx.textAlign = 'center';
                 ctx.fillText(isProton ? 'p⁺' : 'n⁰', nx, ny + 3);
             }
+            ctx.restore();
 
-            // 4. Render Flying Radioactive Particles
+            // 4. Render Flying Radioactive Particles with Isolated Transparency
             for (let i = decayParticles.length - 1; i >= 0; i--) {
                 const p = decayParticles[i];
                 p.x += p.vx;
@@ -459,16 +465,18 @@
                 p.trail.push({ x: p.x, y: p.y });
                 if (p.trail.length > 20) p.trail.shift();
 
-                // Draw Particle Trail
+                // Draw Particle Trail in Isolated State
+                ctx.save();
                 for (let t = 0; t < p.trail.length; t++) {
                     ctx.fillStyle = p.color;
-                    ctx.globalAlpha = (t / p.trail.length) * p.life;
+                    ctx.globalAlpha = Math.max(0, (t / p.trail.length) * p.life);
                     ctx.beginPath();
                     ctx.arc(p.trail[t].x, p.trail[t].y, 3, 0, Math.PI * 2);
                     ctx.fill();
                 }
+                ctx.restore();
 
-                // Draw Particle Head
+                // Draw Particle Head in Isolated State
                 ctx.save();
                 ctx.globalAlpha = Math.max(0, p.life);
                 ctx.fillStyle = p.color;
