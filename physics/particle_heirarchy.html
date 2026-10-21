@@ -435,10 +435,10 @@
             <!-- Tab 1: Hierarchy Rules -->
             <div id="tab-hierarchy" class="tab-content active">
                 <div class="math-card">
-                    <div><strong>Subatomic Hierarchy Summary & Classification Rules:</strong></div>
-                    <div>  • <strong>Fermions (Half-Integer Spin):</strong> Matter particles obeying Pauli Exclusion. Includes fundamental <strong>Quarks</strong>, fundamental <strong>Leptons</strong>, and composite <strong>Baryons</strong> ($qqq$).</div>
-                    <div>  • <strong>Bosons (Integer Spin):</strong> Force carriers and field excitations (no Pauli Exclusion). Includes fundamental <strong>Gauge/Higgs Bosons</strong> and composite <strong>Mesons</strong> ($q\bar{q}$).</div>
-                    <div>  • <strong>Hadrons (Composite Quarks):</strong> Bound quark states. Split by quark count into <strong>Baryons</strong> (3 quarks $\rightarrow$ Fermions) and <strong>Mesons</strong> (1 quark + 1 antiquark $\rightarrow$ Bosons).</div>
+                    <div><strong>Subatomic Building Blocks vs. Force Carriers:</strong></div>
+                    <div>  • <strong>Fermions (The Matter):</strong> Quarks, Leptons, and Baryons form physical matter[cite: 1]. They obey Pauli Exclusion so matter occupies physical space[cite: 1].</div>
+                    <div>  • <strong>Bosons (The Glue & Forces):</strong> Gauge bosons (Gluons, Photons, W/Z) act as "force glue" exchanged between fermions to attract, repel, bind, or transform them[cite: 1].</div>
+                    <div>  • <strong>Mesons as Residual Nuclear Glue:</strong> Composite integer-spin bosons ($q\bar{q}$) mediate the residual strong force binding protons and neutrons inside atomic nuclei[cite: 1].</div>
                 </div>
             </div>
 
@@ -446,10 +446,10 @@
             <div id="tab-laws" class="tab-content">
                 <div class="math-card">
                     <div><strong>Fundamental Interactions & Spin Rules:</strong></div>
-                    <div>  • <strong>Strong Force:</strong> Mediated by Gluons ($g$). Binds quarks into hadrons via color confinement.</div>
-                    <div>  • <strong>Electromagnetic Force:</strong> Mediated by Photons ($\gamma$). Interacts with electric charge.</div>
-                    <div>  • <strong>Weak Force:</strong> Mediated by $W^\pm$ and $Z^0$ bosons. Responsible for flavor change & beta decay.</div>
-                    <div>  • <strong>Spin Addition Rule:</strong> Odd quark counts ($qqq$) result in half-integer spin (Fermions); even quark counts ($q\bar{q}$) result in integer spin (Bosons).</div>
+                    <div>  • <strong>Strong Force (Quark Glue):</strong> Mediated by Gluons ($g$). Binds quarks into hadrons via color charge confinement[cite: 1].</div>
+                    <div>  • <strong>Electromagnetic Force (Atomic Glue):</strong> Mediated by Photons ($\gamma$). Binds electrons to nuclei and powers chemical bonds[cite: 1].</div>
+                    <div>  • <strong>Weak Force (Flavor Transformations):</strong> Mediated by $W^\pm$ and $Z^0$ bosons[cite: 1]. Drives radioactive beta decay and stellar fusion.</div>
+                    <div>  • <strong>Spin Addition Rule:</strong> Odd quark counts ($qqq$) yield half-integer net spin (Fermions); even counts ($q\bar{q}$) yield integer net spin (Bosons)[cite: 1].</div>
                 </div>
             </div>
 
@@ -494,10 +494,10 @@
                     </div>
 
                     <div class="quiz-item">
-                        <div class="quiz-qtext">Q5: What is the fundamental valence quark composition of a Neutron?</div>
-                        <div class="quiz-option" onclick="answerQuiz(5, this, false, 'uud is a Proton.')">A) 2 Up + 1 Down (uud)</div>
-                        <div class="quiz-option" onclick="answerQuiz(5, this, true, 'Correct! Neutron is udd (+2/3 - 1/3 - 1/3 = 0 charge).')">B) 1 Up + 2 Down (udd)</div>
-                        <div class="quiz-option" onclick="answerQuiz(5, this, false, 'Electrons are elementary leptons.')">C) 3 Down (ddd)</div>
+                        <div class="quiz-qtext">Q5: What fundamental boson acts as the "quark glue" holding protons together?</div>
+                        <div class="quiz-option" onclick="answerQuiz(5, this, false, 'Photons mediate electromagnetic interactions.')">A) Photon</div>
+                        <div class="quiz-option" onclick="answerQuiz(5, this, true, 'Correct! Gluons mediate the strong force and bind quarks into hadrons.')">B) Gluon</div>
+                        <div class="quiz-option" onclick="answerQuiz(5, this, false, 'W bosons drive weak nuclear decays.')">C) W Boson</div>
                         <div class="quiz-explain" id="qexp-5"></div>
                     </div>
                 </div>
@@ -556,55 +556,55 @@
             baryon: { bg: '#332c1e', border: '#f9e2af', text: '#f9e2af' }
         };
 
-        // Updated Hierarchy Data Structure (Reflecting Mesons under Bosons & Baryons under Fermions)
+        // Updated Hierarchy Data Structure (Emphasizing Matter Builders vs Force Carriers)
         const hierarchyTree = {
             id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', charge: 'Net 0', expanded: true,
             children: [
                 {
-                    id: 'fermions', name: 'FERMIONS (Half-Integer Spin)', style: palette.fermion, spin: '1/2, 3/2', charge: 'Fractional/Integer', desc: 'Matter particles obeying Pauli Exclusion Principle', expanded: true,
+                    id: 'fermions', name: 'FERMIONS (Matter Builders)', style: palette.fermion, spin: '1/2, 3/2', charge: 'Fractional/Integer', desc: 'Tangible matter building blocks occupying physical space (Obey Pauli Exclusion)', expanded: true,
                     children: [
                         {
                             id: 'quarks', name: 'QUARKS (Elementary)', style: palette.quark, spin: '1/2', charge: '+2/3, -1/3', desc: 'Point-like, Color-Charged, Strong Force active', expanded: true,
                             children: [
-                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', charge: '+2/3e', mass: '2.16 MeV', shape: 'Triangular Node' },
-                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', charge: '-1/3e', mass: '4.67 MeV', shape: 'Triangular Node' },
-                                { id: 'c', name: 'Charm Quark (c)', style: palette.quark, spin: '1/2', charge: '+2/3e', mass: '1.27 GeV', shape: 'Hexagonal Node' },
-                                { id: 's', name: 'Strange Quark (s)', style: palette.quark, spin: '1/2', charge: '-1/3e', mass: '93.4 MeV', shape: 'Hexagonal Node' }
+                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', charge: '+2/3e', mass: '2.16 MeV', shape: 'Triangular Node', role: 'Fundamental Quark' },
+                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', charge: '-1/3e', mass: '4.67 MeV', shape: 'Triangular Node', role: 'Fundamental Quark' },
+                                { id: 'c', name: 'Charm Quark (c)', style: palette.quark, spin: '1/2', charge: '+2/3e', mass: '1.27 GeV', shape: 'Hexagonal Node', role: 'Fundamental Quark' },
+                                { id: 's', name: 'Strange Quark (s)', style: palette.quark, spin: '1/2', charge: '-1/3e', mass: '93.4 MeV', shape: 'Hexagonal Node', role: 'Fundamental Quark' }
                             ]
                         },
                         {
                             id: 'leptons', name: 'LEPTONS (Elementary)', style: palette.lepton, spin: '1/2', charge: '-1, 0', desc: 'Point-like, NO Color Charge, NO Strong Force', expanded: true,
                             children: [
-                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', charge: '-1e', mass: '0.511 MeV', shape: 'Spherical Cloud' },
-                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', charge: '0', mass: '< 0.8 eV', shape: 'Spherical Cloud' },
-                                { id: 'mu', name: 'Muon (μ⁻)', style: palette.lepton, spin: '1/2', charge: '-1e', mass: '105.66 MeV', shape: 'Spherical Cloud' }
+                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', charge: '-1e', mass: '0.511 MeV', shape: 'Spherical Cloud', role: 'Fundamental Lepton' },
+                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', charge: '0', mass: '< 0.8 eV', shape: 'Spherical Cloud', role: 'Fundamental Lepton' },
+                                { id: 'mu', name: 'Muon (μ⁻)', style: palette.lepton, spin: '1/2', charge: '-1e', mass: '105.66 MeV', shape: 'Spherical Cloud', role: 'Fundamental Lepton' }
                             ]
                         },
                         {
-                            id: 'baryons', name: 'BARYONS (Composite qqq)', style: palette.baryon, spin: '1/2, 3/2', charge: '+1, 0', desc: '3 Valence Quarks (Composite Fermions)', expanded: true,
+                            id: 'baryons', name: 'BARYONS (Composite qqq)', style: palette.baryon, spin: '1/2, 3/2', charge: '+1, 0', desc: '3 Valence Quarks (Composite Fermions forming nuclei)', expanded: true,
                             children: [
-                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', charge: '+1e', mass: '938.27 MeV', structure: 'uud', shape: 'Multi-Nodular Cluster' },
-                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', charge: '0', mass: '939.57 MeV', structure: 'udd', shape: 'Multi-Nodular Cluster' }
+                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', charge: '+1e', mass: '938.27 MeV', structure: 'uud', shape: 'Multi-Nodular Cluster', role: 'Composite Baryon' },
+                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', charge: '0', mass: '939.57 MeV', structure: 'udd', shape: 'Multi-Nodular Cluster', role: 'Composite Baryon' }
                             ]
                         }
                     ]
                 },
                 {
-                    id: 'bosons', name: 'BOSONS (Integer Spin)', style: palette.boson, spin: '0, 1', charge: '0, ±1', desc: 'Force carriers & composite integer-spin states (No Pauli Exclusion)', expanded: true,
+                    id: 'bosons', name: 'BOSONS (Force Carriers & Glue)', style: palette.boson, spin: '0, 1', charge: '0, ±1', desc: 'Interactions passed between fermions to mediate forces & mass (No Pauli Exclusion)', expanded: true,
                     children: [
                         {
-                            id: 'gauge', name: 'GAUGE/SCALAR BOSONS', style: palette.boson, spin: '0, 1', charge: '0, ±1', desc: 'Elementary Force Mediators & Mass Fields', expanded: true,
+                            id: 'gauge', name: 'GAUGE/SCALAR BOSONS', style: palette.boson, spin: '0, 1', charge: '0, ±1', desc: 'Elementary Force Mediators & Mass Field Excitations', expanded: true,
                             children: [
-                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', charge: '0', force: 'Strong Force', shape: 'Sinusoidal Wave' },
-                                { id: 'gamma', name: 'Photon (γ)', style: palette.boson, spin: '1', charge: '0', force: 'Electromagnetic', shape: 'Sinusoidal Wave' },
-                                { id: 'w', name: 'W Boson (W±)', style: palette.boson, spin: '1', charge: '±1e', force: 'Weak Force', shape: 'Sinusoidal Wave' },
-                                { id: 'h', name: 'Higgs Boson (H⁰)', style: palette.boson, spin: '0', charge: '0', force: 'Mass Coupling', shape: 'Scalar Ripple' }
+                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', charge: '0', force: 'Strong Force (Quark Glue)', shape: 'Sinusoidal Wave', role: 'Force Mediator' },
+                                { id: 'gamma', name: 'Photon (γ)', style: palette.boson, spin: '1', charge: '0', force: 'Electromagnetic (Atomic Glue)', shape: 'Sinusoidal Wave', role: 'Force Mediator' },
+                                { id: 'w', name: 'W Boson (W±)', style: palette.boson, spin: '1', charge: '±1e', force: 'Weak Force (Flavor Change)', shape: 'Sinusoidal Wave', role: 'Force Mediator' },
+                                { id: 'h', name: 'Higgs Boson (H⁰)', style: palette.boson, spin: '0', charge: '0', force: 'Higgs Field (Mass Coupling Drag)', shape: 'Scalar Ripple', role: 'Mass Scalar Boson' }
                             ]
                         },
                         {
-                            id: 'mesons', name: 'MESONS (Composite qq̄)', style: palette.hadron, spin: '0, 1', charge: '±1, 0', desc: '1 Quark + 1 Antiquark (Composite Bosons)', expanded: true,
+                            id: 'mesons', name: 'MESONS (Residual Nuclear Glue)', style: palette.hadron, spin: '0, 1', charge: '±1, 0', desc: 'Composite bosons (qq̄) mediating residual strong force between nucleons', expanded: true,
                             children: [
-                                { id: 'pion', name: 'Pion (π⁺)', style: palette.baryon, spin: '0', charge: '+1e', mass: '139.57 MeV', structure: 'u d̄', shape: 'Dual-Node Bound Wave' }
+                                { id: 'pion', name: 'Pion (π⁺)', style: palette.baryon, spin: '0', charge: '+1e', mass: '139.57 MeV', structure: 'u d̄', shape: 'Dual-Node Bound Wave', role: 'Composite Meson' }
                             ]
                         }
                     ]
@@ -623,8 +623,10 @@
                 <div style="text-align: center; margin-bottom: 8px;">
                     <h3 style="font-size: 1.1rem; color: ${node.style ? node.style.text : 'var(--accent-blue)'};">${node.name}</h3>
                 </div>
+                ${node.role ? `<div class="telemetry-row"><span class="telemetry-label">Quantum Function:</span><span class="telemetry-val" style="color:var(--accent-green);">${node.role}</span></div>` : ''}
                 <div class="telemetry-row"><span class="telemetry-label">Electric Charge:</span><span class="telemetry-val">${node.charge || 'N/A'}</span></div>
                 <div class="telemetry-row"><span class="telemetry-label">Spin State:</span><span class="telemetry-val">${node.spin || 'N/A'}</span></div>
+                ${node.force ? `<div class="telemetry-row"><span class="telemetry-label">Mediated Force:</span><span class="telemetry-val" style="color:var(--accent-yellow);">${node.force}</span></div>` : ''}
                 ${node.mass ? `<div class="telemetry-row"><span class="telemetry-label">Rest Mass:</span><span class="telemetry-val">${node.mass}</span></div>` : ''}
                 ${node.structure ? `<div class="telemetry-row"><span class="telemetry-label">Valence Structure:</span><span class="telemetry-val">${node.structure}</span></div>` : ''}
                 ${node.shape ? `<div class="telemetry-row"><span class="telemetry-label">Geometric Model:</span><span class="telemetry-val">${node.shape}</span></div>` : ''}
@@ -635,14 +637,14 @@
         // Compute subtree width for layout math
         function computeWidth(node) {
             if (!node.expanded || !node.children || node.children.length === 0) {
-                node.subtreeWidth = 140;
-                return 140;
+                node.subtreeWidth = 155;
+                return 155;
             }
             let total = 0;
             node.children.forEach(c => {
                 total += computeWidth(c) + 25;
             });
-            node.subtreeWidth = Math.max(140, total - 25);
+            node.subtreeWidth = Math.max(155, total - 25);
             return node.subtreeWidth;
         }
 
@@ -697,12 +699,12 @@
                 treeCtx.lineWidth = isSelected ? 2.5 : 1.5;
 
                 treeCtx.beginPath();
-                treeCtx.roundRect(node.lx - 65, node.ly - 16, 130, 32, 6);
+                treeCtx.roundRect(node.lx - 75, node.ly - 16, 150, 32, 6);
                 treeCtx.fill();
                 treeCtx.stroke();
 
                 treeCtx.fillStyle = isSelected ? '#ffffff' : st.text;
-                treeCtx.font = `${isSelected ? 'bold' : '600'} 10px monospace`;
+                treeCtx.font = `${isSelected ? 'bold' : '600'} 9.5px monospace`;
                 treeCtx.textAlign = 'center';
                 treeCtx.fillText(node.name, node.lx, node.ly + 4);
 
@@ -755,7 +757,7 @@
             const mouseY = (e.offsetY - transform.y) / transform.scale;
 
             function findNode(node) {
-                if (node.lx !== undefined && Math.abs(mouseX - node.lx) < 65 && Math.abs(mouseY - node.ly) < 16) {
+                if (node.lx !== undefined && Math.abs(mouseX - node.lx) < 75 && Math.abs(mouseY - node.ly) < 16) {
                     if (node.children && node.children.length > 0) {
                         node.expanded = !node.expanded;
                     }
@@ -776,9 +778,9 @@
 
         // Recalculate & Reset View
         function fitTreeToScreen() {
-            transform.scale = 0.85;
+            transform.scale = 0.82;
             transform.x = treeCanvas.width / 2;
-            transform.y = 50;
+            transform.y = 45;
             drawTree();
         }
 
