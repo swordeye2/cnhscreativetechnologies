@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subatomic Particle Hierarchy & Hadron Taxonomy - GIT GUD Physics</title>
+    <title>Subatomic Particle Hierarchy & Hadron Subset - GIT GUD Physics</title>
 
     <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -134,16 +134,16 @@
             padding-bottom: 4px;
         }
 
-        .telemetry-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px dashed var(--border-color);
-            font-size: 0.82rem;
+        .code-box {
             font-family: monospace;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--accent-yellow);
         }
-        .telemetry-label { color: var(--text-sub); }
-        .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
     </style>
 </head>
 <body>
@@ -151,7 +151,7 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Taxonomy & Hadron Set Visualizer</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Taxonomy & Hadron Subset</h2>
         </div>
         <div class="nav-group">
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
@@ -173,27 +173,25 @@
         <div class="sidebar">
             <div class="panel-card">
                 <div class="panel-title">Hadron vs. Baryon Rule Inspector</div>
-                <div id="inspectorBox">
-                    <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-main);">
-                        <p style="margin-bottom: 8px;"><strong style="color:var(--accent-orange);">Set Theory Rule:</strong></p>
-                        <p style="margin-bottom: 8px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border: 1px solid var(--border-color);">
-                            Baryons ⊂ Hadrons<br>
-                            Mesons ⊂ Hadrons<br><br>
-                            ∴ "Every Baryon is a Hadron, but NOT every Hadron is a Baryon!"
-                        </p>
-                        <p style="font-size:0.8rem; color:var(--text-sub);">
-                            • <strong>Baryons ($qqq$):</strong> Made of 3 quarks $\rightarrow$ Half-Integer Spin $\rightarrow$ Composite Fermions[cite: 1].<br>
-                            • <strong>Mesons ($q\bar{q}$):</strong> Made of 1 quark + 1 antiquark $\rightarrow$ Integer Spin $\rightarrow$ Composite Bosons[cite: 1].
-                        </p>
+                <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-main);">
+                    <p style="margin-bottom: 8px;"><strong style="color:var(--accent-orange);">Set Theory Relation:</strong></p>
+                    <div class="code-box">
+                        Baryons ⊂ Hadrons<br>
+                        Mesons ⊂ Hadrons<br><br>
+                        ∴ "Every Baryon is a Hadron, but NOT every Hadron is a Baryon!"
                     </div>
+                    <ul style="margin-top: 10px; padding-left: 18px; font-size:0.8rem; color:var(--text-sub);">
+                        <li style="margin-bottom: 6px;"><strong>Baryons (qqq):</strong> Composed of 3 valence quarks (Half-integer spin = Composite Fermions)[cite: 1].</li>
+                        <li><strong>Mesons (q-q̄):</strong> Composed of 1 quark + 1 antiquark (Integer spin = Composite Bosons)[cite: 1].</li>
+                    </ul>
                 </div>
             </div>
 
             <div class="panel-card">
                 <div class="panel-title">Node Collapse Controls</div>
                 <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-sub);">
-                    <p style="margin-bottom: 6px;"><strong style="color:var(--accent-blue);">Interactive Collapse:</strong> Click on any node card to fold or unfold its branches[cite: 1].</p>
-                    <p><strong style="color:var(--accent-green);">Auto-Spacing:</strong> The layout dynamically recalculates horizontal gaps so sub-branches never overlap[cite: 1].</p>
+                    <p style="margin-bottom: 6px;"><strong style="color:var(--accent-blue);">Interactive Collapse:</strong> Click any parent card to fold or unfold its sub-branches[cite: 1].</p>
+                    <p><strong style="color:var(--accent-green);">Rest Mass & Charge:</strong> Particle cards display exact rest mass ($m$) in MeV and electric charge ($Q$)[cite: 1].</p>
                 </div>
             </div>
         </div>
@@ -222,48 +220,48 @@
         };
 
         const hierarchyTree = {
-            id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', charge: '0', expanded: true,
+            id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', mass: 'N/A', charge: '0', expanded: true,
             children: [
                 {
-                    id: 'fermions', name: 'FERMIONS (Half-Integer Spin)', style: palette.fermion, spin: '1/2, 3/2', charge: 'Fractional/Integer', expanded: true,
+                    id: 'fermions', name: 'FERMIONS (Half-Integer Spin)', style: palette.fermion, spin: '1/2, 3/2', mass: 'Variable', charge: 'Fractional/Integer', expanded: true,
                     children: [
                         {
-                            id: 'quarks', name: 'QUARKS (Elementary)', style: palette.quark, spin: '1/2', charge: '+2/3, -1/3', expanded: true,
+                            id: 'quarks', name: 'QUARKS (Elementary)', style: palette.quark, spin: '1/2', mass: '2.16 - 173k MeV', charge: '+2/3, -1/3', expanded: true,
                             children: [
-                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', charge: '+2/3e', expanded: false },
-                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', charge: '-1/3e', expanded: false }
+                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', mass: '2.16 MeV', charge: '+2/3e', expanded: false },
+                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', mass: '4.67 MeV', charge: '-1/3e', expanded: false }
                             ]
                         },
                         {
-                            id: 'leptons', name: 'LEPTONS (Elementary)', style: palette.lepton, spin: '1/2', charge: '-1, 0', expanded: true,
+                            id: 'leptons', name: 'LEPTONS (Elementary)', style: palette.lepton, spin: '1/2', mass: '0.511 - 1776 MeV', charge: '-1, 0', expanded: true,
                             children: [
-                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', charge: '-1e', expanded: false },
-                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', charge: '0', expanded: false }
+                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', mass: '0.511 MeV', charge: '-1e', expanded: false },
+                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', mass: '< 0.8 eV', charge: '0', expanded: false }
                             ]
                         },
                         {
-                            id: 'hadrons_baryons', name: 'HADRONS: Baryons (qqq)', style: palette.baryon, spin: '1/2, 3/2', charge: '+1, 0', expanded: true,
+                            id: 'baryons', name: 'BARYONS (Composite qqq)', style: palette.baryon, spin: '1/2, 3/2', mass: '~938 MeV', charge: '+1, 0', isHadron: true, expanded: true,
                             children: [
-                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', charge: '+1e', expanded: false },
-                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', charge: '0', expanded: false }
+                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', mass: '938.27 MeV', charge: '+1e', isHadron: true, expanded: false },
+                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', mass: '939.57 MeV', charge: '0', isHadron: true, expanded: false }
                             ]
                         }
                     ]
                 },
                 {
-                    id: 'bosons', name: 'BOSONS (Integer Spin)', style: palette.boson, spin: '0, 1', charge: '0, ±1', expanded: true,
+                    id: 'bosons', name: 'BOSONS (Integer Spin)', style: palette.boson, spin: '0, 1', mass: '0 - 125 GeV', charge: '0, ±1', expanded: true,
                     children: [
                         {
-                            id: 'gauge', name: 'GAUGE BOSONS (Vector)', style: palette.boson, spin: '1', charge: '0, ±1', expanded: true,
+                            id: 'gauge', name: 'GAUGE BOSONS (Vector)', style: palette.boson, spin: '1', mass: '0 - 80.4 GeV', charge: '0, ±1', expanded: true,
                             children: [
-                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', charge: '0', expanded: false },
-                                { id: 'w', name: 'W⁻/W⁺ Boson', style: palette.boson, spin: '1', charge: '±1e', expanded: false }
+                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', mass: '0 MeV', charge: '0', expanded: false },
+                                { id: 'w', name: 'W⁻/W⁺ Boson', style: palette.boson, spin: '1', mass: '80.38 GeV', charge: '±1e', expanded: false }
                             ]
                         },
                         {
-                            id: 'hadrons_mesons', name: 'HADRONS: Mesons (qq̄)', style: palette.hadron, spin: '0, 1', charge: '±1, 0', expanded: true,
+                            id: 'mesons', name: 'MESONS (Composite qq̄)', style: palette.hadron, spin: '0, 1', mass: '~139 MeV', charge: '±1, 0', isHadron: true, expanded: true,
                             children: [
-                                { id: 'pion', name: 'Pion (π⁺ [ud̄])', style: palette.hadron, spin: '0', charge: '+1e', expanded: false }
+                                { id: 'pion', name: 'Pion (π⁺ [ud̄])', style: palette.hadron, spin: '0', mass: '139.57 MeV', charge: '+1e', isHadron: true, expanded: false }
                             ]
                         }
                     ]
@@ -274,6 +272,7 @@
         const CARD_W = 210;
         const CARD_H = 54;
         const LEVEL_H = 130;
+        let hadronNodesPos = [];
 
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
@@ -282,7 +281,6 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // Pre-calculate Dynamic Subtree Widths for Auto-Spacing
         function calculateSubtreeWidth(node) {
             if (!node.children || node.children.length === 0 || !node.expanded) {
                 node.subtreeWidth = CARD_W + 30;
@@ -299,6 +297,7 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             rotAngle += 0.04;
+            hadronNodesPos = [];
 
             calculateSubtreeWidth(hierarchyTree);
 
@@ -308,6 +307,9 @@
 
             renderNode(hierarchyTree, canvas.width / 2 - panX, 20);
 
+            // Draw Dashed Subset Box for Hadron Realm
+            drawHadronSubsetOverlay();
+
             ctx.restore();
             requestAnimationFrame(draw);
         }
@@ -316,7 +318,10 @@
             node.x = x - CARD_W / 2;
             node.y = y;
 
-            // Render Connector Lines to Children if Expanded
+            if (node.isHadron) {
+                hadronNodesPos.push({ x: node.x, y: node.y, w: CARD_W, h: CARD_H });
+            }
+
             if (node.children && node.children.length > 0 && node.expanded) {
                 let currentLeft = x - node.subtreeWidth / 2;
 
@@ -356,9 +361,10 @@
             ctx.font = 'bold 11px sans-serif';
             ctx.fillText(node.name, cardX + 42, cardY + 23);
 
+            // Corrected Sub-Telemetry Data: Rest Mass & Electric Charge
             ctx.fillStyle = 'var(--text-sub)';
             ctx.font = '10px monospace';
-            ctx.fillText(`Spin: ${node.spin} | Charge: ${node.charge}`, cardX + 42, cardY + 40);
+            ctx.fillText(`m: ${node.mass} | Q: ${node.charge}`, cardX + 42, cardY + 40);
 
             // Collapse / Expand Indicator Badge
             if (node.children && node.children.length > 0) {
@@ -376,6 +382,36 @@
                 ctx.fillText(node.expanded ? '−' : '+', cardX + CARD_W - 14, cardY + 18);
                 ctx.textAlign = 'left';
             }
+        }
+
+        function drawHadronSubsetOverlay() {
+            if (hadronNodesPos.length === 0) return;
+
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            hadronNodesPos.forEach(p => {
+                minX = Math.min(minX, p.x);
+                minY = Math.min(minY, p.y);
+                maxX = Math.max(maxX, p.x + p.w);
+                maxY = Math.max(maxY, p.y + p.h);
+            });
+
+            const pad = 18;
+            ctx.save();
+            ctx.strokeStyle = '#fab387';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+            ctx.fillStyle = 'rgba(250, 179, 135, 0.05)';
+
+            ctx.beginPath();
+            ctx.roundRect(minX - pad, minY - pad, (maxX - minX) + pad * 2, (maxY - minY) + pad * 2, 12);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#fab387';
+            ctx.font = 'bold 11px monospace';
+            ctx.fillText('⊂ HADRON COMPOSITE REALM (qqq Baryons + q-q̄ Mesons)', minX - pad + 8, minY - pad - 6);
+            ctx.restore();
         }
 
         function drawSpinMicroBadge(cx, cy, spinStr, color) {
@@ -404,7 +440,7 @@
             ctx.restore();
         }
 
-        // Node Click Event for Collapse / Expand Toggle
+        // Click Handler for Collapse / Expand
         const area = document.getElementById('canvasArea');
         area.addEventListener('click', e => {
             if (isDragging) return;
