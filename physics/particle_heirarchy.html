@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subatomic Particle Hierarchy & Hadron Subset - GIT GUD Physics</title>
+    <title>Subatomic Particle Hierarchy & Rest Mass Inspector - GIT GUD Physics</title>
 
     <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -134,6 +134,17 @@
             padding-bottom: 4px;
         }
 
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.85rem;
+            font-family: monospace;
+        }
+        .telemetry-label { color: var(--text-sub); }
+        .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
+
         .code-box {
             font-family: monospace;
             background: rgba(0,0,0,0.3);
@@ -151,7 +162,7 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Taxonomy & Hadron Subset</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Taxonomy & Rest Mass Inspector</h2>
         </div>
         <div class="nav-group">
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
@@ -172,26 +183,26 @@
 
         <div class="sidebar">
             <div class="panel-card">
-                <div class="panel-title">Hadron vs. Baryon Rule Inspector</div>
+                <div class="panel-title">Selected Particle Telemetry</div>
+                <div id="inspectorBox">
+                    <div class="telemetry-row"><span class="telemetry-label">Particle:</span><span class="telemetry-val" id="inspName">Click any node...</span></div>
+                    <div class="telemetry-row"><span class="telemetry-label">Rest Mass (m):</span><span class="telemetry-val" id="inspMass" style="color:var(--accent-green);">-</span></div>
+                    <div class="telemetry-row"><span class="telemetry-label">Electric Charge (Q):</span><span class="telemetry-val" id="inspCharge">-</span></div>
+                    <div class="telemetry-row"><span class="telemetry-label">Quantum Spin (s):</span><span class="telemetry-val" id="inspSpin" style="color:var(--accent-purple);">-</span></div>
+                    <div style="margin-top: 10px; font-size: 0.8rem; line-height: 1.5; color: var(--text-sub);" id="inspDesc">
+                        Click on any particle card in the hierarchy tree to inspect its rest mass, electric charge, spin, and physics description here.
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">Hadron Set Theory Rule</div>
                 <div style="font-size: 0.85rem; line-height: 1.5; color: var(--text-main);">
-                    <p style="margin-bottom: 8px;"><strong style="color:var(--accent-orange);">Set Theory Relation:</strong></p>
                     <div class="code-box">
                         Baryons ⊂ Hadrons<br>
                         Mesons ⊂ Hadrons<br><br>
                         ∴ "Every Baryon is a Hadron, but NOT every Hadron is a Baryon!"
                     </div>
-                    <ul style="margin-top: 10px; padding-left: 18px; font-size:0.8rem; color:var(--text-sub);">
-                        <li style="margin-bottom: 6px;"><strong>Baryons (qqq):</strong> Composed of 3 valence quarks (Half-integer spin = Composite Fermions)[cite: 1].</li>
-                        <li><strong>Mesons (q-q̄):</strong> Composed of 1 quark + 1 antiquark (Integer spin = Composite Bosons)[cite: 1].</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="panel-card">
-                <div class="panel-title">Node Collapse Controls</div>
-                <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-sub);">
-                    <p style="margin-bottom: 6px;"><strong style="color:var(--accent-blue);">Interactive Collapse:</strong> Click any parent card to fold or unfold its sub-branches[cite: 1].</p>
-                    <p><strong style="color:var(--accent-green);">Rest Mass & Charge:</strong> Particle cards display exact rest mass ($m$) in MeV and electric charge ($Q$)[cite: 1].</p>
                 </div>
             </div>
         </div>
@@ -208,6 +219,7 @@
         let isDragging = false;
         let startX = 0, startY = 0;
         let rotAngle = 0;
+        let selectedNode = null;
 
         const palette = {
             root: { bg: '#2a2b3d', border: '#cba6f7', text: '#cba6f7' },
@@ -220,48 +232,48 @@
         };
 
         const hierarchyTree = {
-            id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', mass: 'N/A', charge: '0', expanded: true,
+            id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', mass: 'Variable', charge: '0', desc: 'The complete set of fundamental and composite subatomic particles.', expanded: true,
             children: [
                 {
-                    id: 'fermions', name: 'FERMIONS (Half-Integer Spin)', style: palette.fermion, spin: '1/2, 3/2', mass: 'Variable', charge: 'Fractional/Integer', expanded: true,
+                    id: 'fermions', name: 'FERMIONS (Matter Builders)', style: palette.fermion, spin: '1/2, 3/2', mass: 'Variable', charge: 'Fractional/Integer', desc: 'Half-integer spin matter particles that obey the Pauli Exclusion Principle.', expanded: true,
                     children: [
                         {
-                            id: 'quarks', name: 'QUARKS (Elementary)', style: palette.quark, spin: '1/2', mass: '2.16 - 173k MeV', charge: '+2/3, -1/3', expanded: true,
+                            id: 'quarks', name: 'QUARKS (Elementary)', style: palette.quark, spin: '1/2', mass: '2.16 - 173k MeV', charge: '+2/3, -1/3', desc: 'Fundamental point-like fermions carrying color charge.', expanded: true,
                             children: [
-                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', mass: '2.16 MeV', charge: '+2/3e', expanded: false },
-                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', mass: '4.67 MeV', charge: '-1/3e', expanded: false }
+                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', mass: '2.16 MeV/c²', charge: '+2/3e', desc: 'Lightest quark. Constituent of protons (uud) and neutrons (udd).', expanded: false },
+                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', mass: '4.67 MeV/c²', charge: '-1/3e', desc: 'Second lightest quark. Transforms to an Up quark during beta-minus decay.', expanded: false }
                             ]
                         },
                         {
-                            id: 'leptons', name: 'LEPTONS (Elementary)', style: palette.lepton, spin: '1/2', mass: '0.511 - 1776 MeV', charge: '-1, 0', expanded: true,
+                            id: 'leptons', name: 'LEPTONS (Elementary)', style: palette.lepton, spin: '1/2', mass: '0.511 - 1776 MeV', charge: '-1, 0', desc: 'Fundamental matter particles that do not experience the strong nuclear force.', expanded: true,
                             children: [
-                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', mass: '0.511 MeV', charge: '-1e', expanded: false },
-                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', mass: '< 0.8 eV', charge: '0', expanded: false }
+                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', mass: '0.511 MeV/c²', charge: '-1e', desc: 'Stable charged fundamental lepton orbiting the atomic nucleus.', expanded: false },
+                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', mass: '< 0.8 eV/c²', charge: '0', desc: 'Nearly massless neutral lepton emitted during beta decays to conserve lepton number.', expanded: false }
                             ]
                         },
                         {
-                            id: 'baryons', name: 'BARYONS (Composite qqq)', style: palette.baryon, spin: '1/2, 3/2', mass: '~938 MeV', charge: '+1, 0', isHadron: true, expanded: true,
+                            id: 'baryons', name: 'BARYONS (Composite qqq)', style: palette.baryon, spin: '1/2, 3/2', mass: '~938 MeV', charge: '+1, 0', isHadron: true, desc: 'Composite hadrons made of 3 valence quarks. Behave as composite fermions.', expanded: true,
                             children: [
-                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', mass: '938.27 MeV', charge: '+1e', isHadron: true, expanded: false },
-                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', mass: '939.57 MeV', charge: '0', isHadron: true, expanded: false }
+                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', mass: '938.27 MeV/c²', charge: '+1e', isHadron: true, desc: 'Stable baryon consisting of two Up quarks and one Down quark (uud).', expanded: false },
+                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', mass: '939.57 MeV/c²', charge: '0', isHadron: true, desc: 'Neutral baryon consisting of one Up quark and two Down quarks (udd). Decay host for beta emission.', expanded: false }
                             ]
                         }
                     ]
                 },
                 {
-                    id: 'bosons', name: 'BOSONS (Integer Spin)', style: palette.boson, spin: '0, 1', mass: '0 - 125 GeV', charge: '0, ±1', expanded: true,
+                    id: 'bosons', name: 'BOSONS (Force Carriers)', style: palette.boson, spin: '0, 1', mass: '0 - 125 GeV', charge: '0, ±1', desc: 'Integer-spin force carriers and scalar mass fields that do not obey Pauli exclusion.', expanded: true,
                     children: [
                         {
-                            id: 'gauge', name: 'GAUGE BOSONS (Vector)', style: palette.boson, spin: '1', mass: '0 - 80.4 GeV', charge: '0, ±1', expanded: true,
+                            id: 'gauge', name: 'GAUGE BOSONS (Vector)', style: palette.boson, spin: '1', mass: '0 - 80.4 GeV', charge: '0, ±1', desc: 'Vector gauge bosons mediating fundamental interactions (Strong, EM, Weak).', expanded: true,
                             children: [
-                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', mass: '0 MeV', charge: '0', expanded: false },
-                                { id: 'w', name: 'W⁻/W⁺ Boson', style: palette.boson, spin: '1', mass: '80.38 GeV', charge: '±1e', expanded: false }
+                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', mass: '0 MeV/c²', charge: '0', desc: 'Massless strong force carrier binding quarks together inside hadrons.', expanded: false },
+                                { id: 'w', name: 'W⁻/W⁺ Boson', style: palette.boson, spin: '1', mass: '80.38 GeV/c²', charge: '±1e', desc: 'Heavy weak force vector mediator driving quark flavor changes in nuclear decay.', expanded: false }
                             ]
                         },
                         {
-                            id: 'mesons', name: 'MESONS (Composite qq̄)', style: palette.hadron, spin: '0, 1', mass: '~139 MeV', charge: '±1, 0', isHadron: true, expanded: true,
+                            id: 'mesons', name: 'MESONS (Composite qq̄)', style: palette.hadron, spin: '0, 1', mass: '~139 MeV', charge: '±1, 0', isHadron: true, desc: 'Composite hadrons composed of 1 quark + 1 antiquark. Behave as composite bosons.', expanded: true,
                             children: [
-                                { id: 'pion', name: 'Pion (π⁺ [ud̄])', style: palette.hadron, spin: '0', mass: '139.57 MeV', charge: '+1e', isHadron: true, expanded: false }
+                                { id: 'pion', name: 'Pion (π⁺ [ud̄])', style: palette.hadron, spin: '0', mass: '139.57 MeV/c²', charge: '+1e', isHadron: true, desc: 'Lightest composite meson acting as residual nuclear force carrier between nucleons.', expanded: false }
                             ]
                         }
                     ]
@@ -346,8 +358,8 @@
             const cardY = node.y;
 
             ctx.fillStyle = node.style.bg;
-            ctx.strokeStyle = node.style.border;
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = node === selectedNode ? '#f9e2af' : node.style.border;
+            ctx.lineWidth = node === selectedNode ? 3 : 2;
             ctx.beginPath();
             ctx.roundRect(cardX, cardY, CARD_W, CARD_H, 8);
             ctx.fill();
@@ -361,7 +373,7 @@
             ctx.font = 'bold 11px sans-serif';
             ctx.fillText(node.name, cardX + 42, cardY + 23);
 
-            // Corrected Sub-Telemetry Data: Rest Mass & Electric Charge
+            // Display Rest Mass and Electric Charge on Card
             ctx.fillStyle = 'var(--text-sub)';
             ctx.font = '10px monospace';
             ctx.fillText(`m: ${node.mass} | Q: ${node.charge}`, cardX + 42, cardY + 40);
@@ -410,7 +422,7 @@
             ctx.setLineDash([]);
             ctx.fillStyle = '#fab387';
             ctx.font = 'bold 11px monospace';
-            ctx.fillText('⊂ HADRON COMPOSITE REALM (qqq Baryons + q-q̄ Mesons)', minX - pad + 8, minY - pad - 6);
+            ctx.fillText('⊂ HADRON REALM (qqq Baryons + q-q̄ Mesons)', minX - pad + 8, minY - pad - 6);
             ctx.restore();
         }
 
@@ -440,7 +452,17 @@
             ctx.restore();
         }
 
-        // Click Handler for Collapse / Expand
+        // Update Inspector Panel Telemetry on Node Click
+        function updateInspector(node) {
+            selectedNode = node;
+            document.getElementById('inspName').innerText = node.name;
+            document.getElementById('inspMass').innerText = node.mass || 'N/A';
+            document.getElementById('inspCharge').innerText = node.charge || '0';
+            document.getElementById('inspSpin').innerText = node.spin || '-';
+            document.getElementById('inspDesc').innerText = node.desc || 'No description available.';
+        }
+
+        // Click Handler for Node Selection & Collapse Toggle
         const area = document.getElementById('canvasArea');
         area.addEventListener('click', e => {
             if (isDragging) return;
@@ -449,8 +471,11 @@
             const mouseY = (e.clientY - rect.top - panY) / zoomLevel;
 
             const clickedNode = findClickedNode(hierarchyTree, mouseX, mouseY);
-            if (clickedNode && clickedNode.children && clickedNode.children.length > 0) {
-                clickedNode.expanded = !clickedNode.expanded;
+            if (clickedNode) {
+                updateInspector(clickedNode);
+                if (clickedNode.children && clickedNode.children.length > 0) {
+                    clickedNode.expanded = !clickedNode.expanded;
+                }
                 draw();
             }
         });
@@ -468,7 +493,7 @@
             return null;
         }
 
-        // Mouse Pan & Zoom Control
+        // Mouse Pan & Zoom Controls
         area.addEventListener('mousedown', e => { isDragging = false; startX = e.clientX - panX; startY = e.clientY - panY; });
         window.addEventListener('mousemove', e => {
             if (e.buttons === 1) {
