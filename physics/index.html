@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Physics "GIT GUD" Simulations</title>
+    <title>Physics Suite | Pure Interactive Physics Engines</title>
     
     <!-- Local Suite Branding & PWA Assets -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -39,7 +39,7 @@
             --accent-green: #a6e3a1;
             --accent-purple: #cba6f7;
             --accent-yellow: #f9e2af;
-            --accent-red: #f38ba8;
+            --accent-orange: #fab387;
         }
 
         [data-theme="light"] {
@@ -52,7 +52,7 @@
             --accent-green: #40a02b;
             --accent-purple: #8839ef;
             --accent-yellow: #df8e1d;
-            --accent-red: #d20f39;
+            --accent-orange: #fe640b;
         }
 
         * {
@@ -343,7 +343,7 @@
         <div class="header-brand-group">
             <img src="./icon-512.png" alt="App Icon" class="app-header-icon">
             <div class="brand-text-block">
-                <div class="brand-title">🔬 Physics "GIT GUD" Simulation</div>
+                <div class="brand-title">🔬 Pure Physics Simulation Suite</div>
                 <div class="brand-author">
                     Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | CC BY-NC-SA 4.0
                 </div>
@@ -361,7 +361,7 @@
         <!-- CATEGORY 1: GEOMETRIC & PHYSICAL OPTICS -->
         <section>
             <div class="category-title">
-                <span>🔦 Geometric Optics & Wave Phenomena</span>
+                <span>🔦 Geometric Optics & Optical Systems</span>
             </div>
             
             <div class="module-grid">
@@ -383,8 +383,8 @@
                 <div class="module-card" onclick="launchWithSplash('./double_lens.html')">
                     <div class="card-header">
                         <span class="card-tag tag-optics">Optics</span>
-                        <div class="card-title">Compound Double Lens Engine</div>
-                        <div class="card-desc">Simulates multi-lens systems, intermediate real/virtual image formations, variable lens separation ($d$), and total effective magnification ($M = m_1 \cdot m_2$).</div>
+                        <div class="card-title">Compound Double Lens System</div>
+                        <div class="card-desc">Simulates two-element lens combinations (L1 & L2), intermediate image formation, system focal length, and camera sensor positioning.</div>
                     </div>
                     <div class="card-footer">
                         <span>STATUS: ACTIVE</span>
@@ -392,12 +392,12 @@
                     </div>
                 </div>
 
-                <!-- Card 3: Spherical Refracting Surface & Refraction Lens Engine -->
+                <!-- Card 3: Spherical Refracting Surface & Lens -->
                 <div class="module-card" onclick="launchWithSplash('./refraction_lens.html')">
                     <div class="card-header">
                         <span class="card-tag tag-optics">Optics</span>
                         <div class="card-title">Spherical Refracting Surface & Lens</div>
-                        <div class="card-desc">Models single boundary refraction across media ($n_a$ vs $n_b$), curvature shifts ($R$), focal points ($F_1, F_2$), and submerged lens focal inversion effects.</div>
+                        <div class="card-desc">Models single boundary refraction across media ($n_a$ vs $n_b$), curvature shifts ($R$), and submerged lens focal inversion effects.</div>
                     </div>
                     <div class="card-footer">
                         <span>STATUS: ACTIVE</span>
@@ -408,20 +408,46 @@
             </div>
         </section>
 
-        <!-- CATEGORY 2: ATOMIC & QUANTUM PHYSICS -->
+        <!-- CATEGORY 2: QUANTUM & SUBATOMIC PHYSICS -->
         <section>
             <div class="category-title">
-                <span>⚛️ Atomic & Quantum Physics</span>
+                <span>⚛️ Quantum, Subatomic & Nuclear Physics</span>
             </div>
             
             <div class="module-grid">
                 
-                <!-- Card 4: Bohr Atomic Model Engine -->
+                <!-- Card 4: Atomic & Quark Structure Engine -->
                 <div class="module-card" onclick="launchWithSplash('./atom.html')">
                     <div class="card-header">
-                        <span class="card-tag tag-quantum">Atomic</span>
-                        <div class="card-title">Bohr Model & Quantum Transitions</div>
-                        <div class="card-desc">Interactive electron energy level transitions ($n_1 \rightarrow n_2$), photon emission/absorption spectra, Rydberg calculations, and orbital velocity visualizer.</div>
+                        <span class="card-tag tag-quantum">Quantum Physics</span>
+                        <div class="card-title">Atomic & Quark Structure Inspector</div>
+                        <div class="card-desc">Interactive atomic shell configuration ($2n^2$), spin-1/2 electron alignment, nucleon quark structure ($uud/udd$), mass defect, and $N/Z$ stability analysis.</div>
+                    </div>
+                    <div class="card-footer">
+                        <span>STATUS: ACTIVE</span>
+                        <span>Launch Engine ➔</span>
+                    </div>
+                </div>
+
+                <!-- Card 5: Standard Model & Geometric Particles Engine -->
+                <div class="module-card" onclick="launchWithSplash('./particle_chart.html')">
+                    <div class="card-header">
+                        <span class="card-tag tag-quantum">Quantum Physics</span>
+                        <div class="card-title">Standard Model & Particle Taxonomy Chart</div>
+                        <div class="card-desc">Interactive taxonomy matrix covering Quarks, Leptons, Gauge Bosons (Force Glue), Higgs Mechanism, and composite Hadron combinators with live particle telemetry.</div>
+                    </div>
+                    <div class="card-footer">
+                        <span>STATUS: ACTIVE</span>
+                        <span>Launch Engine ➔</span>
+                    </div>
+                </div>
+
+                <!-- Card 6: Subatomic Hierarchy Tree Engine -->
+                <div class="module-card" onclick="launchWithSplash('./particle_heirarchy.html')">
+                    <div class="card-header">
+                        <span class="card-tag tag-quantum">Quantum Physics</span>
+                        <div class="card-title">Subatomic Particle Hierarchy Tree</div>
+                        <div class="card-desc">Interactive pan/zoom hierarchy tree detailing the breakdown from All Matter (Fermions) & Forces (Bosons/Glue) down to Quarks, Leptons, Baryons ($qqq$), and Mesons ($q\bar{q}$).</div>
                     </div>
                     <div class="card-footer">
                         <span>STATUS: ACTIVE</span>
@@ -440,7 +466,7 @@
             
             <div class="module-grid">
                 
-                <!-- Card 5: Projectile Motion Engine -->
+                <!-- Card 7: Projectile Motion Engine -->
                 <div class="module-card" onclick="launchWithSplash('./projectile.html')">
                     <div class="card-header">
                         <span class="card-tag tag-mechanics">Mechanics</span>
@@ -458,7 +484,7 @@
 
     </main>
 
-    <!-- 5-SECOND INTERSTITIAL SPASH AD MODAL -->
+    <!-- 5-SECOND INTERSTITIAL SPLASH AD MODAL -->
     <div id="adSplashOverlay">
         <div class="splash-card">
             <div class="splash-header">
