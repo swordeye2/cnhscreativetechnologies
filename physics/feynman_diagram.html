@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feynman Diagrams: Quantum Decay & Glow Trail Visualizer - GIT GUD Physics</title>
+
+    <!-- Suite Assets & Parent Theme -->
+    <link rel="icon" type="image/png" href="./icon-512.png">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="../theme.css">
+
+    <!-- Legal IP Assertions -->
+    <meta name="author" content="Jorge Victor M. Sales">
+    <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+
+    <style>
+        :root {
+            --canvas-bg: #0d0e15;
+            --panel-bg: #181825;
+            --border-color: #45475a;
+            --text-main: #cdd6f4;
+            --text-sub: #a6adc8;
+            --accent-blue: #89b4fa;
+            --accent-green: #a6e3a1;
+            --accent-red: #f38ba8;
+            --accent-yellow: #f9e2af;
+            --accent-purple: #cba6f7;
+            --accent-orange: #fab387;
+            --accent-cyan: #89dceb;
+        }
+
+        [data-theme="light"] {
+            --canvas-bg: #e6e9ef;
+            --panel-bg: #dce0e8;
+            --border-color: #bcc0cc;
+            --text-main: #4c4f69;
+            --text-sub: #5c5f77;
+            --accent-blue: #1e66f5;
+            --accent-green: #40a02b;
+            --accent-red: #d20f39;
+            --accent-yellow: #df8e1d;
+            --accent-purple: #8839ef;
+            --accent-orange: #fe640b;
+            --accent-cyan: #04a5e5;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--canvas-bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 40px; }
+
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-group { display: flex; align-items: center; gap: 10px; }
+        .btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 15px;
+            padding: 15px;
+            flex: 1;
+        }
+        @media (max-width: 1024px) { .workspace { grid-template-columns: 1fr; } }
+
+        .viewport-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-height: 580px;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .controls-group { display: flex; align-items: center; gap: 8px; }
+        .select-input {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.88rem;
+        }
+
+        .canvas-container {
+            width: 100%;
+            flex: 1;
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            min-height: 480px;
+        }
+        canvas#decayCanvas { width: 100%; height: 100%; display: block; }
+
+        .sidebar { display: flex; flex-direction: column; gap: 15px; }
+        .panel-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .panel-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+        }
+
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.85rem;
+            font-family: monospace;
+        }
+        .telemetry-label { color: var(--text-sub); }
+        .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
+
+        .inspector-panel {
+            grid-column: 1 / -1;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .tab-bar { display: flex; gap: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 12px; }
+        .tab-btn {
+            background: none; border: none; color: var(--text-sub);
+            padding: 6px 12px; cursor: pointer; font-weight: 600;
+            border-bottom: 2px solid transparent; font-size: 0.9rem;
+        }
+        .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .math-card {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            line-height: 1.6;
+            font-size: 0.88rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="nav-group">
+            <a href="./index.html" class="btn">🔬 Physics Suite</a>
+            <h2 style="font-size: 1.05rem; margin-left: 5px; color: var(--accent-blue);">Feynman Diagrams: Decay & Glow Trace Visualizer</h2>
+        </div>
+        <div class="nav-group">
+            <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="viewport-card">
+            <div class="controls-bar">
+                <div class="controls-group">
+                    <label style="font-size:0.85rem; font-weight:bold; color:var(--accent-yellow);">Decay Mode:</label>
+                    <select class="select-input" id="decayModeSelect" onchange="changeDecayMode()">
+                        <option value="beta_minus">Beta-Minus (β⁻) Decay [d ➔ u + e⁻ + ν̄ₑ]</option>
+                        <option value="beta_plus">Beta-Plus (β⁺) Positron Emission [u ➔ d + e⁺ + νₑ]</option>
+                        <option value="electron_capture">Electron Capture (EC) [p + e⁻ ➔ n + νₑ]</option>
+                    </select>
+                </div>
+                <div class="controls-group">
+                    <button class="btn" id="playBtn" onclick="togglePlay()">▶ Play</button>
+                    <button class="btn" onclick="resetAnimation()">🔄 Reset</button>
+                    <button class="btn" id="viewBtn" onclick="toggleView()">🔁 View: Feynman</button>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="decayCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="panel-card">
+                <div class="panel-title">Mass Defect & Energy Telemetry (E = mc²)</div>
+                <div id="telemetryBox">
+                    <div class="telemetry-row"><span class="telemetry-label">Initial Rest Mass:</span><span class="telemetry-val" id="mInitialVal">939.57 MeV/c²</span></div>
+                    <div class="telemetry-row"><span class="telemetry-label">Final Rest Mass Sum:</span><span class="telemetry-val" id="mFinalVal">938.78 MeV/c²</span></div>
+                    <div class="telemetry-row"><span class="telemetry-label">Mass Defect (Δm):</span><span class="telemetry-val" id="massDefectVal" style="color:var(--accent-red);">0.79 MeV/c²</span></div>
+                    <div class="telemetry-row"><span class="telemetry-label">Energy Released (Q):</span><span class="telemetry-val" id="qValueVal" style="color:var(--accent-green);">0.79 MeV</span></div>
+                    <div class="telemetry-row"><span class="telemetry-label">Lepton Number (L):</span><span class="telemetry-val" id="leptonNumVal">0 ➔ +1 + (-1) = 0</span></div>
+                    <div class="telemetry-row"><span class="telemetry-label">Electric Charge (Qe):</span><span class="telemetry-val" id="chargeVal">-1/3e ➔ +2/3e - 1e</span></div>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">Glow Trace Legend</div>
+                <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-sub);">
+                    <p style="margin-bottom: 6px;"><strong style="color:var(--accent-purple);">Parent Quark Trace:</strong> Pink/Purple glowing trail showing flavor transformation path.</p>
+                    <p style="margin-bottom: 6px;"><strong style="color:var(--accent-orange);">Boson Bridge Aura:</strong> Pulsating orange wave field conveying virtual force.</p>
+                    <p><strong style="color:var(--accent-cyan);">Lepton Emission Trail:</strong> Bright glowing particles leaving ionized wave trails in spacetime.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="inspector-panel">
+            <div class="tab-bar">
+                <button class="tab-btn active" id="btn-tab-physics" onclick="switchTab('tab-physics')">⚛️ Mass Defect & Q-Value Physics</button>
+                <button class="tab-btn" id="btn-tab-conservation" onclick="switchTab('tab-conservation')">⚖️ Conservation Laws & Symmetry</button>
+            </div>
+
+            <div id="tab-physics" class="tab-content active">
+                <div class="math-card">
+                    <div><strong>Mass Defect ($\Delta m$) and $E = mc^2$ in Decay Modes:</strong></div>
+                    <div>  • <strong>Rest Mass Deficit:</strong> A bound parent state is heavier than the sum of its final resting daughter components[cite: 1].</div>
+                    <div>  • <strong>Lepton Creation Cost:</strong> The mass of emitted leptons ($m_e \approx 0.511 \text{ MeV}/c^2$) is subtracted directly from the available mass defect[cite: 1].</div>
+                    <div>  • <strong>Kinetic Energy (Q-Value):</strong> $Q = \Delta m \cdot c^2 = [m_{\text{initial}} - m_{\text{final}}]c^2$. This energy propels the emitted leptons and recoil nucleus[cite: 1].</div>
+                </div>
+            </div>
+
+            <div id="tab-conservation" class="tab-content">
+                <div class="math-card">
+                    <div><strong>Fundamental Conservation Laws:</strong></div>
+                    <div>  • <strong>Lepton Number ($L$):</strong> Emitting a matter lepton ($L = +1$) strictly requires emitting an antimatter partner ($L = -1$) to keep total $L = 0$[cite: 1].</div>
+                    <div>  • <strong>Microscopic Time Reversal:</strong> The weak force vertex is fully reversible (e.g., $\beta^-$ and Electron Capture share identical vertex couplings)[cite: 1].</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../theme.js"></script>
+    <script>
+        const canvas = document.getElementById('decayCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let mode = 'beta_minus';
+        let viewMode = 'feynman';
+        let isPlaying = false;
+        let animProgress = 0;
+        let rotAngle = 0;
+        let trailHistory = []; // Stores glowing path trace coordinates
+
+        const decayData = {
+            beta_minus: {
+                title: "Beta-Minus (β⁻) Decay",
+                mInit: 939.57, mFinal: 938.78, dM: 0.79, Q: 0.79,
+                L: "0 ➔ +1 + (-1) = 0", Qe: "-1/3e ➔ +2/3e - 1e",
+                qIn: "d", qOut: "u", boson: "W⁻", l1: "e⁻", l2: "ν̄ₑ",
+                inColor: '#f38ba8', outColor: '#cba6f7', bosonColor: '#fab387', l1Color: '#89dceb', l2Color: '#a6e3a1'
+            },
+            beta_plus: {
+                title: "Beta-Plus (β⁺) Positron Emission",
+                mInit: 938.27, mFinal: 937.29, dM: 0.98, Q: 0.98,
+                L: "0 ➔ (-1) + (+1) = 0", Qe: "+2/3e ➔ -1/3e + 1e",
+                qIn: "u", qOut: "d", boson: "W⁺", l1: "e⁺", l2: "νₑ",
+                inColor: '#cba6f7', outColor: '#f38ba8', bosonColor: '#fab387', l1Color: '#89dceb', l2Color: '#a6e3a1'
+            },
+            electron_capture: {
+                title: "Electron Capture (EC)",
+                mInit: 938.78, mFinal: 938.00, dM: 0.78, Q: 0.78,
+                L: "0 + (+1) ➔ 0 + (+1)", Qe: "+2/3e - 1e ➔ -1/3e",
+                qIn: "u + e⁻", qOut: "d", boson: "W⁺", l1: "νₑ", l2: "",
+                inColor: '#cba6f7', outColor: '#f38ba8', bosonColor: '#fab387', l1Color: '#a6e3a1', l2Color: ''
+            }
+        };
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            draw();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            document.getElementById('playBtn').innerText = isPlaying ? '⏸ Pause' : '▶ Play';
+        }
+
+        function resetAnimation() {
+            animProgress = 0;
+            trailHistory = [];
+            isPlaying = false;
+            document.getElementById('playBtn').innerText = '▶ Play';
+            draw();
+        }
+
+        function toggleView() {
+            viewMode = viewMode === 'feynman' ? 'nucleon' : 'feynman';
+            document.getElementById('viewBtn').innerText = viewMode === 'feynman' ? '🔁 View: Feynman' : '🔁 View: Nucleon';
+            resetAnimation();
+        }
+
+        function changeDecayMode() {
+            mode = document.getElementById('decayModeSelect').value;
+            const data = decayData[mode];
+
+            document.getElementById('mInitialVal').innerText = `${data.mInit} MeV/c²`;
+            document.getElementById('mFinalVal').innerText = `${data.mFinal} MeV/c²`;
+            document.getElementById('massDefectVal').innerText = `${data.dM} MeV/c²`;
+            document.getElementById('qValueVal').innerText = `${data.Q} MeV`;
+            document.getElementById('leptonNumVal').innerText = data.L;
+            document.getElementById('chargeVal').innerText = data.Qe;
+
+            resetAnimation();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            rotAngle += 0.03;
+
+            if (viewMode === 'feynman') drawFeynmanMode();
+            else drawNucleonMode();
+        }
+
+        function drawFeynmanMode() {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const data = decayData[mode];
+
+            const v1 = { x: cx - 90, y: cy + 40 };
+            const v2 = { x: cx + 90, y: cy - 40 };
+
+            const in1 = { x: cx - 220, y: cy + 140 };
+            const out1 = { x: cx - 220, y: cy - 70 };
+            const out2 = { x: cx + 220, y: cy - 140 };
+            const out3 = { x: cx + 220, y: cy + 70 };
+
+            // Background Grid & Spacetime Axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(40, canvas.height - 30); ctx.lineTo(40, 40);
+            ctx.moveTo(40, canvas.height - 30); ctx.lineTo(canvas.width - 40, canvas.height - 30);
+            ctx.stroke();
+
+            ctx.fillStyle = 'var(--text-sub)';
+            ctx.font = '11px monospace';
+            ctx.fillText('Time (t) ▲', 45, 50);
+            ctx.fillText('Space (x) ►', canvas.width - 100, canvas.height - 35);
+
+            // 1. Static Diagram Tracks
+            ctx.strokeStyle = '#45475a'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(in1.x, in1.y); ctx.lineTo(v1.x, v1.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(v1.x, v1.y); ctx.lineTo(out1.x, out1.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(v2.x, v2.y); ctx.lineTo(out2.x, out2.y); ctx.stroke();
+            if (out3) { ctx.beginPath(); ctx.moveTo(v2.x, v2.y); ctx.lineTo(out3.x, out3.y); ctx.stroke(); }
+
+            // 2. Virtual Boson Bridge
+            ctx.strokeStyle = data.bosonColor;
+            drawSineWave(v1.x, v1.y, v2.x, v2.y, 8, 10);
+
+            // 3. Draw Persistent Glowing Path Trace
+            drawGlowingTrail();
+
+            // 4. Calculate Current Animated Pulse Positions & Record Trail
+            let px = 0, py = 0, activeColor = '#ffffff';
+
+            if (animProgress < 0.3) {
+                const t = animProgress / 0.3;
+                px = in1.x + (v1.x - in1.x) * t;
+                py = in1.y + (v1.y - in1.y) * t;
+                activeColor = data.inColor;
+            } else if (animProgress < 0.6) {
+                const t = (animProgress - 0.3) / 0.3;
+                px = v1.x + (v2.x - v1.x) * t;
+                py = v1.y + (v2.y - v1.y) * t;
+                activeColor = data.bosonColor;
+
+                // Secondary Outgoing Quark Trace
+                const qPx = v1.x + (out1.x - v1.x) * t;
+                const qPy = v1.y + (out1.y - v1.y) * t;
+                addTrailPoint(qPx, qPy, data.outColor);
+            } else {
+                const t = (animProgress - 0.6) / 0.4;
+                px = v2.x + (out2.x - v2.x) * t;
+                py = v2.y + (out2.y - v2.y) * t;
+                activeColor = data.l1Color;
+
+                if (out3 && data.l2) {
+                    const l2Px = v2.x + (out3.x - v2.x) * t;
+                    const l2Py = v2.y + (out3.y - v2.y) * t;
+                    addTrailPoint(l2Px, l2Py, data.l2Color);
+                }
+            }
+
+            addTrailPoint(px, py, activeColor);
+
+            // 5. Draw Vertices with Glowing Halos
+            drawGlowingVertex(v1.x, v1.y, 'Vertex 1', data.inColor);
+            drawGlowingVertex(v2.x, v2.y, 'Vertex 2', data.l1Color);
+
+            // 6. Draw Interactive Particle Nodes
+            drawQuarkNode(in1.x, in1.y, data.inColor, data.qIn);
+            drawQuarkNode(out1.x, out1.y, data.outColor, data.qOut);
+            drawLeptonCloud(out2.x, out2.y, data.l1Color, data.l1);
+            if (data.l2) drawLeptonCloud(out3.x, out3.y, data.l2Color, data.l2);
+        }
+
+        function drawNucleonMode() {
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const data = decayData[mode];
+
+            ctx.strokeStyle = 'rgba(137, 180, 250, 0.3)';
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(cx, cy, 120, 0, Math.PI * 2); ctx.stroke();
+
+            const isProton = mode !== 'beta_minus';
+            drawQuarkNode(cx - 40, cy + 30, '#cba6f7', 'u');
+            drawQuarkNode(cx + 40, cy + 30, isProton ? '#cba6f7' : '#f38ba8', isProton ? 'u' : 'd');
+
+            const transitioningColor = animProgress > 0.5 ? data.outColor : data.inColor;
+            const transitioningLabel = animProgress > 0.5 ? data.qOut : data.qIn;
+
+            drawQuarkNode(cx, cy - 50, transitioningColor, transitioningLabel);
+
+            ctx.fillStyle = 'var(--text-main)';
+            ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';
+            ctx.fillText(isProton ? 'Proton Nucleon (uud)' : 'Neutron Nucleon (udd)', cx, cy - 135);
+        }
+
+        // Add Point to Trail Buffer
+        function addTrailPoint(x, y, color) {
+            if (!isPlaying) return;
+            trailHistory.push({ x, y, color, alpha: 1.0 });
+            if (trailHistory.length > 120) trailHistory.shift();
+        }
+
+        // Render Persistent Glow Trail
+        function drawGlowingTrail() {
+            for (let i = 0; i < trailHistory.length; i++) {
+                const pt = trailHistory[i];
+                pt.alpha -= 0.008;
+                if (pt.alpha <= 0) continue;
+
+                ctx.save();
+                ctx.fillStyle = pt.color;
+                ctx.globalAlpha = pt.alpha;
+                ctx.shadowColor = pt.color;
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Render Glowing Vertex Halo
+        function drawGlowingVertex(x, y, label, color) {
+            ctx.save();
+            const radGrad = ctx.createRadialGradient(x, y, 2, x, y, 22);
+            radGrad.addColorStop(0, color);
+            radGrad.addColorStop(1, 'transparent');
+
+            ctx.fillStyle = radGrad;
+            ctx.beginPath(); ctx.arc(x, y, 22, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = 'var(--text-sub)';
+            ctx.font = 'bold 11px monospace';
+            ctx.fillText(label, x + 12, y + 4);
+            ctx.restore();
+        }
+
+        // Subatomic Particle Node Graphics
+        function drawQuarkNode(x, y, color, label) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(rotAngle);
+            ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.moveTo(0, -16);
+            ctx.lineTo(14, 12);
+            ctx.lineTo(-14, 12);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 11px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x, y + 26);
+        }
+
+        function drawLeptonCloud(x, y, color, label) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
+            ctx.globalAlpha = 0.35;
+            ctx.beginPath(); ctx.arc(x, y, 18, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = 1.0;
+
+            ctx.strokeStyle = color; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(x, y + 10); ctx.lineTo(x, y - 10); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x - 3, y - 6); ctx.lineTo(x, y - 12); ctx.lineTo(x + 3, y - 6); ctx.fill();
+
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+            ctx.fillText(label, x, y + 28);
+            ctx.restore();
+        }
+
+        function drawSineWave(x1, y1, x2, y2, amplitude, frequency) {
+            const dx = x2 - x1, dy = y2 - y1;
+            const dist = Math.hypot(dx, dy), angle = Math.atan2(dy, dx);
+
+            ctx.save();
+            ctx.translate(x1, y1);
+            ctx.rotate(angle);
+            ctx.shadowColor = '#fab387'; ctx.shadowBlur = 8;
+            ctx.beginPath();
+            for (let i = 0; i <= dist; i++) {
+                const y = Math.sin((i / dist) * Math.PI * frequency) * amplitude;
+                if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function animate() {
+            if (isPlaying) {
+                animProgress += 0.005;
+                if (animProgress > 1.0) animProgress = 0;
+            }
+            draw();
+            requestAnimationFrame(animate);
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        changeDecayMode();
+        resizeCanvas();
+        animate();
+    </script>
+</body>
+</html>
