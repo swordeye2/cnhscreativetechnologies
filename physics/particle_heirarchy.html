@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subatomic Particle Hierarchy, Unified Particle Models & QCD - GIT GUD Physics</title>
+    <title>Subatomic Particle Taxonomy & Hierarchy Tree Visualizer - GIT GUD Physics</title>
 
     <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -29,6 +29,7 @@
             --accent-purple: #cba6f7;
             --accent-orange: #fab387;
             --accent-cyan: #89dceb;
+            --accent-pink: #f5c2e7;
         }
 
         [data-theme="light"] {
@@ -44,6 +45,7 @@
             --accent-purple: #8839ef;
             --accent-orange: #fe640b;
             --accent-cyan: #04a5e5;
+            --accent-pink: #ea76cb;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -96,12 +98,14 @@
             position: relative;
         }
 
-        .toolbar-bar {
+        .controls-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
+            padding-bottom: 10px;
         }
 
         .canvas-container {
@@ -112,10 +116,25 @@
             border-radius: 6px;
             position: relative;
             overflow: hidden;
-            min-height: 480px;
+            cursor: grab;
         }
-        canvas#treeCanvas { width: 100%; height: 100%; display: block; cursor: grab; }
-        canvas#treeCanvas:active { cursor: grabbing; }
+        .canvas-container:active { cursor: grabbing; }
+        canvas#treeCanvas { width: 100%; height: 100%; display: block; }
+
+        .zoom-hud {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(24, 24, 37, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            font-family: monospace;
+            color: var(--accent-cyan);
+            pointer-events: none;
+            z-index: 5;
+        }
 
         .sidebar { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
         .panel-card {
@@ -144,13 +163,24 @@
         .telemetry-label { color: var(--text-sub); }
         .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
 
-        .graphic-preview-box {
-            width: 100%;
-            height: 120px;
+        .desc-box {
             background: var(--canvas-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            margin-top: 10px;
+            padding: 10px;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            color: var(--text-main);
+            margin-top: 8px;
+        }
+
+        .anim-preview-box {
+            width: 100%;
+            height: 100px;
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-top: 8px;
             position: relative;
             overflow: hidden;
         }
@@ -162,7 +192,7 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Hierarchy & Standard Model Visualizer</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Taxonomy & Hierarchy Tree</h2>
         </div>
         <div class="nav-group">
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
@@ -171,43 +201,46 @@
 
     <div class="workspace">
         <div class="viewport-card">
-            <div class="toolbar-bar">
-                <span style="font-size: 0.82rem; color: var(--text-sub);">
-                    💡 <b>Click node</b> to inspect. <b>Drag</b> to pan, <b>Scroll</b> to zoom.
-                </span>
+            <div class="controls-bar">
                 <div class="nav-group">
-                    <button class="btn" onclick="expandAll()">➕ Expand All</button>
-                    <button class="btn" onclick="collapseAll()">➖ Collapse All</button>
-                    <button class="btn" onclick="resetCamera()">🔍 Reset Camera</button>
+                    <button class="btn" onclick="expandAllNodes(true)" style="border-color:var(--accent-green); color:var(--accent-green);">📂 Expand All</button>
+                    <button class="btn" onclick="expandAllNodes(false)">📁 Collapse All</button>
+                </div>
+                <div class="nav-group">
+                    <button class="btn" onclick="resetView()">🔄 Reset Pan & Zoom</button>
                 </div>
             </div>
-            <div class="canvas-container">
+
+            <div class="canvas-container" id="canvasContainer">
                 <canvas id="treeCanvas"></canvas>
+                <div class="zoom-hud" id="zoomHud">Scale: 1.00x | Pan: (0, 0) | 💡 Drag / Scroll Zoom / Click Node</div>
             </div>
         </div>
 
         <div class="sidebar">
             <div class="panel-card">
-                <div class="panel-title" id="inspectorTitle">Proton (uud)</div>
-                <div class="telemetry-row"><span class="telemetry-label">Category:</span><span class="telemetry-val" id="nodeCategory">Nucleon Baryon</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">Valence Quarks:</span><span class="telemetry-val" id="nodeStructure" style="color:var(--accent-purple);">uud (2 Up, 1 Down)</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">Quantum Spin (s):</span><span class="telemetry-val" id="nodeSpin">1/2 (Composite Fermion)</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">Electric Charge (Q):</span><span class="telemetry-val" id="nodeCharge">+1e</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">Rest Mass (m):</span><span class="telemetry-val" id="nodeMass">938.27 MeV/c²</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">Color Charge (QCD):</span><span class="telemetry-val" id="nodeColor">White (u_R u_G d_B)</span></div>
-                
-                <!-- UNIFIED ANIMATED MODEL PREVIEW CANVAS -->
-                <div class="graphic-preview-box">
+                <div class="panel-title">Particle Inspector & Quantum State</div>
+                <div class="telemetry-row"><span class="telemetry-label">Selected Node:</span><span class="telemetry-val" id="nodeName" style="color:var(--accent-cyan);">SUBATOMIC PARTICLES</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Classification:</span><span class="telemetry-val" id="nodeType">Root Domain</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Quantum Spin (s):</span><span class="telemetry-val" id="nodeSpin">Mixed</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Electric Charge (Q):</span><span class="telemetry-val" id="nodeCharge">Net 0</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Rest Mass (m₀):</span><span class="telemetry-val" id="nodeMass" style="color:var(--accent-green);">Variable / N/A</span></div>
+
+                <div class="anim-preview-box">
                     <canvas id="previewCanvas"></canvas>
+                </div>
+
+                <div class="desc-box" id="nodeDesc">
+                    Select any node on the hierarchy tree to inspect its quantum spin state, constituent mass, color charge, and physical role in the universe.
                 </div>
             </div>
 
             <div class="panel-card">
-                <div class="panel-title">Cross-Simulation Alignment</div>
+                <div class="panel-title">📐 Key Taxonomy Set Rules</div>
                 <div style="font-size:0.8rem; line-height:1.5; color:var(--text-sub);">
-                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-purple);">Quarks:</strong> Rotating triangles ($u, d$) and hexagons ($c, s, t, b$) matching <code>particle_chart.html</code>.</p>
-                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-cyan);">Leptons:</strong> Point probability clouds matching <code>atom.html</code> & <code>feynman_decay.html</code>.</p>
-                    <p><strong style="color:var(--accent-yellow);">Proton (uud) / Neutron (udd):</strong> Multi-nodular clusters showing exact $u$ (purple) and $d$ (pink) valence quark composition.</p>
+                    <div>• <b style="color:var(--accent-purple);">Fermions (Spin-1/2):</b> Elementary Quarks & Leptons ($e^-, \mu^-, \tau^-, \nu_e, \nu_\mu, \nu_\tau$). Obey Pauli Exclusion.</div>
+                    <div style="margin-top:4px;">• <b style="color:var(--accent-pink);">Muons ($\mu^-$) & Neutrinos ($\nu_\mu$):</b> Gen-2 Leptons. $207\times$ heavier than electrons!</div>
+                    <div style="margin-top:4px;">• <b style="color:var(--accent-green);">Hadrons ($qqq$ & $q\bar{q}$):</b> Composite systems held by gluons. Split into <b>Baryons</b> (Fermions) and <b>Mesons</b> (Bosons).</div>
                 </div>
             </div>
         </div>
@@ -215,329 +248,326 @@
 
     <script src="../theme.js"></script>
     <script>
-        const canvas = document.getElementById('treeCanvas');
-        const ctx = canvas.getContext('2d');
-        const prevCanvas = document.getElementById('previewCanvas');
-        const prevCtx = prevCanvas.getContext('2d');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const treeCanvas = document.getElementById('treeCanvas');
+        const ctx = treeCanvas.getContext('2d');
 
-        let camera = { x: 0, y: 30, zoom: 1.0 };
+        const previewCanvas = document.getElementById('previewCanvas');
+        const pCtx = previewCanvas.getContext('2d');
+
+        let scale = 0.9;
+        let panX = 40;
+        let panY = 0;
         let isDragging = false;
-        let dragStart = { x: 0, y: 0 };
-        let nodeHitBoxes = [];
-        let animTime = 0;
+        let dragStartX = 0;
+        let dragStartY = 0;
         let selectedNode = null;
+        let animTime = 0;
 
-        // Unified Suite-Aligned Particle Hierarchy Tree
+        // Color Palette
+        const palette = {
+            root: '#89b4fa',
+            fermion: '#cba6f7',
+            boson: '#a6e3a1',
+            quark: '#f9e2af',
+            lepton: '#89dceb',
+            muon: '#f5c2e7',
+            baryon: '#f38ba8',
+            hadron: '#fab387'
+        };
+
+        // HIERARCHY TREE DATA STRUCTURE
         const hierarchyTree = {
-            id: 'root', name: 'SUBATOMIC PARTICLES', color: '#cba6f7', model: 'root', category: 'Root Taxonomy', spin: 'Mixed', charge: 'Net 0', mass: 'Variable', colorCharge: 'Neutral', expanded: true,
+            id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', charge: 'Net 0', mass: 'N/A', type: 'Root Domain', expanded: true,
+            desc: 'The complete taxonomy of elementary and composite subatomic particles governing all matter and forces in the universe.',
             children: [
                 {
-                    id: 'fermions', name: 'FERMIONS (Spin 1/2)', color: '#89b4fa', model: 'lepton', category: 'Matter Builders', spin: '1/2, 3/2', charge: 'Fractional / Integer', mass: '0.511 MeV - 172.7 GeV', colorCharge: 'Mixed', expanded: true,
+                    id: 'fermions', name: 'FERMIONS (Spin 1/2)', style: palette.fermion, spin: '1/2, 3/2', charge: 'Fractional/Integer', mass: 'Variable', type: 'Matter Builders', expanded: true,
+                    desc: 'Matter particles that obey the Pauli Exclusion Principle. Occupy physical space.',
                     children: [
                         {
-                            id: 'quarks', name: 'QUARKS (Color-Charged)', color: '#f38ba8', model: 'u_quark', category: 'Elementary Hadrons', spin: '1/2', charge: '+2/3e, -1/3e', mass: '2.16 MeV - 172.7 GeV', colorCharge: 'Red, Green, Blue', expanded: true,
+                            id: 'quarks', name: 'QUARKS (6 Flavors, Color Charge)', style: palette.quark, spin: '1/2', charge: '+2/3e, -1/3e', mass: '2.16 MeV to 172.7 GeV', type: 'Elementary Fermion', expanded: true,
+                            desc: 'Point-like elementary particles carrying color charge (Red/Green/Blue) and fractional electric charge.',
                             children: [
-                                { id: 'u', name: 'Up Quark (u)', color: '#cba6f7', model: 'u_quark', category: 'Generation I Quark', spin: '1/2', charge: '+2/3e', mass: '2.16 MeV/c²', colorCharge: 'RGB' },
-                                { id: 'd', name: 'Down Quark (d)', color: '#f38ba8', model: 'd_quark', category: 'Generation I Quark', spin: '1/2', charge: '-1/3e', mass: '4.67 MeV/c²', colorCharge: 'RGB' },
-                                { id: 'c', name: 'Charm Quark (c)', color: '#fab387', model: 'hex_quark', category: 'Generation II Quark', spin: '1/2', charge: '+2/3e', mass: '1.27 GeV/c²', colorCharge: 'RGB' },
-                                { id: 's', name: 'Strange Quark (s)', color: '#fab387', model: 'hex_quark', category: 'Generation II Quark', spin: '1/2', charge: '-1/3e', mass: '93.4 MeV/c²', colorCharge: 'RGB' },
-                                { id: 't', name: 'Top Quark (t)', color: '#f9e2af', model: 'hex_quark', category: 'Generation III Quark', spin: '1/2', charge: '+2/3e', mass: '172.69 GeV/c²', colorCharge: 'RGB' },
-                                { id: 'b', name: 'Bottom Quark (b)', color: '#f9e2af', model: 'hex_quark', category: 'Generation III Quark', spin: '1/2', charge: '-1/3e', mass: '4.18 GeV/c²', colorCharge: 'RGB' }
+                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', charge: '+2/3e', mass: '2.16 MeV/c²', type: 'Gen-I Quark', desc: 'Lightest up-type quark.' },
+                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', charge: '-1/3e', mass: '4.67 MeV/c²', type: 'Gen-I Quark', desc: 'Lightest down-type quark.' },
+                                { id: 'c', name: 'Charm Quark (c)', style: palette.quark, spin: '1/2', charge: '+2/3e', mass: '1.27 GeV/c²', type: 'Gen-II Quark', desc: 'Generation 2 heavy up-type quark.' },
+                                { id: 's', name: 'Strange Quark (s)', style: palette.quark, spin: '1/2', charge: '-1/3e', mass: '93.4 MeV/c²', type: 'Gen-II Quark', desc: 'Generation 2 down-type quark.' }
                             ]
                         },
                         {
-                            id: 'leptons', name: 'LEPTONS (Colorless)', color: '#89dceb', model: 'lepton', category: 'Elementary Leptons', spin: '1/2', charge: '-1e, 0', mass: '< 0.8 eV - 1.77 GeV', colorCharge: 'None (Colorless)', expanded: true,
+                            id: 'leptons', name: 'LEPTONS (3 Generations)', style: palette.lepton, spin: '1/2', charge: '-1e, 0', mass: '0 to 1.777 GeV', type: 'Elementary Fermion', expanded: true,
+                            desc: 'Fundamental matter particles with no color charge. Do not interact via the Strong Nuclear Force.',
                             children: [
-                                { id: 'e', name: 'Electron (e⁻)', color: '#89dceb', model: 'lepton', category: 'Lepton', spin: '1/2', charge: '-1e', mass: '0.511 MeV/c²', colorCharge: 'None' },
-                                { id: 'nue', name: 'Electron Neutrino (νₑ)', color: '#89dceb', model: 'lepton', category: 'Lepton Neutrino', spin: '1/2', charge: '0', mass: '< 0.8 eV/c²', colorCharge: 'None' }
+                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', charge: '-1e', mass: '0.511 MeV/c²', type: 'Gen-I Lepton', desc: 'Generation 1 charged lepton forming atomic electron shells.' },
+                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', charge: '0', mass: '< 0.8 eV/c²', type: 'Gen-I Lepton', desc: 'Nearly massless neutral lepton paired with electrons in beta decay.' },
+                                { id: 'mu', name: 'Muon (μ⁻)', style: palette.muon, spin: '1/2', charge: '-1e', mass: '105.66 MeV/c²', type: 'Gen-II Lepton', desc: 'Generation 2 heavy cousin of electron (207x heavier mass!). Unstable.' },
+                                { id: 'numu', name: 'Muon Neutrino (ν_μ)', style: palette.lepton, spin: '1/2', charge: '0', mass: '< 0.17 MeV/c²', type: 'Gen-II Lepton', desc: 'Neutral Generation 2 lepton produced in muon decays and cosmic ray showers.' }
                             ]
                         },
                         {
-                            id: 'baryons', name: 'BARYONS (qqq Hadrons)', color: '#f9e2af', model: 'proton', category: 'Composite Fermion', spin: '1/2, 3/2', charge: '+1e, 0', mass: '938 - 939 MeV', colorCharge: 'Color Neutral (White)', expanded: true,
+                            id: 'baryons', name: 'BARYONS (3 Quarks qqq)', style: palette.baryon, spin: '1/2, 3/2', charge: '+1e, 0', mass: '938 to 939 MeV', type: 'Composite Hadron-Fermion', expanded: true,
+                            desc: 'Composite hadrons made of 3 valence quarks. Include Protons (uud) and Neutrons (udd).',
                             children: [
-                                { id: 'p', name: 'Proton (uud)', color: '#f9e2af', model: 'proton', structure: 'uud (2 Up, 1 Down)', category: 'Nucleon Baryon', spin: '1/2', charge: '+1e', mass: '938.27 MeV/c²', colorCharge: 'White (u_R u_G d_B)' },
-                                { id: 'n', name: 'Neutron (udd)', color: '#f9e2af', model: 'neutron', structure: 'udd (1 Up, 2 Down)', category: 'Nucleon Baryon', spin: '1/2', charge: '0', mass: '939.57 MeV/c²', colorCharge: 'White (u_R d_G d_B)' }
+                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', charge: '+1e', mass: '938.27 MeV/c²', type: 'Stable Baryon', desc: 'Nucleon made of 2 Up + 1 Down quark.' },
+                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', charge: '0', mass: '939.57 MeV/c²', type: 'Nucleon Baryon', desc: 'Nucleon made of 1 Up + 2 Down quarks.' }
                             ]
                         }
                     ]
                 },
                 {
-                    id: 'bosons', name: 'BOSONS (Integer Spin)', color: '#a6e3a1', model: 'boson_wave', category: 'Force Mediators', spin: '0, 1', charge: '0, ±1e', mass: '0 - 125.1 GeV', colorCharge: 'Color Carrier', expanded: true,
+                    id: 'bosons', name: 'BOSONS (Spin 0, 1)', style: palette.boson, spin: '0, 1', charge: '0, ±1e', mass: '0 to 125.1 GeV', type: 'Force Carriers & Glue', expanded: true,
+                    desc: 'Force-carrying fields and composite mesons that obey Bose-Einstein statistics.',
                     children: [
-                        { id: 'g', name: 'Gluon (g) [Strong]', color: '#a6e3a1', model: 'boson_wave', category: 'Gauge Boson', spin: '1', charge: '0', mass: '0', colorCharge: 'Color + Anti-Color' },
-                        { id: 'gamma', name: 'Photon (γ) [EM]', color: '#a6e3a1', model: 'boson_wave', category: 'Gauge Boson', spin: '1', charge: '0', mass: '0', colorCharge: 'None' },
-                        { id: 'higgs', name: 'Higgs Boson (H⁰)', color: '#a6e3a1', model: 'higgs_ripple', category: 'Scalar Boson', spin: '0', charge: '0', mass: '125.1 GeV/c²', colorCharge: 'None' }
+                        {
+                            id: 'gauge', name: 'GAUGE BOSONS (Vector)', style: palette.boson, spin: '1', charge: '0, ±1e', mass: '0 to 80.4 GeV', type: 'Elementary Boson', expanded: true,
+                            children: [
+                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', charge: '0', mass: '0', type: 'Gauge Boson', desc: 'Mediates the Strong Force between quarks.' },
+                                { id: 'gamma', name: 'Photon (γ)', style: palette.boson, spin: '1', charge: '0', mass: '0', type: 'Gauge Boson', desc: 'Mediates the Electromagnetic Force.' },
+                                { id: 'w', name: 'W/Z Bosons (W±, Z⁰)', style: palette.boson, spin: '1', charge: '±1e, 0', mass: '80.4 / 91.2 GeV/c²', type: 'Gauge Boson', desc: 'Mediates Weak Force flavor transformations.' }
+                            ]
+                        },
+                        {
+                            id: 'mesons', name: 'MESONS (Quark-Antiquark qq̄)', style: palette.hadron, spin: '0, 1', charge: '±1e, 0', mass: '139.57 MeV', type: 'Composite Hadron-Boson', expanded: true,
+                            children: [
+                                { id: 'pion', name: 'Pion (π⁺ = u d̄)', style: palette.baryon, spin: '0', charge: '+1e', mass: '139.57 MeV/c²', type: 'Meson Boson', desc: 'Composite boson acting as residual nuclear force glue between nucleons.' }
+                            ]
+                        }
                     ]
                 }
             ]
         };
 
-        selectedNode = hierarchyTree.children[0].children[2].children[0]; // Default Proton (uud)
+        selectedNode = hierarchyTree;
 
         function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
-            prevCanvas.width = prevCanvas.parentElement.clientWidth;
-            prevCanvas.height = prevCanvas.parentElement.clientHeight;
+            treeCanvas.width = canvasContainer.clientWidth;
+            treeCanvas.height = canvasContainer.clientHeight;
+            previewCanvas.width = previewCanvas.parentElement.clientWidth;
+            previewCanvas.height = previewCanvas.parentElement.clientHeight;
         }
         window.addEventListener('resize', resizeCanvas);
 
-        function computeSubtreeWidth(node) {
-            if (!node.expanded || !node.children || node.children.length === 0) {
-                node.subtreeWidth = 190;
-                return 190;
-            }
-            let width = 0;
-            node.children.forEach(child => {
-                width += computeSubtreeWidth(child) + 25;
-            });
-            node.subtreeWidth = Math.max(190, width - 25);
-            return node.subtreeWidth;
+        // DRAG & ZOOM
+        canvasContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+            scale = Math.min(3.0, Math.max(0.3, scale * zoomFactor));
+            updateZoomHud();
+        }, { passive: false });
+
+        canvasContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dragStartX = e.clientX - panX;
+            dragStartY = e.clientY - panY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            panX = e.clientX - dragStartX;
+            panY = e.clientY - dragStartY;
+            updateZoomHud();
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        function updateZoomHud() {
+            document.getElementById('zoomHud').innerText = `Scale: ${scale.toFixed(2)}x | Pan: (${Math.round(panX)}, ${Math.round(panY)}) | 💡 Drag / Scroll Zoom / Click Node`;
         }
 
-        function layoutNode(node, x, y) {
-            node.x = x; node.y = y;
-            nodeHitBoxes.push({ node: node, x: x - 85, y: y - 22, width: 170, height: 44 });
-
-            if (node.expanded && node.children && node.children.length > 0) {
-                let startX = x - node.subtreeWidth / 2;
-                node.children.forEach(child => {
-                    let childX = startX + child.subtreeWidth / 2;
-                    layoutNode(child, childX, y + 110);
-                    startX += child.subtreeWidth + 25;
-                });
+        function expandAllNodes(expand) {
+            function toggle(node) {
+                if (node.children) {
+                    node.expanded = expand;
+                    node.children.forEach(toggle);
+                }
             }
+            toggle(hierarchyTree);
         }
 
-        // Standardized Particle Model Renderer (Identical to particle_chart.html)
-        function drawStandardizedParticleModel(cCtx, x, y, modelType, mainColor, scale = 1.0) {
-            cCtx.save();
-            cCtx.translate(x, y);
-
-            if (modelType === 'u_quark' || modelType === 'd_quark') { // Up (Purple) & Down (Pink) Rotating Triangular Nodes
-                const qColor = (modelType === 'u_quark') ? '#cba6f7' : '#f38ba8';
-                cCtx.rotate(animTime * 0.05);
-                cCtx.strokeStyle = qColor; cCtx.lineWidth = 2 * scale;
-                cCtx.beginPath();
-                for (let i = 0; i < 3; i++) {
-                    const a = (i / 3) * Math.PI * 2;
-                    const px = Math.cos(a) * (11 * scale);
-                    const py = Math.sin(a) * (11 * scale);
-                    if (i === 0) cCtx.moveTo(px, py); else cCtx.lineTo(px, py);
-                }
-                cCtx.closePath(); cCtx.stroke();
-
-                // Core Pulsing Node
-                cCtx.fillStyle = qColor;
-                cCtx.beginPath(); cCtx.arc(0, 0, 3 * scale, 0, Math.PI * 2); cCtx.fill();
-
-            } else if (modelType === 'hex_quark') { // Heavy Quarks (Charm, Strange, Top, Bottom)
-                cCtx.rotate(-animTime * 0.03);
-                cCtx.strokeStyle = mainColor; cCtx.lineWidth = 2 * scale;
-                cCtx.beginPath();
-                for (let i = 0; i < 6; i++) {
-                    const a = (i / 6) * Math.PI * 2;
-                    const px = Math.cos(a) * (11 * scale);
-                    const py = Math.sin(a) * (11 * scale);
-                    if (i === 0) cCtx.moveTo(px, py); else cCtx.lineTo(px, py);
-                }
-                cCtx.closePath(); cCtx.stroke();
-
-            } else if (modelType === 'lepton') { // Lepton Probabilistic Point Cloud
-                cCtx.fillStyle = '#89dceb'; cCtx.globalAlpha = 0.35;
-                cCtx.beginPath(); cCtx.arc(0, 0, 10 * scale, 0, Math.PI * 2); cCtx.fill();
-                cCtx.globalAlpha = 1.0;
-
-                // Orbiting Spin-1/2 Arrow Indicator
-                cCtx.strokeStyle = '#ffffff'; cCtx.lineWidth = 1.5 * scale;
-                cCtx.beginPath(); cCtx.moveTo(0, -10 * scale); cCtx.lineTo(0, 10 * scale); cCtx.stroke();
-
-            } else if (modelType === 'proton') { // Proton (uud): 2 Up (#cba6f7) + 1 Down (#f38ba8)
-                const radii = [
-                    { color: '#cba6f7', label: 'u' },
-                    { color: '#cba6f7', label: 'u' },
-                    { color: '#f38ba8', label: 'd' }
-                ];
-                radii.forEach((q, i) => {
-                    const a = (i / 3) * Math.PI * 2 + animTime * 0.03;
-                    const qx = Math.cos(a) * (8 * scale);
-                    const qy = Math.sin(a) * (8 * scale);
-
-                    cCtx.fillStyle = q.color;
-                    cCtx.beginPath(); cCtx.arc(qx, qy, 4 * scale, 0, Math.PI * 2); cCtx.fill();
-                });
-
-            } else if (modelType === 'neutron') { // Neutron (udd): 1 Up (#cba6f7) + 2 Down (#f38ba8)
-                const radii = [
-                    { color: '#cba6f7', label: 'u' },
-                    { color: '#f38ba8', label: 'd' },
-                    { color: '#f38ba8', label: 'd' }
-                ];
-                radii.forEach((q, i) => {
-                    const a = (i / 3) * Math.PI * 2 + animTime * 0.03;
-                    const qx = Math.cos(a) * (8 * scale);
-                    const qy = Math.sin(a) * (8 * scale);
-
-                    cCtx.fillStyle = q.color;
-                    cCtx.beginPath(); cCtx.arc(qx, qy, 4 * scale, 0, Math.PI * 2); cCtx.fill();
-                });
-
-            } else if (modelType === 'boson_wave') { // Gauge Boson Transverse Force Wave
-                cCtx.strokeStyle = mainColor; cCtx.lineWidth = 2 * scale;
-                cCtx.beginPath();
-                for (let px = -12 * scale; px <= 12 * scale; px += 2) {
-                    const py = Math.sin(px * 0.3 + animTime * 0.1) * (6 * scale);
-                    if (px === -12 * scale) cCtx.moveTo(px, py); else cCtx.lineTo(px, py);
-                }
-                cCtx.stroke();
-
-            } else if (modelType === 'higgs_ripple') { // Higgs Scalar Field Ripple
-                cCtx.strokeStyle = mainColor; cCtx.lineWidth = 1.5 * scale;
-                const r = (animTime * 0.5) % (14 * scale);
-                cCtx.beginPath(); cCtx.arc(0, 0, r, 0, Math.PI * 2); cCtx.stroke();
-            }
-
-            cCtx.restore();
+        function resetView() {
+            scale = 0.9;
+            panX = 40;
+            panY = 0;
+            updateZoomHud();
         }
+
+        function selectNode(node) {
+            selectedNode = node;
+            document.getElementById('nodeName').innerText = node.name;
+            document.getElementById('nodeType').innerText = node.type || 'Subatomic Category';
+            document.getElementById('nodeSpin').innerText = node.spin || '1/2';
+            document.getElementById('nodeCharge').innerText = node.charge || '0';
+            document.getElementById('nodeMass').innerText = node.mass || 'N/A';
+            document.getElementById('nodeDesc').innerText = node.desc || '';
+        }
+
+        // TREE LAYOUT COMPUTATION
+        let nodeHitBoxes = [];
 
         function drawTree() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
             nodeHitBoxes = [];
-            animTime += 1;
-
-            computeSubtreeWidth(hierarchyTree);
+            animTime += 0.03;
 
             ctx.save();
-            ctx.translate(canvas.width / 2 + camera.x, 50 + camera.y);
-            ctx.scale(camera.zoom, camera.zoom);
+            ctx.translate(panX, panY + treeCanvas.height / 2);
+            ctx.scale(scale, scale);
 
-            layoutNode(hierarchyTree, 0, 0);
+            let currentY = -250;
 
-            // Connector Lines
-            nodeHitBoxes.forEach(box => {
-                const parent = box.node;
-                if (parent.expanded && parent.children) {
-                    parent.children.forEach(child => {
-                        ctx.strokeStyle = parent.color;
-                        ctx.lineWidth = 2;
-                        ctx.beginPath();
-                        ctx.moveTo(parent.x, parent.y + 22);
-                        ctx.lineTo(child.x, child.y - 22);
-                        ctx.stroke();
-                    });
-                }
-            });
+            function layoutNode(node, x, yLevel) {
+                const nodeWidth = 220;
+                const nodeHeight = 36;
 
-            // Node Cards with Standardized Visualizer Graphics
-            nodeHitBoxes.forEach(box => {
-                const node = box.node;
+                nodeHitBoxes.push({
+                    node: node,
+                    x: x, y: yLevel,
+                    w: nodeWidth, h: nodeHeight
+                });
 
-                ctx.fillStyle = '#181825';
-                ctx.strokeStyle = node.color;
-                ctx.lineWidth = (selectedNode === node) ? 3 : 2;
-                
+                // Render Node Card
+                ctx.fillStyle = node === selectedNode ? 'rgba(249, 226, 175, 0.25)' : '#181825';
+                ctx.strokeStyle = node.style || '#89b4fa';
+                ctx.lineWidth = node === selectedNode ? 2.5 : 1.5;
                 ctx.beginPath();
-                ctx.roundRect(node.x - 85, node.y - 22, 170, 44, 6);
+                ctx.roundRect(x, yLevel, nodeWidth, nodeHeight, 6);
                 ctx.fill();
                 ctx.stroke();
 
-                // Draw Standardized Particle Graphic Badge
-                drawStandardizedParticleModel(ctx, node.x - 65, node.y, node.model || 'u_quark', node.color, 0.85);
+                // Node Badge Dot
+                ctx.fillStyle = node.style || '#89b4fa';
+                ctx.beginPath(); ctx.arc(x + 15, yLevel + 18, 6, 0, Math.PI * 2); ctx.fill();
 
-                ctx.fillStyle = node.color;
-                ctx.font = 'bold 11px sans-serif';
+                // Node Label
+                ctx.fillStyle = '#cdd6f4';
+                ctx.font = 'bold 11px monospace';
                 ctx.textAlign = 'left';
-                ctx.fillText(node.name, node.x - 48, node.y + 4);
+                ctx.fillText(node.name, x + 28, yLevel + 22);
 
+                // Expand/Collapse Indicator
                 if (node.children && node.children.length > 0) {
-                    ctx.fillStyle = '#a6adc8';
-                    ctx.font = 'bold 10px monospace';
-                    ctx.textAlign = 'right';
-                    ctx.fillText(node.expanded ? '[-]' : '[+]', node.x + 78, node.y - 6);
+                    ctx.fillStyle = '#f9e2af';
+                    ctx.fillText(node.expanded ? '▼' : '▶', x + nodeWidth - 18, yLevel + 22);
                 }
-            });
 
+                // Render Children
+                if (node.expanded && node.children) {
+                    let childY = yLevel - (node.children.length * 22);
+                    node.children.forEach((child) => {
+                        const childX = x + 260;
+                        childY += 48;
+
+                        // Connecting Lines
+                        ctx.strokeStyle = 'rgba(137, 180, 250, 0.4)';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(x + nodeWidth, yLevel + 18);
+                        ctx.lineTo(childX, childY + 18);
+                        ctx.stroke();
+
+                        layoutNode(child, childX, childY);
+                    });
+                }
+            }
+
+            layoutNode(hierarchyTree, 20, -20);
             ctx.restore();
 
-            drawPreviewGraphic();
+            drawPreview();
             requestAnimationFrame(drawTree);
         }
 
-        function drawPreviewGraphic() {
-            prevCtx.clearRect(0, 0, prevCanvas.width, prevCanvas.height);
-            if (!selectedNode) return;
-
-            const cx = prevCanvas.width / 2;
-            const cy = prevCanvas.height / 2;
-
-            drawStandardizedParticleModel(prevCtx, cx, cy, selectedNode.model || 'u_quark', selectedNode.color, 2.5);
-
-            prevCtx.fillStyle = '#ffffff';
-            prevCtx.font = 'bold 10px monospace';
-            prevCtx.textAlign = 'center';
-            prevCtx.fillText(`SUITE MODEL: ${selectedNode.model ? selectedNode.model.toUpperCase() : 'STANDARD MODEL'}`, cx, cy + 45);
-        }
-
-        canvas.addEventListener('click', (e) => {
-            const rect = canvas.getBoundingClientRect();
+        // CANVAS CLICK DETECTOR
+        treeCanvas.addEventListener('click', (e) => {
+            const rect = treeCanvas.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const clickY = e.clientY - rect.top;
 
-            const worldX = (clickX - canvas.width / 2 - camera.x) / camera.zoom;
-            const worldY = (clickY - 50 - camera.y) / camera.zoom;
-
-            for (let i = nodeHitBoxes.length - 1; i >= 0; i--) {
+            for (let i = 0; i < nodeHitBoxes.length; i++) {
                 const box = nodeHitBoxes[i];
-                if (worldX >= box.x && worldX <= box.x + box.width && worldY >= box.y && worldY <= box.y + box.height) {
-                    const node = box.node;
-                    if (node.children) node.expanded = !node.expanded;
-                    selectedNode = node;
-                    updateSidebarInspector(node);
+                const screenX = (box.x * scale) + panX;
+                const screenY = (box.y * scale) + panY + treeCanvas.height / 2;
+                const screenW = box.w * scale;
+                const screenH = box.h * scale;
+
+                if (clickX >= screenX && clickX <= screenX + screenW &&
+                    clickY >= screenY && clickY <= screenY + screenH) {
+
+                    selectNode(box.node);
+                    if (box.node.children) {
+                        box.node.expanded = !box.node.expanded;
+                    }
                     break;
                 }
             }
         });
 
-        function updateSidebarInspector(node) {
-            document.getElementById('inspectorTitle').innerText = node.name;
-            document.getElementById('nodeCategory').innerText = node.category || 'Subatomic Particle';
-            document.getElementById('nodeStructure').innerText = node.structure || 'Fundamental Particle';
-            document.getElementById('nodeSpin').innerText = node.spin || '1/2';
-            document.getElementById('nodeCharge').innerText = node.charge || '0';
-            document.getElementById('nodeMass').innerText = node.mass || 'N/A';
-            document.getElementById('nodeColor').innerText = node.colorCharge || 'None';
+        // ANIMATED PARTICLE PREVIEW RENDERER
+        function drawPreview() {
+            pCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            const cx = previewCanvas.width / 2;
+            const cy = previewCanvas.height / 2;
+
+            if (!selectedNode) return;
+
+            pCtx.save();
+            if (selectedNode.id === 'mu' || selectedNode.id === 'numu') {
+                // Muon Gen-2 Lepton Cloud
+                pCtx.strokeStyle = '#f5c2e7'; pCtx.lineWidth = 2;
+                pCtx.beginPath(); pCtx.arc(cx, cy, 28, 0, Math.PI * 2); pCtx.stroke();
+
+                const mx = cx + Math.cos(animTime * 2) * 28;
+                const my = cy + Math.sin(animTime * 2) * 28;
+                pCtx.fillStyle = '#f5c2e7'; pCtx.shadowColor = '#f5c2e7'; pCtx.shadowBlur = 10;
+                pCtx.beginPath(); pCtx.arc(mx, my, 7, 0, Math.PI * 2); pCtx.fill();
+
+                pCtx.fillStyle = '#ffffff'; pCtx.font = 'bold 10px monospace'; pCtx.textAlign = 'center';
+                pCtx.fillText(selectedNode.id === 'mu' ? 'μ⁻' : 'ν_μ', cx, cy + 4);
+
+            } else if (selectedNode.id === 'e' || selectedNode.id === 'nue') {
+                // Electron Gen-1 Lepton Cloud
+                pCtx.strokeStyle = '#89dceb'; pCtx.lineWidth = 1.5;
+                pCtx.beginPath(); pCtx.arc(cx, cy, 24, 0, Math.PI * 2); pCtx.stroke();
+
+                const ex = cx + Math.cos(animTime * 2.5) * 24;
+                const ey = cy + Math.sin(animTime * 2.5) * 24;
+                pCtx.fillStyle = '#89dceb'; pCtx.shadowColor = '#89dceb'; pCtx.shadowBlur = 8;
+                pCtx.beginPath(); pCtx.arc(ex, ey, 5, 0, Math.PI * 2); pCtx.fill();
+
+                pCtx.fillStyle = '#ffffff'; pCtx.font = 'bold 10px monospace'; pCtx.textAlign = 'center';
+                pCtx.fillText(selectedNode.id === 'e' ? 'e⁻' : 'νₑ', cx, cy + 4);
+
+            } else if (selectedNode.id === 'p' || selectedNode.id === 'n') {
+                // Baryon Nucleon Cluster
+                pCtx.strokeStyle = 'rgba(243, 139, 168, 0.4)'; pCtx.lineWidth = 1.5;
+                pCtx.beginPath(); pCtx.arc(cx, cy, 22, 0, Math.PI * 2); pCtx.stroke();
+
+                const isP = selectedNode.id === 'p';
+                const quarks = isP ? ['#cba6f7', '#cba6f7', '#f38ba8'] : ['#cba6f7', '#f38ba8', '#f38ba8'];
+                quarks.forEach((color, i) => {
+                    const a = (i / 3) * Math.PI * 2 + animTime;
+                    const qx = cx + Math.cos(a) * 12;
+                    const qy = cy + Math.sin(a) * 12;
+                    pCtx.fillStyle = color; pCtx.beginPath(); pCtx.arc(qx, qy, 6, 0, Math.PI * 2); pCtx.fill();
+                });
+
+            } else {
+                // Default Field Wave / Category Ripple
+                pCtx.strokeStyle = selectedNode.style || '#89b4fa'; pCtx.lineWidth = 2;
+                pCtx.beginPath();
+                for (let x = cx - 50; x <= cx + 50; x += 4) {
+                    const y = cy + Math.sin((x - cx) * 0.1 + animTime * 3) * 12;
+                    if (x === cx - 50) pCtx.moveTo(x, y); else pCtx.lineTo(x, y);
+                }
+                pCtx.stroke();
+            }
+            pCtx.restore();
         }
-
-        canvas.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            dragStart = { x: e.clientX - camera.x, y: e.clientY - camera.y };
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            camera.x = e.clientX - dragStart.x;
-            camera.y = e.clientY - dragStart.y;
-        });
-
-        window.addEventListener('mouseup', () => isDragging = false);
-
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-            camera.zoom = Math.min(Math.max(0.4, camera.zoom * zoomFactor), 2.5);
-        });
-
-        function expandAll() { setExpandState(hierarchyTree, true); }
-        function collapseAll() { setExpandState(hierarchyTree, false); hierarchyTree.expanded = true; }
-        function setExpandState(node, state) {
-            node.expanded = state;
-            if (node.children) node.children.forEach(c => setExpandState(c, state));
-        }
-
-        function resetCamera() { camera = { x: 0, y: 30, zoom: 1.0 }; }
 
         resizeCanvas();
-        drawTree();
+        updateZoomHud();
+        requestAnimationFrame(drawTree);
     </script>
 </body>
 </html>
