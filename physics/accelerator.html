@@ -47,7 +47,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--canvas-bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { background-color: var(--canvas-bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
 
         header {
             background-color: var(--panel-bg);
@@ -76,14 +76,12 @@
 
         .workspace {
             display: grid;
-            grid-template-columns: 1fr 400px;
+            grid-template-columns: 1fr 380px;
             gap: 15px;
             padding: 15px;
             flex: 1;
-            height: calc(100vh - 55px);
-            overflow: hidden;
         }
-        @media (max-width: 1024px) { .workspace { grid-template-columns: 1fr; overflow-y: auto; } }
+        @media (max-width: 1024px) { .workspace { grid-template-columns: 1fr; } }
 
         .viewport-card {
             background-color: var(--panel-bg);
@@ -93,7 +91,6 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            position: relative;
         }
 
         .controls-bar {
@@ -108,17 +105,28 @@
 
         .canvas-container {
             width: 100%;
-            flex: 1;
+            height: 420px;
             background: var(--canvas-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
             position: relative;
             overflow: hidden;
-            min-height: 480px;
         }
         canvas#accelCanvas { width: 100%; height: 100%; display: block; }
 
-        .sidebar { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .graph-container {
+            width: 100%;
+            height: 200px;
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        canvas#graphCanvas { width: 100%; height: 100%; display: block; }
+
+        .sidebar { display: flex; flex-direction: column; gap: 12px; }
         .panel-card {
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
@@ -145,17 +153,14 @@
         .telemetry-label { color: var(--text-sub); }
         .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
 
-        .graph-box {
-            width: 100%;
-            height: 140px;
-            background: var(--canvas-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            margin-top: 10px;
-            position: relative;
-            overflow: hidden;
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
         }
-        canvas#graphCanvas { width: 100%; height: 100%; display: block; }
+        .slider-group label { font-size: 0.82rem; font-weight: 600; display: flex; justify-content: space-between; }
+        .slider-group input { width: 100%; accent-color: var(--accent-blue); }
 
         .status-badge {
             padding: 4px 8px;
@@ -190,40 +195,49 @@
                 </div>
                 <div class="nav-group">
                     <span style="font-size: 0.82rem; color: var(--text-sub);">
-                        Beam Target: <b>0.9999 c</b> (Relativistic Deconfinement)
+                        Collision Target: <b>0.9999 c</b> (Subatomic Deconfinement)
                     </span>
                 </div>
             </div>
 
+            <!-- MAIN ACCELERATOR CANVAS -->
             <div class="canvas-container">
                 <canvas id="accelCanvas"></canvas>
+            </div>
+
+            <!-- RELOCATED RELATIVISTIC KINETIC ENERGY GRAPH (BELOW ACCELERATOR) -->
+            <div class="panel-card" style="margin-top: 5px;">
+                <div class="panel-title">📊 Relativistic Kinetic Energy Curve K(v) & Real-Time Tracking</div>
+                <div class="graph-container">
+                    <canvas id="graphCanvas"></canvas>
+                </div>
             </div>
         </div>
 
         <div class="sidebar">
             <div class="panel-card">
+                <div class="panel-title">Simulation Playback Controls</div>
+                <div class="slider-group">
+                    <label>Simulation Speed (Slow-Mo): <span id="slowMoVal" style="color:var(--accent-cyan);">1.0x</span></label>
+                    <input type="range" id="slowMoSlider" min="0.1" max="2.0" step="0.1" value="1.0" oninput="updateSlowMo()">
+                </div>
+            </div>
+
+            <div class="panel-card">
                 <div class="panel-title">Staged RF & Synchrotron Telemetry</div>
-                <div class="telemetry-row"><span class="telemetry-label">Beam Velocity (v/c):</span><span class="telemetry-val" id="velVal" style="color:var(--accent-cyan);">0.000 c</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Beam Velocity (v/c):</span><span class="telemetry-val" id="velVal" style="color:var(--accent-cyan);">0.0000 c</span></div>
                 <div class="telemetry-row"><span class="telemetry-label">Lorentz Factor (γ):</span><span class="telemetry-val" id="gammaVal">1.00</span></div>
                 <div class="telemetry-row"><span class="telemetry-label">Kinetic Energy (K):</span><span class="telemetry-val" id="kVal" style="color:var(--accent-green);">0.00 GeV</span></div>
                 <div class="telemetry-row"><span class="telemetry-label">Equivalent Mass Defect (Δm):</span><span class="telemetry-val" id="deltaMVal" style="color:var(--accent-red);">0.0000 amu</span></div>
-                <div id="stateBadge" class="status-badge badge-accel">IDLE / BEAM INJECTED</div>
-            </div>
-
-            <!-- RELATIVISTIC KINETIC ENERGY GRAPH (K vs v) -->
-            <div class="panel-card">
-                <div class="panel-title">📊 Relativistic Kinetic Energy K(v)</div>
-                <div class="graph-box">
-                    <canvas id="graphCanvas"></canvas>
-                </div>
+                <div id="stateBadge" class="status-badge badge-accel">IDLE / BEAM INJECTED (v = 0)</div>
             </div>
 
             <div class="panel-card">
                 <div class="panel-title">Pedagogical Physics Breakdown</div>
                 <div style="font-size:0.8rem; line-height:1.5; color:var(--text-sub);">
-                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-yellow);">Staged Magnetrons & RF Cavities:</strong> Alternating electromagnetic fields continuously pump kinetic energy into passing beam bunches[cite: 1].</p>
-                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-red);">Relativistic Spike:</strong> As $v \rightarrow 0.9999c$, kinetic energy shoots up exponentially ($K = (\gamma - 1)m_0 c^2$)[cite: 1].</p>
-                    <p><strong style="color:var(--accent-green);">Mass Defect Creation:</strong> Upon collision at $0.9999c$, the accumulated motion energy transforms directly into rest mass ($E = mc^2$), separating subatomic quarks and gluons[cite: 1].</p>
+                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-yellow);">1. Staged Magnetron RF Cavities:</strong> The particles start at rest ($v=0$) and gain speed sequentially as they pass through electromagnetic RF gaps[cite: 1].</p>
+                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-red);">2. Relativistic K(v) Curve:</strong> Kinetic energy $K = (\gamma - 1)m_0 c^2$ shoots up near light speed, demonstrating why infinite energy is required to reach $c$[cite: 1].</p>
+                    <p><strong style="color:var(--accent-green);">3. $E = mc^2$ Mass Defect:</strong> At $0.9999c$, the accumulated motion energy converts into subatomic rest masses ($\Delta m$), producing a quark-gluon shower[cite: 1].</p>
                 </div>
             </div>
         </div>
@@ -240,23 +254,30 @@
         let isAccelerating = false;
         let beamPhase = 'idle'; // 'idle', 'accel', 'collide', 'shower'
         let animTime = 0;
+        let timeScale = 1.0;
         let fragments = [];
-        let speedHistory = [];
+        let speedHistory = [{ v: 0, k: 0 }];
 
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
             graphCanvas.width = graphCanvas.parentElement.clientWidth;
             graphCanvas.height = graphCanvas.parentElement.clientHeight;
+            drawEnergyGraph();
         }
         window.addEventListener('resize', resizeCanvas);
+
+        function updateSlowMo() {
+            timeScale = parseFloat(document.getElementById('slowMoSlider').value);
+            document.getElementById('slowMoVal').innerText = `${timeScale.toFixed(1)}x`;
+        }
 
         function startStagedAcceleration() {
             if (isAccelerating) return;
             isAccelerating = true;
             beamPhase = 'accel';
-            vRatio = 0.05;
-            speedHistory = [];
+            vRatio = 0.0001;
+            speedHistory = [{ v: 0, k: 0 }];
             fragments = [];
             document.getElementById('startBtn').disabled = true;
             document.getElementById('stateBadge').innerText = "STAGED RF ACCELERATION IN PROGRESS";
@@ -264,24 +285,22 @@
         }
 
         function updatePhysicsTelemetry() {
-            // Relativistic Lorentz Factor gamma = 1 / sqrt(1 - v^2/c^2)
-            const safeV = Math.min(0.9999, vRatio);
-            const gamma = 1 / Math.sqrt(1 - Math.pow(safeV, 2));
+            const safeV = Math.min(0.9999, Math.max(0, vRatio));
+            const gamma = (safeV >= 0.9999) ? 70.71 : (1 / Math.sqrt(1 - Math.pow(safeV, 2)));
 
             document.getElementById('velVal').innerText = `${safeV.toFixed(4)} c`;
             document.getElementById('gammaVal').innerText = gamma.toFixed(2);
 
-            // Kinetic Energy K = (gamma - 1) * m0 * c^2 (in GeV)
-            const m0_GeV = 0.938; // Proton rest mass ~0.938 GeV
-            const K_GeV = (gamma - 1) * m0_GeV * 2; // Two beam hadrons
+            const m0_GeV = 0.938; // Proton rest mass
+            const K_GeV = (gamma - 1) * m0_GeV * 2; // Two colliding hadrons
             document.getElementById('kVal').innerText = `${K_GeV.toFixed(2)} GeV`;
 
-            // Mass Defect deltaM = K / 0.9315 (amu)
             const deltaM = K_GeV / 0.9315;
             document.getElementById('deltaMVal').innerText = `${deltaM.toFixed(4)} amu`;
 
-            if (speedHistory.length > 100) speedHistory.shift();
-            speedHistory.push({ v: safeV, k: K_GeV });
+            if (speedHistory.length === 0 || speedHistory[speedHistory.length - 1].v !== safeV) {
+                speedHistory.push({ v: safeV, k: K_GeV });
+            }
 
             drawEnergyGraph();
         }
@@ -292,30 +311,54 @@
             const h = graphCanvas.height;
 
             // Grid Axes
-            gCtx.strokeStyle = '#45475a'; gCtx.lineWidth = 1;
-            gCtx.beginPath(); gCtx.moveTo(30, 10); gCtx.lineTo(30, h - 20); gCtx.lineTo(w - 10, h - 20); gCtx.stroke();
+            gCtx.strokeStyle = '#45475a'; gCtx.lineWidth = 1.5;
+            gCtx.beginPath(); gCtx.moveTo(40, 15); gCtx.lineTo(40, h - 25); gCtx.lineTo(w - 15, h - 25); gCtx.stroke();
 
-            gCtx.fillStyle = '#a6adc8'; gCtx.font = '9px monospace';
-            gCtx.fillText("v -> c", w - 35, h - 5);
-            gCtx.fillText("K (GeV)", 5, 12);
+            gCtx.fillStyle = '#a6adc8'; gCtx.font = '10px monospace';
+            gCtx.fillText("Beam Speed (v/c) -> 0.9999c", w - 170, h - 8);
+            gCtx.fillText("Kinetic Energy K (GeV)", 8, 12);
 
-            if (speedHistory.length < 2) return;
-
-            // Draw K(v) Curve
-            gCtx.strokeStyle = '#a6e3a1'; gCtx.lineWidth = 2;
+            // Theoretical Background K(v) Reference Curve from 0 to 0.9999c
+            gCtx.strokeStyle = 'rgba(137, 180, 250, 0.25)'; gCtx.lineWidth = 1; ctx.setLineDash([3, 3]);
             gCtx.beginPath();
-            speedHistory.forEach((pt, i) => {
-                const x = 30 + (pt.v / 1.0) * (w - 40);
-                const y = (h - 20) - Math.min(h - 30, (pt.k / 100) * (h - 30));
-                if (i === 0) gCtx.moveTo(x, y); else gCtx.lineTo(x, y);
-            });
+            for (let vStep = 0; vStep <= 0.9999; vStep += 0.01) {
+                const gStep = 1 / Math.sqrt(1 - Math.pow(vStep, 2));
+                const kStep = (gStep - 1) * 0.938 * 2;
+                const gx = 40 + (vStep / 0.9999) * (w - 60);
+                const gy = (h - 25) - Math.min(h - 35, (kStep / 130) * (h - 35));
+                if (vStep === 0) gCtx.moveTo(gx, gy); else gCtx.lineTo(gx, gy);
+            }
             gCtx.stroke();
+            gCtx.setLineDash([]);
+
+            // Live Traced Path starting at (0, 0)
+            if (speedHistory.length > 0) {
+                gCtx.strokeStyle = '#a6e3a1'; gCtx.lineWidth = 2.5;
+                gCtx.beginPath();
+                speedHistory.forEach((pt, i) => {
+                    const gx = 40 + (pt.v / 0.9999) * (w - 60);
+                    const gy = (h - 25) - Math.min(h - 35, (pt.k / 130) * (h - 35));
+                    if (i === 0) gCtx.moveTo(gx, gy); else gCtx.lineTo(gx, gy);
+                });
+                gCtx.stroke();
+
+                // Current Motion Point Tracker
+                const lastPt = speedHistory[speedHistory.length - 1];
+                const curX = 40 + (lastPt.v / 0.9999) * (w - 60);
+                const curY = (h - 25) - Math.min(h - 35, (lastPt.k / 130) * (h - 35));
+
+                gCtx.fillStyle = '#f9e2af';
+                gCtx.shadowColor = '#f9e2af';
+                gCtx.shadowBlur = 8;
+                gCtx.beginPath(); gCtx.arc(curX, curY, 5, 0, Math.PI * 2); gCtx.fill();
+                gCtx.shadowBlur = 0;
+            }
         }
 
         function spawnDeconfinedShower(cx, cy) {
             for (let i = 0; i < 40; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = 3 + Math.random() * 8;
+                const speed = 2 + Math.random() * 7;
                 const types = ['u_quark', 'd_quark', 'gluon_wave'];
                 fragments.push({
                     x: cx, y: cy,
@@ -367,31 +410,31 @@
             cCtx.restore();
         }
 
-        function drawProton(cCtx, x, y) { // Proton (uud): 2 Up (#cba6f7) + 1 Down (#f38ba8)
+        function drawProton(cCtx, x, y) { // Proton (uud)
             cCtx.save(); cCtx.translate(x, y);
             cCtx.strokeStyle = 'rgba(137, 180, 250, 0.4)'; cCtx.lineWidth = 1.5;
-            cCtx.beginPath(); cCtx.arc(0, 0, 20, 0, Math.PI * 2); cCtx.stroke();
+            cCtx.beginPath(); cCtx.arc(0, 0, 18, 0, Math.PI * 2); cCtx.stroke();
             ['u_quark', 'u_quark', 'd_quark'].forEach((v, i) => {
                 const a = (i / 3) * Math.PI * 2 + animTime * 0.04;
-                drawParticleModel(cCtx, Math.cos(a) * 9, Math.sin(a) * 9, v, 0.75);
+                drawParticleModel(cCtx, Math.cos(a) * 8, Math.sin(a) * 8, v, 0.75);
             });
             cCtx.restore();
         }
 
-        function drawNeutron(cCtx, x, y) { // Neutron (udd): 1 Up (#cba6f7) + 2 Down (#f38ba8)
+        function drawNeutron(cCtx, x, y) { // Neutron (udd)
             cCtx.save(); cCtx.translate(x, y);
             cCtx.strokeStyle = 'rgba(250, 179, 135, 0.4)'; cCtx.lineWidth = 1.5;
-            cCtx.beginPath(); cCtx.arc(0, 0, 20, 0, Math.PI * 2); cCtx.stroke();
+            cCtx.beginPath(); cCtx.arc(0, 0, 18, 0, Math.PI * 2); cCtx.stroke();
             ['u_quark', 'd_quark', 'd_quark'].forEach((v, i) => {
                 const a = (i / 3) * Math.PI * 2 + animTime * 0.04;
-                drawParticleModel(cCtx, Math.cos(a) * 9, Math.sin(a) * 9, v, 0.75);
+                drawParticleModel(cCtx, Math.cos(a) * 8, Math.sin(a) * 8, v, 0.75);
             });
             cCtx.restore();
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            animTime += 1;
+            animTime += 1 * timeScale;
 
             const cx = canvas.width / 2;
             const cy = canvas.height / 2;
@@ -406,7 +449,7 @@
 
                 ctx.fillStyle = isAccelerating ? 'rgba(249, 226, 175, 0.3)' : '#181825';
                 ctx.strokeStyle = '#f9e2af'; ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.arc(cavX, cavY, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.arc(cavX, cavY, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
             }
 
             // Synchrotron Ring
@@ -415,7 +458,7 @@
 
             // 2. Staged Speed Ramp Mechanics
             if (beamPhase === 'accel') {
-                vRatio += 0.0035; // Gradual Staged Acceleration
+                vRatio += 0.0012 * timeScale; // Controlled Staged Acceleration
                 updatePhysicsTelemetry();
 
                 if (vRatio >= 0.9999) {
@@ -423,17 +466,17 @@
                     beamPhase = 'collide';
                 }
 
-                const angleA = animTime * (0.02 + vRatio * 0.12);
-                const angleB = -animTime * (0.02 + vRatio * 0.12) + Math.PI;
+                const angleA = animTime * (0.015 + vRatio * 0.08);
+                const angleB = -animTime * (0.015 + vRatio * 0.08) + Math.PI;
 
                 drawProton(ctx, cx + Math.cos(angleA) * radius, cy + Math.sin(angleA) * radius);
                 drawNeutron(ctx, cx + Math.cos(angleB) * radius, cy + Math.sin(angleB) * radius);
 
             } else if (beamPhase === 'collide') {
-                // Collision at 0.9999c
+                // Relativistic Collision at 0.9999c
                 ctx.save();
                 ctx.fillStyle = '#ffffff'; ctx.shadowColor = '#f38ba8'; ctx.shadowBlur = 40;
-                ctx.beginPath(); ctx.arc(cx, cy - radius, 40, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(cx, cy - radius, 35, 0, Math.PI * 2); ctx.fill();
                 ctx.restore();
 
                 spawnDeconfinedShower(cx, cy - radius);
@@ -445,7 +488,9 @@
             } else if (beamPhase === 'shower') {
                 for (let i = fragments.length - 1; i >= 0; i--) {
                     const f = fragments[i];
-                    f.x += f.vx; f.y += f.vy; f.life -= 0.008;
+                    f.x += f.vx * timeScale;
+                    f.y += f.vy * timeScale;
+                    f.life -= 0.008 * timeScale;
 
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, f.life);
@@ -454,6 +499,10 @@
 
                     if (f.life <= 0) fragments.splice(i, 1);
                 }
+            } else if (beamPhase === 'idle') {
+                // Static Beams at Rest at Injection Points (v = 0)
+                drawProton(ctx, cx + radius, cy);
+                drawNeutron(ctx, cx - radius, cy);
             }
 
             requestAnimationFrame(draw);
@@ -464,14 +513,15 @@
             beamPhase = 'idle';
             vRatio = 0.0;
             fragments = [];
-            speedHistory = [];
+            speedHistory = [{ v: 0, k: 0 }];
             document.getElementById('startBtn').disabled = false;
-            document.getElementById('stateBadge').innerText = "IDLE / BEAM INJECTED";
+            document.getElementById('stateBadge').innerText = "IDLE / BEAM INJECTED (v = 0)";
             document.getElementById('stateBadge').className = "status-badge badge-accel";
             updatePhysicsTelemetry();
         }
 
         resizeCanvas();
+        resetAccelerator();
         draw();
     </script>
 </body>
