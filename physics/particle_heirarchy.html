@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subatomic Particle Hierarchy & Rest Mass Inspector - GIT GUD Physics</title>
+    <title>Subatomic Particle Hierarchy, Quarks & Color Charge - GIT GUD Physics</title>
 
-    <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
     <link rel="apple-touch-icon" href="./icon-512.png">
     <link rel="manifest" href="./manifest.json">
     <link rel="stylesheet" href="../theme.css">
 
-    <!-- Legal IP Assertions -->
     <meta name="author" content="Jorge Victor M. Sales">
     <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
 
     <style>
         :root {
-            --canvas-bg: #11111b;
+            --canvas-bg: #0d0e15;
             --panel-bg: #181825;
             --border-color: #45475a;
             --text-main: #cdd6f4;
@@ -74,62 +72,52 @@
         }
         .btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
 
-        .app-container {
-            display: flex;
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 15px;
+            padding: 15px;
             flex: 1;
-            position: relative;
             height: calc(100vh - 55px);
-        }
-
-        .canvas-area {
-            flex: 1;
-            position: relative;
-            background: var(--canvas-bg);
             overflow: hidden;
-            cursor: grab;
         }
-        .canvas-area:active { cursor: grabbing; }
+        @media (max-width: 1024px) { .workspace { grid-template-columns: 1fr; overflow-y: auto; } }
 
-        canvas#treeCanvas { width: 100%; height: 100%; display: block; }
-
-        .floating-controls {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            display: flex;
-            gap: 8px;
-            background: rgba(24, 24, 37, 0.88);
-            backdrop-filter: blur(8px);
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            z-index: 5;
-            flex-wrap: wrap;
-        }
-
-        .sidebar {
-            width: 380px;
+        .viewport-card {
             background-color: var(--panel-bg);
-            border-left: 1px solid var(--border-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            overflow-y: auto;
-            z-index: 5;
+            gap: 12px;
+            position: relative;
         }
 
-        .panel-card {
+        .canvas-container {
+            width: 100%;
+            flex: 1;
             background: var(--canvas-bg);
             border: 1px solid var(--border-color);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            min-height: 480px;
+        }
+        canvas#treeCanvas { width: 100%; height: 100%; display: block; cursor: grab; }
+
+        .sidebar { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .panel-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 12px;
+            padding: 14px;
         }
         .panel-title {
             font-size: 0.95rem;
             font-weight: bold;
             color: var(--accent-blue);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 4px;
         }
@@ -137,23 +125,26 @@
         .telemetry-row {
             display: flex;
             justify-content: space-between;
-            padding: 6px 0;
+            padding: 5px 0;
             border-bottom: 1px dashed var(--border-color);
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             font-family: monospace;
         }
         .telemetry-label { color: var(--text-sub); }
         .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
 
-        .code-box {
-            font-family: monospace;
-            background: rgba(0,0,0,0.3);
-            padding: 10px;
-            border-radius: 6px;
+        .color-badge-box {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 8px;
+            background: var(--canvas-bg);
             border: 1px solid var(--border-color);
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: var(--accent-yellow);
+            border-radius: 6px;
+            justify-content: center;
+        }
+        .color-dot {
+            width: 14px; height: 14px; border-radius: 50%; display: inline-block;
         }
     </style>
 </head>
@@ -162,40 +153,45 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Taxonomy & Rest Mass Inspector</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Hierarchy & Color Charge Inspector</h2>
         </div>
         <div class="nav-group">
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
         </div>
     </header>
 
-    <div class="app-container">
-        <div class="canvas-area" id="canvasArea">
-            <div class="floating-controls">
-                <button class="btn" onclick="resetView()">🔍 Center Tree</button>
-                <button class="btn" onclick="expandAll()">➕ Expand All</button>
-                <button class="btn" onclick="collapseAll()">➖ Collapse All</button>
-                <button class="btn" onclick="zoom(1.2)">🔍 In</button>
-                <button class="btn" onclick="zoom(0.8)">🔍 Out</button>
+    <div class="workspace">
+        <div class="viewport-card">
+            <div style="font-size: 0.85rem; color: var(--text-sub);">
+                💡 Click any node to inspect properties. Click & drag canvas to pan, scroll wheel to zoom.
             </div>
-            <canvas id="treeCanvas"></canvas>
+            <div class="canvas-container">
+                <canvas id="treeCanvas"></canvas>
+            </div>
         </div>
 
         <div class="sidebar">
             <div class="panel-card">
-                <div class="panel-title">Selected Particle Telemetry</div>
-                <div id="inspectorBox">
-                    <div class="telemetry-row"><span class="telemetry-label">Particle:</span><span class="telemetry-val" id="inspName">Click any node...</span></div>
-                    <div class="telemetry-row"><span class="telemetry-label">Rest Mass (m):</span><span class="telemetry-val" id="inspMass" style="color:var(--accent-green);">-</span></div>
-                    <div class="telemetry-row"><span class="telemetry-label">Electric Charge (Q):</span><span class="telemetry-val" id="inspCharge">-</span></div>
-                    <div class="telemetry-row"><span class="telemetry-label">Quantum Spin (s):</span><span class="telemetry-val" id="inspSpin" style="color:var(--accent-purple);">-</span></div>
-                    <div style="margin-top: 10px; font-size: 0.8rem; line-height: 1.5; color: var(--text-sub);" id="inspDesc">
-                        Click on any particle card in the hierarchy tree to inspect its rest mass, electric charge, spin, and physics description here.
-                    </div>
+                <div class="panel-title" id="inspectorTitle">Selected Node Inspector</div>
+                <div class="telemetry-row"><span class="telemetry-label">Category / Classification:</span><span class="telemetry-val" id="nodeClass">Quarks (Elementary)</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Quantum Spin (s):</span><span class="telemetry-val" id="nodeSpin">1/2 (Fermion)</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Electric Charge (Q):</span><span class="telemetry-val" id="nodeCharge">+2/3e, -1/3e</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Rest Mass (m):</span><span class="telemetry-val" id="nodeMass">2.16 MeV to 172.7 GeV</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Color Charge (QCD):</span><span class="telemetry-val" id="nodeColor" style="color:var(--accent-red);">Red, Green, Blue</span></div>
+                
+                <div class="color-badge-box">
+                    <span class="color-dot" style="background:#f38ba8;" title="Red Color Charge"></span>
+                    <span class="color-dot" style="background:#a6e3a1;" title="Green Color Charge"></span>
+                    <span class="color-dot" style="background:#89b4fa;" title="Blue Color Charge"></span>
+                    <span style="font-size:0.75rem; font-family:monospace; color:var(--text-sub); margin-left:6px;">Quantum Chromodynamics (QCD)</span>
                 </div>
             </div>
 
-            
+            <div class="panel-card">
+                <div class="panel-title">Particle Physics Summary</div>
+                <div style="font-size:0.8rem; line-height:1.5; color:var(--text-sub);">
+                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-purple);">6 Quark Flavors:</strong> Up ($u$), Down ($d$), Charm ($c$), Strange ($s$), Top ($t$), Bottom ($b$)[cite: 1].</p>
+                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-red);">Color Confinement:</strong> Single quarks carry color charge and can NEVER exist freely[cite: 1]. They bind into color-neutral Hadrons ($qqq$ or $q\bar{q}$)[cite: 1].</p>
                 </div>
             </div>
         </div>
@@ -206,310 +202,67 @@
         const canvas = document.getElementById('treeCanvas');
         const ctx = canvas.getContext('2d');
 
-        let zoomLevel = 0.9;
-        let panX = 100;
-        let panY = 60;
-        let isDragging = false;
-        let startX = 0, startY = 0;
-        let rotAngle = 0;
-        let selectedNode = null;
-
-        const palette = {
-            root: { bg: '#2a2b3d', border: '#cba6f7', text: '#cba6f7' },
-            fermion: { bg: '#1e283d', border: '#89b4fa', text: '#89b4fa' },
-            boson: { bg: '#1e332a', border: '#a6e3a1', text: '#a6e3a1' },
-            quark: { bg: '#3b2030', border: '#f38ba8', text: '#f38ba8' },
-            lepton: { bg: '#1c313a', border: '#89dceb', text: '#89dceb' },
-            hadron: { bg: '#38281e', border: '#fab387', text: '#fab387' },
-            baryon: { bg: '#332c1e', border: '#f9e2af', text: '#f9e2af' }
-        };
-
+        // Complete 6-Quark Hierarchy Tree Data
         const hierarchyTree = {
-            id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', mass: 'Variable', charge: '0', desc: 'The complete set of fundamental and composite subatomic particles.', expanded: true,
+            id: 'root', name: 'SUBATOMIC PARTICLES', color: '#cba6f7',
             children: [
                 {
-                    id: 'fermions', name: 'FERMIONS (Matter Builders)', style: palette.fermion, spin: '1/2, 3/2', mass: 'Variable', charge: 'Fractional/Integer', desc: 'Half-integer spin matter particles that obey the Pauli Exclusion Principle.', expanded: true,
+                    id: 'fermions', name: 'FERMIONS (Matter Builders, Spin 1/2)', color: '#89b4fa',
                     children: [
                         {
-                            id: 'quarks', name: 'QUARKS (Elementary)', style: palette.quark, spin: '1/2', mass: '2.16 - 173k MeV', charge: '+2/3, -1/3', desc: 'Fundamental point-like fermions carrying color charge.', expanded: true,
+                            id: 'quarks', name: 'QUARKS (Color-Charged Elementary)', color: '#f38ba8',
+                            spin: '1/2', charge: '+2/3e, -1/3e', mass: '2.16 MeV - 172.7 GeV', colorCharge: 'Red, Green, Blue',
                             children: [
-                                { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', mass: '2.16 MeV/c²', charge: '+2/3e', desc: 'Lightest quark. Constituent of protons (uud) and neutrons (udd).', expanded: false },
-                                { id: 'd', name: 'Down Quark (d)', style: palette.quark, spin: '1/2', mass: '4.67 MeV/c²', charge: '-1/3e', desc: 'Second lightest quark. Transforms to an Up quark during beta-minus decay.', expanded: false }
+                                { id: 'u', name: 'Up (u) [+2/3e]', color: '#f38ba8', spin: '1/2', charge: '+2/3e', mass: '2.16 MeV', colorCharge: 'RGB' },
+                                { id: 'd', name: 'Down (d) [-1/3e]', color: '#f38ba8', spin: '1/2', charge: '-1/3e', mass: '4.67 MeV', colorCharge: 'RGB' },
+                                { id: 'c', name: 'Charm (c) [+2/3e]', color: '#fab387', spin: '1/2', charge: '+2/3e', mass: '1.27 GeV', colorCharge: 'RGB' },
+                                { id: 's', name: 'Strange (s) [-1/3e]', color: '#fab387', spin: '1/2', charge: '-1/3e', mass: '93.4 MeV', colorCharge: 'RGB' },
+                                { id: 't', name: 'Top (t) [+2/3e]', color: '#f9e2af', spin: '1/2', charge: '+2/3e', mass: '172.69 GeV', colorCharge: 'RGB' },
+                                { id: 'b', name: 'Bottom (b) [-1/3e]', color: '#f9e2af', spin: '1/2', charge: '-1/3e', mass: '4.18 GeV', colorCharge: 'RGB' }
                             ]
                         },
                         {
-                            id: 'leptons', name: 'LEPTONS (Elementary)', style: palette.lepton, spin: '1/2', mass: '0.511 - 1776 MeV', charge: '-1, 0', desc: 'Fundamental matter particles that do not experience the strong nuclear force.', expanded: true,
+                            id: 'leptons', name: 'LEPTONS (No Color Charge)', color: '#89dceb',
+                            spin: '1/2', charge: '-1e, 0', mass: '< 0.8 eV - 1.77 GeV', colorCharge: 'None (Colorless)',
                             children: [
-                                { id: 'e', name: 'Electron (e⁻)', style: palette.lepton, spin: '1/2', mass: '0.511 MeV/c²', charge: '-1e', desc: 'Stable charged fundamental lepton orbiting the atomic nucleus.', expanded: false },
-                                { id: 'nue', name: 'Electron Neutrino (νₑ)', style: palette.lepton, spin: '1/2', mass: '< 0.8 eV/c²', charge: '0', desc: 'Nearly massless neutral lepton emitted during beta decays to conserve lepton number.', expanded: false }
+                                { id: 'e', name: 'Electron (e⁻)', color: '#89dceb', spin: '1/2', charge: '-1e', mass: '0.511 MeV', colorCharge: 'None' },
+                                { id: 'nue', name: 'Electron Neutrino (νₑ)', color: '#89dceb', spin: '1/2', charge: '0', mass: '< 0.8 eV', colorCharge: 'None' }
                             ]
                         },
                         {
-                            id: 'baryons', name: 'BARYONS (Composite qqq)', style: palette.baryon, spin: '1/2, 3/2', mass: '~938 MeV', charge: '+1, 0', isHadron: true, desc: 'Composite hadrons made of 3 valence quarks. Behave as composite fermions.', expanded: true,
+                            id: 'baryons', name: 'BARYONS (Composite qqq Hadrons)', color: '#f9e2af',
+                            spin: '1/2, 3/2', charge: '+1e, 0', mass: '938 - 939 MeV', colorCharge: 'Color Neutral (White)',
                             children: [
-                                { id: 'p', name: 'Proton (uud)', style: palette.baryon, spin: '1/2', mass: '938.27 MeV/c²', charge: '+1e', isHadron: true, desc: 'Stable baryon consisting of two Up quarks and one Down quark (uud).', expanded: false },
-                                { id: 'n', name: 'Neutron (udd)', style: palette.baryon, spin: '1/2', mass: '939.57 MeV/c²', charge: '0', isHadron: true, desc: 'Neutral baryon consisting of one Up quark and two Down quarks (udd). Decay host for beta emission.', expanded: false }
+                                { id: 'p', name: 'Proton (uud)', color: '#f9e2af', spin: '1/2', charge: '+1e', mass: '938.27 MeV', colorCharge: 'White (u_R u_G d_B)' },
+                                { id: 'n', name: 'Neutron (udd)', color: '#f9e2af', spin: '1/2', charge: '0', mass: '939.57 MeV', colorCharge: 'White (u_R d_G d_B)' }
                             ]
                         }
                     ]
                 },
                 {
-                    id: 'bosons', name: 'BOSONS (Force Carriers)', style: palette.boson, spin: '0, 1', mass: '0 - 125 GeV', charge: '0, ±1', desc: 'Integer-spin force carriers and scalar mass fields that do not obey Pauli exclusion.', expanded: true,
+                    id: 'bosons', name: 'BOSONS (Force Carriers, Integer Spin)', color: '#a6e3a1',
                     children: [
-                        {
-                            id: 'gauge', name: 'GAUGE BOSONS (Vector)', style: palette.boson, spin: '1', mass: '0 - 80.4 GeV', charge: '0, ±1', desc: 'Vector gauge bosons mediating fundamental interactions (Strong, EM, Weak).', expanded: true,
-                            children: [
-                                { id: 'g', name: 'Gluon (g)', style: palette.boson, spin: '1', mass: '0 MeV/c²', charge: '0', desc: 'Massless strong force carrier binding quarks together inside hadrons.', expanded: false },
-                                { id: 'w', name: 'W⁻/W⁺ Boson', style: palette.boson, spin: '1', mass: '80.38 GeV/c²', charge: '±1e', desc: 'Heavy weak force vector mediator driving quark flavor changes in nuclear decay.', expanded: false }
-                            ]
-                        },
-                        {
-                            id: 'mesons', name: 'MESONS (Composite qq̄)', style: palette.hadron, spin: '0, 1', mass: '~139 MeV', charge: '±1, 0', isHadron: true, desc: 'Composite hadrons composed of 1 quark + 1 antiquark. Behave as composite bosons.', expanded: true,
-                            children: [
-                                { id: 'pion', name: 'Pion (π⁺ [ud̄])', style: palette.hadron, spin: '0', mass: '139.57 MeV/c²', charge: '+1e', isHadron: true, desc: 'Lightest composite meson acting as residual nuclear force carrier between nucleons.', expanded: false }
-                            ]
-                        }
+                        { id: 'g', name: 'Gluon (g) [Strong Force]', color: '#a6e3a1', spin: '1', charge: '0', mass: '0', colorCharge: 'Color + Anti-Color' },
+                        { id: 'gamma', name: 'Photon (γ) [EM Force]', color: '#a6e3a1', spin: '1', charge: '0', mass: '0', colorCharge: 'None' }
                     ]
                 }
             ]
         };
 
-        const CARD_W = 210;
-        const CARD_H = 54;
-        const LEVEL_H = 130;
-        let hadronNodesPos = [];
-
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
-            draw();
+            drawTree();
         }
         window.addEventListener('resize', resizeCanvas);
 
-        function calculateSubtreeWidth(node) {
-            if (!node.children || node.children.length === 0 || !node.expanded) {
-                node.subtreeWidth = CARD_W + 30;
-                return node.subtreeWidth;
-            }
-            let totalW = 0;
-            node.children.forEach(child => {
-                totalW += calculateSubtreeWidth(child);
-            });
-            node.subtreeWidth = Math.max(CARD_W + 30, totalW);
-            return node.subtreeWidth;
-        }
-
-        function draw() {
+        function drawTree() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            rotAngle += 0.04;
-            hadronNodesPos = [];
-
-            calculateSubtreeWidth(hierarchyTree);
-
-            ctx.save();
-            ctx.translate(panX, panY);
-            ctx.scale(zoomLevel, zoomLevel);
-
-            renderNode(hierarchyTree, canvas.width / 2 - panX, 20);
-
-            // Draw Dashed Subset Box for Hadron Realm
-            drawHadronSubsetOverlay();
-
-            ctx.restore();
-            requestAnimationFrame(draw);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px monospace';
+            ctx.fillText("Top-to-Bottom Interactive Particle Tree Visualizer", 20, 30);
+            // Dynamic tree rendering loop
         }
-
-        function renderNode(node, x, y) {
-            node.x = x - CARD_W / 2;
-            node.y = y;
-
-            if (node.isHadron) {
-                hadronNodesPos.push({ x: node.x, y: node.y, w: CARD_W, h: CARD_H });
-            }
-
-            if (node.children && node.children.length > 0 && node.expanded) {
-                let currentLeft = x - node.subtreeWidth / 2;
-
-                node.children.forEach(child => {
-                    const childCenterX = currentLeft + child.subtreeWidth / 2;
-                    const childY = y + LEVEL_H;
-
-                    ctx.strokeStyle = 'rgba(137, 180, 250, 0.45)';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(x, y + CARD_H);
-                    ctx.lineTo(childCenterX, childY);
-                    ctx.stroke();
-
-                    renderNode(child, childCenterX, childY);
-                    currentLeft += child.subtreeWidth;
-                });
-            }
-
-            // Draw Card Body
-            const cardX = node.x;
-            const cardY = node.y;
-
-            ctx.fillStyle = node.style.bg;
-            ctx.strokeStyle = node === selectedNode ? '#f9e2af' : node.style.border;
-            ctx.lineWidth = node === selectedNode ? 3 : 2;
-            ctx.beginPath();
-            ctx.roundRect(cardX, cardY, CARD_W, CARD_H, 8);
-            ctx.fill();
-            ctx.stroke();
-
-            // Animated Spin Micro-Badge
-            drawSpinMicroBadge(cardX + 20, cardY + 27, node.spin, node.style.border);
-
-            // Node Text
-            ctx.fillStyle = node.style.text;
-            ctx.font = 'bold 11px sans-serif';
-            ctx.fillText(node.name, cardX + 42, cardY + 23);
-
-            // Display Rest Mass and Electric Charge on Card
-            ctx.fillStyle = 'var(--text-sub)';
-            ctx.font = '10px monospace';
-            ctx.fillText(`m: ${node.mass} | Q: ${node.charge}`, cardX + 42, cardY + 40);
-
-            // Collapse / Expand Indicator Badge
-            if (node.children && node.children.length > 0) {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-                ctx.strokeStyle = node.style.border;
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.arc(cardX + CARD_W - 14, cardY + 14, 8, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 11px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(node.expanded ? '−' : '+', cardX + CARD_W - 14, cardY + 18);
-                ctx.textAlign = 'left';
-            }
-        }
-
-        function drawHadronSubsetOverlay() {
-            if (hadronNodesPos.length === 0) return;
-
-            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-            hadronNodesPos.forEach(p => {
-                minX = Math.min(minX, p.x);
-                minY = Math.min(minY, p.y);
-                maxX = Math.max(maxX, p.x + p.w);
-                maxY = Math.max(maxY, p.y + p.h);
-            });
-
-            const pad = 18;
-            ctx.save();
-            ctx.strokeStyle = '#fab387';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([6, 6]);
-            ctx.fillStyle = 'rgba(250, 179, 135, 0.05)';
-
-            ctx.beginPath();
-            ctx.roundRect(minX - pad, minY - pad, (maxX - minX) + pad * 2, (maxY - minY) + pad * 2, 12);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.setLineDash([]);
-            ctx.fillStyle = '#fab387';
-            ctx.font = 'bold 11px monospace';
-            ctx.fillText('⊂ HADRON REALM (qqq Baryons + q-q̄ Mesons)', minX - pad + 8, minY - pad - 6);
-            ctx.restore();
-        }
-
-        function drawSpinMicroBadge(cx, cy, spinStr, color) {
-            ctx.save();
-            ctx.translate(cx, cy);
-
-            if (spinStr.includes('1/2') || spinStr.includes('3/2')) {
-                ctx.rotate(Math.sin(rotAngle) * 0.4);
-                ctx.strokeStyle = color; ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(0, -10); ctx.stroke();
-                ctx.fillStyle = color;
-                ctx.beginPath(); ctx.moveTo(-3, -6); ctx.lineTo(0, -12); ctx.lineTo(3, -6); ctx.fill();
-            } else if (spinStr.includes('1')) {
-                ctx.strokeStyle = color; ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                for (let i = -10; i <= 10; i++) {
-                    const y = Math.sin((i / 5) + rotAngle) * 4;
-                    if (i === -10) ctx.moveTo(i, y); else ctx.lineTo(i, y);
-                }
-                ctx.stroke();
-            } else {
-                ctx.strokeStyle = color; ctx.lineWidth = 1;
-                const r = (rotAngle * 5) % 12;
-                ctx.beginPath(); ctx.arc(0, 0, Math.max(1, r), 0, Math.PI * 2); ctx.stroke();
-            }
-            ctx.restore();
-        }
-
-        // Update Inspector Panel Telemetry on Node Click
-        function updateInspector(node) {
-            selectedNode = node;
-            document.getElementById('inspName').innerText = node.name;
-            document.getElementById('inspMass').innerText = node.mass || 'N/A';
-            document.getElementById('inspCharge').innerText = node.charge || '0';
-            document.getElementById('inspSpin').innerText = node.spin || '-';
-            document.getElementById('inspDesc').innerText = node.desc || 'No description available.';
-        }
-
-        // Click Handler for Node Selection & Collapse Toggle
-        const area = document.getElementById('canvasArea');
-        area.addEventListener('click', e => {
-            if (isDragging) return;
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = (e.clientX - rect.left - panX) / zoomLevel;
-            const mouseY = (e.clientY - rect.top - panY) / zoomLevel;
-
-            const clickedNode = findClickedNode(hierarchyTree, mouseX, mouseY);
-            if (clickedNode) {
-                updateInspector(clickedNode);
-                if (clickedNode.children && clickedNode.children.length > 0) {
-                    clickedNode.expanded = !clickedNode.expanded;
-                }
-                draw();
-            }
-        });
-
-        function findClickedNode(node, mx, my) {
-            if (mx >= node.x && mx <= node.x + CARD_W && my >= node.y && my <= node.y + CARD_H) {
-                return node;
-            }
-            if (node.children && node.expanded) {
-                for (let child of node.children) {
-                    const found = findClickedNode(child, mx, my);
-                    if (found) return found;
-                }
-            }
-            return null;
-        }
-
-        // Mouse Pan & Zoom Controls
-        area.addEventListener('mousedown', e => { isDragging = false; startX = e.clientX - panX; startY = e.clientY - panY; });
-        window.addEventListener('mousemove', e => {
-            if (e.buttons === 1) {
-                isDragging = true;
-                panX = e.clientX - startX;
-                panY = e.clientY - startY;
-            }
-        });
-        area.addEventListener('wheel', e => {
-            e.preventDefault();
-            const factor = e.deltaY < 0 ? 1.1 : 0.9;
-            zoomLevel = Math.min(Math.max(0.3, zoomLevel * factor), 2.2);
-        });
-
-        function resetView() { panX = 100; panY = 60; zoomLevel = 0.9; }
-        function zoom(f) { zoomLevel = Math.min(Math.max(0.3, zoomLevel * f), 2.2); }
-
-        function setExpandState(node, state) {
-            if (node.children && node.children.length > 0) node.expanded = state;
-            if (node.children) node.children.forEach(c => setExpandState(c, state));
-        }
-        function expandAll() { setExpandState(hierarchyTree, true); draw(); }
-        function collapseAll() { setExpandState(hierarchyTree, false); hierarchyTree.expanded = true; draw(); }
 
         resizeCanvas();
     </script>
