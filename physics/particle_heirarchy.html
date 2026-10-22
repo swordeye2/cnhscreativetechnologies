@@ -192,7 +192,7 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Taxonomy & Hierarchy Tree</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Subatomic Particle Taxonomy (Top-Down Hierarchy)</h2>
         </div>
         <div class="nav-group">
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
@@ -213,7 +213,7 @@
 
             <div class="canvas-container" id="canvasContainer">
                 <canvas id="treeCanvas"></canvas>
-                <div class="zoom-hud" id="zoomHud">Scale: 1.00x | Pan: (0, 0) | 💡 Drag / Scroll Zoom / Click Node</div>
+                <div class="zoom-hud" id="zoomHud">Scale: 0.75x | Pan: (0, 0) | 💡 Drag / Scroll Zoom / Click Node</div>
             </div>
         </div>
 
@@ -231,14 +231,14 @@
                 </div>
 
                 <div class="desc-box" id="nodeDesc">
-                    Select any node on the hierarchy tree to inspect its quantum spin state, constituent mass, color charge, and physical role in the universe.
+                    Select any node on the top-down hierarchy tree to inspect its quantum spin state, constituent mass, color charge, and physical role in the universe.
                 </div>
             </div>
 
             <div class="panel-card">
                 <div class="panel-title">📐 Key Taxonomy Set Rules</div>
                 <div style="font-size:0.8rem; line-height:1.5; color:var(--text-sub);">
-                    <div>• <b style="color:var(--accent-purple);">Fermions (Spin-1/2):</b> Elementary Quarks & Leptons ($e^-, \mu^-, \tau^-, \nu_e, \nu_\mu, \nu_\tau$). Obey Pauli Exclusion.</div>
+                    <div>• <b style="color:var(--accent-purple);">Fermions (Spin-1/2):</b> Quarks & Leptons ($e^-, \mu^-, \tau^-, \nu_e, \nu_\mu, \nu_\tau$). Obey Pauli Exclusion.</div>
                     <div style="margin-top:4px;">• <b style="color:var(--accent-pink);">Muons ($\mu^-$) & Neutrinos ($\nu_\mu$):</b> Gen-2 Leptons. $207\times$ heavier than electrons!</div>
                     <div style="margin-top:4px;">• <b style="color:var(--accent-green);">Hadrons ($qqq$ & $q\bar{q}$):</b> Composite systems held by gluons. Split into <b>Baryons</b> (Fermions) and <b>Mesons</b> (Bosons).</div>
                 </div>
@@ -255,16 +255,15 @@
         const previewCanvas = document.getElementById('previewCanvas');
         const pCtx = previewCanvas.getContext('2d');
 
-        let scale = 0.9;
-        let panX = 40;
-        let panY = 0;
+        let scale = 0.75;
+        let panX = 0;
+        let panY = -150;
         let isDragging = false;
         let dragStartX = 0;
         let dragStartY = 0;
         let selectedNode = null;
         let animTime = 0;
 
-        // Color Palette
         const palette = {
             root: '#89b4fa',
             fermion: '#cba6f7',
@@ -276,7 +275,7 @@
             hadron: '#fab387'
         };
 
-        // HIERARCHY TREE DATA STRUCTURE
+        // TOP-DOWN HIERARCHY TREE DATA STRUCTURE
         const hierarchyTree = {
             id: 'root', name: 'SUBATOMIC PARTICLES', style: palette.root, spin: 'Mixed', charge: 'Net 0', mass: 'N/A', type: 'Root Domain', expanded: true,
             desc: 'The complete taxonomy of elementary and composite subatomic particles governing all matter and forces in the universe.',
@@ -286,7 +285,7 @@
                     desc: 'Matter particles that obey the Pauli Exclusion Principle. Occupy physical space.',
                     children: [
                         {
-                            id: 'quarks', name: 'QUARKS (6 Flavors, Color Charge)', style: palette.quark, spin: '1/2', charge: '+2/3e, -1/3e', mass: '2.16 MeV to 172.7 GeV', type: 'Elementary Fermion', expanded: true,
+                            id: 'quarks', name: 'QUARKS (6 Flavors)', style: palette.quark, spin: '1/2', charge: '+2/3e, -1/3e', mass: '2.16 MeV to 172.7 GeV', type: 'Elementary Fermion', expanded: true,
                             desc: 'Point-like elementary particles carrying color charge (Red/Green/Blue) and fractional electric charge.',
                             children: [
                                 { id: 'u', name: 'Up Quark (u)', style: palette.quark, spin: '1/2', charge: '+2/3e', mass: '2.16 MeV/c²', type: 'Gen-I Quark', desc: 'Lightest up-type quark.' },
@@ -386,9 +385,9 @@
         }
 
         function resetView() {
-            scale = 0.9;
-            panX = 40;
-            panY = 0;
+            scale = 0.75;
+            panX = 0;
+            panY = -150;
             updateZoomHud();
         }
 
@@ -402,8 +401,20 @@
             document.getElementById('nodeDesc').innerText = node.desc || '';
         }
 
-        // TREE LAYOUT COMPUTATION
+        // TOP-DOWN LAYOUT CALCULATION ENGINE
         let nodeHitBoxes = [];
+
+        function computeSubtreeWidth(node) {
+            const cardWidth = 190;
+            if (!node.expanded || !node.children || node.children.length === 0) {
+                return cardWidth + 20;
+            }
+            let total = 0;
+            node.children.forEach(child => {
+                total += computeSubtreeWidth(child);
+            });
+            return Math.max(cardWidth + 20, total);
+        }
 
         function drawTree() {
             ctx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
@@ -411,67 +422,70 @@
             animTime += 0.03;
 
             ctx.save();
-            ctx.translate(panX, panY + treeCanvas.height / 2);
+            ctx.translate(treeCanvas.width / 2 + panX, 80 + panY);
             ctx.scale(scale, scale);
 
-            let currentY = -250;
-
-            function layoutNode(node, x, yLevel) {
-                const nodeWidth = 220;
+            function renderTopDownNode(node, x, y) {
+                const nodeWidth = 180;
                 const nodeHeight = 36;
+                const halfW = nodeWidth / 2;
 
                 nodeHitBoxes.push({
                     node: node,
-                    x: x, y: yLevel,
+                    x: x - halfW, y: y,
                     w: nodeWidth, h: nodeHeight
                 });
 
-                // Render Node Card
+                // Draw Node Card
                 ctx.fillStyle = node === selectedNode ? 'rgba(249, 226, 175, 0.25)' : '#181825';
                 ctx.strokeStyle = node.style || '#89b4fa';
                 ctx.lineWidth = node === selectedNode ? 2.5 : 1.5;
                 ctx.beginPath();
-                ctx.roundRect(x, yLevel, nodeWidth, nodeHeight, 6);
+                ctx.roundRect(x - halfW, y, nodeWidth, nodeHeight, 6);
                 ctx.fill();
                 ctx.stroke();
 
-                // Node Badge Dot
+                // Badge Dot
                 ctx.fillStyle = node.style || '#89b4fa';
-                ctx.beginPath(); ctx.arc(x + 15, yLevel + 18, 6, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(x - halfW + 14, y + 18, 5, 0, Math.PI * 2); ctx.fill();
 
-                // Node Label
+                // Text
                 ctx.fillStyle = '#cdd6f4';
-                ctx.font = 'bold 11px monospace';
+                ctx.font = 'bold 10px monospace';
                 ctx.textAlign = 'left';
-                ctx.fillText(node.name, x + 28, yLevel + 22);
+                ctx.fillText(node.name, x - halfW + 24, y + 22);
 
-                // Expand/Collapse Indicator
+                // Expand Indicator
                 if (node.children && node.children.length > 0) {
                     ctx.fillStyle = '#f9e2af';
-                    ctx.fillText(node.expanded ? '▼' : '▶', x + nodeWidth - 18, yLevel + 22);
+                    ctx.fillText(node.expanded ? '▼' : '▶', x + halfW - 14, y + 22);
                 }
 
-                // Render Children
-                if (node.expanded && node.children) {
-                    let childY = yLevel - (node.children.length * 22);
-                    node.children.forEach((child) => {
-                        const childX = x + 260;
-                        childY += 48;
+                // Render Children Below
+                if (node.expanded && node.children && node.children.length > 0) {
+                    const totalWidth = computeSubtreeWidth(node);
+                    let startX = x - totalWidth / 2;
+                    const nextY = y + 90;
 
-                        // Connecting Lines
+                    node.children.forEach((child) => {
+                        const childSubWidth = computeSubtreeWidth(child);
+                        const childX = startX + childSubWidth / 2;
+
+                        // Connector Line
                         ctx.strokeStyle = 'rgba(137, 180, 250, 0.4)';
                         ctx.lineWidth = 1.5;
                         ctx.beginPath();
-                        ctx.moveTo(x + nodeWidth, yLevel + 18);
-                        ctx.lineTo(childX, childY + 18);
+                        ctx.moveTo(x, y + nodeHeight);
+                        ctx.lineTo(childX, nextY);
                         ctx.stroke();
 
-                        layoutNode(child, childX, childY);
+                        renderTopDownNode(child, childX, nextY);
+                        startX += childSubWidth;
                     });
                 }
             }
 
-            layoutNode(hierarchyTree, 20, -20);
+            renderTopDownNode(hierarchyTree, 0, 0);
             ctx.restore();
 
             drawPreview();
@@ -486,8 +500,8 @@
 
             for (let i = 0; i < nodeHitBoxes.length; i++) {
                 const box = nodeHitBoxes[i];
-                const screenX = (box.x * scale) + panX;
-                const screenY = (box.y * scale) + panY + treeCanvas.height / 2;
+                const screenX = ((box.x) * scale) + treeCanvas.width / 2 + panX;
+                const screenY = (box.y * scale) + 80 + panY;
                 const screenW = box.w * scale;
                 const screenH = box.h * scale;
 
@@ -513,7 +527,6 @@
 
             pCtx.save();
             if (selectedNode.id === 'mu' || selectedNode.id === 'numu') {
-                // Muon Gen-2 Lepton Cloud
                 pCtx.strokeStyle = '#f5c2e7'; pCtx.lineWidth = 2;
                 pCtx.beginPath(); pCtx.arc(cx, cy, 28, 0, Math.PI * 2); pCtx.stroke();
 
@@ -526,7 +539,6 @@
                 pCtx.fillText(selectedNode.id === 'mu' ? 'μ⁻' : 'ν_μ', cx, cy + 4);
 
             } else if (selectedNode.id === 'e' || selectedNode.id === 'nue') {
-                // Electron Gen-1 Lepton Cloud
                 pCtx.strokeStyle = '#89dceb'; pCtx.lineWidth = 1.5;
                 pCtx.beginPath(); pCtx.arc(cx, cy, 24, 0, Math.PI * 2); pCtx.stroke();
 
@@ -539,7 +551,6 @@
                 pCtx.fillText(selectedNode.id === 'e' ? 'e⁻' : 'νₑ', cx, cy + 4);
 
             } else if (selectedNode.id === 'p' || selectedNode.id === 'n') {
-                // Baryon Nucleon Cluster
                 pCtx.strokeStyle = 'rgba(243, 139, 168, 0.4)'; pCtx.lineWidth = 1.5;
                 pCtx.beginPath(); pCtx.arc(cx, cy, 22, 0, Math.PI * 2); pCtx.stroke();
 
@@ -553,7 +564,6 @@
                 });
 
             } else {
-                // Default Field Wave / Category Ripple
                 pCtx.strokeStyle = selectedNode.style || '#89b4fa'; pCtx.lineWidth = 2;
                 pCtx.beginPath();
                 for (let x = cx - 50; x <= cx + 50; x += 4) {
