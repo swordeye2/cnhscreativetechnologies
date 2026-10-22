@@ -74,6 +74,17 @@
         }
         .btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
 
+        .select-input {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            outline: none;
+        }
+
         .workspace {
             display: grid;
             grid-template-columns: 1fr 400px;
@@ -189,7 +200,7 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Staged Particle Accelerator & Relativistic Formula Inspector</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Staged Particle Accelerator & Beam Combination Visualizer</h2>
         </div>
         <div class="nav-group">
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
@@ -200,13 +211,16 @@
         <div class="viewport-card">
             <div class="controls-bar">
                 <div class="nav-group">
-                    <button id="startBtn" class="btn" onclick="startStagedAcceleration()" style="border-color:var(--accent-green); color:var(--accent-green); font-weight:bold;">⚡ Start Injection & Acceleration</button>
-                    <button class="btn" onclick="resetAccelerator()">🔄 Reset Accelerator</button>
+                    <label style="font-size:0.85rem; font-weight:bold; color:var(--accent-yellow);">Beam Combination:</label>
+                    <select class="select-input" id="beamSelect" onchange="resetAccelerator()">
+                        <option value="p-p">Proton - Proton (uud vs uud)</option>
+                        <option value="p-n" selected>Proton - Neutron (uud vs udd)</option>
+                        <option value="Pb-Pb">Lead - Lead Ion (Pb-Pb QGP)</option>
+                    </select>
                 </div>
                 <div class="nav-group">
-                    <span style="font-size: 0.82rem; color: var(--text-sub);">
-                        Collision Target: <b>0.9999 c</b> (Subatomic Deconfinement)
-                    </span>
+                    <button id="startBtn" class="btn" onclick="startStagedAcceleration()" style="border-color:var(--accent-green); color:var(--accent-green); font-weight:bold;">⚡ Start Injection & Acceleration</button>
+                    <button class="btn" onclick="resetAccelerator()">🔄 Reset Accelerator</button>
                 </div>
             </div>
 
@@ -311,7 +325,7 @@
             document.getElementById('velVal').innerText = `${safeV.toFixed(4)} c`;
             document.getElementById('gammaVal').innerText = gamma.toFixed(2);
 
-            const m0_GeV = 0.938; // Proton rest mass
+            const m0_GeV = 0.938; // Rest mass per particle
             const K_GeV = (gamma - 1) * m0_GeV * 2;
             document.getElementById('kVal').innerText = `${K_GeV.toFixed(2)} GeV`;
 
@@ -381,17 +395,16 @@
                 const hDeltaM = hK / 0.9315;
                 const hy = (h - 25) - Math.min(h - 35, (hK / 130) * (h - 35));
 
-                // Vertical & Horizontal Crosshair Lines
+                // Crosshairs
                 gCtx.strokeStyle = '#89dceb'; gCtx.lineWidth = 1; gCtx.setLineDash([2, 2]);
                 gCtx.beginPath(); gCtx.moveTo(hx, 15); gCtx.lineTo(hx, h - 25); gCtx.stroke();
                 gCtx.beginPath(); gCtx.moveTo(45, hy); gCtx.lineTo(w - 15, hy); gCtx.stroke();
                 gCtx.setLineDash([]);
 
-                // Hover Highlight Point
                 gCtx.fillStyle = '#89dceb';
                 gCtx.beginPath(); gCtx.arc(hx, hy, 5, 0, Math.PI * 2); gCtx.fill();
 
-                // Interactive Telemetry Tooltip Box
+                // Tooltip
                 const tooltipText = `v: ${hRatio.toFixed(4)}c | γ: ${hGamma.toFixed(2)} | K: ${hK.toFixed(2)} GeV | Δm: ${hDeltaM.toFixed(4)} amu`;
                 gCtx.fillStyle = 'rgba(24, 24, 37, 0.9)';
                 gCtx.strokeStyle = '#89dceb';
@@ -408,7 +421,6 @@
             }
         }
 
-        // Hover Measurement Mouse Events
         graphCanvas.addEventListener('mousemove', (e) => {
             const rect = graphCanvas.getBoundingClientRect();
             hoverPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -496,6 +508,30 @@
             cCtx.restore();
         }
 
+        function drawHeavyIon(cCtx, x, y) { // Lead-Lead Nucleus (Pb Cluster)
+            cCtx.save(); cCtx.translate(x, y);
+            cCtx.strokeStyle = 'rgba(243, 139, 168, 0.6)'; cCtx.lineWidth = 2;
+            cCtx.beginPath(); cCtx.arc(0, 0, 26, 0, Math.PI * 2); cCtx.stroke();
+            for (let i = 0; i < 7; i++) {
+                const a = (i / 7) * Math.PI * 2 + animTime * 0.03;
+                const type = (i % 2 === 0) ? 'u_quark' : 'd_quark';
+                drawParticleModel(cCtx, Math.cos(a) * 14, Math.sin(a) * 14, type, 0.6);
+            }
+            cCtx.restore();
+        }
+
+        function drawBeamTarget(cCtx, x, y, side) {
+            const beamMode = document.getElementById('beamSelect').value;
+            if (beamMode === 'p-p') {
+                drawProton(cCtx, x, y);
+            } else if (beamMode === 'p-n') {
+                if (side === 'left') drawProton(cCtx, x, y);
+                else drawNeutron(cCtx, x, y);
+            } else if (beamMode === 'Pb-Pb') {
+                drawHeavyIon(cCtx, x, y);
+            }
+        }
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             animTime += 1 * timeScale;
@@ -504,7 +540,7 @@
             const cy = canvas.height / 2;
             const radius = Math.min(canvas.width, canvas.height) * 0.38;
 
-            // Staged Magnetron RF Cavities
+            // RF Cavities
             const numCavities = 8;
             for (let i = 0; i < numCavities; i++) {
                 const ca = (i / numCavities) * Math.PI * 2;
@@ -516,11 +552,11 @@
                 ctx.beginPath(); ctx.arc(cavX, cavY, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
             }
 
-            // Synchrotron Ring
+            // Ring
             ctx.strokeStyle = 'rgba(137, 180, 250, 0.8)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke();
 
-            // Acceleration Mechanics
+            // Beam Motion
             if (beamPhase === 'accel') {
                 vRatio += 0.0012 * timeScale;
                 updatePhysicsTelemetry();
@@ -533,8 +569,8 @@
                 const angleA = animTime * (0.015 + vRatio * 0.08);
                 const angleB = -animTime * (0.015 + vRatio * 0.08) + Math.PI;
 
-                drawProton(ctx, cx + Math.cos(angleA) * radius, cy + Math.sin(angleA) * radius);
-                drawNeutron(ctx, cx + Math.cos(angleB) * radius, cy + Math.sin(angleB) * radius);
+                drawBeamTarget(ctx, cx + Math.cos(angleA) * radius, cy + Math.sin(angleA) * radius, 'left');
+                drawBeamTarget(ctx, cx + Math.cos(angleB) * radius, cy + Math.sin(angleB) * radius, 'right');
 
             } else if (beamPhase === 'collide') {
                 ctx.save();
@@ -563,8 +599,8 @@
                     if (f.life <= 0) fragments.splice(i, 1);
                 }
             } else if (beamPhase === 'idle') {
-                drawProton(ctx, cx + radius, cy);
-                drawNeutron(ctx, cx - radius, cy);
+                drawBeamTarget(ctx, cx + radius, cy, 'left');
+                drawBeamTarget(ctx, cx - radius, cy, 'right');
             }
 
             requestAnimationFrame(draw);
