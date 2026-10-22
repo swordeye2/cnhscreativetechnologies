@@ -125,8 +125,25 @@
             position: relative;
             overflow: hidden;
             min-height: 480px;
+            cursor: grab;
         }
+        .canvas-container:active { cursor: grabbing; }
         canvas#atomCanvas { width: 100%; height: 100%; display: block; }
+
+        .zoom-hud {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(24, 24, 37, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            font-family: monospace;
+            color: var(--accent-cyan);
+            pointer-events: none;
+            z-index: 5;
+        }
 
         .sidebar { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
         .panel-card {
@@ -237,12 +254,13 @@
                     </select>
                 </div>
                 <div class="nav-group">
-                    <button class="btn" onclick="resetView()">🔄 Reset Animation</button>
+                    <button class="btn" onclick="resetView()">🔄 Reset View & Zoom</button>
                 </div>
             </div>
 
-            <div class="canvas-container">
+            <div class="canvas-container" id="canvasContainer">
                 <canvas id="atomCanvas"></canvas>
+                <div class="zoom-hud" id="zoomHud">Scale: 1.00x | Pan: (0, 0) | 💡 Drag / Scroll Zoom</div>
             </div>
         </div>
 
@@ -320,6 +338,7 @@
 
     <script src="../theme.js"></script>
     <script>
+        const canvasContainer = document.getElementById('canvasContainer');
         const canvas = document.getElementById('atomCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -329,6 +348,14 @@
         let isUnstable = false;
         let decayParticles = [];
         let spawnTimer = 0;
+
+        // Viewport Drag & Zoom State
+        let scale = 1.0;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
 
         const mp = 1.007276;
         const mn = 1.008665;
@@ -345,10 +372,74 @@
         };
 
         function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
+            canvas.width = canvasContainer.clientWidth;
+            canvas.height = canvasContainer.clientHeight;
         }
         window.addEventListener('resize', resizeCanvas);
+
+        // DRAG & ZOOM EVENT LISTENERS
+        canvasContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+            scale = Math.min(5.0, Math.max(0.3, scale * zoomFactor));
+            updateZoomHud();
+        }, { passive: false });
+
+        canvasContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dragStartX = e.clientX - panX;
+            dragStartY = e.clientY - panY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            panX = e.clientX - dragStartX;
+            panY = e.clientY - dragStartY;
+            updateZoomHud();
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        // TOUCH EVENTS FOR MOBILE ZOOM & PAN
+        let lastTouchDist = 0;
+        canvasContainer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                dragStartX = e.touches[0].clientX - panX;
+                dragStartY = e.touches[0].clientY - panY;
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                lastTouchDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+            }
+        });
+
+        canvasContainer.addEventListener('touchmove', (e) => {
+            if (isDragging && e.touches.length === 1) {
+                panX = e.touches[0].clientX - dragStartX;
+                panY = e.touches[0].clientY - dragStartY;
+                updateZoomHud();
+            } else if (e.touches.length === 2) {
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                if (lastTouchDist > 0) {
+                    const zoomFactor = dist / lastTouchDist;
+                    scale = Math.min(5.0, Math.max(0.3, scale * zoomFactor));
+                    updateZoomHud();
+                }
+                lastTouchDist = dist;
+            }
+        });
+
+        canvasContainer.addEventListener('touchend', () => { isDragging = false; lastTouchDist = 0; });
+
+        function updateZoomHud() {
+            document.getElementById('zoomHud').innerText = `Scale: ${scale.toFixed(2)}x | Pan: (${Math.round(panX)}, ${Math.round(panY)}) | 💡 Drag / Scroll Zoom`;
+        }
 
         function applyPreset() {
             const key = document.getElementById('presetSelect').value;
@@ -456,7 +547,7 @@
             lastTimestamp = now;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            rotAngle += 1.2 * dt; // Time-delta locked speed
+            rotAngle += 1.2 * dt;
 
             let cx = canvas.width / 2;
             let cy = canvas.height / 2;
@@ -467,13 +558,16 @@
 
                 spawnTimer++;
                 if (spawnTimer % 45 === 0) {
-                    spawnDecayEmission(cx, cy);
+                    spawnDecayEmission(0, 0); // Origin relative to nucleus center
                 }
             }
 
-            // Draw Shells & Spin-1/2 Electrons
             ctx.save();
-            ctx.globalAlpha = 1.0;
+            // Apply Dynamic Pan and Zoom Transforms
+            ctx.translate(cx + panX, cy + panY);
+            ctx.scale(scale, scale);
+
+            // Draw Shells & Spin-1/2 Electrons
             const shellCapacities = [2, 8, 18];
             let remainingE = E;
             let currentRadius = 90;
@@ -484,41 +578,38 @@
                 remainingE -= countInShell;
 
                 ctx.strokeStyle = 'rgba(137, 180, 250, 0.25)';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath(); ctx.arc(cx, cy, currentRadius, 0, Math.PI * 2); ctx.stroke();
+                ctx.lineWidth = 1.5 / scale;
+                ctx.beginPath(); ctx.arc(0, 0, currentRadius, 0, Math.PI * 2); ctx.stroke();
 
                 for (let i = 0; i < countInShell; i++) {
                     const angle = (i / countInShell) * Math.PI * 2 + (shellIdx % 2 === 0 ? rotAngle : -rotAngle);
-                    const ex = cx + Math.cos(angle) * currentRadius;
-                    const ey = cy + Math.sin(angle) * currentRadius;
+                    const ex = Math.cos(angle) * currentRadius;
+                    const ey = Math.sin(angle) * currentRadius;
 
                     ctx.fillStyle = '#89dceb';
-                    ctx.beginPath(); ctx.arc(ex, ey, 6, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(ex, ey, 6 / Math.sqrt(scale), 0, Math.PI * 2); ctx.fill();
 
                     const spinUp = i % 2 === 0;
                     ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 1.5;
+                    ctx.lineWidth = 1.5 / scale;
                     ctx.beginPath();
-                    ctx.moveTo(ex, ey + (spinUp ? 7 : -7));
-                    ctx.lineTo(ex, ey - (spinUp ? 7 : -7));
+                    ctx.moveTo(ex, ey + (spinUp ? 7 : -7) / Math.sqrt(scale));
+                    ctx.lineTo(ex, ey - (spinUp ? 7 : -7) / Math.sqrt(scale));
                     ctx.stroke();
                 }
 
                 currentRadius += 50;
             });
-            ctx.restore();
 
             // Draw Nucleus
-            ctx.save();
-            ctx.globalAlpha = 1.0;
             const totalNucleons = Z + N;
             for (let i = 0; i < totalNucleons; i++) {
                 const isProton = i < Z;
                 const nAngle = (i / Math.max(1, totalNucleons)) * Math.PI * 2 + (i * 1.5);
                 const r = (i === 0) ? 0 : 12 * Math.sqrt(i);
 
-                const nx = cx + Math.cos(nAngle) * r;
-                const ny = cy + Math.sin(nAngle) * r;
+                const nx = Math.cos(nAngle) * r;
+                const ny = Math.sin(nAngle) * r;
 
                 ctx.fillStyle = isProton ? '#cba6f7' : '#f38ba8';
                 ctx.shadowColor = isProton ? '#cba6f7' : '#f38ba8';
@@ -526,11 +617,10 @@
                 ctx.beginPath(); ctx.arc(nx, ny, 10, 0, Math.PI * 2); ctx.fill();
 
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 9px monospace';
+                ctx.font = `bold ${Math.max(7, Math.min(12, 9 / Math.sqrt(scale)))}px monospace`;
                 ctx.textAlign = 'center';
                 ctx.fillText(isProton ? 'p⁺' : 'n⁰', nx, ny + 3);
             }
-            ctx.restore();
 
             // Flying Radioactive Particles
             for (let i = decayParticles.length - 1; i >= 0; i--) {
@@ -542,38 +632,39 @@
                 p.trail.push({ x: p.x, y: p.y });
                 if (p.trail.length > 20) p.trail.shift();
 
-                ctx.save();
                 for (let t = 0; t < p.trail.length; t++) {
                     ctx.fillStyle = p.color;
                     ctx.globalAlpha = Math.max(0, (t / p.trail.length) * p.life);
                     ctx.beginPath();
-                    ctx.arc(p.trail[t].x, p.trail[t].y, 3, 0, Math.PI * 2);
+                    ctx.arc(p.trail[t].x, p.trail[t].y, 3 / scale, 0, Math.PI * 2);
                     ctx.fill();
                 }
-                ctx.restore();
 
-                ctx.save();
                 ctx.globalAlpha = Math.max(0, p.life);
                 ctx.fillStyle = p.color;
                 ctx.shadowColor = p.color;
                 ctx.shadowBlur = 10;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(p.x, p.y, 6 / Math.sqrt(scale), 0, Math.PI * 2); ctx.fill();
 
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 10px monospace';
+                ctx.font = `bold ${Math.max(8, 10 / Math.sqrt(scale))}px monospace`;
                 ctx.fillText(p.label, p.x + 10, p.y + 3);
-                ctx.restore();
 
                 if (p.life <= 0) {
                     decayParticles.splice(i, 1);
                 }
             }
 
+            ctx.restore();
             requestAnimationFrame(draw);
         }
 
         function resetView() {
+            scale = 1.0;
+            panX = 0;
+            panY = 0;
             decayParticles = [];
+            updateZoomHud();
             applyPreset();
         }
 
