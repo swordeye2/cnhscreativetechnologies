@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Accelerator, Relativistic Collisions & Quark Deconfinement - GIT GUD Physics</title>
+
+    <!-- Suite Assets & Parent Theme -->
+    <link rel="icon" type="image/png" href="./icon-512.png">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="../theme.css">
+
+    <!-- Legal IP Assertions -->
+    <meta name="author" content="Jorge Victor M. Sales">
+    <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+
+    <style>
+        :root {
+            --canvas-bg: #0d0e15;
+            --panel-bg: #181825;
+            --border-color: #45475a;
+            --text-main: #cdd6f4;
+            --text-sub: #a6adc8;
+            --accent-blue: #89b4fa;
+            --accent-green: #a6e3a1;
+            --accent-red: #f38ba8;
+            --accent-yellow: #f9e2af;
+            --accent-purple: #cba6f7;
+            --accent-orange: #fab387;
+            --accent-cyan: #89dceb;
+        }
+
+        [data-theme="light"] {
+            --canvas-bg: #e6e9ef;
+            --panel-bg: #dce0e8;
+            --border-color: #bcc0cc;
+            --text-main: #4c4f69;
+            --text-sub: #5c5f77;
+            --accent-blue: #1e66f5;
+            --accent-green: #40a02b;
+            --accent-red: #d20f39;
+            --accent-yellow: #df8e1d;
+            --accent-purple: #8839ef;
+            --accent-orange: #fe640b;
+            --accent-cyan: #04a5e5;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--canvas-bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .nav-group { display: flex; align-items: center; gap: 10px; }
+        .btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 390px;
+            gap: 15px;
+            padding: 15px;
+            flex: 1;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+        @media (max-width: 1024px) { .workspace { grid-template-columns: 1fr; overflow-y: auto; } }
+
+        .viewport-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .canvas-container {
+            width: 100%;
+            flex: 1;
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            min-height: 480px;
+        }
+        canvas#accelCanvas { width: 100%; height: 100%; display: block; }
+
+        .sidebar { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .panel-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+        }
+        .panel-title {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: var(--accent-blue);
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+        }
+
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.84rem;
+            font-family: monospace;
+        }
+        .telemetry-label { color: var(--text-sub); }
+        .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .slider-group label { font-size: 0.82rem; font-weight: 600; display: flex; justify-content: space-between; }
+        .slider-group input { width: 100%; accent-color: var(--accent-blue); }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.78rem;
+            text-align: center;
+            margin-top: 6px;
+        }
+        .badge-bound { background: rgba(137, 180, 250, 0.2); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+        .badge-qgp { background: rgba(243, 139, 168, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="nav-group">
+            <a href="./index.html" class="btn">🔬 Physics Suite</a>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Particle Accelerator & Subatomic Quark Deconfinement Simulator</h2>
+        </div>
+        <div class="nav-group">
+            <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="viewport-card">
+            <div class="controls-bar">
+                <div class="nav-group">
+                    <label style="font-size:0.85rem; font-weight:bold; color:var(--accent-yellow);">Collision Beam Mode:</label>
+                    <select class="select-input" id="beamSelect" onchange="resetBeam()">
+                        <option value="p-p">Proton-Proton Collision (uud vs uud)</option>
+                        <option value="p-n">Proton-Neutron Collision (uud vs udd)</option>
+                        <option value="Pb-Pb">Lead-Lead Heavy Ion Collision (QGP)</option>
+                    </select>
+                </div>
+                <div class="nav-group">
+                    <button class="btn" onclick="triggerCollision()" style="border-color:var(--accent-red); color:var(--accent-red);">💥 Smash Beams!</button>
+                    <button class="btn" onclick="resetBeam()">🔄 Reset Accelerator</button>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="accelCanvas"></canvas>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="panel-card">
+                <div class="panel-title">Accelerator RF Cavity Controls</div>
+                <div class="slider-group">
+                    <label>Beam Velocity (v/c): <span id="velVal" style="color:var(--accent-cyan);">0.950 c</span></label>
+                    <input type="range" id="velSlider" min="0.10" max="0.999" step="0.001" value="0.950" oninput="updateAcceleratorSettings()">
+                </div>
+                <div class="slider-group">
+                    <label>B-Field Magnet Strength: <span id="bFieldVal" style="color:var(--accent-purple);">5.5 Tesla</span></label>
+                    <input type="range" id="bFieldSlider" min="1.0" max="10.0" step="0.1" value="5.5" oninput="updateAcceleratorSettings()">
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">Relativistic Collision Telemetry</div>
+                <div class="telemetry-row"><span class="telemetry-label">Lorentz Factor (γ):</span><span class="telemetry-val" id="gammaVal">3.20</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Center-of-Mass Energy (√s):</span><span class="telemetry-val" id="energyVal" style="color:var(--accent-green);">13.0 TeV</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Collision Temperature (T):</span><span class="telemetry-val" id="tempVal">4.2 Trillion K</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Confinement State:</span><span class="telemetry-val" id="confinementVal">Quark-Gluon Plasma</span></div>
+                <div id="stateBadge" class="status-badge badge-qgp">HIGH ENERGY DECONFINEMENT</div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">Physics Concept: Color Confinement</div>
+                <div style="font-size:0.8rem; line-height:1.5; color:var(--text-sub);">
+                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-yellow);">The Rubber Band Metaphor:</strong> Strong nuclear gluons bind quarks together. Pulling them apart at low energy just stretches the gluon field[cite: 1].</p>
+                    <p><strong style="color:var(--accent-red);">E = mc² Mass Creation:</strong> In a high-energy particle accelerator, smashing beams at $0.999c$ converts kinetic energy into new quark-antiquark pairs, separating subatomic constituents into a detector shower[cite: 1]!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../theme.js"></script>
+    <script>
+        const canvas = document.getElementById('accelCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let vRatio = 0.950;
+        let bField = 5.5;
+        let animTime = 0;
+        let isColliding = false;
+        let beamPhase = 'accel'; // 'accel', 'collide', 'deconfined'
+        let fragments = [];
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function updateAcceleratorSettings() {
+            vRatio = parseFloat(document.getElementById('velSlider').value);
+            bField = parseFloat(document.getElementById('bFieldSlider').value);
+
+            document.getElementById('velVal').innerText = `${vRatio.toFixed(3)} c`;
+            document.getElementById('bFieldVal').innerText = `${bField.toFixed(1)} Tesla`;
+
+            // Calculate Relativistic Lorentz Factor gamma = 1 / sqrt(1 - v^2/c^2)
+            const gamma = 1 / Math.sqrt(1 - Math.pow(vRatio, 2));
+            document.getElementById('gammaVal').innerText = gamma.toFixed(2);
+
+            const tev = (gamma * 2 * 0.938).toFixed(1); // Approximate TeV scale
+            document.getElementById('energyVal').innerText = `${tev} TeV`;
+
+            if (vRatio > 0.90) {
+                document.getElementById('stateBadge').innerText = "HIGH ENERGY DECONFINEMENT";
+                document.getElementById('stateBadge').className = "status-badge badge-qgp";
+                document.getElementById('confinementVal').innerText = "Quark-Gluon Plasma";
+            } else {
+                document.getElementById('stateBadge').innerText = "BOUND HADRON STATE";
+                document.getElementById('stateBadge').className = "status-badge badge-bound";
+                document.getElementById('confinementVal').innerText = "Color Confined";
+            }
+        }
+
+        function triggerCollision() {
+            beamPhase = 'collide';
+            fragments = [];
+        }
+
+        function spawnDeconfinedShower(cx, cy) {
+            const count = Math.floor(vRatio * 35);
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * (8 * vRatio);
+                const types = ['u_quark', 'd_quark', 'gluon_wave', 'lepton_cloud'];
+                const selectedType = types[Math.floor(Math.random() * types.length)];
+
+                fragments.push({
+                    x: cx, y: cy,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    type: selectedType,
+                    life: 1.0,
+                    trail: []
+                });
+            }
+        }
+
+        function drawStandardParticle(cCtx, x, y, type, scale = 1.0) {
+            cCtx.save();
+            cCtx.translate(x, y);
+
+            if (type === 'u_quark') { // Up Quark (Purple Rotating Triangle)
+                cCtx.rotate(animTime * 0.08);
+                cCtx.strokeStyle = '#cba6f7'; cCtx.lineWidth = 2 * scale;
+                cCtx.beginPath();
+                for (let i = 0; i < 3; i++) {
+                    const a = (i / 3) * Math.PI * 2;
+                    if (i === 0) cCtx.moveTo(Math.cos(a) * 10 * scale, Math.sin(a) * 10 * scale);
+                    else cCtx.lineTo(Math.cos(a) * 10 * scale, Math.sin(a) * 10 * scale);
+                }
+                cCtx.closePath(); cCtx.stroke();
+                cCtx.fillStyle = '#cba6f7'; cCtx.beginPath(); cCtx.arc(0, 0, 3 * scale, 0, Math.PI * 2); cCtx.fill();
+
+            } else if (type === 'd_quark') { // Down Quark (Pink Rotating Triangle)
+                cCtx.rotate(-animTime * 0.08);
+                cCtx.strokeStyle = '#f38ba8'; cCtx.lineWidth = 2 * scale;
+                cCtx.beginPath();
+                for (let i = 0; i < 3; i++) {
+                    const a = (i / 3) * Math.PI * 2;
+                    if (i === 0) cCtx.moveTo(Math.cos(a) * 10 * scale, Math.sin(a) * 10 * scale);
+                    else cCtx.lineTo(Math.cos(a) * 10 * scale, Math.sin(a) * 10 * scale);
+                }
+                cCtx.closePath(); cCtx.stroke();
+                cCtx.fillStyle = '#f38ba8'; cCtx.beginPath(); cCtx.arc(0, 0, 3 * scale, 0, Math.PI * 2); cCtx.fill();
+
+            } else if (type === 'gluon_wave') { // Gluon Force Carrier (Green Wave Packet)
+                cCtx.strokeStyle = '#a6e3a1'; cCtx.lineWidth = 2 * scale;
+                cCtx.beginPath();
+                for (let px = -10 * scale; px <= 10 * scale; px += 2) {
+                    const py = Math.sin(px * 0.4 + animTime * 0.15) * (5 * scale);
+                    if (px === -10 * scale) cCtx.moveTo(px, py); else cCtx.lineTo(px, py);
+                }
+                cCtx.stroke();
+
+            } else if (type === 'lepton_cloud') { // Lepton Point Cloud (Cyan)
+                cCtx.fillStyle = '#89dceb'; cCtx.globalAlpha = 0.5;
+                cCtx.beginPath(); cCtx.arc(0, 0, 8 * scale, 0, Math.PI * 2); cCtx.fill();
+            }
+
+            cCtx.restore();
+        }
+
+        function drawProtonCluster(cCtx, x, y) { // Proton (uud): 2 Up (#cba6f7) + 1 Down (#f38ba8)
+            cCtx.save();
+            cCtx.translate(x, y);
+            cCtx.strokeStyle = 'rgba(137, 180, 250, 0.4)'; cCtx.lineWidth = 1.5;
+            cCtx.beginPath(); cCtx.arc(0, 0, 22, 0, Math.PI * 2); cCtx.stroke();
+
+            const valence = ['u_quark', 'u_quark', 'd_quark'];
+            valence.forEach((vType, i) => {
+                const a = (i / 3) * Math.PI * 2 + animTime * 0.04;
+                const qx = Math.cos(a) * 10;
+                const qy = Math.sin(a) * 10;
+                drawStandardParticle(cCtx, qx, qy, vType, 0.8);
+            });
+            cCtx.restore();
+        }
+
+        function drawNeutronCluster(cCtx, x, y) { // Neutron (udd): 1 Up (#cba6f7) + 2 Down (#f38ba8)
+            cCtx.save();
+            cCtx.translate(x, y);
+            cCtx.strokeStyle = 'rgba(250, 179, 135, 0.4)'; cCtx.lineWidth = 1.5;
+            cCtx.beginPath(); cCtx.arc(0, 0, 22, 0, Math.PI * 2); cCtx.stroke();
+
+            const valence = ['u_quark', 'd_quark', 'd_quark'];
+            valence.forEach((vType, i) => {
+                const a = (i / 3) * Math.PI * 2 + animTime * 0.04;
+                const qx = Math.cos(a) * 10;
+                const qy = Math.sin(a) * 10;
+                drawStandardParticle(cCtx, qx, qy, vType, 0.8);
+            });
+            cCtx.restore();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            animTime += 1;
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const radius = Math.min(canvas.width, canvas.height) * 0.38;
+
+            // 1. Draw Synchrotron Ring & RF Cavities
+            ctx.strokeStyle = 'rgba(69, 71, 90, 0.6)';
+            ctx.lineWidth = 18;
+            ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(137, 180, 250, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke();
+
+            // 2. Draw Beam Trajectories
+            if (beamPhase === 'accel') {
+                const angleA = animTime * (0.02 + vRatio * 0.06);
+                const angleB = -animTime * (0.02 + vRatio * 0.06) + Math.PI;
+
+                const beam1X = cx + Math.cos(angleA) * radius;
+                const beam1Y = cy + Math.sin(angleA) * radius;
+
+                const beam2X = cx + Math.cos(angleB) * radius;
+                const beam2Y = cy + Math.sin(angleB) * radius;
+
+                drawProtonCluster(ctx, beam1X, beam1Y);
+                drawNeutronCluster(ctx, beam2X, beam2Y);
+
+            } else if (beamPhase === 'collide') {
+                // Collision Flash
+                ctx.save();
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = '#f9e2af';
+                ctx.shadowBlur = 30;
+                ctx.beginPath(); ctx.arc(cx, cy - radius, 35, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+
+                spawnDeconfinedShower(cx, cy - radius);
+                beamPhase = 'deconfined';
+
+            } else if (beamPhase === 'deconfined') {
+                // Render Flying Subatomic Deconfined Quark & Gluon Shower
+                for (let i = fragments.length - 1; i >= 0; i--) {
+                    const f = fragments[i];
+                    f.x += f.vx;
+                    f.y += f.vy;
+                    f.life -= 0.008;
+
+                    f.trail.push({ x: f.x, y: f.y });
+                    if (f.trail.length > 15) f.trail.shift();
+
+                    // Ionization Track Trail in Detector Drift Chamber
+                    ctx.save();
+                    for (let t = 0; t < f.trail.length; t++) {
+                        ctx.fillStyle = '#89b4fa';
+                        ctx.globalAlpha = (t / f.trail.length) * f.life;
+                        ctx.beginPath(); ctx.arc(f.trail[t].x, f.trail[t].y, 2, 0, Math.PI * 2); ctx.fill();
+                    }
+                    ctx.restore();
+
+                    // Particle Head
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, f.life);
+                    drawStandardParticle(ctx, f.x, f.y, f.type, 1.2);
+                    ctx.restore();
+
+                    if (f.life <= 0) fragments.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        function resetBeam() {
+            beamPhase = 'accel';
+            fragments = [];
+            updateAcceleratorSettings();
+        }
+
+        updateAcceleratorSettings();
+        resizeCanvas();
+        draw();
+    </script>
+</body>
+</html>
