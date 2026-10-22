@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staged Particle Accelerator & Mass Defect Energy Visualizer - GIT GUD Physics</title>
+    <title>Staged Particle Accelerator & Beam Combination Visualizer - GIT GUD Physics</title>
 
     <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -229,7 +229,7 @@
                 <canvas id="accelCanvas"></canvas>
             </div>
 
-            <!-- INTERACTIVE RELATIVISTIC KINETIC ENERGY GRAPH (WITH HOVER MEASUREMENT) -->
+            <!-- INTERACTIVE RELATIVISTIC KINETIC ENERGY GRAPH -->
             <div class="panel-card" style="margin-top: 5px;">
                 <div class="panel-title">📊 Relativistic Kinetic Energy K(v) & Hover Measurement Probe</div>
                 <div class="graph-container">
@@ -291,6 +291,7 @@
         let fragments = [];
         let speedHistory = [{ v: 0, k: 0 }];
         let hoverPoint = null;
+        let animFrameId = null; // Animation loop cancellation handle
 
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
@@ -316,6 +317,9 @@
             document.getElementById('startBtn').disabled = true;
             document.getElementById('stateBadge').innerText = "STAGED RF ACCELERATION IN PROGRESS";
             document.getElementById('stateBadge').className = "status-badge badge-accel";
+
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            draw();
         }
 
         function updatePhysicsTelemetry() {
@@ -325,7 +329,7 @@
             document.getElementById('velVal').innerText = `${safeV.toFixed(4)} c`;
             document.getElementById('gammaVal').innerText = gamma.toFixed(2);
 
-            const m0_GeV = 0.938; // Rest mass per particle
+            const m0_GeV = 0.938;
             const K_GeV = (gamma - 1) * m0_GeV * 2;
             document.getElementById('kVal').innerText = `${K_GeV.toFixed(2)} GeV`;
 
@@ -365,7 +369,7 @@
             gCtx.stroke();
             gCtx.setLineDash([]);
 
-            // Live Acceleration Trace Line starting at (0,0)
+            // Live Acceleration Trace Line
             if (speedHistory.length > 0) {
                 gCtx.strokeStyle = '#a6e3a1'; gCtx.lineWidth = 2.5;
                 gCtx.beginPath();
@@ -395,7 +399,6 @@
                 const hDeltaM = hK / 0.9315;
                 const hy = (h - 25) - Math.min(h - 35, (hK / 130) * (h - 35));
 
-                // Crosshairs
                 gCtx.strokeStyle = '#89dceb'; gCtx.lineWidth = 1; gCtx.setLineDash([2, 2]);
                 gCtx.beginPath(); gCtx.moveTo(hx, 15); gCtx.lineTo(hx, h - 25); gCtx.stroke();
                 gCtx.beginPath(); gCtx.moveTo(45, hy); gCtx.lineTo(w - 15, hy); gCtx.stroke();
@@ -404,7 +407,6 @@
                 gCtx.fillStyle = '#89dceb';
                 gCtx.beginPath(); gCtx.arc(hx, hy, 5, 0, Math.PI * 2); gCtx.fill();
 
-                // Tooltip
                 const tooltipText = `v: ${hRatio.toFixed(4)}c | γ: ${hGamma.toFixed(2)} | K: ${hK.toFixed(2)} GeV | Δm: ${hDeltaM.toFixed(4)} amu`;
                 gCtx.fillStyle = 'rgba(24, 24, 37, 0.9)';
                 gCtx.strokeStyle = '#89dceb';
@@ -451,7 +453,7 @@
             cCtx.save();
             cCtx.translate(x, y);
 
-            if (type === 'u_quark') { // Up Quark (Purple Triangle)
+            if (type === 'u_quark') {
                 cCtx.rotate(animTime * 0.08);
                 cCtx.strokeStyle = '#cba6f7'; cCtx.lineWidth = 2 * scale;
                 cCtx.beginPath();
@@ -462,7 +464,7 @@
                 }
                 cCtx.closePath(); cCtx.stroke();
 
-            } else if (type === 'd_quark') { // Down Quark (Pink Triangle)
+            } else if (type === 'd_quark') {
                 cCtx.rotate(-animTime * 0.08);
                 cCtx.strokeStyle = '#f38ba8'; cCtx.lineWidth = 2 * scale;
                 cCtx.beginPath();
@@ -473,7 +475,7 @@
                 }
                 cCtx.closePath(); cCtx.stroke();
 
-            } else if (type === 'gluon_wave') { // Gluon Wave
+            } else if (type === 'gluon_wave') {
                 cCtx.strokeStyle = '#a6e3a1'; cCtx.lineWidth = 2 * scale;
                 cCtx.beginPath();
                 for (let px = -10 * scale; px <= 10 * scale; px += 2) {
@@ -486,7 +488,7 @@
             cCtx.restore();
         }
 
-        function drawProton(cCtx, x, y) { // Proton (uud)
+        function drawProton(cCtx, x, y) {
             cCtx.save(); cCtx.translate(x, y);
             cCtx.strokeStyle = 'rgba(137, 180, 250, 0.4)'; cCtx.lineWidth = 1.5;
             cCtx.beginPath(); cCtx.arc(0, 0, 18, 0, Math.PI * 2); cCtx.stroke();
@@ -497,7 +499,7 @@
             cCtx.restore();
         }
 
-        function drawNeutron(cCtx, x, y) { // Neutron (udd)
+        function drawNeutron(cCtx, x, y) {
             cCtx.save(); cCtx.translate(x, y);
             cCtx.strokeStyle = 'rgba(250, 179, 135, 0.4)'; cCtx.lineWidth = 1.5;
             cCtx.beginPath(); cCtx.arc(0, 0, 18, 0, Math.PI * 2); cCtx.stroke();
@@ -508,7 +510,7 @@
             cCtx.restore();
         }
 
-        function drawHeavyIon(cCtx, x, y) { // Lead-Lead Nucleus (Pb Cluster)
+        function drawHeavyIon(cCtx, x, y) {
             cCtx.save(); cCtx.translate(x, y);
             cCtx.strokeStyle = 'rgba(243, 139, 168, 0.6)'; cCtx.lineWidth = 2;
             cCtx.beginPath(); cCtx.arc(0, 0, 26, 0, Math.PI * 2); cCtx.stroke();
@@ -552,11 +554,11 @@
                 ctx.beginPath(); ctx.arc(cavX, cavY, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
             }
 
-            // Ring
+            // Synchrotron Ring
             ctx.strokeStyle = 'rgba(137, 180, 250, 0.8)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke();
 
-            // Beam Motion
+            // Beam Acceleration Mechanics
             if (beamPhase === 'accel') {
                 vRatio += 0.0012 * timeScale;
                 updatePhysicsTelemetry();
@@ -603,10 +605,11 @@
                 drawBeamTarget(ctx, cx - radius, cy, 'right');
             }
 
-            requestAnimationFrame(draw);
+            animFrameId = requestAnimationFrame(draw);
         }
 
         function resetAccelerator() {
+            if (animFrameId) cancelAnimationFrame(animFrameId);
             isAccelerating = false;
             beamPhase = 'idle';
             vRatio = 0.0;
@@ -616,11 +619,11 @@
             document.getElementById('stateBadge').innerText = "IDLE / BEAM INJECTED (v = 0)";
             document.getElementById('stateBadge').className = "status-badge badge-accel";
             updatePhysicsTelemetry();
+            draw();
         }
 
         resizeCanvas();
         resetAccelerator();
-        draw();
     </script>
 </body>
 </html>
