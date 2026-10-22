@@ -284,6 +284,7 @@
         const gCtx = graphCanvas.getContext('2d');
 
         let vRatio = 0.0;
+        let orbitAngle = 0.0;
         let isAccelerating = false;
         let beamPhase = 'idle'; // 'idle', 'accel', 'collide', 'shower'
         let animTime = 0;
@@ -291,7 +292,7 @@
         let fragments = [];
         let speedHistory = [{ v: 0, k: 0 }];
         let hoverPoint = null;
-        let animFrameId = null; // Animation loop cancellation handle
+        let animFrameId = null;
 
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
@@ -312,6 +313,8 @@
             isAccelerating = true;
             beamPhase = 'accel';
             vRatio = 0.0001;
+            orbitAngle = 0.0;
+            animTime = 0;
             speedHistory = [{ v: 0, k: 0 }];
             fragments = [];
             document.getElementById('startBtn').disabled = true;
@@ -561,6 +564,7 @@
             // Beam Acceleration Mechanics
             if (beamPhase === 'accel') {
                 vRatio += 0.0012 * timeScale;
+                orbitAngle += (0.01 + vRatio * 0.08) * timeScale;
                 updatePhysicsTelemetry();
 
                 if (vRatio >= 0.9999) {
@@ -568,8 +572,8 @@
                     beamPhase = 'collide';
                 }
 
-                const angleA = animTime * (0.015 + vRatio * 0.08);
-                const angleB = -animTime * (0.015 + vRatio * 0.08) + Math.PI;
+                const angleA = orbitAngle;
+                const angleB = -orbitAngle + Math.PI;
 
                 drawBeamTarget(ctx, cx + Math.cos(angleA) * radius, cy + Math.sin(angleA) * radius, 'left');
                 drawBeamTarget(ctx, cx + Math.cos(angleB) * radius, cy + Math.sin(angleB) * radius, 'right');
@@ -613,6 +617,8 @@
             isAccelerating = false;
             beamPhase = 'idle';
             vRatio = 0.0;
+            orbitAngle = 0.0;
+            animTime = 0;
             fragments = [];
             speedHistory = [{ v: 0, k: 0 }];
             document.getElementById('startBtn').disabled = false;
