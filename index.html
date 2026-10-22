@@ -70,7 +70,19 @@
       color: var(--text-sub, #a6adc8);
     }
 
-    .theme-toggle-btn {
+    .author-link {
+      color: var(--accent, #89b4fa);
+      font-weight: bold;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .author-link:hover {
+      color: var(--tag-color, #fab387);
+      text-decoration: underline;
+    }
+
+    .theme-toggle-btn, .about-author-btn {
       background: var(--card-border, #313244);
       color: var(--text-main, #cdd6f4);
       border: 1px solid var(--card-border, #313244);
@@ -82,9 +94,10 @@
       align-items: center;
       gap: 8px;
       transition: all 0.2s ease;
+      text-decoration: none;
     }
 
-    .theme-toggle-btn:hover {
+    .theme-toggle-btn:hover, .about-author-btn:hover {
       background: var(--btn-hover, #b4befe);
       color: #11111b;
     }
@@ -202,6 +215,20 @@
       border: 1px solid var(--card-border, #313244);
       border-radius: 12px;
     }
+
+    .author-banner {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-left: 4px solid var(--accent, #89b4fa);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
   </style>
 </head>
 <body>
@@ -248,15 +275,19 @@
           <h1>⚙️ RP2040 MicroPython Laboratory Suite</h1>
           <p>Interactive Mechatronics Visualizers, Motor Dynamics, and Embedded Physics Curriculum</p>
           <div class="author-badge">
-            Author & Creator: <strong>Jorge Victor M. Sales</strong> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
+            Author & Creator: <a href="./about_author.html" class="author-link">Dr. Jorge Victor M. Sales</a> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
           </div>
         </div>
       </div>
 
-      <!-- Action Buttons: Download APK & Theme Toggle -->
+      <!-- Action Buttons: Download APK, About Author & Theme Toggle -->
       <div class="flex items-center gap-3 flex-wrap">
         <a id="downloadApkHeaderBtn" href="https://github.com/swordeye2/cnhscreativetechnologies/raw/main/app_version/RPi%20MicroPython%20Sims%201.1.2.apk" target="_blank" class="download-apk-btn">
           <span>📥</span> <span>Download APK (v1.1.2)</span>
+        </a>
+
+        <a href="./about_author.html" class="about-author-btn">
+          <span>👨‍🏫</span> <span>About Author</span>
         </a>
 
         <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">
@@ -265,9 +296,55 @@
       </div>
     </header>
 
-    <!-- Section 0: Timed Assessment & Review -->
-    <div class="category-title">📝 Timed Assessment & Exam Readiness</div>
+    <!-- AUTHOR FEATURE BANNER -->
+    <div class="author-banner">
+      <div>
+        <h2 class="text-base font-bold text-[var(--accent)] m-0">👨‍🏫 About the Author & Lead Researcher</h2>
+        <p class="text-xs text-[var(--text-sub)] m-0 mt-1">
+          Developed by <strong>Jorge Victor M. Sales, Ph.D.</strong> (DepEd Division of Catanduanes / DLSU-Manila). IC4E 2022 Best Oral Presentation winner specializing in physics pedagogy, technology integration, and mechatronics curriculum design.
+        </p>
+      </div>
+      <a href="./about_author.html" class="card-btn text-xs py-2 px-4 whitespace-nowrap">View Author Profile →</a>
+    </div>
+
+    <!-- Section 0: Timed Assessment & Foundations -->
+    <div class="category-title">🤖 Foundations, Pedagogy & Assessment</div>
     <div class="card-grid">
+
+      <!-- About Author Card -->
+      <div class="card" style="border-color: #fab387;">
+        <div>
+          <h3>👨‍🏫 About the Author & Developer</h3>
+          <p>
+            Learn more about Dr. Jorge Victor M. Sales, Ph.D., his doctoral research at De La Salle University–Manila, ICT capacity building for DICT Region V, IC4E 2022 awards, and STEM educational initiatives.
+          </p>
+          <div class="tag-container">
+            <span class="tag">DepEd Catanduanes</span>
+            <span class="tag">DLSU-Manila</span>
+            <span class="tag">IC4E 2022</span>
+            <span class="tag">Pedagogy</span>
+          </div>
+        </div>
+        <a href="./about_author.html" class="card-btn">View Author Profile →</a>
+      </div>
+
+      <!-- 4 Pillars of Mechatronics -->
+      <div class="card" style="border-color: #cba6f7;">
+        <div>
+          <h3>🤖 4 Pillars of Mechatronics Explorer</h3>
+          <p>
+            Interactive 3D-feel camera zoom system isolating the 4 core pillars (Mechanical, Electronics, Software, Control) with interactive playgrounds and diagnostic inquiry checks.
+          </p>
+          <div class="tag-container">
+            <span class="tag">3D SVG Zoom</span>
+            <span class="tag">Inquiry Lab</span>
+            <span class="tag">4 Pillars</span>
+          </div>
+        </div>
+        <a href="./mechatronics_4_pillars.html" class="card-btn">Launch 4 Pillars Hub →</a>
+      </div>
+
+      <!-- 40-Minute Exam Review -->
       <div class="card" style="border-color: #89b4fa;">
         <div>
           <h3>📝 40-Minute Timed Exam Review</h3>
@@ -283,6 +360,7 @@
         </div>
         <a href="./quiz.html" class="card-btn">Launch Exam Review →</a>
       </div>
+
     </div>
 
     <!-- Section 1: Actuators & Motor Dynamics -->
@@ -639,14 +717,19 @@
             <span class="tag">MPU6050 IMU</span>
           </div>
         </div>
-        <a href="./drone_sim.html" class="card-btn">Launch Simulator →</a>
+        <a href="./quadcopter_drone.html" class="card-btn">Launch Simulator →</a>
       </div>
 
     </div>
 
-    <footer class="flex items-center justify-center gap-3">
-      <img src="./icon-512.png" alt="Logo" class="w-6 h-6 rounded-md opacity-80">
-      <span>RP2040 MicroPython Visualizers for CNHS Creative Technologies | © 2026 Jorge Victor M. Sales</span>
+    <footer class="flex flex-col items-center justify-center gap-2">
+      <div class="flex items-center gap-3">
+        <img src="./icon-512.png" alt="Logo" class="w-6 h-6 rounded-md opacity-80">
+        <span>RP2040 MicroPython Visualizers for CNHS Creative Technologies | © 2026 Jorge Victor M. Sales</span>
+      </div>
+      <div class="text-xs text-[var(--accent)] font-semibold mt-1">
+        <a href="./about_author.html" class="hover:underline">About the Author (Dr. Jorge Victor M. Sales)</a>
+      </div>
     </footer>
   </div>
 
