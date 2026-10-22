@@ -200,9 +200,10 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Staged Particle Accelerator & Beam Combination Visualizer</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Staged Particle Accelerator & Sci-Fi Audio-Visual Engine</h2>
         </div>
         <div class="nav-group">
+            <button class="btn" id="audioToggleBtn" onclick="toggleAudio()" style="border-color:var(--accent-yellow); color:var(--accent-yellow);">🔊 Audio: ON</button>
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
         </div>
     </header>
@@ -294,6 +295,109 @@
         let hoverPoint = null;
         let animFrameId = null;
 
+        // Audio Engine Variables
+        let audioEnabled = true;
+        let audioCtx = null;
+        let whirOsc = null;
+        let whirGain = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const btn = document.getElementById('audioToggleBtn');
+            btn.innerText = audioEnabled ? "🔊 Audio: ON" : "🔇 Audio: OFF";
+            if (!audioEnabled && whirGain) {
+                whirGain.gain.setValueAtTime(0, audioCtx.currentTime);
+            }
+        }
+
+        function startWhirSound() {
+            if (!audioEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            whirOsc = audioCtx.createOscillator();
+            whirGain = audioCtx.createGain();
+
+            whirOsc.type = 'sawtooth';
+            whirOsc.frequency.setValueAtTime(80, audioCtx.currentTime);
+            whirGain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+
+            whirOsc.connect(whirGain);
+            whirGain.connect(audioCtx.destination);
+            whirOsc.start();
+        }
+
+        function updateWhirPitch(v) {
+            if (!audioEnabled || !whirOsc || !whirGain) return;
+            const targetFreq = 80 + v * 850;
+            const targetGain = 0.02 + v * 0.08;
+            whirOsc.frequency.setTargetAtTime(targetFreq, audioCtx.currentTime, 0.05);
+            whirGain.gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.05);
+        }
+
+        function stopWhirSound() {
+            if (whirOsc) {
+                try {
+                    whirGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+                    setTimeout(() => { whirOsc.stop(); whirOsc = null; }, 100);
+                } catch(e){}
+            }
+        }
+
+        function playSciFiCollisionSound() {
+            if (!audioEnabled) return;
+            initAudio();
+            stopWhirSound();
+
+            const now = audioCtx.currentTime;
+            
+            // Sub-Bass Boom
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(220, now);
+            osc.frequency.exponentialRampToValueAtTime(30, now + 0.8);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.8);
+
+            // Sci-Fi Noise Burst
+            const bufferSize = audioCtx.sampleRate * 0.5;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.setValueAtTime(1000, now);
+            noiseFilter.frequency.linearRampToValueAtTime(100, now + 0.5);
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.2, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+            noise.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.connect(audioCtx.destination);
+
+            noise.start(now);
+            noise.stop(now + 0.5);
+        }
+
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
@@ -320,6 +424,8 @@
             document.getElementById('startBtn').disabled = true;
             document.getElementById('stateBadge').innerText = "STAGED RF ACCELERATION IN PROGRESS";
             document.getElementById('stateBadge').className = "status-badge badge-accel";
+
+            startWhirSound();
 
             if (animFrameId) cancelAnimationFrame(animFrameId);
             draw();
@@ -438,16 +544,17 @@
         });
 
         function spawnDeconfinedShower(cx, cy) {
-            for (let i = 0; i < 40; i++) {
+            for (let i = 0; i < 45; i++) {
                 const angle = Math.random() * Math.PI * 2;
-                const speed = 2 + Math.random() * 7;
+                const speed = 3 + Math.random() * 8;
                 const types = ['u_quark', 'd_quark', 'gluon_wave'];
                 fragments.push({
                     x: cx, y: cy,
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
                     type: types[Math.floor(Math.random() * types.length)],
-                    life: 1.0
+                    life: 1.0,
+                    trail: []
                 });
             }
         }
@@ -566,6 +673,7 @@
                 vRatio += 0.0012 * timeScale;
                 orbitAngle += (0.01 + vRatio * 0.08) * timeScale;
                 updatePhysicsTelemetry();
+                updateWhirPitch(vRatio);
 
                 if (vRatio >= 0.9999) {
                     vRatio = 0.9999;
@@ -579,9 +687,11 @@
                 drawBeamTarget(ctx, cx + Math.cos(angleB) * radius, cy + Math.sin(angleB) * radius, 'right');
 
             } else if (beamPhase === 'collide') {
+                playSciFiCollisionSound();
+
                 ctx.save();
-                ctx.fillStyle = '#ffffff'; ctx.shadowColor = '#f38ba8'; ctx.shadowBlur = 40;
-                ctx.beginPath(); ctx.arc(cx, cy - radius, 35, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#ffffff'; ctx.shadowColor = '#f38ba8'; ctx.shadowBlur = 50;
+                ctx.beginPath(); ctx.arc(cx, cy - radius, 40, 0, Math.PI * 2); ctx.fill();
                 ctx.restore();
 
                 spawnDeconfinedShower(cx, cy - radius);
@@ -595,8 +705,28 @@
                     const f = fragments[i];
                     f.x += f.vx * timeScale;
                     f.y += f.vy * timeScale;
-                    f.life -= 0.008 * timeScale;
+                    f.life -= 0.006 * timeScale;
 
+                    // SCREEN-BOUNCING MECHANICS FOR FUN
+                    if (f.x <= 15 || f.x >= canvas.width - 15) f.vx *= -1;
+                    if (f.y <= 15 || f.y >= canvas.height - 15) f.vy *= -1;
+
+                    // Append Trail Points
+                    f.trail.push({ x: f.x, y: f.y });
+                    if (f.trail.length > 12) f.trail.shift();
+
+                    // Render Glowing Trail
+                    ctx.save();
+                    for (let t = 0; t < f.trail.length; t++) {
+                        ctx.fillStyle = (f.type === 'u_quark') ? '#cba6f7' : (f.type === 'd_quark' ? '#f38ba8' : '#a6e3a1');
+                        ctx.globalAlpha = (t / f.trail.length) * f.life * 0.6;
+                        ctx.shadowColor = ctx.fillStyle;
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath(); ctx.arc(f.trail[t].x, f.trail[t].y, 2.5, 0, Math.PI * 2); ctx.fill();
+                    }
+                    ctx.restore();
+
+                    // Render Particle Head
                     ctx.save();
                     ctx.globalAlpha = Math.max(0, f.life);
                     drawParticleModel(ctx, f.x, f.y, f.type, 1.2);
@@ -614,6 +744,7 @@
 
         function resetAccelerator() {
             if (animFrameId) cancelAnimationFrame(animFrameId);
+            stopWhirSound();
             isAccelerating = false;
             beamPhase = 'idle';
             vRatio = 0.0;
