@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About the Author - Jorge Victor M. Sales, Ph.D. | Physics Simulation Suite</title>
+
+  <!-- Local Physics Suite Assets -->
+  <link rel="icon" type="image/png" href="./icon-512.png">
+  <link rel="apple-touch-icon" href="./icon-512.png">
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- Shared Parent Theme -->
+  <link rel="stylesheet" href="../theme.css">
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and code design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google AdSense Script (COPPA & Non-Personalized Student-Safe Configuration) -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136" crossorigin="anonymous"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
+  </script>
+
+  <style>
+    :root {
+      --bg-dark: var(--bg-color, #1e1e2e);
+      --panel-bg: var(--card-bg, #181825);
+      --panel-border: var(--card-border, #313244);
+      --text-main: var(--text-main, #cdd6f4);
+      --text-muted: var(--text-sub, #a6adc8);
+      --accent-blue: var(--accent, #89b4fa);
+      --accent-green: #a6e3a1;
+      --accent-red: #f38ba8;
+      --accent-purple: #cba6f7;
+      --accent-yellow: #f9e2af;
+      --accent-orange: #fab387;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 120px; /* COPPA Safety Buffer */
+    }
+
+    header {
+      background-color: var(--panel-bg);
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      background: var(--panel-border);
+      color: var(--text-main);
+      border: 1px solid var(--panel-border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: bold;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn:hover {
+      opacity: 0.85;
+      border-color: var(--accent-blue);
+    }
+
+    .profile-card {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+    }
+
+    .badge-accent {
+      background-color: rgba(137, 180, 250, 0.15);
+      color: var(--accent-blue);
+      border: 1px solid rgba(137, 180, 250, 0.3);
+    }
+
+    .badge-green {
+      background-color: rgba(166, 227, 161, 0.15);
+      color: var(--accent-green);
+      border: 1px solid rgba(166, 227, 161, 0.3);
+    }
+
+    .badge-purple {
+      background-color: rgba(203, 166, 247, 0.15);
+      color: var(--accent-purple);
+      border: 1px solid rgba(203, 166, 247, 0.3);
+    }
+
+    .badge-orange {
+      background-color: rgba(250, 179, 135, 0.15);
+      color: var(--accent-orange);
+      border: 1px solid rgba(250, 179, 135, 0.3);
+    }
+  </style>
+</head>
+<body class="bg-[var(--bg-dark)] text-[var(--text-main)]">
+
+  <!-- STANDARDIZED HEADER NAVIGATION -->
+  <header>
+    <div class="flex items-center gap-3">
+      <a href="./index.html" class="nav-btn">
+        <span>⬅</span> <span>Physics Suite Hub</span>
+      </a>
+      <img src="./icon-512.png" alt="App Icon" class="w-8 h-8 rounded-md" onerror="this.onerror=null; this.src='https://placehold.co/64x64/313244/89b4fa?text=JIT'">
+      <div>
+        <h1 class="text-base font-bold text-[var(--accent-blue)] flex items-center gap-2 m-0">
+          About the Author
+        </h1>
+        <div class="text-[11px] text-[var(--text-muted)]">
+          Lead Creator & Research Director | Just in Time "GIT GUD" Physics
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button id="themeToggle" class="nav-btn" onclick="toggleTheme()">
+        <span>🌙</span> <span>Dark Theme</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN AUTHOR PROFILE CONTENT -->
+  <main class="max-w-5xl mx-auto px-4 py-8 w-full flex-1">
+    
+    <!-- AUTHOR HERO CARD -->
+    <div class="profile-card p-6 md:p-8 mb-8 shadow-xl">
+      <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+        
+        <!-- Avatar / Initial Badge -->
+        <div class="w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-purple)] flex items-center justify-center text-3xl font-black text-[#11111b] shadow-lg shrink-0 border-2 border-[var(--accent-blue)]">
+          JVS
+        </div>
+
+        <div class="flex-1 text-center md:text-left">
+          <div class="flex flex-wrap justify-center md:justify-start items-center gap-2 mb-2">
+            <h2 class="text-2xl md:text-3xl font-bold text-white">Jorge Victor M. Sales, Ph.D.</h2>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold badge-accent">Ph.D. Science Education</span>
+          </div>
+
+          <p class="text-sm text-[var(--accent-blue)] font-medium mb-3">
+            Educator • Researcher • Author • Physics Pedagogy Innovator
+          </p>
+
+          <p class="text-xs text-[var(--text-muted)] leading-relaxed mb-4">
+            Department of Education (DepEd) – Schools Division of Catanduanes | De La Salle University–Manila Graduate Researcher
+          </p>
+
+          <div class="flex flex-wrap justify-center md:justify-start gap-2 text-xs">
+            <span class="px-3 py-1 rounded-md bg-[var(--panel-border)] text-slate-300">🎓 Ph.D. Physics Major</span>
+            <span class="px-3 py-1 rounded-md bg-[var(--panel-border)] text-slate-300">🏆 IC4E 2022 Best Oral Presentation</span>
+            <span class="px-3 py-1 rounded-md bg-[var(--panel-border)] text-slate-300">💻 DICT Region V Resource Person</span>
+            <span class="px-3 py-1 rounded-md bg-[var(--panel-border)] text-slate-300">🏅 Cum Laude BSEd</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIOGRAPHY & RESEARCH HIGHLIGHTS -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      
+      <!-- Academic Profile & Background -->
+      <div class="md:col-span-2 profile-card p-6 flex flex-col gap-4">
+        <h3 class="text-lg font-bold text-[var(--accent-blue)] border-b border-[var(--panel-border)] pb-2 flex items-center gap-2">
+          <span>📖</span> Professional Biography
+        </h3>
+
+        <p class="text-xs text-[var(--text-main)] leading-relaxed">
+          <strong>Jorge Victor M. Sales, Ph.D.</strong> is an educator and researcher serving under the <strong>Department of Education (DepEd) – Schools Division of Catanduanes</strong>, and is affiliated with <strong>De La Salle University–Manila</strong> as a graduate researcher and former Research Assistant.
+        </p>
+
+        <p class="text-xs text-[var(--text-main)] leading-relaxed">
+          He earned his <strong>Doctor of Philosophy in Science Education (Major in Physics)</strong> from De La Salle University–Manila, where his doctoral dissertation focused on <em>Just-in-Time Teaching (JiTT-M) of Mechanics</em>, integrating PhET simulations, the Feynman problem-solving approach, and metacognition through reflection. He holds a <strong>Master of Arts in Teaching Physics</strong> from Catanduanes State University, with thesis research on teacher efficacy and performance in secondary science, and graduated <strong>Cum Laude</strong> with a <em>Bachelor of Secondary Education</em>.
+        </p>
+
+        <p class="text-xs text-[var(--text-main)] leading-relaxed">
+          In addition to his academic research in physics pedagogy, technology-enhanced learning, and action research learning communities, Dr. Sales actively engages in community extension and capacity building. He served as a <strong>Resource Person for the Department of Information and Communications Technology (DICT) – Region V Catanduanes</strong> from January 2023 to June 2025, delivering lectures, technical guidance, and workshop planning to enhance digital skills, ICT literacy, and technology integration among educators and community stakeholders.
+        </p>
+
+        <p class="text-xs text-[var(--text-main)] leading-relaxed">
+          Dr. Sales was recognized with the <strong>Best Oral Presentation Award at the 13th International Conference on E-Education, E-Business, E-Management and E-Learning (IC4E 2022)</strong> for his meta-analysis on blended learning in high school physics. He continues to contribute to data-driven instructional innovations, robotics initiatives, and graduate-level research mentorship.
+        </p>
+      </div>
+
+      <!-- Quick Credentials & Focus Areas Sidebar -->
+      <div class="space-y-6">
+        
+        <!-- Education Stack -->
+        <div class="profile-card p-5">
+          <h4 class="text-sm font-bold text-[var(--accent-purple)] border-b border-[var(--panel-border)] pb-2 mb-3 flex items-center gap-2">
+            <span>🎓</span> Academic Degrees
+          </h4>
+          <ul class="space-y-3 text-xs">
+            <li>
+              <div class="font-bold text-white">Doctor of Philosophy in Science Education (Major in Physics)</div>
+              <div class="text-[var(--text-muted)]">De La Salle University–Manila</div>
+              <div class="text-[10px] text-[var(--accent-blue)] mt-0.5">Dissertation: JiTT-M Mechanics, PhET Sims & Feynman Approach</div>
+            </li>
+            <li>
+              <div class="font-bold text-white">Master of Arts in Teaching Physics</div>
+              <div class="text-[var(--text-muted)]">Catanduanes State University</div>
+              <div class="text-[10px] text-[var(--accent-green)] mt-0.5">Thesis: Teacher Efficacy & Performance in Secondary Science</div>
+            </li>
+            <li>
+              <div class="font-bold text-white">Bachelor of Secondary Education</div>
+              <div class="text-[var(--text-muted)]">Cum Laude Graduate</div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Research Specializations -->
+        <div class="profile-card p-5">
+          <h4 class="text-sm font-bold text-[var(--accent-green)] border-b border-[var(--panel-border)] pb-2 mb-3 flex items-center gap-2">
+            <span>🔬</span> Research & Pedagogy Focus
+          </h4>
+          <div class="flex flex-wrap gap-1.5 text-[11px]">
+            <span class="px-2 py-1 rounded bg-[var(--bg-dark)] border border-[var(--panel-border)] text-slate-300">Physics Pedagogy</span>
+            <span class="px-2 py-1 rounded bg-[var(--bg-dark)] border border-[var(--panel-border)] text-slate-300">Just-in-Time Teaching (JiTT)</span>
+            <span class="px-2 py-1 rounded bg-[var(--bg-dark)] border border-[var(--panel-border)] text-slate-300">Interactive Simulations</span>
+            <span class="px-2 py-1 rounded bg-[var(--bg-dark)] border border-[var(--panel-border)] text-slate-300">Feynman Technique</span>
+            <span class="px-2 py-1 rounded bg-[var(--bg-dark)] border border-[var(--panel-border)] text-slate-300">Metacognition</span>
+            <span class="px-2 py-1 rounded bg-[var(--bg-dark)] border border-[var(--panel-border)] text-slate-300">Technology Integration</span>
+            <span class="px-2 py-1 rounded bg-[var(--bg-dark)] border border-[var(--panel-border)] text-slate-300">Robotics & Mechatronics</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- KEY ENGAGEMENTS & HONORS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      
+      <!-- Community Leadership -->
+      <div class="profile-card p-5 border-l-4 border-l-[var(--accent-blue)]">
+        <h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+          <span>🌐</span> Community Extension & Digital Literacy
+        </h4>
+        <p class="text-xs text-[var(--text-muted)] leading-relaxed mb-3">
+          Served as <strong>Resource Person for the Department of Information and Communications Technology (DICT) – Region V Catanduanes</strong> (Jan 2023 – June 2025), leading capacity-building workshops, technical guidance, and ICT literacy initiatives across schools and community stakeholders.
+        </p>
+        <span class="inline-block text-[10px] px-2 py-0.5 rounded font-mono badge-accent">DICT Region V Resource Person</span>
+      </div>
+
+      <!-- Awards & Mentorship -->
+      <div class="profile-card p-5 border-l-4 border-l-[var(--accent-purple)]">
+        <h4 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+          <span>🏆</span> Conference Recognition & Mentorship
+        </h4>
+        <p class="text-xs text-[var(--text-muted)] leading-relaxed mb-3">
+          Awarded <strong>Best Oral Presentation</strong> at IC4E 2022 for research in high school physics blended learning models. Actively provides mentorship in graduate-level research, action research learning communities, and open-access STEM software tools.
+        </p>
+        <span class="inline-block text-[10px] px-2 py-0.5 rounded font-mono badge-purple">IC4E 2022 Awardee</span>
+      </div>
+
+    </div>
+
+    <!-- FOOTER COPYRIGHT STATEMENT -->
+    <div class="text-center text-xs text-[var(--text-muted)] border-t border-[var(--panel-border)] pt-6 mt-8">
+      <p class="mb-1 font-semibold text-slate-300">Just in Time "GIT GUD" Physics Simulation Suite</p>
+      <p>Developed under the CNHS Creative Technologies Platform &amp; rpithon.com</p>
+      <p class="mt-2 text-[11px]">
+        Copyright &copy; 2026 <strong>Jorge Victor M. Sales, Ph.D.</strong> (<em>swordeye / thearbiter</em>). Distributed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer" class="text-[var(--accent-blue)] underline">CC BY-NC-SA 4.0</a>.
+      </p>
+    </div>
+
+  </main>
+
+  <script src="../theme.js"></script>
+  <script>
+    function toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme') || 'dark';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeButtonText(newTheme);
+    }
+
+    function updateThemeButtonText(theme) {
+        const btn = document.getElementById('themeToggle');
+        if (btn) {
+            btn.innerHTML = theme === 'dark' ? '🌙 Dark Theme' : '☀️ Light Theme';
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeButtonText(savedTheme);
+    });
+  </script>
+</body>
+</html>
