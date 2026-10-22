@@ -76,7 +76,7 @@
 
         .workspace {
             display: grid;
-            grid-template-columns: 1fr 380px;
+            grid-template-columns: 1fr 400px;
             gap: 15px;
             padding: 15px;
             flex: 1;
@@ -116,7 +116,7 @@
 
         .graph-container {
             width: 100%;
-            height: 200px;
+            height: 220px;
             background: var(--canvas-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -124,7 +124,7 @@
             overflow: hidden;
             margin-top: 10px;
         }
-        canvas#graphCanvas { width: 100%; height: 100%; display: block; }
+        canvas#graphCanvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
 
         .sidebar { display: flex; flex-direction: column; gap: 12px; }
         .panel-card {
@@ -153,6 +153,16 @@
         .telemetry-label { color: var(--text-sub); }
         .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
 
+        .formula-box {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
         .slider-group {
             display: flex;
             flex-direction: column;
@@ -179,7 +189,7 @@
     <header>
         <div class="nav-group">
             <a href="./index.html" class="btn">🔬 Physics Suite</a>
-            <h2 style="font-size: 1rem; color: var(--accent-blue);">Staged Particle Accelerator & Mass Defect Energy Visualizer</h2>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Staged Particle Accelerator & Relativistic Formula Inspector</h2>
         </div>
         <div class="nav-group">
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
@@ -205,9 +215,9 @@
                 <canvas id="accelCanvas"></canvas>
             </div>
 
-            <!-- RELOCATED RELATIVISTIC KINETIC ENERGY GRAPH (BELOW ACCELERATOR) -->
+            <!-- INTERACTIVE RELATIVISTIC KINETIC ENERGY GRAPH (WITH HOVER MEASUREMENT) -->
             <div class="panel-card" style="margin-top: 5px;">
-                <div class="panel-title">📊 Relativistic Kinetic Energy Curve K(v) & Real-Time Tracking</div>
+                <div class="panel-title">📊 Relativistic Kinetic Energy K(v) & Hover Measurement Probe</div>
                 <div class="graph-container">
                     <canvas id="graphCanvas"></canvas>
                 </div>
@@ -216,9 +226,9 @@
 
         <div class="sidebar">
             <div class="panel-card">
-                <div class="panel-title">Simulation Playback Controls</div>
+                <div class="panel-title">Simulation Controls</div>
                 <div class="slider-group">
-                    <label>Simulation Speed (Slow-Mo): <span id="slowMoVal" style="color:var(--accent-cyan);">1.0x</span></label>
+                    <label>Playback Speed (Slow-Mo): <span id="slowMoVal" style="color:var(--accent-cyan);">1.0x</span></label>
                     <input type="range" id="slowMoSlider" min="0.1" max="2.0" step="0.1" value="1.0" oninput="updateSlowMo()">
                 </div>
             </div>
@@ -232,12 +242,21 @@
                 <div id="stateBadge" class="status-badge badge-accel">IDLE / BEAM INJECTED (v = 0)</div>
             </div>
 
+            <!-- ESSENTIAL RELATIVISTIC FORMULAS CARD -->
             <div class="panel-card">
-                <div class="panel-title">Pedagogical Physics Breakdown</div>
-                <div style="font-size:0.8rem; line-height:1.5; color:var(--text-sub);">
-                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-yellow);">1. Staged Magnetron RF Cavities:</strong> The particles start at rest ($v=0$) and gain speed sequentially as they pass through electromagnetic RF gaps[cite: 1].</p>
-                    <p style="margin-bottom:6px;"><strong style="color:var(--accent-red);">2. Relativistic K(v) Curve:</strong> Kinetic energy $K = (\gamma - 1)m_0 c^2$ shoots up near light speed, demonstrating why infinite energy is required to reach $c$[cite: 1].</p>
-                    <p><strong style="color:var(--accent-green);">3. $E = mc^2$ Mass Defect:</strong> At $0.9999c$, the accumulated motion energy converts into subatomic rest masses ($\Delta m$), producing a quark-gluon shower[cite: 1].</p>
+                <div class="panel-title">📐 Essential Accelerator Formulas</div>
+                <div class="formula-box">
+                    <div><b style="color:var(--accent-cyan);">1. Lorentz Factor:</b></div>
+                    <div style="color:var(--accent-yellow);">γ = 1 / √(1 - v²/c²)</div>
+                    
+                    <div style="margin-top:6px;"><b style="color:var(--accent-green);">2. Relativistic Kinetic Energy:</b></div>
+                    <div style="color:var(--accent-green);">K = (γ - 1) · m₀c²</div>
+
+                    <div style="margin-top:6px;"><b style="color:var(--accent-red);">3. Motion-to-Mass Defect:</b></div>
+                    <div style="color:var(--accent-red);">Δm = K / c²  (1 amu ≈ 0.9315 GeV)</div>
+
+                    <div style="margin-top:6px;"><b style="color:var(--accent-purple);">4. Center-of-Mass Energy:</b></div>
+                    <div style="color:var(--accent-purple);">√s = 2 · γ · m₀c²</div>
                 </div>
             </div>
         </div>
@@ -257,6 +276,7 @@
         let timeScale = 1.0;
         let fragments = [];
         let speedHistory = [{ v: 0, k: 0 }];
+        let hoverPoint = null;
 
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
@@ -292,7 +312,7 @@
             document.getElementById('gammaVal').innerText = gamma.toFixed(2);
 
             const m0_GeV = 0.938; // Proton rest mass
-            const K_GeV = (gamma - 1) * m0_GeV * 2; // Two colliding hadrons
+            const K_GeV = (gamma - 1) * m0_GeV * 2;
             document.getElementById('kVal').innerText = `${K_GeV.toFixed(2)} GeV`;
 
             const deltaM = K_GeV / 0.9315;
@@ -312,48 +332,93 @@
 
             // Grid Axes
             gCtx.strokeStyle = '#45475a'; gCtx.lineWidth = 1.5;
-            gCtx.beginPath(); gCtx.moveTo(40, 15); gCtx.lineTo(40, h - 25); gCtx.lineTo(w - 15, h - 25); gCtx.stroke();
+            gCtx.beginPath(); gCtx.moveTo(45, 15); gCtx.lineTo(45, h - 25); gCtx.lineTo(w - 15, h - 25); gCtx.stroke();
 
             gCtx.fillStyle = '#a6adc8'; gCtx.font = '10px monospace';
-            gCtx.fillText("Beam Speed (v/c) -> 0.9999c", w - 170, h - 8);
-            gCtx.fillText("Kinetic Energy K (GeV)", 8, 12);
+            gCtx.fillText("Beam Velocity (v/c) -> 0.9999c", w - 170, h - 8);
+            gCtx.fillText("K (GeV)", 5, 12);
 
-            // Theoretical Background K(v) Reference Curve from 0 to 0.9999c
-            gCtx.strokeStyle = 'rgba(137, 180, 250, 0.25)'; gCtx.lineWidth = 1; ctx.setLineDash([3, 3]);
+            // Theoretical Reference Curve
+            gCtx.strokeStyle = 'rgba(137, 180, 250, 0.25)'; gCtx.lineWidth = 1; gCtx.setLineDash([3, 3]);
             gCtx.beginPath();
             for (let vStep = 0; vStep <= 0.9999; vStep += 0.01) {
                 const gStep = 1 / Math.sqrt(1 - Math.pow(vStep, 2));
                 const kStep = (gStep - 1) * 0.938 * 2;
-                const gx = 40 + (vStep / 0.9999) * (w - 60);
+                const gx = 45 + (vStep / 0.9999) * (w - 65);
                 const gy = (h - 25) - Math.min(h - 35, (kStep / 130) * (h - 35));
                 if (vStep === 0) gCtx.moveTo(gx, gy); else gCtx.lineTo(gx, gy);
             }
             gCtx.stroke();
             gCtx.setLineDash([]);
 
-            // Live Traced Path starting at (0, 0)
+            // Live Acceleration Trace Line starting at (0,0)
             if (speedHistory.length > 0) {
                 gCtx.strokeStyle = '#a6e3a1'; gCtx.lineWidth = 2.5;
                 gCtx.beginPath();
                 speedHistory.forEach((pt, i) => {
-                    const gx = 40 + (pt.v / 0.9999) * (w - 60);
+                    const gx = 45 + (pt.v / 0.9999) * (w - 65);
                     const gy = (h - 25) - Math.min(h - 35, (pt.k / 130) * (h - 35));
                     if (i === 0) gCtx.moveTo(gx, gy); else gCtx.lineTo(gx, gy);
                 });
                 gCtx.stroke();
 
-                // Current Motion Point Tracker
+                // Current Beam Tracker Dot
                 const lastPt = speedHistory[speedHistory.length - 1];
-                const curX = 40 + (lastPt.v / 0.9999) * (w - 60);
+                const curX = 45 + (lastPt.v / 0.9999) * (w - 65);
                 const curY = (h - 25) - Math.min(h - 35, (lastPt.k / 130) * (h - 35));
 
-                gCtx.fillStyle = '#f9e2af';
-                gCtx.shadowColor = '#f9e2af';
-                gCtx.shadowBlur = 8;
+                gCtx.fillStyle = '#f9e2af'; gCtx.shadowColor = '#f9e2af'; gCtx.shadowBlur = 8;
                 gCtx.beginPath(); gCtx.arc(curX, curY, 5, 0, Math.PI * 2); gCtx.fill();
                 gCtx.shadowBlur = 0;
             }
+
+            // Mouse Hover Crosshair Measurement Tool
+            if (hoverPoint) {
+                const hx = hoverPoint.x;
+                const hRatio = Math.min(0.9999, Math.max(0, (hx - 45) / (w - 65)));
+                const hGamma = (hRatio >= 0.9999) ? 70.71 : (1 / Math.sqrt(1 - Math.pow(hRatio, 2)));
+                const hK = (hGamma - 1) * 0.938 * 2;
+                const hDeltaM = hK / 0.9315;
+                const hy = (h - 25) - Math.min(h - 35, (hK / 130) * (h - 35));
+
+                // Vertical & Horizontal Crosshair Lines
+                gCtx.strokeStyle = '#89dceb'; gCtx.lineWidth = 1; gCtx.setLineDash([2, 2]);
+                gCtx.beginPath(); gCtx.moveTo(hx, 15); gCtx.lineTo(hx, h - 25); gCtx.stroke();
+                gCtx.beginPath(); gCtx.moveTo(45, hy); gCtx.lineTo(w - 15, hy); gCtx.stroke();
+                gCtx.setLineDash([]);
+
+                // Hover Highlight Point
+                gCtx.fillStyle = '#89dceb';
+                gCtx.beginPath(); gCtx.arc(hx, hy, 5, 0, Math.PI * 2); gCtx.fill();
+
+                // Interactive Telemetry Tooltip Box
+                const tooltipText = `v: ${hRatio.toFixed(4)}c | γ: ${hGamma.toFixed(2)} | K: ${hK.toFixed(2)} GeV | Δm: ${hDeltaM.toFixed(4)} amu`;
+                gCtx.fillStyle = 'rgba(24, 24, 37, 0.9)';
+                gCtx.strokeStyle = '#89dceb';
+                gCtx.lineWidth = 1;
+                const boxWidth = 320;
+                const boxX = Math.min(w - boxWidth - 10, Math.max(50, hx - 160));
+                gCtx.fillRect(boxX, 20, boxWidth, 24);
+                gCtx.strokeRect(boxX, 20, boxWidth, 24);
+
+                gCtx.fillStyle = '#89dceb';
+                gCtx.font = 'bold 10px monospace';
+                gCtx.textAlign = 'center';
+                gCtx.fillText(tooltipText, boxX + boxWidth / 2, 36);
+            }
         }
+
+        // Hover Measurement Mouse Events
+        graphCanvas.addEventListener('mousemove', (e) => {
+            const rect = graphCanvas.getBoundingClientRect();
+            hoverPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            drawEnergyGraph();
+        });
+
+        graphCanvas.addEventListener('mouseleave', () => {
+            hoverPoint = null;
+            drawEnergyGraph();
+        });
 
         function spawnDeconfinedShower(cx, cy) {
             for (let i = 0; i < 40; i++) {
@@ -365,8 +430,7 @@
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed,
                     type: types[Math.floor(Math.random() * types.length)],
-                    life: 1.0,
-                    trail: []
+                    life: 1.0
                 });
             }
         }
@@ -440,7 +504,7 @@
             const cy = canvas.height / 2;
             const radius = Math.min(canvas.width, canvas.height) * 0.38;
 
-            // 1. Draw Staged Magnetron RF Cavities
+            // Staged Magnetron RF Cavities
             const numCavities = 8;
             for (let i = 0; i < numCavities; i++) {
                 const ca = (i / numCavities) * Math.PI * 2;
@@ -456,9 +520,9 @@
             ctx.strokeStyle = 'rgba(137, 180, 250, 0.8)'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.stroke();
 
-            // 2. Staged Speed Ramp Mechanics
+            // Acceleration Mechanics
             if (beamPhase === 'accel') {
-                vRatio += 0.0012 * timeScale; // Controlled Staged Acceleration
+                vRatio += 0.0012 * timeScale;
                 updatePhysicsTelemetry();
 
                 if (vRatio >= 0.9999) {
@@ -473,7 +537,6 @@
                 drawNeutron(ctx, cx + Math.cos(angleB) * radius, cy + Math.sin(angleB) * radius);
 
             } else if (beamPhase === 'collide') {
-                // Relativistic Collision at 0.9999c
                 ctx.save();
                 ctx.fillStyle = '#ffffff'; ctx.shadowColor = '#f38ba8'; ctx.shadowBlur = 40;
                 ctx.beginPath(); ctx.arc(cx, cy - radius, 35, 0, Math.PI * 2); ctx.fill();
@@ -500,7 +563,6 @@
                     if (f.life <= 0) fragments.splice(i, 1);
                 }
             } else if (beamPhase === 'idle') {
-                // Static Beams at Rest at Injection Points (v = 0)
                 drawProton(ctx, cx + radius, cy);
                 drawNeutron(ctx, cx - radius, cy);
             }
