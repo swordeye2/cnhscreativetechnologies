@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atomic Structure, Mass Defect & Isotope Decay Visualizer - GIT GUD Physics</title>
+    <title>Atomic Structure, Mass Defect & Decay Feynman Inspector - GIT GUD Physics</title>
 
     <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -165,7 +165,7 @@
             font-size: 0.8rem;
         }
         .calc-line { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .calc-highlight { color: var(--accent-red); font-weight: bold; border-top: 1px solid var(--border-color); pt: 4px; }
+        .calc-highlight { color: var(--accent-red); font-weight: bold; border-top: 1px solid var(--border-color); padding-top: 4px; }
 
         .status-badge {
             padding: 4px 8px;
@@ -177,6 +177,27 @@
         }
         .badge-stable { background: rgba(166, 227, 161, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
         .badge-unstable { background: rgba(243, 139, 168, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+
+        .decay-card {
+            background: rgba(243, 139, 168, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 12px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .feynman-box {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 0.78rem;
+            color: var(--accent-cyan);
+            line-height: 1.5;
+        }
 
         .slider-group {
             display: flex;
@@ -242,10 +263,26 @@
                 </div>
             </div>
 
-            <!-- STEP-BY-STEP MASS DEFECT COMPUTATION CARD -->
+            <!-- UNSTABLE ISOTOPE DECAY & FEYNMAN DIAGRAM CARD -->
+            <div id="decayInfoCard" class="decay-card">
+                <div style="font-weight:bold; color:var(--accent-red); font-size:0.9rem;">⚠️ Radioactive Decay Mechanism</div>
+                <div style="font-size:0.82rem; color:var(--text-sub);">
+                    <b style="color:var(--accent-yellow);" id="decayTypeTitle">Beta-Minus (β⁻) Decay</b>
+                </div>
+                <div class="feynman-box">
+                    <div><b>Nuclear Formula:</b></div>
+                    <div style="color:var(--accent-yellow);" id="nuclearDecayFormula">n⁰ ➔ p⁺ + e⁻ + ν̄ₑ</div>
+                    <div style="margin-top:4px;"><b>Quark Level (Feynman):</b></div>
+                    <div style="color:var(--accent-purple);" id="quarkDecayFormula">d (-1/3e) ➔ u (+2/3e) + W⁻ ➔ e⁻ + ν̄ₑ</div>
+                </div>
+                <div style="font-size:0.78rem; color:var(--text-sub); line-height:1.4;">
+                    Emits high-speed <b>e⁻ (Beta)</b> and <b>ν̄ₑ (Antineutrino)</b> particles driven by short-lived virtual <b>W⁻ Boson</b> exchange.
+                </div>
+            </div>
+
+            <!-- MASS DEFECT COMPUTATION CARD -->
             <div class="panel-card">
                 <div class="panel-title">📐 Mass Defect Computation & Comparison</div>
-                
                 <div class="calc-box">
                     <div class="calc-line"><span style="color:var(--accent-purple);">Protons Mass:</span><span id="pSubtotal">6 × 1.007276 = 6.0437 amu</span></div>
                     <div class="calc-line"><span style="color:var(--accent-orange);">Neutrons Mass:</span><span id="nSubtotal">6 × 1.008665 = 6.0520 amu</span></div>
@@ -288,13 +325,14 @@
 
         let Z = 6, N = 6, E = 6;
         let rotAngle = 0;
+        let lastTimestamp = performance.now();
         let isUnstable = false;
         let decayParticles = [];
         let spawnTimer = 0;
 
-        const mp = 1.007276; // Proton rest mass (amu)
-        const mn = 1.008665; // Neutron rest mass (amu)
-        const me = 0.0005485; // Electron rest mass (amu)
+        const mp = 1.007276;
+        const mn = 1.008665;
+        const me = 0.0005485;
 
         const presetData = {
             H1: { z: 1, n: 0, e: 1, name: "Protium (¹H)", actualMass: 1.007825 },
@@ -309,7 +347,6 @@
         function resizeCanvas() {
             canvas.width = canvas.parentElement.clientWidth;
             canvas.height = canvas.parentElement.clientHeight;
-            draw();
         }
         window.addEventListener('resize', resizeCanvas);
 
@@ -348,7 +385,6 @@
             const nz = Z > 0 ? (N / Z) : 0;
             document.getElementById('nzRatioVal').innerText = nz.toFixed(3);
 
-            // Step-by-step Subtotal Calculations
             const pMass = Z * mp;
             const nMass = N * mn;
             const eMass = E * me;
@@ -364,26 +400,29 @@
             const deltaM = Math.max(0, sumMass - actualMass);
             document.getElementById('calcDeltaM').innerText = `${deltaM.toFixed(4)} amu`;
 
-            const eb = deltaM * 931.5; // 1 amu = 931.5 MeV
+            const eb = deltaM * 931.5;
             document.getElementById('calcEb').innerText = `${eb.toFixed(2)} MeV`;
 
             const A = Z + N;
             const ebPerA = A > 0 ? (eb / A) : 0;
             document.getElementById('ebPerNucleonVal').innerText = `${ebPerA.toFixed(2)} MeV`;
 
-            // Automatic Stability Check
             const isPresetUnstable = name.includes('Tritium') || name.includes('Carbon-14');
             const isRatioUnstable = (Z > 0 && (nz < 0.9 || nz > 1.35)) || (Z === 1 && N >= 2);
             isUnstable = isPresetUnstable || isRatioUnstable;
 
             const badge = document.getElementById('stabilityBadge');
+            const decayCard = document.getElementById('decayInfoCard');
+
             if (!isUnstable) {
                 badge.innerText = "STABLE ISOTOPE";
                 badge.className = "status-badge badge-stable";
+                decayCard.style.display = "none";
                 decayParticles = [];
             } else {
                 badge.innerText = "RADIOACTIVE UNSTABLE (β⁻ DECAY)";
                 badge.className = "status-badge badge-unstable";
+                decayCard.style.display = "flex";
             }
         }
 
@@ -391,7 +430,6 @@
             const angle = Math.random() * Math.PI * 2;
             const speed = 5 + Math.random() * 3;
 
-            // Beta Particle (e-)
             decayParticles.push({
                 x: cx, y: cy,
                 vx: Math.cos(angle) * speed,
@@ -402,7 +440,6 @@
                 trail: []
             });
 
-            // Electron Antineutrino
             decayParticles.push({
                 x: cx, y: cy,
                 vx: Math.cos(angle + 0.8) * (speed * 0.7),
@@ -414,26 +451,27 @@
             });
         }
 
-        function draw() {
+        function draw(now) {
+            const dt = Math.min((now - lastTimestamp) / 1000, 0.1);
+            lastTimestamp = now;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            rotAngle += 0.02;
+            rotAngle += 1.2 * dt; // Time-delta locked speed
 
             let cx = canvas.width / 2;
             let cy = canvas.height / 2;
 
-            // 1. Instability Camera Jitter Effect
             if (isUnstable) {
                 cx += (Math.random() - 0.5) * 3;
                 cy += (Math.random() - 0.5) * 3;
 
-                // Continuously Spawn Decay Emissions
                 spawnTimer++;
-                if (spawnTimer % 40 === 0) {
+                if (spawnTimer % 45 === 0) {
                     spawnDecayEmission(cx, cy);
                 }
             }
 
-            // 2. Draw Electron Shells & Spin-1/2 Electrons (Full Opacity)
+            // Draw Shells & Spin-1/2 Electrons
             ctx.save();
             ctx.globalAlpha = 1.0;
             const shellCapacities = [2, 8, 18];
@@ -457,7 +495,6 @@
                     ctx.fillStyle = '#89dceb';
                     ctx.beginPath(); ctx.arc(ex, ey, 6, 0, Math.PI * 2); ctx.fill();
 
-                    // Spin-1/2 Arrow Indicator
                     const spinUp = i % 2 === 0;
                     ctx.strokeStyle = '#ffffff';
                     ctx.lineWidth = 1.5;
@@ -471,7 +508,7 @@
             });
             ctx.restore();
 
-            // 3. Draw Central Nucleus Cluster (Full Opacity)
+            // Draw Nucleus
             ctx.save();
             ctx.globalAlpha = 1.0;
             const totalNucleons = Z + N;
@@ -495,7 +532,7 @@
             }
             ctx.restore();
 
-            // 4. Render Flying Radioactive Particles
+            // Flying Radioactive Particles
             for (let i = decayParticles.length - 1; i >= 0; i--) {
                 const p = decayParticles[i];
                 p.x += p.vx;
@@ -505,7 +542,6 @@
                 p.trail.push({ x: p.x, y: p.y });
                 if (p.trail.length > 20) p.trail.shift();
 
-                // Draw Particle Trail
                 ctx.save();
                 for (let t = 0; t < p.trail.length; t++) {
                     ctx.fillStyle = p.color;
@@ -516,7 +552,6 @@
                 }
                 ctx.restore();
 
-                // Draw Particle Head
                 ctx.save();
                 ctx.globalAlpha = Math.max(0, p.life);
                 ctx.fillStyle = p.color;
@@ -542,8 +577,9 @@
             applyPreset();
         }
 
-        applyPreset();
         resizeCanvas();
+        applyPreset();
+        requestAnimationFrame(draw);
     </script>
 </body>
 </html>
