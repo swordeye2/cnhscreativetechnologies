@@ -1,305 +1,595 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIT GUD Physics Laboratory Suite - Interactive Web Simulations</title>
-
-    <!-- Suite Assets & Theme -->
+    <title>Pure Physics Simulation Suite | CNHS Creative Technologies</title>
+    
+    <!-- Local Physics Suite Assets -->
     <link rel="icon" type="image/png" href="./icon-512.png">
     <link rel="apple-touch-icon" href="./icon-512.png">
     <link rel="manifest" href="./manifest.json">
     <link rel="stylesheet" href="../theme.css">
 
-    <!-- Legal IP Assertions -->
-    <meta name="author" content="Jorge Victor M. Sales">
-    <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+    <!-- AdSense COPPA / Non-Personalized Ad Config -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7612819391368136" crossorigin="anonymous"></script>
 
     <style>
         :root {
-            --canvas-bg: #0d0e15;
+            --canvas-bg: #1e1e2e;
             --panel-bg: #181825;
-            --border-color: #45475a;
+            --panel-border: #313244;
             --text-main: #cdd6f4;
-            --text-sub: #a6adc8;
+            --text-muted: #a6adc8;
             --accent-blue: #89b4fa;
             --accent-green: #a6e3a1;
-            --accent-red: #f38ba8;
-            --accent-yellow: #f9e2af;
             --accent-purple: #cba6f7;
             --accent-orange: #fab387;
-            --accent-cyan: #89dceb;
+            --accent-yellow: #f9e2af;
+            --accent-red: #f38ba8;
+            --inner-box: #11111b;
         }
 
         [data-theme="light"] {
-            --canvas-bg: #e6e9ef;
-            --panel-bg: #dce0e8;
-            --border-color: #bcc0cc;
+            --canvas-bg: #eff1f5;
+            --panel-bg: #e6e9ef;
+            --panel-border: #ccd0da;
             --text-main: #4c4f69;
-            --text-sub: #5c5f77;
+            --text-muted: #6c6f85;
             --accent-blue: #1e66f5;
             --accent-green: #40a02b;
-            --accent-red: #d20f39;
-            --accent-yellow: #df8e1d;
             --accent-purple: #8839ef;
             --accent-orange: #fe640b;
-            --accent-cyan: #04a5e5;
+            --accent-yellow: #df8e1d;
+            --accent-red: #d20f39;
+            --inner-box: #dce0e8;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--canvas-bg); color: var(--text-main); min-height: 100vh; padding-bottom: 120px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--canvas-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 120px; /* COPPA Buffer */
+        }
 
         header {
             background-color: var(--panel-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 16px 24px;
+            border-bottom: 1px solid var(--panel-border);
+            padding: 1rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 1rem;
         }
 
-        .nav-brand { display: flex; align-items: center; gap: 12px; }
-        .app-icon { width: 42px; height: 42px; border-radius: 8px; border: 1px solid var(--border-color); }
-        .title-group h1 { font-size: 1.2rem; color: var(--accent-blue); }
-        .title-group p { font-size: 0.78rem; color: var(--text-sub); }
+        .brand-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
 
-        .container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+        .brand-title h1 {
+            font-size: 1.25rem;
+            color: var(--accent-blue);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            background-color: var(--inner-box);
+            color: var(--text-main);
+            border: 1px solid var(--panel-border);
+            padding: 0.5rem 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: #11111b;
+            border-color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            color: #11111b;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            width: 100%;
+        }
+
+        .hero-banner {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .hero-banner h2 {
+            color: var(--accent-purple);
+            font-size: 1.5rem;
+        }
+
+        .hero-banner p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
 
         .category-title {
             font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--accent-yellow);
-            margin: 24px 0 12px 0;
-            padding-bottom: 6px;
-            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--accent-orange);
+            margin: 1.75rem 0 1rem 0;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 0.5rem;
         }
 
-        .modules-grid {
+        .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.25rem;
         }
 
-        .module-card {
+        .card {
             background-color: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px;
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 1.25rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            text-decoration: none;
-            color: var(--text-main);
-            transition: all 0.2s ease;
+            transition: transform 0.2s ease, border-color 0.2s ease;
             cursor: pointer;
         }
-        .module-card:hover {
+
+        .card:hover {
+            transform: translateY(-3px);
             border-color: var(--accent-blue);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        .card-tag {
-            display: inline-block;
-            font-size: 0.72rem;
-            font-weight: bold;
-            padding: 2px 8px;
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 4px;
-            margin-bottom: 8px;
-            width: fit-content;
+            font-weight: 600;
+            background-color: var(--inner-box);
+            color: var(--accent-green);
+            border: 1px solid var(--panel-border);
         }
-        .tag-quantum { background: rgba(203, 166, 247, 0.2); color: var(--accent-purple); border: 1px solid var(--accent-purple); }
-        .tag-optics { background: rgba(137, 180, 250, 0.2); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
-        .tag-kinematics { background: rgba(166, 227, 161, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
 
-        .card-title { font-size: 1.05rem; font-weight: bold; margin-bottom: 6px; color: var(--text-main); }
-        .card-desc { font-size: 0.83rem; color: var(--text-sub); line-height: 1.4; margin-bottom: 12px; }
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
+        }
 
         .card-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.78rem;
-            font-family: monospace;
-            border-top: 1px dashed var(--border-color);
-            padding-top: 8px;
-            color: var(--accent-cyan);
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--panel-border);
         }
 
-        .btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 6px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.88rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.2s ease;
+        .author-box {
+            margin-top: 2.5rem;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
-        .btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+        .author-info h3 {
+            color: var(--accent-blue);
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .author-info p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Splash Ad Modal Interstitial */
+        .ad-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(17, 17, 27, 0.95);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 1.5rem;
+        }
+
+        .ad-container {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            max-width: 650px;
+            width: 100%;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .ad-timer {
+            font-size: 0.9rem;
+            color: var(--accent-orange);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
 
+    <!-- Header -->
     <header>
-        <div class="nav-brand">
-            <img src="./icon-512.png" alt="Physics Suite Icon" class="app-icon">
-            <div class="title-group">
-                <h1>🔬 GIT GUD Physics Laboratory Suite</h1>
-                <p>Interactive Web Simulations & Conceptual Physics Modules | Author: <strong>Jorge Victor M. Sales</strong></p>
-            </div>
+        <div class="brand-title">
+            <span>🔬</span>
+            <h1>Pure Physics Simulation Suite</h1>
         </div>
-        <div>
+        <div class="nav-actions">
+            <a href="./about_author.html" class="btn">👨‍🏫 About Author</a>
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
         </div>
     </header>
 
+    <!-- Main Content Container -->
     <div class="container">
 
-        <!-- CATEGORY 1: QUANTUM, SUBATOMIC & NUCLEAR PHYSICS -->
-        <div class="category-title">⚛️ Quantum, Subatomic & Nuclear Physics</div>
-        <div class="modules-grid">
+        <!-- Hero Banner -->
+        <div class="hero-banner">
+            <h2>Interactive Physics Pedagogy & Simulation Engine</h2>
+            <p>
+                An interactive physics engine designed for high school and undergraduate physics education. Built with pure JavaScript HTML5 canvas visualizers, dynamic mathematical telemetry, and step-by-step formula inspectors designed to reinforce physics intuition.
+            </p>
+        </div>
 
-            <!-- Card 1: Subatomic Particle Hierarchy Tree -->
-            <a href="./particle_hierarchy.html" class="module-card">
+        <!-- Category 1: Subatomic, Particle & Quantum Physics -->
+        <div class="category-title">
+            <span>⚛️</span> Subatomic, Particle & Quantum Physics
+        </div>
+        <div class="grid">
+
+            <!-- Card 1 -->
+            <div class="card" onclick="openSimulation('./particle_hierarchy.html')">
                 <div>
-                    <span class="card-tag tag-quantum">Quantum Taxonomy</span>
-                    <div class="card-title">Subatomic Particle Hierarchy & QCD Tree</div>
-                    <div class="card-desc">Interactive top-to-bottom taxonomy tree graph from All Matter down to Fermions, Bosons, Hadrons, Leptons, and all 6 Quarks with Color Charge indicators.</div>
+                    <div class="card-header">
+                        <div class="card-title">Particle Hierarchy Tree</div>
+                        <span class="badge">Quantum</span>
+                    </div>
+                    <div class="card-desc">
+                        Interactive hierarchy tree mapping Fermions, Quarks, Leptons, Hadrons, Mesons, Baryons, and Gauge Bosons.
+                    </div>
                 </div>
                 <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Engine ➔</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Taxonomy Engine</span>
+                    <span class="btn btn-primary">Launch 🚀</span>
                 </div>
-            </a>
+            </div>
 
-            <!-- Card 2: Standard Model Particle Chart -->
-            <a href="./particle_chart.html" class="module-card">
+            <!-- Card 2 -->
+            <div class="card" onclick="openSimulation('./particle_chart.html')">
                 <div>
-                    <span class="card-tag tag-quantum">Standard Model</span>
-                    <div class="card-title">Standard Model Particle Chart Explorer</div>
-                    <div class="card-desc">Interactive Standard Model matrix featuring rotating triangular/hexagonal Quark nodes, Lepton probability clouds, and Gauge Boson wave packets.</div>
+                    <div class="card-header">
+                        <div class="card-title">Standard Model Chart</div>
+                        <span class="badge">Particle Physics</span>
+                    </div>
+                    <div class="card-desc">
+                        Comprehensive interactive chart of elementary particles, spin states, charge properties, and fundamental forces.
+                    </div>
                 </div>
                 <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Engine ➔</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Standard Model</span>
+                    <span class="btn btn-primary">Launch 🚀</span>
                 </div>
-            </a>
+            </div>
 
-            <!-- Card 3: Feynman Decay & Mass Defect -->
-            <a href="./feynman_decay.html" class="module-card">
+            <!-- Card 3 -->
+            <div class="card" onclick="openSimulation('./feynman_decay.html')">
                 <div>
-                    <span class="card-tag tag-quantum">Nuclear Decay</span>
-                    <div class="card-title">Feynman Diagram & Mass Defect Decay Visualizer</div>
-                    <div class="card-desc">Space-time Feynman diagrams for Beta-Minus, Beta-Plus, and Electron Capture with live Q-value energy release and lepton conservation tracking.</div>
+                    <div class="card-header">
+                        <div class="card-title">Feynman Decay & Mass Defect</div>
+                        <span class="badge">Interactions</span>
+                    </div>
+                    <div class="card-desc">
+                        Feynman diagrams with animated force-carrier Bosons (W⁻, W⁺, Z⁰, Gluon, Photon) and nuclear mass defect calculations.
+                    </div>
                 </div>
                 <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Engine ➔</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Weak/EM Decay</span>
+                    <span class="btn btn-primary">Launch 🚀</span>
                 </div>
-            </a>
+            </div>
 
-            <!-- Card 4: Staged Particle Accelerator -->
-            <a href="./accelerator.html" class="module-card">
+            <!-- Card 4 -->
+            <div class="card" onclick="openSimulation('./accelerator.html')">
                 <div>
-                    <span class="card-tag tag-quantum">High-Energy Physics</span>
-                    <div class="card-title">Staged Accelerator & Quark Deconfinement</div>
-                    <div class="card-desc">Relativistic beam accelerator showing staged RF magnetron acceleration up to 0.9999c, live K(v) kinetic energy curve, and quark deconfinement showers.</div>
+                    <div class="card-header">
+                        <div class="card-title">Particle Accelerator Engine</div>
+                        <span class="badge">Relativistic</span>
+                    </div>
+                    <div class="card-desc">
+                        Simulate linear/circular accelerators, Lorentz force bending, relativistic gamma factors, and particle collisions.
+                    </div>
                 </div>
                 <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Engine ➔</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">High Energy</span>
+                    <span class="btn btn-primary">Launch 🚀</span>
                 </div>
-            </a>
+            </div>
 
-            <!-- Card 5: Atomic Structure & Mass Defect -->
-            <a href="./atom.html" class="module-card">
+            <!-- Card 5 -->
+            <div class="card" onclick="openSimulation('./atom.html')">
                 <div>
-                    <span class="card-tag tag-quantum">Nuclear Structure</span>
-                    <div class="card-title">Atomic Structure, Mass Defect & Isotope Stability</div>
-                    <div class="card-desc">Bohr atom visualizer with spin-1/2 orbital electrons, line-by-line mass defect sum vs actual bound mass comparison, and radioactive N/Z ratio decay jitter.</div>
+                    <div class="card-header">
+                        <div class="card-title">Bohr Model & Nuclear Physics</div>
+                        <span class="badge">Atomic Physics</span>
+                    </div>
+                    <div class="card-desc">
+                        Interactive Bohr atomic model showing electron energy levels, photon emission spectra, isotope stability, and mass defect.
+                    </div>
                 </div>
                 <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Engine ➔</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Atomic Model</span>
+                    <span class="btn btn-primary">Launch 🚀</span>
                 </div>
-            </a>
+            </div>
 
         </div>
 
-        <!-- CATEGORY 2: GEOMETRIC & PHYSICAL OPTICS -->
-        <div class="category-title">🔭 Geometric & Physical Optics</div>
-        <div class="modules-grid">
+        <!-- Category 2: Geometric & Physical Optics -->
+        <div class="category-title">
+            <span>🔍</span> Geometric & Physical Optics
+        </div>
+        <div class="grid">
 
-            <!-- Card 6: Single Thin Lens Engine -->
-            <a href="./lens.html" class="module-card">
+            <!-- Card 6 -->
+            <div class="card" onclick="openSimulation('./lens.html')">
                 <div>
-                    <span class="card-tag tag-optics">Ray Optics</span>
-                    <div class="card-title">Single Thin Lens Visualizer & Ray Tracing</div>
-                    <div class="card-desc">Interactive ray tracing engine for Biconvex, Plano-Convex, Biconcave, and Plano-Concave geometries with live Thin Lens Equation derivations.</div>
+                    <div class="card-header">
+                        <div class="card-title">Single Thin Lens Engine</div>
+                        <span class="badge">Optics</span>
+                    </div>
+                    <div class="card-desc">
+                        Ray tracing visualizer for Biconvex, Plano-Convex, Biconcave, and Plano-Concave thin lenses with real-time derivations.
+                    </div>
                 </div>
                 <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Engine ➔</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Thin Lens Optics</span>
+                    <span class="btn btn-primary">Launch 🚀</span>
                 </div>
-            </a>
+            </div>
 
-            <!-- Card 7: Compound Double Lens System -->
-            <a href="./double_lens.html" class="module-card">
+            <!-- Card 7 -->
+            <div class="card" onclick="openSimulation('./double_lens.html')">
                 <div>
-                    <span class="card-tag tag-optics">Compound Systems</span>
-                    <div class="card-title">Compound Double Lens & Telescope System</div>
-                    <div class="card-desc">Multi-lens ray tracing for Astronomical Refracting Telescopes, Galilean Telescopes, and Compound Microscopes with two-stage magnification math.</div>
+                    <div class="card-header">
+                        <div class="card-title">Compound Optics & Telescopes</div>
+                        <span class="badge">Multi-Stage</span>
+                    </div>
+                    <div class="card-desc">
+                        Multi-lens systems including Astronomical Refracting Telescopes, Galilean Telescopes, and Compound Microscopes.
+                    </div>
                 </div>
                 <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Engine ➔</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Compound Systems</span>
+                    <span class="btn btn-primary">Launch 🚀</span>
                 </div>
-            </a>
+            </div>
 
-            <!-- Card 8: Spherical Refracting Surface -->
-            <a href="./refraction_lens.html" class="module-card">
+            <!-- Card 8 -->
+            <div class="card" onclick="openSimulation('./refraction_lens.html')">
                 <div>
-                    <span class="card-tag tag-optics">Refraction Medium</span>
-                    <div class="card-title">Spherical Refracting Surface & Medium Engine</div>
-                    <div class="card-desc">Single boundary curved surface refraction visualizer simulating refractive index shifts ($n_a$ vs $n_b$) and submerged focal inversion mechanics.</div>
+                    <div class="card-header">
+                        <div class="card-title">Spherical Refracting Surface</div>
+                        <span class="badge">Refraction</span>
+                    </div>
+                    <div class="card-desc">
+                        Single spherical refracting surface mechanics using Snell's Law across variable refractive index media interface.
+                    </div>
                 </div>
                 <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Engine ➔</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Curved Refraction</span>
+                    <span class="btn btn-primary">Launch 🚀</span>
                 </div>
-            </a>
+            </div>
 
         </div>
 
-        <!-- CATEGORY 3: CLASSICAL MECHANICS & KINEMATICS -->
-        <div class="category-title">🚀 Classical Mechanics & Kinematics</div>
-        <div class="modules-grid">
+        <!-- Category 3: Classical Mechanics & Kinematics -->
+        <div class="category-title">
+            <span>🎯</span> Classical Mechanics & Kinematics
+        </div>
+        <div class="grid">
 
-            <!-- Card 9: 2D Projectile Motion -->
-            <a href="./projectile.html" class="module-card">
+            <!-- Card 9 -->
+            <div class="card" onclick="openSimulation('./projectile.html')">
                 <div>
-                    <span class="card-tag tag-kinematics">Kinematics</span>
-                    <div class="card-title">2D Projectile Trajectories & Drag Simulator</div>
-                    <div class="card-desc">Interactive ballistics flight simulator featuring quadratic air drag ($k$), live vector decompositions ($V_x, V_y$), and apex/range trajectory HUDs.</div>
+                    <div class="card-header">
+                        <div class="card-title">2D Projectile Motion</div>
+                        <span class="badge">Kinematics</span>
+                    </div>
+                    <div class="card-desc">
+                        Two-dimensional projectile motion simulation with air resistance, vector velocity toggles, live graphing, and trajectory HUD.
+                    </div>
                 </div>
                 <div class="card-footer">
-                    <span>STATUS: ACTIVE</span>
-                    <span>Launch Engine ➔</span>
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Vector Kinematics</span>
+                    <span class="btn btn-primary">Launch 🚀</span>
                 </div>
-            </a>
+            </div>
 
+        </div>
+
+        <!-- Category 4: Academic Profile & Attribution -->
+        <div class="category-title">
+            <span>🎓</span> Academic Profile & Research Leadership
+        </div>
+        <div class="grid">
+
+            <!-- Card 10: About Author Page -->
+            <div class="card" onclick="window.location.href='./about_author.html'">
+                <div>
+                    <div class="card-header">
+                        <div class="card-title">About the Author & Researcher</div>
+                        <span class="badge" style="color: var(--accent-purple);">Faculty Profile</span>
+                    </div>
+                    <div class="card-desc">
+                        Read the academic background, research portfolio in physics pedagogy (JiTT-M), award recognitions, and community engagements of Dr. Jorge Victor M. Sales.
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span style="font-size:0.75rem; color:var(--text-muted);">DepEd / DLSU Manila</span>
+                    <span class="btn btn-primary">View Bio 👨‍🏫</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author Footer Card -->
+        <div class="author-box">
+            <div class="author-info">
+                <h3>Jorge Victor M. Sales, Ph.D.</h3>
+                <p>Educator & Researcher | DepEd SDO Catanduanes • De La Salle University–Manila</p>
+            </div>
+            <div>
+                <a href="./about_author.html" class="btn">Read Author Biography 📖</a>
+            </div>
         </div>
 
     </div>
 
-    <script src="../theme.js"></script>
+    <!-- Interstitial Ad Modal (5-second Splash) -->
+    <div id="adModal" class="ad-modal">
+        <div class="ad-container">
+            <div id="adTimer" class="ad-timer">Launching simulation in 5s...</div>
+            <div style="min-height: 250px; background: var(--inner-box); display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 1rem;">
+                <!-- Google AdSense Container -->
+                <ins class="adsbygoogle"
+                     style="display:block; width:100%; height:250px;"
+                     data-ad-client="ca-pub-7612819391368136"
+                     data-ad-slot="1234567890"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+            <button id="skipAdBtn" class="btn" style="width: 100%; justify-content: center;" disabled onclick="proceedToTarget()">Please wait...</button>
+        </div>
+    </div>
+
+    <!-- Theme Switcher Script -->
+    <script>
+        let targetUrl = '';
+        let countdown = 5;
+        let timerInterval;
+
+        function openSimulation(url) {
+            targetUrl = url;
+            document.getElementById('adModal').style.display = 'flex';
+            countdown = 5;
+            document.getElementById('adTimer').textContent = `Launching simulation in ${countdown}s...`;
+            document.getElementById('skipAdBtn').disabled = true;
+            document.getElementById('skipAdBtn').textContent = `Please wait (${countdown}s)...`;
+
+            timerInterval = setInterval(() => {
+                countdown--;
+                if (countdown > 0) {
+                    document.getElementById('adTimer').textContent = `Launching simulation in ${countdown}s...`;
+                    document.getElementById('skipAdBtn').textContent = `Please wait (${countdown}s)...`;
+                } else {
+                    clearInterval(timerInterval);
+                    document.getElementById('adTimer').textContent = "Ready!";
+                    document.getElementById('skipAdBtn').disabled = false;
+                    document.getElementById('skipAdBtn').textContent = "Proceed to Simulation 🚀";
+                    proceedToTarget();
+                }
+            }, 1000);
+        }
+
+        function proceedToTarget() {
+            if (targetUrl) {
+                window.location.href = targetUrl;
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Initialize Theme from localStorage
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </body>
 </html>
