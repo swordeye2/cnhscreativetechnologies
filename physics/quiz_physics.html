@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Exam Review & Assessment | GIT GUD Physics Suite</title>
+
+  <!-- Legal IP & Copyright Assertions -->
+  <meta name="author" content="Jorge Victor M. Sales">
+  <meta name="creator" content="Jorge Victor M. Sales">
+  <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+  <meta name="rights" content="All intellectual property, software architecture, educational physics models, and simulation design belong to Jorge Victor M. Sales.">
+  <meta name="alias" content="swordeye, thearbiter">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
+
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg-color, #1e1e2e);
+      color: var(--text-main, #cdd6f4);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      padding-bottom: 120px; /* COPPA Banner Buffer */
+    }
+
+    .code-font { font-family: 'Fira Code', monospace; }
+
+    .glass-card {
+      background: var(--card-bg, #181825);
+      border: 1px solid var(--card-border, #313244);
+      border-radius: 12px;
+    }
+
+    .opt-btn {
+      background: var(--inner-box, #11111b);
+      border: 1px solid var(--card-border, #313244);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: var(--text-main, #cdd6f4);
+      text-align: left;
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .opt-btn:hover:not(:disabled) {
+      border-color: var(--accent, #89b4fa);
+      background: var(--card-border, #313244);
+    }
+
+    .opt-btn.correct {
+      background: #274029 !important;
+      border-color: #a6e3a1 !important;
+      color: #a6e3a1 !important;
+    }
+
+    .opt-btn.wrong {
+      background: #421e25 !important;
+      border-color: #f38ba8 !important;
+      color: #f38ba8 !important;
+    }
+
+    .topic-pill {
+      background: var(--inner-box, #11111b);
+      color: var(--tag-color, #fab387);
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--card-border, #313244);
+      font-family: 'Fira Code', monospace;
+    }
+  </style>
+</head>
+<body class="p-3 md:p-6">
+
+  <!-- TIMED QUIZ START SPLASH OVERLAY MODAL -->
+  <div id="quizStartSplash" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="glass-card max-w-lg w-full p-6 text-center relative border border-[var(--card-border)] shadow-2xl my-auto max-h-[95vh] overflow-y-auto">
+      <div class="border-b border-[var(--card-border)] pb-3 mb-4">
+        <span class="text-xs font-mono uppercase tracking-widest text-[#f38ba8] font-bold">⏱️ Timed Assessment Setup</span>
+        <h2 class="text-xl font-bold text-[var(--accent)] mt-1">Physics Lab Suite Review</h2>
+      </div>
+
+      <div class="space-y-2 text-xs text-[var(--text-sub)] text-left bg-[var(--inner-box)] p-3.5 rounded-lg border border-[var(--card-border)] mb-4 leading-relaxed">
+        <p>• <strong>Exam Structure:</strong> Select your target topic below to generate a 10 to 20 question randomized session.</p>
+        <p>• <strong>Session Duration:</strong> Strictly <strong>25 MINUTES</strong> timer active once launched.</p>
+        <p>• <strong>Auto-Submission:</strong> Submits scores directly to the cloud Google Sheet upon completion or time expiration.</p>
+      </div>
+
+      <div class="space-y-3 mb-5 text-left">
+        <div>
+          <label for="splashName" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Student Full Name:</label>
+          <input type="text" id="splashName" placeholder="e.g. Juan Dela Cruz" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
+        </div>
+
+        <div>
+          <label for="splashSection" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Class / Section Register:</label>
+          <input type="text" id="splashSection" placeholder="e.g. Grade 12 - STEM A" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
+        </div>
+
+        <div>
+          <label for="splashTopicSelect" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Select Physics Module:</label>
+          <select id="splashTopicSelect" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
+            <option value="ALL">🌐 All Topics (20 Randomized Mix)</option>
+            <option value="Optics">🔍 Thin Lenses & Optics (10 Qs)</option>
+            <option value="Compound Optics">🔭 Compound Systems & Telescopes (10 Qs)</option>
+            <option value="Atomic Physics">⚛️ Atomic Model & Mass Defect (10 Qs)</option>
+            <option value="Particle Physics">🧩 Standard Model & Quarks (10 Qs)</option>
+            <option value="Accelerators">🚀 Particle Accelerators & QGP (10 Qs)</option>
+            <option value="Kinematics">🎯 2D Projectiles & Drag (10 Qs)</option>
+            <option value="Harmonics">🌊 Pendulums & Oscillations (10 Qs)</option>
+          </select>
+        </div>
+      </div>
+
+      <button onclick="startTimedQuiz()" class="w-full bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-sm font-bold py-3 px-4 rounded-lg transition-all shadow-lg">
+        🚀 Start 25-Minute Exam →
+      </button>
+    </div>
+  </div>
+
+  <!-- PERFORMANCE SUMMARY MODAL -->
+  <div id="performanceModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card max-w-lg w-full p-6 relative border border-[var(--card-border)] shadow-2xl">
+      <div class="flex justify-between items-center border-b border-[var(--card-border)] pb-3 mb-4">
+        <h2 class="text-lg font-bold text-[var(--accent)]">📊 Student Performance Record</h2>
+        <button onclick="closePerformanceModal()" class="text-[var(--text-sub)] hover:text-white font-bold text-sm">✕</button>
+      </div>
+
+      <div class="space-y-3 code-font text-xs bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] mb-4">
+        <div><span class="text-[var(--text-sub)]">Learner Name:</span> <strong id="recName" class="text-white">--</strong></div>
+        <div><span class="text-[var(--text-sub)]">Class Section:</span> <strong id="recSection" class="text-white">--</strong></div>
+        <div><span class="text-[var(--text-sub)]">Timestamp:</span> <strong id="recTime" class="text-[#f9e2af]">--</strong></div>
+        <div><span class="text-[var(--text-sub)]">Time Taken:</span> <strong id="recTimeTaken" class="text-[#89b4fa]">--</strong></div>
+        <hr class="border-[var(--card-border)] my-2">
+        <div><span class="text-[var(--text-sub)]">Total Answered:</span> <strong id="recAnswered" class="text-white">0</strong></div>
+        <div><span class="text-[var(--text-sub)]">Correct Answers:</span> <strong id="recCorrect" class="text-[#a6e3a1]">0</strong></div>
+        <div><span class="text-[var(--text-sub)]">Percentage Score:</span> <strong id="recPercent" class="text-[var(--accent)] text-sm">0%</strong></div>
+      </div>
+
+      <!-- Cloud Sync Status Bar -->
+      <div id="cloudSyncStatus" class="mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[var(--inner-box)] border border-[var(--card-border)] text-[var(--text-sub)]">
+        Initializing cloud sync...
+      </div>
+
+      <div class="flex flex-wrap gap-2">
+        <button onclick="exportCSV()" class="flex-1 bg-[#89b4fa] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3 rounded-lg transition-all">
+          📥 Export Record (.CSV)
+        </button>
+        <button onclick="window.print()" class="flex-1 bg-[#a6e3a1] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3 rounded-lg transition-all">
+          🖨️ Print / Save as PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <header class="max-w-6xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
+    <div class="flex items-center gap-3">
+      <a href="./index.html" class="text-xs font-semibold text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors">
+        🔬 Physics Suite
+      </a>
+      <span class="text-[var(--card-border)]">|</span>
+      <span id="activeTopicBadge" class="text-xs font-mono tracking-wider uppercase text-[var(--text-sub)]">All Topics</span>
+    </div>
+
+    <!-- Live Timer, Score Tracker & TOP SUBMIT BUTTON -->
+    <div class="flex items-center gap-3 flex-wrap">
+      <div id="timerBox" class="text-xs font-mono bg-[var(--inner-box)] px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-[#f9e2af] flex items-center gap-1.5">
+        <span>⏱️ Time:</span>
+        <span id="timerText" class="font-bold text-sm">25:00</span>
+      </div>
+
+      <div class="text-xs font-mono bg-[var(--inner-box)] px-3 py-1.5 rounded-lg border border-[var(--card-border)]">
+        Score: <span id="scoreText" class="font-bold text-[#a6e3a1]">0</span> / <span id="answeredText">0</span>
+        (<span id="percentText" class="text-[#f9e2af]">0%</span>)
+      </div>
+
+      <button onclick="openPerformanceModal()" class="bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3.5 rounded-lg transition-all shadow-md">
+        📜 Submit Exam
+      </button>
+
+      <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()" style="background: var(--card-border, #313244); color: var(--text-main, #cdd6f4); border: 1px solid var(--card-border, #313244); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
+        <span id="themeIcon">🌙</span> <span id="themeText">Theme</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto w-full">
+    <div class="text-center mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight">📝 Physics Mastery Assessment</h1>
+      <p class="text-sm text-[var(--text-sub)] mt-1 max-w-3xl mx-auto">
+        Complete all questions within 25 minutes. Submit your responses to register your performance score.
+      </p>
+    </div>
+
+    <!-- Student Registration Summary Bar -->
+    <div class="glass-card p-4 mb-6 shadow-md flex flex-wrap items-center gap-4 border border-[var(--card-border)]">
+      <div class="flex-1 min-w-[200px]">
+        <label for="studentName" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Student Full Name:</label>
+        <input type="text" id="studentName" placeholder="e.g. Juan Dela Cruz" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
+      </div>
+      <div class="flex-1 min-w-[200px]">
+        <label for="studentSection" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Class / Section Register:</label>
+        <input type="text" id="studentSection" placeholder="e.g. Grade 12 - STEM A" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
+      </div>
+    </div>
+
+    <!-- Questions Container -->
+    <div id="questionsContainer" class="flex flex-col gap-6"></div>
+
+    <!-- BOTTOM SUBMIT ACTION BAR -->
+    <div class="mt-8 mb-12 p-6 glass-card text-center border border-[var(--card-border)] shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="text-left">
+        <h3 class="text-base font-bold text-[var(--accent)]">Ready to submit your exam?</h3>
+        <p class="text-xs text-[var(--text-sub)] mt-0.5">Submitting will calculate your final score, generate analytics, and log results to Google Sheets.</p>
+      </div>
+
+      <button onclick="openPerformanceModal()" class="w-full md:w-auto bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-sm font-bold py-3 px-8 rounded-lg transition-all shadow-lg">
+        📜 Finish & Submit Exam →
+      </button>
+    </div>
+  </main>
+
+  <script>
+    const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxssshzZu5lxu9FHbzZdD9EAOZgukeVAf7Itglf52hfYHdzMbAH-a02DdyrZauTxzwS/exec";
+
+    // 70-Question Master Physics Bank (10 Questions per Topic Module)
+    const questionBank = [
+      // --- TOPIC 1: THIN LENSES & OPTICS (lens.html) ---
+      { id: 201, topic: "Optics", q: "What condition produces a virtual, upright, and enlarged image in a converging (biconvex) thin lens?", opts: ["A. Object distance d_o > 2f", "B. Object distance d_o = f", "C. Object distance d_o < f", "D. Object placed at infinity"], ans: 2, exp: "Placing an object closer than the focal length (d_o < f) causes light rays to diverge after the lens, creating a virtual enlarged image behind the object." },
+      { id: 202, topic: "Optics", q: "According to the Thin Lens Equation (1/f = 1/d_o + 1/d_i), what is d_i for an object placed 30 cm from a +10 cm focal length lens?", opts: ["A. +15 cm", "B. +20 cm", "C. -15 cm", "D. +30 cm"], ans: 0, exp: "1/10 - 1/30 = 2/30 = 1/15. Thus d_i = +15 cm." },
+      { id: 203, topic: "Optics", q: "Why do single thick spherical lenses exhibit spherical aberration?", opts: ["A. Light rays near the lens edge focus closer to the lens than central rays", "B. Blue light refracts less than red light", "C. Lens density is non-uniform", "D. Focal length becomes infinite"], ans: 0, exp: "Spherical aberration occurs because light passing through the outer perimeter of a spherical lens refracts more strongly than rays near the principal axis." },
+      { id: 204, topic: "Optics", q: "What is the sign convention for the focal length (f) of a Biconcave lens in thin lens geometry?", opts: ["A. Always positive (+f)", "B. Always negative (-f)", "C. Depends on object distance", "D. Zero"], ans: 1, exp: "Diverging lenses (biconcave, plano-concave) have negative focal lengths (-f) because their virtual focal point lies on the incident side." },
+      { id: 205, topic: "Optics", q: "If a thin lens forms a real image 20 cm behind the lens for an object 20 cm in front, what is its focal length f?", opts: ["A. +5 cm", "B. +10 cm", "C. +20 cm", "D. +40 cm"], ans: 1, exp: "1/f = 1/20 + 1/20 = 2/20 = 1/10 => f = +10 cm." },
+      { id: 206, topic: "Optics", q: "What is the linear magnification (m) if an object height of 4 cm produces an inverted image height of 8 cm?", opts: ["A. m = +2.0", "B. m = -2.0", "C. m = +0.5", "D. m = -0.5"], ans: 1, exp: "m = h_i / h_o. Since the image is inverted, h_i = -8 cm, yielding m = -8 / 4 = -2.0." },
+      { id: 207, topic: "Optics", q: "In Lens Maker's Formula 1/f = (n - 1)(1/R1 - 1/R2), what happens to f if the refractive index n increases?", opts: ["A. f increases", "B. f decreases (lens becomes stronger)", "C. f remains unchanged", "D. f becomes zero"], ans: 1, exp: "Higher refractive index n increases light bending power (1/f), shortening the focal length f." },
+      { id: 208, topic: "Optics", q: "What type of image is formed by a diverging lens for any real object position?", opts: ["A. Real, inverted, enlarged", "B. Real, upright, reduced", "C. Virtual, upright, reduced", "D. Virtual, inverted, enlarged"], ans: 2, exp: "Diverging lenses always form virtual, upright, and diminished images located between the object and the lens." },
+      { id: 209, topic: "Optics", q: "Which principal ray passes straight through the optical center of a thin lens without bending?", opts: ["A. Parallel Ray", "B. Chief (Central) Ray", "C. Focal Ray", "D. Refracted Boundary Ray"], ans: 1, exp: "The chief ray passing through the exact geometric center of a thin lens suffers no net deflection." },
+      { id: 210, topic: "Optics", q: "How does chromatic aberration arise in simple glass lenses?", opts: ["A. Lens curvature varies with temperature", "B. Different wavelengths (colors) of light have slightly different refractive indices n(λ)", "C. Light intensity drops near edges", "D. Polarization axis rotates"], ans: 1, exp: "Dispersion causes short wavelengths (blue/violet) to refract more than long wavelengths (red), focusing at different points." },
+
+      // --- TOPIC 2: COMPOUND OPTICS & TELESCOPES (double_lens.html) ---
+      { id: 211, topic: "Compound Optics", q: "In an Astronomical Refracting Telescope in normal adjustment, what determines the total length L of the tube?", opts: ["A. L = f_objective - f_eyepiece", "B. L = f_objective + f_eyepiece", "C. L = f_objective × f_eyepiece", "D. L = 2 × f_objective"], ans: 1, exp: "For normal adjustment, the objective real focal point coincides with the eyepiece focal point, making tube length L = f_obj + f_eye." },
+      { id: 212, topic: "Compound Optics", q: "What optical feature distinguishes a Galilean Telescope from an Astronomical Telescope?", opts: ["A. Galilean uses a concave (diverging) eyepiece yielding an upright image", "B. Galilean uses 3 convex lenses", "C. Galilean forms an inverted virtual image", "D. Galilean produces infinite magnification"], ans: 0, exp: "A Galilean telescope pairs a convex objective with a concave eyepiece, providing an erect view without an intermediate image-inverting lens." },
+      { id: 213, topic: "Compound Optics", q: "In a compound optical system with objective magnification m1 = -5 and eyepiece magnification m2 = -10, what is total magnification M_tot?", opts: ["A. -15", "B. +15", "C. +50", "D. -50"], ans: 2, exp: "Total magnification in multi-lens systems is multiplicative: M_tot = m1 × m2 = (-5) × (-10) = +50." },
+      { id: 214, topic: "Compound Optics", q: "What is the primary role of the objective lens in a Compound Microscope?", opts: ["A. To produce a real, inverted, highly magnified intermediate image near the eyepiece", "B. To produce a virtual diminished image", "C. To invert colors", "D. To act as a wide-angle collimator"], ans: 0, exp: "The short focal length objective lens forms a magnified real intermediate image inside the microscope tube." },
+      { id: 215, topic: "Compound Optics", q: "In an Astronomical Telescope, how is the angular magnification M calculated using focal lengths?", opts: ["A. M = -f_obj / f_eye", "B. M = -f_eye / f_obj", "C. M = f_obj + f_eye", "D. M = f_obj × f_eye"], ans: 0, exp: "Angular magnification is M = -f_objective / f_eyepiece. The negative sign indicates an inverted final image." },
+      { id: 216, topic: "Compound Optics", q: "Why are relay lenses inserted between the objective and eyepiece in terrestrial telescopes?", opts: ["A. To double total light gathering power", "B. To invert the intermediate real image, yielding an upright final orientation for terrestrial viewing", "C. To eliminate magnification", "D. To act as color filters"], ans: 1, exp: "Relay lenses flip the inverted intermediate real image right-side up without changing system magnification." },
+      { id: 217, topic: "Compound Optics", q: "Where must the intermediate real image from the objective fall relative to the eyepiece in a Compound Microscope for visual observation?", opts: ["A. Exactly at 2 × f_eyepiece", "B. Just inside the focal length f_eyepiece of the eyepiece", "C. Far beyond the eyepiece", "D. At infinity"], ans: 1, exp: "Placing the intermediate real image inside f_eyepiece allows the eyepiece to act as a magnifying glass, creating a enlarged virtual final image." },
+      { id: 218, topic: "Compound Optics", q: "If the tube separation distance L between two thin convex lenses (f1 = 10 cm, f2 = 5 cm) is 30 cm, where is the intermediate image formed by lens 1 placed relative to lens 2 if d_i1 = 15 cm?", opts: ["A. d_o2 = 5 cm", "B. d_o2 = 15 cm (L - d_i1)", "C. d_o2 = 20 cm", "D. d_o2 = 45 cm"], ans: 1, exp: "Intermediate object distance d_o2 = L - d_i1 = 30 cm - 15 cm = 15 cm." },
+      { id: 219, topic: "Compound Optics", q: "What advantage does a larger objective diameter provide in telescope design?", opts: ["A. Increases light gathering power and improves angular resolution limit (Rayleigh criterion)", "B. Reduces physical tube length", "C. Eliminates the need for an eyepiece", "D. Inverts image orientation"], ans: 0, exp: "Larger objective aperture area collects more photons and reduces diffraction blur (θ = 1.22 λ / D)." },
+      { id: 220, topic: "Compound Optics", q: "In a Galilean telescope with f_obj = +40 cm and f_eye = -10 cm, what is the barrel length L?", opts: ["A. 50 cm", "B. 30 cm (f_obj + f_eye = 40 + (-10))", "C. 400 cm", "D. 4 cm"], ans: 1, exp: "L = f_obj + f_eye = 40 cm + (-10 cm) = 30 cm, making Galilean telescopes compact." },
+
+      // --- TOPIC 3: ATOMIC PHYSICS & MASS DEFECT (atom.html) ---
+      { id: 221, topic: "Atomic Physics", q: "Why are electrons classified as fundamental leptons rather than composite hadrons?", opts: ["A. Electrons consist of 2 up quarks and 1 down quark", "B. Electrons have no internal sub-structure or quark valence components", "C. Electrons interact primarily through the strong nuclear force", "D. Electrons possess zero spin"], ans: 1, exp: "Leptons (like electrons) are elementary point particles with spin-1/2 that do not experience strong nuclear interactions or contain quarks." },
+      { id: 222, topic: "Atomic Physics", q: "According to the N/Z ratio band of stability, what occurs when a nucleus contains an excess of neutrons relative to protons?", opts: ["A. Alpha emission", "B. Beta-minus (β-) decay converting a neutron into a proton", "C. Positron emission", "D. Electron capture"], ans: 1, exp: "Neutron-rich isotopes decay via β- decay (n → p + e⁻ + ν̄_e) to increase the proton count Z toward the valley of stability." },
+      { id: 223, topic: "Atomic Physics", q: "How is the nuclear Mass Defect (Δm) calculated for a stable bound nucleus?", opts: ["A. Δm = Actual Nuclear Mass - Sum of Constituent Rest Masses", "B. Δm = Sum of Free Constituent Masses (Z·m_p + N·m_n) - Actual Bound Mass", "C. Δm = Z × m_e", "D. Δm = Mass of Protons / Mass of Neutrons"], ans: 1, exp: "Mass defect is the mass missing when nucleons bind together: Δm = (Z·m_p + N·m_n) - m_bound." },
+      { id: 224, topic: "Atomic Physics", q: "According to Einstein's mass-energy equivalence (E = Δm·c²), 1 atomic mass unit (1 u) of converted mass defect yields approximately how much energy?", opts: ["A. 1.0 MeV", "B. 511 keV", "C. 931.5 MeV", "D. 13.6 eV"], ans: 2, exp: "1 u ≈ 1.66054 × 10^-27 kg, which converts directly to 931.5 MeV of binding energy." },
+      { id: 225, topic: "Atomic Physics", q: "What maximum number of electrons can occupy the principal quantum shell n = 2 according to the Pauli Exclusion Principle?", opts: ["A. 2", "B. 6", "C. 8 (2n²)", "D. 18"], ans: 2, exp: "Maximum capacity of shell n is given by 2n². For n = 2: 2(2)² = 8 electrons." },
+      { id: 226, topic: "Atomic Physics", q: "What intrinsic spin quantum number s is carried by electrons, protons, and neutrons?", opts: ["A. s = 0", "B. s = 1/2", "C. s = 1", "D. s = 3/2"], ans: 1, exp: "Electrons and nucleons are spin-1/2 fermions obeying Fermi-Dirac statistics." },
+      { id: 227, topic: "Atomic Physics", q: "In Beta-Plus (β+) radioactive decay, what emitted particles accompany the nuclear transformation of a proton into a neutron?", opts: ["A. Electron + Antineutrino", "B. Positron (e+) + Electron Neutrino (ν_e)", "C. Alpha particle + Gamma ray", "D. Two neutrons"], ans: 1, exp: "β+ decay converts p → n + e⁺ + ν_e, emitting a positron and an electron neutrino." },
+      { id: 228, topic: "Atomic Physics", q: "Which isotope of Carbon is radioactive with a half-life of ~5,730 years and undergoes β- decay?", opts: ["A. Carbon-11", "B. Carbon-12", "C. Carbon-13", "D. Carbon-14"], ans: 3, exp: "Carbon-14 (6 protons, 8 neutrons) has a high N/Z ratio, decaying via β- emission into stable Nitrogen-14." },
+      { id: 229, topic: "Atomic Physics", q: "What nuclear property peaks near Iron-56 (⁵⁶Fe), explaining why both lighter element fusion and heavier element fission release net energy?", opts: ["A. Atomic radius", "B. Binding Energy per Nucleon (E_b / A)", "C. Electron affinity", "D. Half-life"], ans: 1, exp: "⁵⁶Fe has one of the highest binding energies per nucleon (~8.8 MeV/nucleon), making its nucleus extraordinarily tightly bound." },
+      { id: 230, topic: "Atomic Physics", q: "What quark transformation triggers Beta-Minus (β-) nuclear decay inside a neutron?", opts: ["A. Up quark converts to Down quark (u → d)", "B. Down quark converts to Up quark (d → u + e⁻ + ν̄_e)", "C. Strange quark converts to Up quark", "D. Gluon splits into 2 quarks"], ans: 1, exp: "Inside a neutron (udd), a down quark converts into an up quark (uud) via the weak interaction, forming a proton." },
+
+      // --- TOPIC 4: PARTICLE PHYSICS & STANDARD MODEL (particle_hierarchy.html) ---
+      { id: 231, topic: "Particle Physics", q: "What valence quark combination constitutes a physical Proton?", opts: ["A. uud (Up, Up, Down)", "B. udd (Up, Down, Down)", "C. ūūd̄", "D. u s d"], ans: 0, exp: "A proton is a baryon composed of 2 Up quarks (+2/3 e each) and 1 Down quark (-1/3 e), yielding total electric charge +1 e." },
+      { id: 232, topic: "Particle Physics", q: "Which gauge boson acts as the force-carrier mediator for the Strong Nuclear Force?", opts: ["A. Photon (γ)", "B. Gluon (g)", "C. W⁻ Boson", "D. Z⁰ Boson"], ans: 1, exp: "Gluons mediate the strong interaction between quarks by exchanging color charge." },
+      { id: 233, topic: "Particle Physics", q: "How are composite Hadrons subdivided based on quark composition and spin statistics?", opts: ["A. Baryons (qqq, spin-1/2 or 3/2) and Mesons (qq̄, integer spin)", "B. Leptons and Quarks", "C. Photons and Gluons", "D. Neutrinos and Muons"], ans: 0, exp: "Hadrons split into 3-quark Baryons (fermions) and quark-antiquark Mesons (bosons)." },
+      { id: 234, topic: "Particle Physics", q: "What fundamental property distinguishes Fermions from Bosons in quantum statistics?", opts: ["A. Fermions have half-integer spin and obey Pauli Exclusion; Bosons have integer spin", "B. Fermions have no rest mass", "C. Bosons carry electric charge only", "D. Fermions do not experience gravity"], ans: 0, exp: "Fermions (spin-1/2, 3/2...) obey the Pauli Exclusion Principle; Bosons (spin-0, 1...) can occupy identical quantum states." },
+      { id: 235, topic: "Particle Physics", q: "What is the net electric charge of a Pion (π⁺) meson composed of an Up quark (u) and an Anti-Down quark (d̄)?", opts: ["A. 0", "B. +1 e", "C. -1 e", "D. +2/3 e"], ans: 1, exp: "Charge of u (+2/3) + Charge of d̄ (+1/3) = +1 e." },
+      { id: 236, topic: "Particle Physics", q: "Which fundamental particle gives other elementary particles rest mass via drag interaction with its vacuum field?", opts: ["A. Z⁰ Boson", "B. Gluon", "C. Higgs Boson (H⁰)", "D. Graviton"], ans: 2, exp: "The Higgs Boson is the excitation of the Higgs field, which couples with elementary particles to impart mass." },
+      { id: 237, topic: "Particle Physics", q: "What electric charge is carried by an Up quark (u)?", opts: ["A. -1/3 e", "B. +2/3 e", "C. +1 e", "D. 0"], ans: 1, exp: "Up, Charm, and Top quarks carry +2/3 e; Down, Strange, and Bottom quarks carry -1/3 e." },
+      { id: 238, topic: "Particle Physics", q: "Which gauge bosons mediate weak nuclear interaction flavor changes such as beta decay?", opts: ["A. Photons", "B. Gluons", "C. W⁺, W⁻, and Z⁰ Bosons", "D. Gravitons"], ans: 2, exp: "The massive W⁺, W⁻, and Z⁰ vector bosons mediate weak nuclear interactions." },
+      { id: 239, topic: "Particle Physics", q: "What neutral, weakly-interacting leptons are paired with charged leptons in the Standard Model?", opts: ["A. Quarks", "B. Neutrinos (ν_e, ν_μ, ν_τ)", "C. Pions", "D. Kaons"], ans: 1, exp: "Each generation of charged leptons (electron, muon, tau) pairs with its corresponding neutral neutrino." },
+      { id: 240, topic: "Particle Physics", q: "Why can individual Quarks never be observed isolated in open space under low energies?", opts: ["A. They decay into photons in 1 second", "B. Color Confinement forces energy into producing new qq̄ pairs when pulled apart", "C. Quarks have zero mass", "D. Quarks cancel out gravitons"], ans: 1, exp: "The strong force field increases with distance, causing gluonic energy to form new quark-antiquark pairs before isolation can occur." },
+
+      // --- TOPIC 5: ACCELERATORS & RELATIVITY (accelerator.html) ---
+      { id: 241, topic: "Accelerators", q: "What happens to the Lorentz factor γ as a particle in an RF cavity approaches light speed (v → c)?", opts: ["A. Drops to zero", "B. Remains constant at 1.0", "C. Approaches infinity, causing total relativistic energy E = γm₀c² to surge", "D. Decreases linearly"], ans: 2, exp: "As v → c, the denominator √(1 - v²/c²) approaches 0, driving γ and total relativistic mass-energy toward infinity." },
+      { id: 242, topic: "Accelerators", q: "What state of matter is formed when high-energy heavy-ion collisions overcome color confinement, freeing quarks and gluons?", opts: ["A. Fermi-Dirac Condensate", "B. Quark-Gluon Plasma (QGP)", "C. Rydberg Polaron", "D. Neutron Degenerate Gas"], ans: 1, exp: "Ultra-relativistic collisions deconfine hadrons into Quark-Gluon Plasma (QGP) at extreme temperatures." },
+      { id: 243, topic: "Accelerators", q: "In a circular synchrotron accelerator, what components provide the magnetic force required to keep charged beam particles in a curved trajectory?", opts: ["A. Dipole Bending Magnets", "B. RF Cavities", "C. Vacuum Turbos", "D. Collimator Slits"], ans: 0, exp: "Dipole magnetic fields supply the centripetal Lorentz force F = q(v × B) to bend high-speed charged particle beams." },
+      { id: 244, topic: "Accelerators", q: "What is the Lorentz factor γ for a particle traveling at speed v = 0.8c?", opts: ["A. 1.25", "B. 1.67", "C. 2.00", "D. 0.60"], ans: 1, exp: "γ = 1 / √(1 - 0.8²) = 1 / √(1 - 0.64) = 1 / √0.36 = 1 / 0.6 = 1.67." },
+      { id: 245, topic: "Accelerators", q: "Why do radio-frequency (RF) cavity electric fields oscillate at high frequencies in particle accelerators?", opts: ["A. To heat up the vacuum chamber", "B. To continuously synchronize positive electric field pushes as bunches pass through stages", "C. To invert magnetic poles", "D. To emit visible light"], ans: 1, exp: "RF cavities alternate AC voltage polarity so arriving particle bunches always experience an accelerating forward electric force." },
+      { id: 246, topic: "Accelerators", q: "What fundamental physical law allows kinetic energy of relativistic beam collisions to create heavier new particle species?", opts: ["A. Einstein's mass-energy equivalence E = mc²", "B. Kepler's Second Law", "C. Snell's Law", "D. Ohm's Law"], ans: 0, exp: "Huge relativistic kinetic energy during impact converts directly into rest mass (m = E/c²), creating exotic heavy particles." },
+      { id: 247, topic: "Accelerators", q: "What component focuses particle beams to maintain high luminosity and prevent beam divergence?", opts: ["A. Quadrupole Focusing Magnets", "B. Lead Shielding", "C. RF Antennas", "D. Cooling Fans"], ans: 0, exp: "Quadrupole magnet pairs squeeze particle beams horizontally and vertically to focus the beam density." },
+      { id: 248, topic: "Accelerators", q: "What particle detector chamber tracks ionization trails of charged debris in magnetic fields to measure momentum?", opts: ["A. Time Projection / Drift Tracking Chambers", "B. Calorimeter", "C. Scintillation Photodiode", "D. Muon Filter"], ans: 0, exp: "Tracking chambers sense gas ionization along charged particle paths, reconstructing momentum from curvature in B-fields." },
+      { id: 249, topic: "Accelerators", q: "At what particle velocity fraction v/c does relativistic momentum start to deviate significantly (>15%) from classical momentum p = mv?", opts: ["A. v ≈ 0.1c", "B. v ≈ 0.5c", "C. v ≈ 0.01c", "D. v = 0"], ans: 1, exp: "At 0.5c, γ ≈ 1.15, causing relativistic momentum p = γm₀v to exceed classical estimates by 15%." },
+      { id: 250, topic: "Accelerators", q: "Why must ultra-relativistic particle accelerators maintain an ultra-high vacuum inside beam pipes?", opts: ["A. To prevent beam collisions with ambient gas molecules", "B. To increase speed of light", "C. To lower temperature to 0 K", "D. To insulate magnetic coils"], ans: 0, exp: "Gas molecules in the pipe would scatter beam particles, causing beam loss and secondary radiation." },
+
+      // --- TOPIC 6: KINEMATICS & BALLISTIC DRAG (projectile.html) ---
+      { id: 251, topic: "Kinematics", q: "In 2D projectile motion with quadratic air drag (F_drag = -k v v⃗), what happens to the optimal launch angle for maximum horizontal range?", opts: ["A. Shifts from 45° to below 45° (e.g. ~35°-40°)", "B. Increases to 60°", "C. Remains exactly 45°", "D. Increases to 90°"], ans: 0, exp: "Air resistance continuously bleeds horizontal velocity, so a lower launch angle reduces time spent fighting drag." },
+      { id: 252, topic: "Kinematics", q: "Without air resistance, what is the vertical component of velocity (v_y) at the peak apex of a parabolic trajectory?", opts: ["A. Equal to initial launch speed v0", "B. Exactly 0 m/s", "C. Maximum positive value", "D. -9.81 m/s"], ans: 1, exp: "At maximum trajectory height y_max, vertical motion instantaneously stops before reversing direction (v_y = 0)." },
+      { id: 253, topic: "Kinematics", q: "In vacuum projectile motion fired with initial speed v0 at angle θ, what formula gives the total flight time T?", opts: ["A. T = (2 v0 sin θ) / g", "B. T = (v0 cos θ) / g", "C. T = v0² sin(2θ) / g", "D. T = v0 / (2g)"], ans: 0, exp: "Setting y(T) = v0 sin θ T - 1/2 g T² = 0 gives T = 2 v0 sin θ / g." },
+      { id: 254, topic: "Kinematics", q: "How does terminal velocity v_term relate to gravitational force and drag force for a falling body?", opts: ["A. Drag force equals zero", "B. Upward drag force balances downward gravitational weight (F_drag = m·g), resulting in zero net acceleration", "C. Velocity reaches infinity", "D. Gravity vanishes"], ans: 1, exp: "At terminal velocity, quadratic drag balances weight (k v_term² = m g), producing constant speed." },
+      { id: 255, topic: "Kinematics", q: "What shape does a projectile's flight path take in a uniform gravitational field without air resistance?", opts: ["A. Circular Arc", "B. Hyperbola", "C. Parabola", "D. Straight Line"], ans: 2, exp: "Combining linear horizontal motion x(t) with quadratic vertical acceleration y(t) yields a parabola." },
+      { id: 256, topic: "Kinematics", q: "If launch velocity v0 is doubled from 10 m/s to 20 m/s in vacuum, by what factor does maximum range R increase?", opts: ["A. 2x", "B. 3x", "C. 4x (R ∝ v0²)", "D. 8x"], ans: 2, exp: "Range R = v0² sin(2θ) / g. Doubling v0 quadruples maximum horizontal range." },
+      { id: 257, topic: "Kinematics", q: "In Euler numerical integration for motion with drag, how are updated velocity components calculated for step Δt?", opts: ["A. v_new = v_old + a · Δt", "B. v_new = v_old / Δt", "C. v_new = a / Δt", "D. v_new = v_old · g"], ans: 0, exp: "Euler integration increments state variables using current derivative rates: v(t+Δt) = v(t) + a(t)Δt." },
+      { id: 258, topic: "Kinematics", q: "Why is horizontal acceleration a_x strictly zero in ideal projectile motion without air drag?", opts: ["A. Gravity acts exclusively in the downward vertical direction (-y)", "B. Mass is zero", "C. Horizontal velocity is zero", "D. Initial angle is 90°"], ans: 0, exp: "Gravity acts vertically down; with no horizontal forces (like drag), horizontal acceleration a_x remains 0." },
+      { id: 259, topic: "Kinematics", q: "How does quadratic drag force depend on instantaneous projectile velocity v?", opts: ["A. F_drag ∝ v", "B. F_drag ∝ v²", "C. F_drag ∝ 1/v", "D. F_drag is constant"], ans: 1, exp: "High-speed atmospheric drag follows quadratic fluid resistance F_drag = 1/2 ρ C_d A v²." },
+      { id: 260, topic: "Kinematics", q: "Two cannonballs of identical size but different masses (1 kg vs 5 kg) are fired at identical speed in a vacuum. Which travels further?", opts: ["A. The 5 kg ball", "B. The 1 kg ball", "C. Both travel the exact same distance", "D. Neither moves"], ans: 2, exp: "In vacuum, acceleration g is independent of mass, yielding identical trajectories for both bodies." },
+
+      // --- TOPIC 7: HARMONICS & PENDULUMS (pendulum.html) ---
+      { id: 261, topic: "Harmonics", q: "For a simple pendulum executing small-angle oscillations (θ < 15°), how does doubling the bob mass M affect period T?", opts: ["A. Period doubles (2T)", "B. Period quadruples (4T)", "C. Period remains unchanged (T = 2π√(L/g))", "D. Period decreases by √2"], ans: 2, exp: "The period of a simple pendulum depends strictly on string length L and local gravity g, independent of bob mass M." },
+      { id: 262, topic: "Harmonics", q: "What restoring force component drives a simple pendulum back toward equilibrium position θ = 0?", opts: ["A. F_restoring = -m g sin θ", "B. F_restoring = -m g cos θ", "C. F_restoring = -k x²", "D. Tension force T"], ans: 0, exp: "The tangential component of gravity F = -m g sin θ acts as the restoring force toward center." },
+      { id: 263, topic: "Harmonics", q: "By what factor must string length L be multiplied to double the period T of a simple pendulum?", opts: ["A. 2x", "B. 4x", "C. √2x", "D. 8x"], ans: 1, exp: "T ∝ √L. Quadrupling length L increases period T by a factor of √4 = 2." },
+      { id: 264, topic: "Harmonics", q: "What small-angle approximation allows the pendulum equation d²θ/dt² + (g/L)sin θ = 0 to be simplified into simple harmonic motion?", opts: ["A. sin θ ≈ θ (in radians)", "B. cos θ ≈ θ", "C. sin θ ≈ 1", "D. tan θ ≈ 0"], ans: 0, exp: "For small angles θ < 15°, sin θ ≈ θ in radians, yielding linear SHM ODE d²θ/dt² + (g/L)θ = 0." },
+      { id: 265, topic: "Harmonics", q: "Where does a swinging pendulum bob attain its maximum kinetic energy and velocity?", opts: ["A. At maximum amplitude θ_max", "B. At the lowest equilibrium point (θ = 0)", "C. Halfway to max amplitude", "D. Velocity is constant throughout"], ans: 1, exp: "At equilibrium (θ = 0), potential energy is minimal (0) and converted entirely into maximum kinetic energy." },
+      { id: 266, topic: "Harmonics", q: "What parameter causes real-world physical pendulums to gradually diminish amplitude over time?", opts: ["A. Damping ratio / air resistance loss", "B. Increase in gravity", "C. Decrease in string length", "D. Conservation of energy"], ans: 0, exp: "Damping forces (fluid drag, friction) dissipate mechanical energy into thermal energy, decaying oscillation amplitude." },
+      { id: 267, topic: "Harmonics", q: "What is the natural frequency f (in Hz) of a simple pendulum with length L = 1.0 m on Earth (g = 9.81 m/s²)?", opts: ["A. ~0.50 Hz", "B. ~1.00 Hz", "C. ~2.00 Hz", "D. ~0.16 Hz"], ans: 0, exp: "T = 2π√(1/9.81) ≈ 2.006 s. Frequency f = 1 / T ≈ 0.498 Hz ≈ 0.50 Hz." },
+      { id: 268, topic: "Harmonics", q: "If a simple pendulum clock is transported from Earth to the Moon (g_moon = 1/6 g_earth), what happens to its clock timing?", opts: ["A. Runs 2.45x slower (period increases)", "B. Runs 6x faster", "C. Keeps exact same time", "D. Stops swinging"], ans: 0, exp: "Since T = 2π√(L/g), lower lunar gravity increases period T by √6 ≈ 2.45, causing clock ticks to run slower." },
+      { id: 269, topic: "Harmonics", q: "What phase difference exists between displacement x(t) and velocity v(t) in simple harmonic motion?", opts: ["A. 0° (in phase)", "B. 90° (π/2 radians)", "C. 180° (π radians)", "D. 270°"], ans: 1, exp: "Velocity v(t) = dx/dt leads displacement x(t) by a 90° (π/2) phase shift (cosine vs sine)." },
+      { id: 270, topic: "Harmonics", q: "What total mechanical energy conservation relationship holds for an undamped oscillator with bob mass m and max height h_max?", opts: ["A. E_total = m g h_max = 1/2 m v_max²", "B. E_total = m g v_max", "C. E_total = 1/2 m g h_max", "D. E_total = 0"], ans: 0, exp: "Mechanical energy continuously exchanges between maximum potential energy at peaks and maximum kinetic energy at bottom." }
+    ];
+
+    let activeQuestions = [];
+    let userAnswers = {};
+    let timerInterval = null;
+    let totalSeconds = 25 * 60;
+    let timeElapsedSeconds = 0;
+    let examEnded = false;
+
+    function shuffleArray(arr) {
+      const shuffled = [...arr];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    function startTimedQuiz() {
+      const splashName = document.getElementById('splashName').value.trim();
+      const splashSection = document.getElementById('splashSection').value.trim();
+      const selectedTopic = document.getElementById('splashTopicSelect').value;
+
+      if (splashName) document.getElementById('studentName').value = splashName;
+      if (splashSection) document.getElementById('studentSection').value = splashSection;
+
+      const topicSelectEl = document.getElementById('splashTopicSelect');
+      const topicText = topicSelectEl.options[topicSelectEl.selectedIndex].text;
+      document.getElementById('activeTopicBadge').textContent = topicText;
+
+      document.getElementById('quizStartSplash').style.display = 'none';
+
+      generateRandomExam(selectedTopic);
+      startTimer();
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      totalSeconds = 25 * 60;
+      timeElapsedSeconds = 0;
+      examEnded = false;
+
+      timerInterval = setInterval(() => {
+        if (totalSeconds <= 0) {
+          clearInterval(timerInterval);
+          timeExpiredAutoSubmit();
+          return;
+        }
+
+        totalSeconds--;
+        timeElapsedSeconds++;
+
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        
+        const timerText = document.getElementById('timerText');
+        const timerBox = document.getElementById('timerBox');
+        timerText.textContent = timeStr;
+
+        if (totalSeconds < 300) {
+          timerBox.className = "text-xs font-mono bg-[#421e25] px-3 py-1.5 rounded-lg border border-[#f38ba8] text-[#f38ba8] flex items-center gap-1.5 animate-pulse font-bold";
+        } else {
+          timerBox.className = "text-xs font-mono bg-[var(--inner-box)] px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-[#f9e2af] flex items-center gap-1.5";
+        }
+      }, 1000);
+    }
+
+    function timeExpiredAutoSubmit() {
+      examEnded = true;
+      document.getElementById('timerText').textContent = "EXPIRED";
+      alert("⏱️ Time Has Expired! Your exam answers are being automatically submitted.");
+      openPerformanceModal();
+    }
+
+    function generateRandomExam(selectedTopic) {
+      userAnswers = {};
+      let pool = questionBank;
+      if (selectedTopic && selectedTopic !== 'ALL') {
+        pool = questionBank.filter(q => q.topic === selectedTopic);
+      }
+
+      const shuffled = shuffleArray(pool);
+      // Limit to 20 randomized questions max per test run
+      activeQuestions = shuffled.slice(0, Math.min(20, shuffled.length));
+      renderQuestions();
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = '';
+
+      if (activeQuestions.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-[var(--text-sub)]">No questions found for this topic filter.</div>`;
+        return;
+      }
+
+      activeQuestions.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = 'glass-card p-5 shadow-xl flex flex-col gap-3 relative';
+        
+        const isAnswered = userAnswers.hasOwnProperty(item.id);
+        const selectedOpt = userAnswers[item.id];
+
+        let optionsHtml = '';
+        item.opts.forEach((optText, optIdx) => {
+          let optClass = 'opt-btn';
+          if (isAnswered) {
+            if (optIdx === item.ans) {
+              optClass += ' correct';
+            } else if (optIdx === selectedOpt) {
+              optClass += ' wrong';
+            }
+          }
+
+          optionsHtml += `
+            <button class="${optClass}" ${isAnswered || examEnded ? 'disabled' : ''} onclick="answerQuestion(${item.id}, ${optIdx})">
+              <span>${optText}</span>
+            </button>
+          `;
+        });
+
+        let expHtml = '';
+        if (isAnswered) {
+          const isCorrect = selectedOpt === item.ans;
+          expHtml = `
+            <div class="mt-3 p-3 rounded-lg border text-xs code-font ${isCorrect ? 'bg-[#274029] border-[#a6e3a1] text-[#a6e3a1]' : 'bg-[#421e25] border-[#f38ba8] text-[#f38ba8]'}">
+              <strong>${isCorrect ? '✓ Correct!' : '✗ Incorrect!'}</strong> ${item.exp}
+            </div>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="flex justify-between items-start gap-2 border-b border-[var(--card-border)] pb-2">
+            <span class="text-xs font-mono font-bold text-[var(--accent)]">Question ${idx + 1} of ${activeQuestions.length} (ID: #${item.id})</span>
+            <span class="topic-pill">${item.topic}</span>
+          </div>
+          <div class="text-sm font-semibold text-[var(--text-main)] leading-relaxed">${item.q}</div>
+          <div class="flex flex-col gap-2 mt-2">${optionsHtml}</div>
+          ${expHtml}
+        `;
+
+        container.appendChild(card);
+      });
+
+      updateScore();
+    }
+
+    function answerQuestion(qId, optIdx) {
+      if (!userAnswers.hasOwnProperty(qId) && !examEnded) {
+        userAnswers[qId] = optIdx;
+        renderQuestions();
+      }
+    }
+
+    function getScoreMetrics() {
+      const answeredCount = Object.keys(userAnswers).length;
+      let correctCount = 0;
+
+      Object.keys(userAnswers).forEach(qId => {
+        const qObj = activeQuestions.find(q => q.id === parseInt(qId));
+        if (qObj && userAnswers[qId] === qObj.ans) {
+          correctCount++;
+        }
+      });
+
+      const pct = activeQuestions.length > 0 ? ((correctCount / activeQuestions.length) * 100).toFixed(1) : "0.0";
+      return { answeredCount, correctCount, pct };
+    }
+
+    function updateScore() {
+      const { answeredCount, correctCount, pct } = getScoreMetrics();
+      document.getElementById('scoreText').textContent = correctCount;
+      document.getElementById('answeredText').textContent = `${answeredCount} / ${activeQuestions.length}`;
+      document.getElementById('percentText').textContent = `${Math.round(pct)}%`;
+    }
+
+    function openPerformanceModal() {
+      const name = document.getElementById('studentName').value.trim() || 'Anonymous Student';
+      const section = document.getElementById('studentSection').value.trim() || 'Unassigned Section';
+      const { answeredCount, correctCount, pct } = getScoreMetrics();
+      const statusEl = document.getElementById('cloudSyncStatus');
+
+      const elapsedMins = Math.floor(timeElapsedSeconds / 60);
+      const elapsedSecs = timeElapsedSeconds % 60;
+      const timeTakenStr = `${elapsedMins}m ${elapsedSecs}s`;
+
+      document.getElementById('recName').textContent = name;
+      document.getElementById('recSection').textContent = section;
+      document.getElementById('recTime').textContent = new Date().toLocaleString();
+      document.getElementById('recTimeTaken').textContent = timeTakenStr;
+      document.getElementById('recAnswered').textContent = `${answeredCount} / ${activeQuestions.length}`;
+      document.getElementById('recCorrect').textContent = correctCount;
+      document.getElementById('recPercent').textContent = `${pct}%`;
+
+      document.getElementById('performanceModal').classList.remove('hidden');
+
+      statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[var(--inner-box)] border border-[#f9e2af] text-[#f9e2af] animate-pulse";
+      statusEl.textContent = "⏳ Submitting score to Google Sheet...";
+
+      // POST Payload updated with suite: "Physics" for automatic tab separation
+      fetch(GOOGLE_SCRIPT_WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          suite: "Physics", // <--- Reroutes score to "Physics_Scores" tab
+          name: name,
+          section: section,
+          score: correctCount,
+          total: activeQuestions.length,
+          percent: `${pct}%`,
+          timeTaken: timeTakenStr,
+          timestamp: new Date().toISOString()
+        })
+      })
+      .then(() => {
+        statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[#274029] border border-[#a6e3a1] text-[#a6e3a1]";
+        statusEl.textContent = "✓ Successfully recorded to Google Sheet!";
+      })
+      .catch((err) => {
+        statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[#421e25] border border-[#f38ba8] text-[#f38ba8]";
+        statusEl.textContent = "⚠️ Cloud sync error. Use manual CSV export below.";
+        console.error(err);
+      });
+    }
+
+    function closePerformanceModal() {
+      document.getElementById('performanceModal').classList.add('hidden');
+    }
+
+    function exportCSV() {
+      const name = document.getElementById('studentName').value.trim() || 'Anonymous Student';
+      const section = document.getElementById('studentSection').value.trim() || 'Unassigned Section';
+      const { answeredCount, correctCount, pct } = getScoreMetrics();
+      const timeStr = new Date().toISOString();
+
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "Student Name,Section,Timestamp,Answered,Correct,Score Percent\n";
+      csvContent += `"${name}","${section}","${timeStr}",${answeredCount},${correctCount},${pct}%\n\n`;
+      csvContent += "Question ID,Topic,User Answer Index,Correct Answer Index,Status\n";
+
+      Object.keys(userAnswers).forEach(qId => {
+        const qObj = activeQuestions.find(q => q.id === parseInt(qId));
+        const uAns = userAnswers[qId];
+        const isCorrect = uAns === qObj.ans;
+        csvContent += `${qObj.id},"${qObj.topic}",${uAns},${qObj.ans},"${isCorrect ? 'CORRECT' : 'INCORRECT'}"\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Physics_Quiz_${name.replace(/\s+/g, '_')}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+  <script src="../theme.js"></script>
+</body>
+</html>
