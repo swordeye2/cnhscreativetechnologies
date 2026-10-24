@@ -78,6 +78,12 @@
             gap: 0.75rem;
         }
 
+        .brand-title img {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+        }
+
         .brand-title h1 {
             font-size: 1.25rem;
             color: var(--accent-blue);
@@ -288,10 +294,11 @@
     <!-- Header -->
     <header>
         <div class="brand-title">
-            <span>🔬</span>
+            <img src="./icon-512.png" alt="GIT GUD Logo">
             <h1>GIT GUD Physics Simulations</h1>
         </div>
         <div class="nav-actions">
+            <a href="./quiz_physics.html" class="btn">📝 Quiz Bank</a>
             <a href="./about_author.html" class="btn">👨‍🏫 About Author</a>
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
         </div>
@@ -315,7 +322,7 @@
         <div class="grid">
 
             <!-- Card 1 -->
-            <div class="card" onclick="openSimulation('./particle_hierarchy.html')">
+            <div class="card" onclick="openSimulation('./particle_heirarchy.html')">
                 <div>
                     <div class="card-header">
                         <div class="card-title">Particle Hierarchy Tree</div>
@@ -485,6 +492,61 @@
 
         </div>
 
+        <!-- Category 4: Assessment & Academic Profile -->
+        <div class="category-title">
+            <span>🎓</span> Assessment & Author Profile
+        </div>
+        <div class="grid">
+
+            <!-- Card 10: Quiz Physics Module -->
+            <div class="card" onclick="window.location.href='./quiz_physics.html'">
+                <div>
+                    <div class="card-header">
+                        <div class="card-title">Interactive Physics Quiz Bank</div>
+                        <span class="badge" style="color: var(--accent-yellow);">Assessment</span>
+                    </div>
+                    <div class="card-desc">
+                        Test your conceptual mastery across Optics, Mechanics, Subatomic, and Quantum Physics with instant self-grading quiz modules.
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span style="font-size:0.75rem; color:var(--text-muted);">Self-Grading Engine</span>
+                    <span class="btn btn-primary">Take Quiz 📝</span>
+                </div>
+            </div>
+
+            <!-- Card 11: About Author Page -->
+            <div class="card" onclick="window.location.href='./about_author.html'">
+                <div>
+                    <div class="card-header">
+                        <div class="card-title">About Author & Researcher</div>
+                        <span class="badge" style="color: var(--accent-purple);">Faculty Profile</span>
+                    </div>
+                    <div class="card-desc">
+                        Explore the research background, JiTT-M pedagogy, doctoral work, and academic awards of Dr. Jorge Victor M. Sales.
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span style="font-size:0.75rem; color:var(--text-muted);">DepEd / DLSU Manila</span>
+                    <span class="btn btn-primary">View Bio 👨‍🏫</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Author Footer Box -->
+        <div class="author-box">
+            <div class="author-info">
+                <h3>Jorge Victor M. Sales, Ph.D.</h3>
+                <p>Educator & Researcher | DepEd SDO Catanduanes • De La Salle University–Manila</p>
+            </div>
+            <div>
+                <a href="./about_author.html" class="btn">Read Author Biography 📖</a>
+            </div>
+        </div>
+
+    </div>
+
     <!-- Interstitial Ad Modal (5-second Splash) -->
     <div id="adModal" class="ad-modal">
         <div class="ad-container">
@@ -505,7 +567,7 @@
         </div>
     </div>
 
-    <!-- Theme Switcher Script -->
+    <!-- Theme Switcher & Navigation Script -->
     <script>
         let targetUrl = '';
         let countdown = 5;
