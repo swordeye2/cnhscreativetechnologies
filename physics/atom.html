@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Atomic Structure, Mass Defect & Decay Feynman Inspector - GIT GUD Physics</title>
+    <title>Atomic Structure & Mass Defect Visualizer - GIT GUD Physics</title>
 
     <!-- Suite Assets & Parent Theme -->
     <link rel="icon" type="image/png" href="./icon-512.png">
@@ -76,7 +76,7 @@
 
         .workspace {
             display: grid;
-            grid-template-columns: 1fr 400px;
+            grid-template-columns: 1fr 420px;
             gap: 15px;
             padding: 15px;
             flex: 1;
@@ -195,6 +195,7 @@
         .badge-stable { background: rgba(166, 227, 161, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
         .badge-unstable { background: rgba(243, 139, 168, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
 
+        /* DECAY & RELEASED SUBATOMIC PARTICLES CARD */
         .decay-card {
             background: rgba(243, 139, 168, 0.1);
             border: 1px solid var(--accent-red);
@@ -205,15 +206,23 @@
             gap: 8px;
         }
 
-        .feynman-box {
+        .released-particle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .particle-chip {
             background: var(--canvas-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            padding: 8px;
+            padding: 6px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
             font-family: monospace;
-            font-size: 0.78rem;
-            color: var(--accent-cyan);
-            line-height: 1.5;
         }
 
         .slider-group {
@@ -242,15 +251,15 @@
         <div class="viewport-card">
             <div class="controls-bar">
                 <div class="nav-group">
-                    <label style="font-size:0.85rem; font-weight:bold; color:var(--accent-yellow);">Isotope Preset:</label>
+                    <label style="font-size:0.85rem; font-weight:bold; color:var(--accent-yellow);">Element / Isotope Preset:</label>
                     <select class="select-input" id="presetSelect" onchange="applyPreset()">
-                        <option value="H1">Protium (¹H) - Stable</option>
-                        <option value="H2">Deuterium (²H) - Stable</option>
-                        <option value="H3">Tritium (³H) - Unstable (β⁻ Decay)</option>
-                        <option value="He4">Helium-4 (⁴He) - Stable</option>
-                        <option value="Li7">Lithium-7 (⁷Li) - Stable</option>
-                        <option value="C12" selected>Carbon-12 (¹²C) - Stable</option>
-                        <option value="C14">Carbon-14 (¹⁴C) - Unstable (β⁻ Decay)</option>
+                        <option value="H1" selected>Hydrogen Element (¹H Protium) - Stable</option>
+                        <option value="H2">Deuterium Isotope (²H) - Stable</option>
+                        <option value="H3">Tritium Isotope (³H) - Unstable (β⁻ Decay)</option>
+                        <option value="He4">Helium Element (⁴He) - Stable</option>
+                        <option value="Li7">Lithium Element (⁷Li) - Stable</option>
+                        <option value="C12">Carbon Element (¹²C) - Stable</option>
+                        <option value="C14">Carbon-14 Isotope (¹⁴C) - Unstable (β⁻ Decay)</option>
                     </select>
                 </div>
                 <div class="nav-group">
@@ -266,72 +275,67 @@
 
         <div class="sidebar">
             <div class="panel-card">
-                <div class="panel-title">Nucleus Manipulator</div>
+                <div class="panel-title">Nucleus & Shell Manipulator</div>
                 <div class="slider-group">
-                    <label>Protons (Z): <span id="numProtonsVal" style="color:var(--accent-purple);">6</span></label>
-                    <input type="range" id="protonsSlider" min="1" max="10" value="6" oninput="updateAtomManual()">
+                    <label>Protons (Z): <span id="numProtonsVal" style="color:var(--accent-purple);">1</span></label>
+                    <input type="range" id="protonsSlider" min="1" max="10" value="1" oninput="updateAtomManual()">
                 </div>
                 <div class="slider-group">
-                    <label>Neutrons (N): <span id="numNeutronsVal" style="color:var(--accent-orange);">6</span></label>
-                    <input type="range" id="neutronsSlider" min="0" max="12" value="6" oninput="updateAtomManual()">
+                    <label>Neutrons (N): <span id="numNeutronsVal" style="color:var(--accent-orange);">0</span></label>
+                    <input type="range" id="neutronsSlider" min="0" max="12" value="0" oninput="updateAtomManual()">
                 </div>
                 <div class="slider-group">
-                    <label>Electrons (e⁻): <span id="numElectronsVal" style="color:var(--accent-cyan);">6</span></label>
-                    <input type="range" id="electronsSlider" min="1" max="10" value="6" oninput="updateAtomManual()">
+                    <label>Electrons (e⁻): <span id="numElectronsVal" style="color:var(--accent-cyan);">1</span></label>
+                    <input type="range" id="electronsSlider" min="1" max="10" value="1" oninput="updateAtomManual()">
                 </div>
             </div>
 
-            <!-- UNSTABLE ISOTOPE DECAY & FEYNMAN DIAGRAM CARD -->
-            <div id="decayInfoCard" class="decay-card">
-                <div style="font-weight:bold; color:var(--accent-red); font-size:0.9rem;">⚠️ Radioactive Decay Mechanism</div>
-                <div style="font-size:0.82rem; color:var(--text-sub);">
-                    <b style="color:var(--accent-yellow);" id="decayTypeTitle">Beta-Minus (β⁻) Decay</b>
-                </div>
-                <div class="feynman-box">
-                    <div><b>Nuclear Formula:</b></div>
-                    <div style="color:var(--accent-yellow);" id="nuclearDecayFormula">n⁰ ➔ p⁺ + e⁻ + ν̄ₑ</div>
-                    <div style="margin-top:4px;"><b>Quark Level (Feynman):</b></div>
-                    <div style="color:var(--accent-purple);" id="quarkDecayFormula">d (-1/3e) ➔ u (+2/3e) + W⁻ ➔ e⁻ + ν̄ₑ</div>
-                </div>
-                <div style="font-size:0.78rem; color:var(--text-sub); line-height:1.4;">
-                    Emits high-speed <b>e⁻ (Beta)</b> and <b>ν̄ₑ (Antineutrino)</b> particles driven by short-lived virtual <b>W⁻ Boson</b> exchange.
-                </div>
-            </div>
-
-            <!-- MASS DEFECT COMPUTATION CARD -->
+            <!-- MASS DEFECT COMPUTATION CARD (PRIMARY PEDAGOGICAL CARD) -->
             <div class="panel-card">
                 <div class="panel-title">📐 Mass Defect Computation & Comparison</div>
                 <div class="calc-box">
-                    <div class="calc-line"><span style="color:var(--accent-purple);">Protons Mass:</span><span id="pSubtotal">6 × 1.007276 = 6.0437 amu</span></div>
-                    <div class="calc-line"><span style="color:var(--accent-orange);">Neutrons Mass:</span><span id="nSubtotal">6 × 1.008665 = 6.0520 amu</span></div>
-                    <div class="calc-line"><span style="color:var(--accent-cyan);">Electrons Mass:</span><span id="eSubtotal">6 × 0.0005485 = 0.0033 amu</span></div>
+                    <div class="calc-line"><span style="color:var(--accent-purple);">Protons Mass:</span><span id="pSubtotal">1 × 1.007276 = 1.0073 amu</span></div>
+                    <div class="calc-line"><span style="color:var(--accent-orange);">Neutrons Mass:</span><span id="nSubtotal">0 × 1.008665 = 0.0000 amu</span></div>
+                    <div class="calc-line"><span style="color:var(--accent-cyan);">Electrons Mass:</span><span id="eSubtotal">1 × 0.0005485 = 0.0005 amu</span></div>
                     
                     <div class="calc-line" style="border-top:1px dashed var(--border-color); padding-top:4px; margin-top:4px;">
                         <span style="color:var(--accent-yellow);">Constituent Sum Mass:</span>
-                        <span id="calcSumMass" style="font-weight:bold; color:var(--accent-yellow);">12.0989 amu</span>
+                        <span id="calcSumMass" style="font-weight:bold; color:var(--accent-yellow);">1.0078 amu</span>
                     </div>
                     <div class="calc-line">
                         <span style="color:var(--accent-blue);">Actual Bound Atom Mass:</span>
-                        <span id="calcActualMass" style="font-weight:bold; color:var(--accent-blue);">12.0000 amu</span>
+                        <span id="calcActualMass" style="font-weight:bold; color:var(--accent-blue);">1.0078 amu</span>
                     </div>
 
                     <div class="calc-line calc-highlight" style="margin-top:6px;">
                         <span>Missing Mass Defect (Δm):</span>
-                        <span id="calcDeltaM">0.0989 amu</span>
+                        <span id="calcDeltaM">0.0000 amu</span>
                     </div>
                     <div class="calc-line" style="color:var(--accent-green); font-weight:bold;">
                         <span>Binding Energy (Eb = Δm · c²):</span>
-                        <span id="calcEb">92.15 MeV</span>
+                        <span id="calcEb">0.00 MeV</span>
                     </div>
                 </div>
             </div>
 
+            <!-- DYNAMIC SUBATOMIC PARTICLES RELEASED CARD -->
+            <div id="releasedParticlesCard" class="decay-card">
+                <div style="font-weight:bold; color:var(--accent-red); font-size:0.9rem;">⚛️ Subatomic Particles Released / Emitted</div>
+                <div style="font-size:0.8rem; color:var(--text-sub);" id="decayModeHeader">
+                    Mechanism: <b style="color:var(--accent-yellow);" id="decayTypeTitle">Beta-Minus (β⁻) Emission</b>
+                </div>
+                
+                <div class="released-particle-list" id="particleChipsContainer">
+                    <!-- Particle Chips are dynamically injected here -->
+                </div>
+            </div>
+
             <div class="panel-card">
-                <div class="panel-title">Isotope Telemetry & Stability</div>
-                <div class="telemetry-row"><span class="telemetry-label">Nuclide Identifier:</span><span class="telemetry-val" id="nuclideLabel">Carbon-12</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">N/Z Ratio:</span><span class="telemetry-val" id="nzRatioVal">1.000</span></div>
-                <div class="telemetry-row"><span class="telemetry-label">Eb per Nucleon (Eb/A):</span><span class="telemetry-val" id="ebPerNucleonVal">7.68 MeV</span></div>
-                <div id="stabilityBadge" class="status-badge badge-stable">STABLE ISOTOPE</div>
+                <div class="panel-title">Atom Telemetry & Stability</div>
+                <div class="telemetry-row"><span class="telemetry-label">Nuclide Identifier:</span><span class="telemetry-val" id="nuclideLabel">Hydrogen-1</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">N/Z Ratio:</span><span class="telemetry-val" id="nzRatioVal">0.000</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Eb per Nucleon (Eb/A):</span><span class="telemetry-val" id="ebPerNucleonVal">0.00 MeV</span></div>
+                <div id="stabilityBadge" class="status-badge badge-stable">STABLE ATOM</div>
             </div>
         </div>
     </div>
@@ -342,7 +346,7 @@
         const canvas = document.getElementById('atomCanvas');
         const ctx = canvas.getContext('2d');
 
-        let Z = 6, N = 6, E = 6;
+        let Z = 1, N = 0, E = 1;
         let rotAngle = 0;
         let lastTimestamp = performance.now();
         let isUnstable = false;
@@ -362,13 +366,13 @@
         const me = 0.0005485;
 
         const presetData = {
-            H1: { z: 1, n: 0, e: 1, name: "Protium (¹H)", actualMass: 1.007825 },
-            H2: { z: 1, n: 1, e: 1, name: "Deuterium (²H)", actualMass: 2.014102 },
-            H3: { z: 1, n: 2, e: 1, name: "Tritium (³H)", actualMass: 3.016049 },
-            He4: { z: 2, n: 2, e: 2, name: "Helium-4 (⁴He)", actualMass: 4.002602 },
-            Li7: { z: 3, n: 4, e: 3, name: "Lithium-7 (⁷Li)", actualMass: 7.016004 },
-            C12: { z: 6, n: 6, e: 6, name: "Carbon-12 (¹²C)", actualMass: 12.000000 },
-            C14: { z: 6, n: 8, e: 6, name: "Carbon-14 (¹⁴C)", actualMass: 14.003241 }
+            H1: { z: 1, n: 0, e: 1, name: "Hydrogen Element (¹H Protium)", actualMass: 1.007825 },
+            H2: { z: 1, n: 1, e: 1, name: "Deuterium Isotope (²H)", actualMass: 2.014102 },
+            H3: { z: 1, n: 2, e: 1, name: "Tritium Isotope (³H)", actualMass: 3.016049 },
+            He4: { z: 2, n: 2, e: 2, name: "Helium Element (⁴He)", actualMass: 4.002602 },
+            Li7: { z: 3, n: 4, e: 3, name: "Lithium Element (⁷Li)", actualMass: 7.016004 },
+            C12: { z: 6, n: 6, e: 6, name: "Carbon Element (¹²C)", actualMass: 12.000000 },
+            C14: { z: 6, n: 8, e: 6, name: "Carbon-14 Isotope (¹⁴C)", actualMass: 14.003241 }
         };
 
         function resizeCanvas() {
@@ -377,7 +381,7 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // DRAG & ZOOM EVENT LISTENERS
+        // DRAG & ZOOM LISTENERS
         canvasContainer.addEventListener('wheel', (e) => {
             e.preventDefault();
             const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
@@ -399,43 +403,6 @@
         });
 
         window.addEventListener('mouseup', () => { isDragging = false; });
-
-        // TOUCH EVENTS FOR MOBILE ZOOM & PAN
-        let lastTouchDist = 0;
-        canvasContainer.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                isDragging = true;
-                dragStartX = e.touches[0].clientX - panX;
-                dragStartY = e.touches[0].clientY - panY;
-            } else if (e.touches.length === 2) {
-                isDragging = false;
-                lastTouchDist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-            }
-        });
-
-        canvasContainer.addEventListener('touchmove', (e) => {
-            if (isDragging && e.touches.length === 1) {
-                panX = e.touches[0].clientX - dragStartX;
-                panY = e.touches[0].clientY - dragStartY;
-                updateZoomHud();
-            } else if (e.touches.length === 2) {
-                const dist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                if (lastTouchDist > 0) {
-                    const zoomFactor = dist / lastTouchDist;
-                    scale = Math.min(5.0, Math.max(0.3, scale * zoomFactor));
-                    updateZoomHud();
-                }
-                lastTouchDist = dist;
-            }
-        });
-
-        canvasContainer.addEventListener('touchend', () => { isDragging = false; lastTouchDist = 0; });
 
         function updateZoomHud() {
             document.getElementById('zoomHud').innerText = `Scale: ${scale.toFixed(2)}x | Pan: (${Math.round(panX)}, ${Math.round(panY)}) | 💡 Drag / Scroll Zoom`;
@@ -467,7 +434,7 @@
             document.getElementById('numElectronsVal').innerText = E;
 
             const approxActualMass = Z * 0.998 + N * 0.999 + E * me;
-            updatePhysicsTelemetry(`Custom Nuclide (Z=${Z}, N=${N})`, approxActualMass);
+            updatePhysicsTelemetry(`Custom Atom (Z=${Z}, N=${N})`, approxActualMass);
         }
 
         function updatePhysicsTelemetry(name, actualMass) {
@@ -503,17 +470,30 @@
             isUnstable = isPresetUnstable || isRatioUnstable;
 
             const badge = document.getElementById('stabilityBadge');
-            const decayCard = document.getElementById('decayInfoCard');
+            const releasedCard = document.getElementById('releasedParticlesCard');
+            const particleContainer = document.getElementById('particleChipsContainer');
 
             if (!isUnstable) {
-                badge.innerText = "STABLE ISOTOPE";
+                badge.innerText = "STABLE ATOM";
                 badge.className = "status-badge badge-stable";
-                decayCard.style.display = "none";
+                releasedCard.style.display = "none";
                 decayParticles = [];
             } else {
-                badge.innerText = "RADIOACTIVE UNSTABLE (β⁻ DECAY)";
+                badge.innerText = "RADIOACTIVE UNSTABLE";
                 badge.className = "status-badge badge-unstable";
-                decayCard.style.display = "flex";
+                releasedCard.style.display = "flex";
+
+                // Inject Subatomic Particle Chips
+                particleContainer.innerHTML = `
+                    <div class="particle-chip">
+                        <span><b style="color:var(--accent-cyan);">e⁻</b> High-Speed Beta Electron</span>
+                        <span style="color:var(--accent-yellow);">m = 0.00055 u | Q = -1e</span>
+                    </div>
+                    <div class="particle-chip">
+                        <span><b style="color:var(--accent-green);">ν̄ₑ</b> Electron Antineutrino</span>
+                        <span style="color:var(--accent-purple);">m ≈ 0 u | Q = 0</span>
+                    </div>
+                `;
             }
         }
 
@@ -558,12 +538,11 @@
 
                 spawnTimer++;
                 if (spawnTimer % 45 === 0) {
-                    spawnDecayEmission(0, 0); // Origin relative to nucleus center
+                    spawnDecayEmission(0, 0);
                 }
             }
 
             ctx.save();
-            // Apply Dynamic Pan and Zoom Transforms
             ctx.translate(cx + panX, cy + panY);
             ctx.scale(scale, scale);
 
@@ -622,7 +601,7 @@
                 ctx.fillText(isProton ? 'p⁺' : 'n⁰', nx, ny + 3);
             }
 
-            // Flying Radioactive Particles
+            // Flying Decay Products
             for (let i = decayParticles.length - 1; i >= 0; i--) {
                 const p = decayParticles[i];
                 p.x += p.vx;
