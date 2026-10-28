@@ -425,10 +425,8 @@
                 for (let i = 0; i < 5; i++) {
                     activeIons.push({
                         iso: iso,
-                        x: 50,
-                        y: specCanvas.height * 0.5 + (Math.random() - 0.5) * 6,
-                        vx: 3.8 + (eField * 0.12),
-                        vy: 0,
+                        normX: 0.05,
+                        normY: 0.5 + (Math.random() - 0.5) * 0.015,
                         angle: 0,
                         stage: 'straight'
                     });
@@ -442,14 +440,14 @@
             const w = specCanvas.width;
             const h = specCanvas.height;
 
-            const magStartX = 260;
-            const magEndX = 360;
+            const magStartX = w * 0.32;
+            const magEndX = w * 0.44;
 
-            // DETECTOR ARC CENTER & RADIUS
-            const arcCenterX = w - 180;
+            // DETECTOR ARC RELATIVE POSITIONING
+            const arcCenterX = w * 0.82;
             const arcCenterY = h * 0.25;
-            const arcRadius = 260;
-            const arcStartAngle = Math.PI * 0.18;
+            const arcRadius = h * 0.52;
+            const arcStartAngle = Math.PI * 0.20;
             const arcEndAngle = Math.PI * 0.48;
 
             // 1. APPARATUS GLASS TUBE GEOMETRY
@@ -458,16 +456,16 @@
             
             // Horizontal Chamber
             specCtx.beginPath();
-            specCtx.moveTo(20, h * 0.5 - 35);
+            specCtx.moveTo(w * 0.03, h * 0.5 - 35);
             specCtx.lineTo(magStartX, h * 0.5 - 35);
-            specCtx.moveTo(20, h * 0.5 + 35);
+            specCtx.moveTo(w * 0.03, h * 0.5 + 35);
             specCtx.lineTo(magStartX, h * 0.5 + 35);
             specCtx.stroke();
 
-            // Broadened Deflection Chamber Boundaries Enclosing the Extended Arc
+            // Broadened Deflection Chamber
             specCtx.beginPath();
             specCtx.moveTo(magStartX, h * 0.5 - 35);
-            specCtx.lineTo(w - 20, h * 0.25);
+            specCtx.lineTo(w - 20, h * 0.15);
             specCtx.moveTo(magStartX, h * 0.5 + 35);
             specCtx.lineTo(w - 20, h - 20);
             specCtx.stroke();
@@ -476,62 +474,62 @@
             specCtx.fillStyle = 'rgba(166, 227, 161, 0.2)';
             specCtx.strokeStyle = '#a6e3a1';
             specCtx.beginPath();
-            specCtx.arc(30, h * 0.5, 14, 0, Math.PI * 2);
+            specCtx.arc(w * 0.05, h * 0.5, 14, 0, Math.PI * 2);
             specCtx.fill();
             specCtx.stroke();
             specCtx.fillStyle = '#a6e3a1';
             specCtx.font = '9px monospace';
-            specCtx.fillText('Injector Port', 10, h * 0.5 - 20);
+            specCtx.fillText('Injector Port', w * 0.02, h * 0.5 - 20);
 
             // 3. VAPORIZER FILAMENT
             specCtx.strokeStyle = '#fab387';
             specCtx.lineWidth = 2;
             specCtx.beginPath();
-            let startX = 70;
+            let startX = w * 0.08;
             for (let i = 0; i < 5; i++) {
                 specCtx.arc(startX + i * 6, h * 0.5 - 20, 4, 0, Math.PI, true);
             }
             specCtx.stroke();
             specCtx.fillStyle = '#fab387';
-            specCtx.fillText('Vaporizer Filament', 60, h * 0.5 - 32);
+            specCtx.fillText('Vaporizer Filament', w * 0.07, h * 0.5 - 32);
 
             // 4. ELECTRON GUN IONIZER
             specCtx.fillStyle = '#45475a';
-            specCtx.fillRect(90, h * 0.5 + 15, 20, 20);
+            specCtx.fillRect(w * 0.13, h * 0.5 + 15, 20, 20);
             specCtx.fillStyle = '#89dceb';
-            specCtx.fillText('Electron Gun', 70, h * 0.5 + 48);
+            specCtx.fillText('Electron Gun', w * 0.11, h * 0.5 + 48);
 
             specCtx.strokeStyle = 'rgba(137, 220, 235, 0.6)';
             specCtx.setLineDash([2, 4]);
             specCtx.beginPath();
-            specCtx.moveTo(100, h * 0.5 + 15);
-            specCtx.lineTo(100, h * 0.5 - 15);
+            specCtx.moveTo(w * 0.13 + 10, h * 0.5 + 15);
+            specCtx.lineTo(w * 0.13 + 10, h * 0.5 - 15);
             specCtx.stroke();
             specCtx.setLineDash([]);
 
             // 5. ACCELERATING ANODES
             specCtx.fillStyle = '#fab387';
-            specCtx.fillRect(160, h * 0.5 - 30, 6, 60);
-            specCtx.fillRect(200, h * 0.5 - 30, 6, 60);
+            specCtx.fillRect(w * 0.20, h * 0.5 - 30, 6, 60);
+            specCtx.fillRect(w * 0.25, h * 0.5 - 30, 6, 60);
             specCtx.fillStyle = '#fab387';
-            specCtx.fillText('Accelerating Anodes', 140, h * 0.5 + 46);
+            specCtx.fillText('Accelerating Anodes', w * 0.18, h * 0.5 + 46);
 
             // 6. ELECTROMAGNET POLES & GLOW ZONE
             specCtx.fillStyle = '#6c7086';
             specCtx.strokeStyle = '#89b4fa';
             specCtx.lineWidth = 2;
-            specCtx.fillRect(270, h * 0.5 - 120, 70, 60);
-            specCtx.strokeRect(270, h * 0.5 - 120, 70, 60);
+            specCtx.fillRect(magStartX, h * 0.5 - 120, magEndX - magStartX, 60);
+            specCtx.strokeRect(magStartX, h * 0.5 - 120, magEndX - magStartX, 60);
             specCtx.fillStyle = '#89b4fa';
-            specCtx.fillText('Magnet (N)', 275, h * 0.5 - 128);
+            specCtx.fillText('Magnet (N)', magStartX + 5, h * 0.5 - 128);
 
-            specCtx.fillRect(290, h * 0.5 + 60, 70, 60);
-            specCtx.strokeRect(290, h * 0.5 + 60, 70, 60);
+            specCtx.fillRect(magStartX, h * 0.5 + 60, magEndX - magStartX, 60);
+            specCtx.strokeRect(magStartX, h * 0.5 + 60, magEndX - magStartX, 60);
             specCtx.fillStyle = '#89b4fa';
-            specCtx.fillText('Magnet (S)', 295, h * 0.5 + 132);
+            specCtx.fillText('Magnet (S)', magStartX + 5, h * 0.5 + 132);
 
             specCtx.fillStyle = 'rgba(137, 180, 250, 0.12)';
-            specCtx.fillRect(magStartX, h * 0.5 - 35, 100, 70);
+            specCtx.fillRect(magStartX, h * 0.5 - 35, magEndX - magStartX, 70);
 
             // 7. EXTENDED CURVED DETECTOR ARC PLATE
             specCtx.strokeStyle = '#df8e1d';
@@ -550,53 +548,59 @@
             specCtx.font = 'bold 11px monospace';
             specCtx.fillText('CURVED DETECTOR FOCAL ARC PLATE', w - 240, h - 15);
 
-            // 8. RENDER IMPACT MARKS ON CURVED DETECTOR ARC
+            // 8. RENDER PERSISTENT IMPACT MARKS (SCALED TO VIEWPORT)
             detectorImpactMarks.forEach(mark => {
+                const px = mark.normX * w;
+                const py = mark.normY * h;
+
                 specCtx.fillStyle = mark.color;
                 specCtx.shadowColor = mark.color;
                 specCtx.shadowBlur = 10;
                 specCtx.beginPath();
-                specCtx.arc(mark.x, mark.y, 5, 0, Math.PI * 2);
+                specCtx.arc(px, py, 5, 0, Math.PI * 2);
                 specCtx.fill();
 
                 specCtx.fillStyle = '#ffffff';
                 specCtx.font = 'bold 9px monospace';
-                specCtx.fillText(`${mark.a}`, mark.x - 14, mark.y + 4);
+                specCtx.fillText(`${mark.a}`, px - 14, py + 4);
                 specCtx.shadowBlur = 0;
             });
 
-            // 9. ANIMATE ION PARTICLES ALONG ACCURATE DEFLECTION VECTORS
+            // 9. ANIMATE ION PARTICLES WITH RELATIVE KINEMATICS
+            const speed = 0.006 + (eField * 0.0003);
+
             for (let i = activeIons.length - 1; i >= 0; i--) {
                 const ion = activeIons[i];
+                let px = ion.normX * w;
+                let py = ion.normY * h;
 
                 if (ion.stage === 'straight') {
-                    ion.x += ion.vx;
-                    if (ion.x >= magStartX) {
+                    ion.normX += speed;
+                    if (px >= magStartX) {
                         ion.stage = 'deflection';
-                        // Curvature inversely proportional to mass: lighter = tighter downward deflection
-                        ion.deflectionFactor = (0.009 / (ion.iso.actualMass * 0.085)) * (bField / 0.5);
+                        ion.deflectionFactor = (0.008 / (ion.iso.actualMass * 0.085)) * (bField / 0.5);
                     }
                 } else if (ion.stage === 'deflection') {
                     ion.angle += ion.deflectionFactor;
-                    ion.x += Math.cos(ion.angle) * ion.vx;
-                    ion.y += Math.sin(ion.angle) * ion.vx;
+                    ion.normX += Math.cos(ion.angle) * speed;
+                    ion.normY += Math.sin(ion.angle) * speed;
 
-                    if (ion.x >= magEndX) {
+                    if (px >= magEndX) {
                         ion.stage = 'post';
                     }
                 } else if (ion.stage === 'post') {
-                    ion.x += Math.cos(ion.angle) * ion.vx;
-                    ion.y += Math.sin(ion.angle) * ion.vx;
+                    ion.normX += Math.cos(ion.angle) * speed;
+                    ion.normY += Math.sin(ion.angle) * speed;
 
-                    // Collision Detection with Curved Detector Arc
-                    const distToCenter = Math.hypot(ion.x - arcCenterX, ion.y - arcCenterY);
-                    if (distToCenter >= arcRadius - 5 && ion.x >= w - 120) {
+                    // Collision Check with Curved Detector Arc
+                    const distToCenter = Math.hypot(px - arcCenterX, py - arcCenterY);
+                    if (distToCenter >= arcRadius - 5 && px >= w * 0.70) {
                         const hitKey = ion.iso.a;
                         spectrumHits[hitKey] = (spectrumHits[hitKey] || 0) + 1;
 
                         detectorImpactMarks.push({
-                            x: ion.x,
-                            y: ion.y,
+                            normX: ion.normX,
+                            normY: ion.normY,
                             color: ion.iso.color,
                             a: ion.iso.a
                         });
@@ -612,7 +616,7 @@
                 specCtx.shadowColor = ion.iso.color;
                 specCtx.shadowBlur = 8;
                 specCtx.beginPath();
-                specCtx.arc(ion.x, ion.y, 4.5, 0, Math.PI * 2);
+                specCtx.arc(px, py, 4.5, 0, Math.PI * 2);
                 specCtx.fill();
                 specCtx.shadowBlur = 0;
             }
