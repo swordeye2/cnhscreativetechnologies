@@ -157,6 +157,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
+            position: relative;
         }
         .panel-title {
             font-size: 0.92rem;
@@ -173,13 +174,30 @@
             background: var(--canvas-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            height: 180px;
+            height: 190px;
             width: 100%;
             position: relative;
             overflow: hidden;
             margin-top: 4px;
+            cursor: crosshair;
         }
         canvas.graphCanvas { width: 100%; height: 100%; display: block; }
+
+        /* HOVER TOOLTIP */
+        .chart-tooltip {
+            position: absolute;
+            background: rgba(24, 24, 37, 0.95);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.76rem;
+            font-family: monospace;
+            color: var(--text-main);
+            pointer-events: none;
+            display: none;
+            z-index: 20;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
 
         .telemetry-row {
             display: flex;
@@ -239,7 +257,7 @@
                 </div>
                 <div class="nav-group">
                     <button class="btn" onclick="fireIons()">⚡ Fire Ion Beam</button>
-                    <button class="btn" onclick="clearSpectrum()">🔄 Clear Detector</button>
+                    <button class="btn" onclick="clearSpectrum()">🔄 Clear Detector & Reset</button>
                 </div>
             </div>
 
@@ -262,19 +280,27 @@
                 </div>
             </div>
 
-            <!-- SIDE GRAPH CARD 1: MASS SPECTRUM -->
+            <!-- SIDE GRAPH CARD 1: MASS SPECTRUM WITH HOVER TOOLTIP -->
             <div class="panel-card">
-                <div class="panel-title">📊 Mass Spectrum (Intensity vs. m/q)</div>
-                <div class="graph-wrapper">
+                <div class="panel-title">
+                    <span>📊 Mass Spectrum (Hits vs. m/q)</span>
+                    <span style="font-size:0.7rem; color:var(--text-sub);">💡 Hover over peaks</span>
+                </div>
+                <div class="graph-wrapper" id="spectrumWrapper">
                     <canvas id="spectrumCanvas" class="graphCanvas"></canvas>
+                    <div class="chart-tooltip" id="spectrumTooltip"></div>
                 </div>
             </div>
 
-            <!-- SIDE GRAPH CARD 2: PACKING FRACTION -->
+            <!-- SIDE GRAPH CARD 2: PACKING FRACTION WITH HOVER TOOLTIP -->
             <div class="panel-card">
-                <div class="panel-title">📉 Aston's Packing Fraction Curve (f vs. A)</div>
-                <div class="graph-wrapper">
+                <div class="panel-title">
+                    <span>📉 Aston's Packing Fraction Curve</span>
+                    <span style="font-size:0.7rem; color:var(--text-sub);">💡 Hover data points</span>
+                </div>
+                <div class="graph-wrapper" id="packingWrapper">
                     <canvas id="packingCanvas" class="graphCanvas"></canvas>
+                    <div class="chart-tooltip" id="packingTooltip"></div>
                 </div>
             </div>
 
@@ -307,6 +333,11 @@
         const packingCanvas = document.getElementById('packingCanvas');
         const packingCtx = packingCanvas.getContext('2d');
 
+        const spectrumWrapper = document.getElementById('spectrumWrapper');
+        const packingWrapper = document.getElementById('packingWrapper');
+        const spectrumTooltip = document.getElementById('spectrumTooltip');
+        const packingTooltip = document.getElementById('packingTooltip');
+
         let bField = 0.5;
         let eField = 5.0;
         let activeIons = [];
@@ -332,11 +363,11 @@
             specCanvas.width = specCanvas.parentElement.clientWidth;
             specCanvas.height = specCanvas.parentElement.clientHeight;
 
-            spectrumCanvas.width = spectrumCanvas.parentElement.clientWidth;
-            spectrumCanvas.height = spectrumCanvas.parentElement.clientHeight;
+            spectrumCanvas.width = spectrumWrapper.clientWidth;
+            spectrumCanvas.height = spectrumWrapper.clientHeight;
 
-            packingCanvas.width = packingCanvas.parentElement.clientWidth;
-            packingCanvas.height = packingCanvas.parentElement.clientHeight;
+            packingCanvas.width = packingWrapper.clientWidth;
+            packingCanvas.height = packingWrapper.clientHeight;
         }
         window.addEventListener('resize', () => { resizeCanvases(); drawGraphs(); });
 
@@ -359,6 +390,8 @@
         function clearSpectrum() {
             spectrumHits = {};
             activeIons = [];
+            spectrumTooltip.style.display = 'none';
+            packingTooltip.style.display = 'none';
             drawGraphs();
         }
 
@@ -486,8 +519,18 @@
             requestAnimationFrame(drawSpectrometer);
         }
 
+        // Get Active Range Resolution dynamically based on selected sample
+        function getSampleRange() {
+            if (activeSample === "HYDROGEN") return { minA: 0.5, maxA: 3.5, label: "Hydrogen Isotopes (A = 1 to 3)" };
+            if (activeSample === "CARBON") return { minA: 11.5, maxA: 14.5, label: "Carbon Isotopes (A = 12 to 14)" };
+            if (activeSample === "IRON") return { minA: 50, maxA: 60, label: "Iron Isotope (A = 56)" };
+            return { minA: 0, maxA: 60, label: "Mixed Sample (A = 1 to 60)" };
+        }
+
         function drawGraphs() {
-            // 1. Draw Mass Spectrum Graph
+            const range = getSampleRange();
+
+            // 1. Draw High-Resolution Mass Spectrum Graph
             const sw = spectrumCanvas.width;
             const sh = spectrumCanvas.height;
             spectrumCtx.clearRect(0, 0, sw, sh);
@@ -495,28 +538,31 @@
             spectrumCtx.strokeStyle = '#45475a';
             spectrumCtx.lineWidth = 1;
             spectrumCtx.beginPath();
-            spectrumCtx.moveTo(25, 10); spectrumCtx.lineTo(25, sh - 20);
-            spectrumCtx.lineTo(sw - 10, sh - 20);
+            spectrumCtx.moveTo(30, 10); spectrumCtx.lineTo(30, sh - 25);
+            spectrumCtx.lineTo(sw - 10, sh - 25);
             spectrumCtx.stroke();
 
+            // Render Spectrum Peaks
             const keys = Object.keys(isotopeDatabase);
             keys.forEach((k) => {
                 const iso = isotopeDatabase[k];
-                const x = 30 + (iso.a / 60) * (sw - 50);
+                if (iso.a < range.minA || iso.a > range.maxA) return;
+
+                const x = 35 + ((iso.a - range.minA) / (range.maxA - range.minA)) * (sw - 50);
                 const hits = spectrumHits[iso.a] || 0;
-                const barH = Math.min(sh - 30, hits * 8);
+                const barH = Math.min(sh - 35, hits * 10);
 
                 if (hits > 0) {
                     spectrumCtx.fillStyle = iso.color;
-                    spectrumCtx.fillRect(x - 3, sh - 20 - barH, 6, barH);
+                    spectrumCtx.fillRect(x - 4, sh - 25 - barH, 8, barH);
                 }
 
                 spectrumCtx.fillStyle = '#a6adc8';
                 spectrumCtx.font = '9px monospace';
-                spectrumCtx.fillText(`${iso.a}`, x - 4, sh - 6);
+                spectrumCtx.fillText(`${iso.a}`, x - 4, sh - 10);
             });
 
-            // 2. Draw Aston's Packing Fraction Curve Graph
+            // 2. Draw High-Resolution Aston's Packing Fraction Curve Graph
             const pw = packingCanvas.width;
             const ph = packingCanvas.height;
             packingCtx.clearRect(0, 0, pw, ph);
@@ -525,35 +571,127 @@
             packingCtx.strokeStyle = '#45475a';
             packingCtx.lineWidth = 1;
             packingCtx.beginPath();
-            packingCtx.moveTo(25, zeroY); packingCtx.lineTo(pw - 10, zeroY);
+            packingCtx.moveTo(30, zeroY); packingCtx.lineTo(pw - 10, zeroY);
             packingCtx.stroke();
 
             packingCtx.fillStyle = '#a6adc8';
             packingCtx.font = '8px monospace';
-            packingCtx.fillText('0', 10, zeroY + 3);
-            packingCtx.fillText('-f', 10, ph - 6);
-            packingCtx.fillText('+f', 10, 12);
+            packingCtx.fillText('0', 12, zeroY + 3);
+            packingCtx.fillText('-f', 12, ph - 8);
+            packingCtx.fillText('+f', 12, 14);
 
             packingCtx.strokeStyle = '#fab387';
             packingCtx.lineWidth = 1.5;
             packingCtx.beginPath();
 
-            keys.forEach((k, idx) => {
+            let plottedCount = 0;
+            keys.forEach((k) => {
                 const iso = isotopeDatabase[k];
+                if (iso.a < range.minA || iso.a > range.maxA) return;
+
                 const pf = ((iso.actualMass - iso.a) / iso.a) * 10000;
-                const px = 30 + (iso.a / 60) * (pw - 50);
+                const px = 35 + ((iso.a - range.minA) / (range.maxA - range.minA)) * (pw - 50);
                 const py = zeroY + (pf * 1.5);
 
-                if (idx === 0) packingCtx.moveTo(px, py);
+                if (plottedCount === 0) packingCtx.moveTo(px, py);
                 else packingCtx.lineTo(px, py);
+                plottedCount++;
 
                 packingCtx.fillStyle = iso.color;
                 packingCtx.beginPath();
-                packingCtx.arc(px, py, 3.5, 0, Math.PI * 2);
+                packingCtx.arc(px, py, 4, 0, Math.PI * 2);
                 packingCtx.fill();
             });
-            packingCtx.stroke();
+            if (plottedCount > 1) packingCtx.stroke();
         }
+
+        // HOVER TOOLTIP INTERACTION FOR MASS SPECTRUM GRAPH
+        spectrumWrapper.addEventListener('mousemove', (e) => {
+            const rect = spectrumWrapper.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const range = getSampleRange();
+            const sw = spectrumCanvas.width;
+
+            let closestIso = null;
+            let minDist = 20;
+
+            Object.keys(isotopeDatabase).forEach(k => {
+                const iso = isotopeDatabase[k];
+                if (iso.a < range.minA || iso.a > range.maxA) return;
+
+                const px = 35 + ((iso.a - range.minA) / (range.maxA - range.minA)) * (sw - 50);
+                const dist = Math.abs(mouseX - px);
+
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestIso = iso;
+                }
+            });
+
+            if (closestIso) {
+                const hits = spectrumHits[closestIso.a] || 0;
+                spectrumTooltip.style.display = 'block';
+                spectrumTooltip.style.left = `${Math.min(rect.width - 160, mouseX + 10)}px`;
+                spectrumTooltip.style.top = '10px';
+                spectrumTooltip.innerHTML = `
+                    <b style="color:${closestIso.color}">${closestIso.name}</b><br>
+                    Rest Mass: ${closestIso.actualMass.toFixed(4)} amu<br>
+                    Detector Hits: <span style="color:var(--accent-yellow)">${hits}</span>
+                `;
+            } else {
+                spectrumTooltip.style.display = 'none';
+            }
+        });
+
+        spectrumWrapper.addEventListener('mouseleave', () => {
+            spectrumTooltip.style.display = 'none';
+        });
+
+        // HOVER TOOLTIP INTERACTION FOR PACKING FRACTION GRAPH
+        packingWrapper.addEventListener('mousemove', (e) => {
+            const rect = packingWrapper.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const range = getSampleRange();
+            const pw = packingCanvas.width;
+
+            let closestIso = null;
+            let minDist = 20;
+
+            Object.keys(isotopeDatabase).forEach(k => {
+                const iso = isotopeDatabase[k];
+                if (iso.a < range.minA || iso.a > range.maxA) return;
+
+                const px = 35 + ((iso.a - range.minA) / (range.maxA - range.minA)) * (pw - 50);
+                const dist = Math.abs(mouseX - px);
+
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestIso = iso;
+                }
+            });
+
+            if (closestIso) {
+                const sumMass = (closestIso.z * mp) + (closestIso.n * mn) + (closestIso.z * me);
+                const deltaM = Math.max(0, sumMass - closestIso.actualMass);
+                const pf = ((closestIso.actualMass - closestIso.a) / closestIso.a) * 10000;
+
+                packingTooltip.style.display = 'block';
+                packingTooltip.style.left = `${Math.min(rect.width - 180, mouseX + 10)}px`;
+                packingTooltip.style.top = '10px';
+                packingTooltip.innerHTML = `
+                    <b style="color:${closestIso.color}">${closestIso.name}</b><br>
+                    Mass Number (A): ${closestIso.a}<br>
+                    Mass Defect (Δm): ${deltaM.toFixed(4)} amu<br>
+                    Packing Fraction (f): <span style="color:var(--accent-yellow)">${pf.toFixed(2)} × 10⁴</span>
+                `;
+            } else {
+                packingTooltip.style.display = 'none';
+            }
+        });
+
+        packingWrapper.addEventListener('mouseleave', () => {
+            packingTooltip.style.display = 'none';
+        });
 
         resizeCanvases();
         updateControls();
