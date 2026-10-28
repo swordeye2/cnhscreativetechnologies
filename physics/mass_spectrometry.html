@@ -183,7 +183,6 @@
         }
         canvas.graphCanvas { width: 100%; height: 100%; display: block; }
 
-        /* HOVER TOOLTIP */
         .chart-tooltip {
             position: absolute;
             background: rgba(24, 24, 37, 0.95);
@@ -342,6 +341,7 @@
         let eField = 5.0;
         let activeIons = [];
         let spectrumHits = {};
+        let detectorImpactMarks = []; // Stores persistent plate marks
         let activeSample = "MIXED";
 
         const mp = 1.007276;
@@ -389,6 +389,7 @@
 
         function clearSpectrum() {
             spectrumHits = {};
+            detectorImpactMarks = [];
             activeIons = [];
             spectrumTooltip.style.display = 'none';
             packingTooltip.style.display = 'none';
@@ -424,8 +425,8 @@
                 for (let i = 0; i < 6; i++) {
                     activeIons.push({
                         iso: iso,
-                        x: 40,
-                        y: specCanvas.height / 2 + (Math.random() - 0.5) * 6,
+                        x: 50,
+                        y: specCanvas.height * 0.5 + (Math.random() - 0.5) * 8,
                         vx: 3 + (eField * 0.2),
                         vy: 0,
                         stage: 'source',
@@ -441,65 +442,159 @@
             const w = specCanvas.width;
             const h = specCanvas.height;
 
-            // 1. Ion Source Chamber
-            specCtx.fillStyle = '#181825';
-            specCtx.strokeStyle = '#45475a';
-            specCtx.lineWidth = 2;
-            specCtx.fillRect(10, h / 2 - 30, 60, 60);
-            specCtx.strokeRect(10, h / 2 - 30, 60, 60);
-            specCtx.fillStyle = '#89b4fa';
-            specCtx.font = '10px monospace';
-            specCtx.fillText('Ion Source', 14, h / 2 + 4);
-
-            // 2. Velocity Selector E-Field Plates
-            specCtx.fillStyle = 'rgba(203, 166, 247, 0.1)';
-            specCtx.fillRect(90, h / 2 - 25, 100, 50);
-            specCtx.strokeStyle = '#cba6f7';
-            specCtx.strokeRect(90, h / 2 - 25, 100, 50);
-            specCtx.fillStyle = '#cba6f7';
-            specCtx.fillText('Velocity Selector (E/B₁)', 92, h / 2 - 30);
-
-            // 3. Deflection B-Field Sector (Magnetic Sector)
-            specCtx.fillStyle = 'rgba(137, 220, 235, 0.08)';
+            // 1. MAIN GLASS CHAMBER TUBE (MATCHING DIAGRAM GEOMETRY)
+            specCtx.strokeStyle = 'rgba(137, 180, 250, 0.4)';
+            specCtx.lineWidth = 3;
+            
+            // Straight Injection Tube Section
             specCtx.beginPath();
-            specCtx.arc(220, h / 2, 140, -Math.PI / 2, Math.PI / 2);
+            specCtx.moveTo(20, h * 0.5 - 35);
+            specCtx.lineTo(280, h * 0.5 - 35);
+            specCtx.moveTo(20, h * 0.5 + 35);
+            specCtx.lineTo(280, h * 0.5 + 35);
+            specCtx.stroke();
+
+            // Deflected Sector Tube Section
+            specCtx.beginPath();
+            specCtx.moveTo(280, h * 0.5 - 35);
+            specCtx.lineTo(w - 60, h - 110);
+            specCtx.moveTo(280, h * 0.5 + 35);
+            specCtx.lineTo(w - 20, h - 50);
+            specCtx.stroke();
+
+            // 2. SAMPLE INJECTOR PORT (FAR LEFT)
+            specCtx.fillStyle = 'rgba(166, 227, 161, 0.2)';
+            specCtx.strokeStyle = '#a6e3a1';
+            specCtx.beginPath();
+            specCtx.arc(30, h * 0.5, 14, 0, Math.PI * 2);
             specCtx.fill();
-            specCtx.strokeStyle = '#89dceb';
-            specCtx.setLineDash([4, 4]);
+            specCtx.stroke();
+            specCtx.fillStyle = '#a6e3a1';
+            specCtx.font = '9px monospace';
+            specCtx.fillText('Injector Port', 10, h * 0.5 - 20);
+
+            // 3. SAMPLE VAPORIZER FILAMENT (HEATING COIL)
+            specCtx.strokeStyle = '#fab387';
+            specCtx.lineWidth = 2;
+            specCtx.beginPath();
+            let startX = 70;
+            for (let i = 0; i < 5; i++) {
+                specCtx.arc(startX + i * 6, h * 0.5 - 20, 4, 0, Math.PI, true);
+            }
+            specCtx.stroke();
+            specCtx.fillStyle = '#fab387';
+            specCtx.fillText('Vaporizer Filament', 60, h * 0.5 - 32);
+
+            // 4. ELECTRON GUN IONIZER
+            specCtx.fillStyle = '#45475a';
+            specCtx.fillRect(90, h * 0.5 + 15, 20, 20);
+            specCtx.fillStyle = '#89dceb';
+            specCtx.fillText('Electron Gun', 70, h * 0.5 + 48);
+
+            // Ionizing Electron Stream
+            specCtx.strokeStyle = 'rgba(137, 220, 235, 0.6)';
+            specCtx.setLineDash([2, 4]);
+            specCtx.beginPath();
+            specCtx.moveTo(100, h * 0.5 + 15);
+            specCtx.lineTo(100, h * 0.5 - 15);
             specCtx.stroke();
             specCtx.setLineDash([]);
-            specCtx.fillStyle = '#89dceb';
-            specCtx.fillText(`Magnetic Deflection Sector B₂ (${bField.toFixed(2)} T)`, 220, 30);
 
-            // 4. Detector Plate / Photographic Film
-            specCtx.fillStyle = '#f38ba8';
-            specCtx.fillRect(220, h - 30, Math.max(100, w - 240), 8);
-            specCtx.fillStyle = '#ffffff';
-            specCtx.fillText('Photographic Detector Plate', 230, h - 10);
+            // 5. ACCELERATION ANODE PLATES
+            specCtx.fillStyle = '#fab387';
+            specCtx.fillRect(160, h * 0.5 - 30, 6, 60);
+            specCtx.fillRect(200, h * 0.5 - 30, 6, 60);
+            specCtx.fillStyle = '#fab387';
+            specCtx.fillText('Accelerating Anodes', 140, h * 0.5 + 46);
 
-            // Particle Physics Animation
+            // 6. CYLINDRICAL ELECTROMAGNET POLE PIECES
+            // Top Magnet Cylinder
+            specCtx.fillStyle = '#6c7086';
+            specCtx.strokeStyle = '#89b4fa';
+            specCtx.lineWidth = 2;
+            specCtx.fillRect(300, h * 0.5 - 120, 60, 60);
+            specCtx.strokeRect(300, h * 0.5 - 120, 60, 60);
+            specCtx.fillStyle = '#89b4fa';
+            specCtx.fillText('Magnet (N)', 305, h * 0.5 - 128);
+
+            // Bottom Magnet Cylinder
+            specCtx.fillStyle = '#6c7086';
+            specCtx.strokeStyle = '#89b4fa';
+            specCtx.fillRect(340, h * 0.5 + 60, 60, 60);
+            specCtx.strokeRect(340, h * 0.5 + 60, 60, 60);
+            specCtx.fillStyle = '#89b4fa';
+            specCtx.fillText('Magnet (S)', 345, h * 0.5 + 132);
+
+            // Blue Glowing Magnetic Field Zone
+            specCtx.fillStyle = 'rgba(137, 180, 250, 0.12)';
+            specCtx.beginPath();
+            specCtx.moveTo(290, h * 0.5 - 35);
+            specCtx.lineTo(370, h * 0.5 - 35);
+            specCtx.lineTo(410, h * 0.5 + 65);
+            specCtx.lineTo(330, h * 0.5 + 65);
+            specCtx.closePath();
+            specCtx.fill();
+
+            // 7. ANGLED DETECTOR DISK (CIRCULAR SCREEN DISK)
+            const detX = w - 45;
+            const detY = h - 75;
+            specCtx.fillStyle = '#f9e2af';
+            specCtx.strokeStyle = '#df8e1d';
+            specCtx.lineWidth = 3;
+            specCtx.beginPath();
+            specCtx.ellipse(detX, detY, 12, 38, Math.PI / 4, 0, Math.PI * 2);
+            specCtx.fill();
+            specCtx.stroke();
+            specCtx.fillStyle = '#f9e2af';
+            specCtx.fillText('Detector Screen', detX - 40, detY + 45);
+
+            // 8. RENDER PERSISTENT IMPACT MARKS ON DETECTOR SCREEN
+            detectorImpactMarks.forEach(mark => {
+                specCtx.fillStyle = mark.color;
+                specCtx.shadowColor = mark.color;
+                specCtx.shadowBlur = 6;
+                specCtx.beginPath();
+                specCtx.arc(mark.x, mark.y, 3, 0, Math.PI * 2);
+                specCtx.fill();
+
+                // Dark exposure streak mark
+                specCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                specCtx.fillRect(mark.x - 1, mark.y - 4, 2, 8);
+                specCtx.shadowBlur = 0;
+            });
+
+            // 9. ANIMATE ION BEAM PARTICLES
             for (let i = activeIons.length - 1; i >= 0; i--) {
                 const ion = activeIons[i];
 
                 if (ion.stage === 'source') {
                     ion.x += ion.vx;
-                    if (ion.x >= 220) {
+                    if (ion.x >= 310) {
                         ion.stage = 'magnetic';
-                        ion.centerX = 220;
-                        ion.centerY = h / 2;
-                        ion.radius = Math.max(30, (ion.iso.actualMass * 18 * (eField / 5.0)) / (bField * 1.5));
+                        ion.centerX = 310;
+                        ion.centerY = h * 0.5;
+                        ion.radius = Math.max(40, (ion.iso.actualMass * 22 * (eField / 5.0)) / (bField * 1.5));
                         ion.arcAngle = -Math.PI / 2;
                     }
                 } else if (ion.stage === 'magnetic') {
-                    const angularSpeed = 0.04 / (ion.iso.actualMass * 0.1);
+                    const angularSpeed = 0.035 / (ion.iso.actualMass * 0.08);
                     ion.arcAngle += angularSpeed;
 
                     ion.x = ion.centerX + Math.cos(ion.arcAngle) * ion.radius;
-                    ion.y = ion.centerY + Math.sin(ion.arcAngle) * ion.radius + ion.radius;
+                    ion.y = ion.centerY + Math.sin(ion.arcAngle) * ion.radius + (ion.radius * 0.6);
 
-                    if (ion.y >= h - 30 || ion.arcAngle >= Math.PI / 2) {
+                    // Detector Collision Event
+                    if (ion.x >= detX - 15 || ion.y >= detY + 30) {
                         const hitKey = ion.iso.a;
                         spectrumHits[hitKey] = (spectrumHits[hitKey] || 0) + 1;
+
+                        // Add persistent impact mark on plate
+                        detectorImpactMarks.push({
+                            x: ion.x,
+                            y: ion.y,
+                            color: ion.iso.color
+                        });
+
                         updateTelemetry(ion.iso);
                         activeIons.splice(i, 1);
                         drawGraphs();
@@ -511,7 +606,7 @@
                 specCtx.shadowColor = ion.iso.color;
                 specCtx.shadowBlur = 8;
                 specCtx.beginPath();
-                specCtx.arc(ion.x, ion.y, 5, 0, Math.PI * 2);
+                specCtx.arc(ion.x, ion.y, 4.5, 0, Math.PI * 2);
                 specCtx.fill();
                 specCtx.shadowBlur = 0;
             }
@@ -519,7 +614,6 @@
             requestAnimationFrame(drawSpectrometer);
         }
 
-        // Get Active Range Resolution dynamically based on selected sample
         function getSampleRange() {
             if (activeSample === "HYDROGEN") return { minA: 0.5, maxA: 3.5, label: "Hydrogen Isotopes (A = 1 to 3)" };
             if (activeSample === "CARBON") return { minA: 11.5, maxA: 14.5, label: "Carbon Isotopes (A = 12 to 14)" };
@@ -530,7 +624,7 @@
         function drawGraphs() {
             const range = getSampleRange();
 
-            // 1. Draw High-Resolution Mass Spectrum Graph
+            // 1. Mass Spectrum Graph
             const sw = spectrumCanvas.width;
             const sh = spectrumCanvas.height;
             spectrumCtx.clearRect(0, 0, sw, sh);
@@ -542,7 +636,6 @@
             spectrumCtx.lineTo(sw - 10, sh - 25);
             spectrumCtx.stroke();
 
-            // Render Spectrum Peaks
             const keys = Object.keys(isotopeDatabase);
             keys.forEach((k) => {
                 const iso = isotopeDatabase[k];
@@ -562,7 +655,7 @@
                 spectrumCtx.fillText(`${iso.a}`, x - 4, sh - 10);
             });
 
-            // 2. Draw High-Resolution Aston's Packing Fraction Curve Graph
+            // 2. Aston's Packing Fraction Curve Graph
             const pw = packingCanvas.width;
             const ph = packingCanvas.height;
             packingCtx.clearRect(0, 0, pw, ph);
