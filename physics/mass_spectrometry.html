@@ -427,7 +427,7 @@
                         iso: iso,
                         x: 50,
                         y: specCanvas.height * 0.5 + (Math.random() - 0.5) * 6,
-                        vx: 3.5 + (eField * 0.15),
+                        vx: 3.8 + (eField * 0.12),
                         vy: 0,
                         angle: 0,
                         stage: 'straight'
@@ -445,9 +445,12 @@
             const magStartX = 260;
             const magEndX = 360;
 
-            // EXAGGERATED DETECTOR SCREEN DISK TARGET
-            const detX = w - 65;
-            const detY = h - 75;
+            // DETECTOR ARC CENTER & RADIUS
+            const arcCenterX = w - 180;
+            const arcCenterY = h * 0.25;
+            const arcRadius = 260;
+            const arcStartAngle = Math.PI * 0.18;
+            const arcEndAngle = Math.PI * 0.48;
 
             // 1. APPARATUS GLASS TUBE GEOMETRY
             specCtx.strokeStyle = 'rgba(137, 180, 250, 0.4)';
@@ -461,12 +464,12 @@
             specCtx.lineTo(magStartX, h * 0.5 + 35);
             specCtx.stroke();
 
-            // Angled Deflected Chamber toward Detector Screen
+            // Broadened Deflection Chamber Boundaries Enclosing the Extended Arc
             specCtx.beginPath();
             specCtx.moveTo(magStartX, h * 0.5 - 35);
-            specCtx.lineTo(detX - 25, detY - 60);
+            specCtx.lineTo(w - 20, h * 0.25);
             specCtx.moveTo(magStartX, h * 0.5 + 35);
-            specCtx.lineTo(detX - 10, detY + 60);
+            specCtx.lineTo(w - 20, h - 20);
             specCtx.stroke();
 
             // 2. SAMPLE INJECTOR PORT
@@ -530,34 +533,39 @@
             specCtx.fillStyle = 'rgba(137, 180, 250, 0.12)';
             specCtx.fillRect(magStartX, h * 0.5 - 35, 100, 70);
 
-            // 7. EXAGGERATED DETECTOR DISK TARGET
-            specCtx.fillStyle = '#f9e2af';
+            // 7. EXTENDED CURVED DETECTOR ARC PLATE
             specCtx.strokeStyle = '#df8e1d';
-            specCtx.lineWidth = 4;
+            specCtx.lineWidth = 10;
             specCtx.beginPath();
-            specCtx.ellipse(detX, detY, 18, 55, Math.PI / 4, 0, Math.PI * 2);
-            specCtx.fill();
+            specCtx.arc(arcCenterX, arcCenterY, arcRadius, arcStartAngle, arcEndAngle);
             specCtx.stroke();
+
+            specCtx.strokeStyle = '#f9e2af';
+            specCtx.lineWidth = 3;
+            specCtx.beginPath();
+            specCtx.arc(arcCenterX, arcCenterY, arcRadius, arcStartAngle, arcEndAngle);
+            specCtx.stroke();
+
             specCtx.fillStyle = '#f9e2af';
             specCtx.font = 'bold 11px monospace';
-            specCtx.fillText('DETECTOR TARGET SCREEN', detX - 120, detY + 65);
+            specCtx.fillText('CURVED DETECTOR FOCAL ARC PLATE', w - 240, h - 15);
 
-            // 8. RENDER IMPACT MARKS ON DETECTOR DISK
+            // 8. RENDER IMPACT MARKS ON CURVED DETECTOR ARC
             detectorImpactMarks.forEach(mark => {
                 specCtx.fillStyle = mark.color;
                 specCtx.shadowColor = mark.color;
-                specCtx.shadowBlur = 8;
+                specCtx.shadowBlur = 10;
                 specCtx.beginPath();
-                specCtx.arc(mark.x, mark.y, 4, 0, Math.PI * 2);
+                specCtx.arc(mark.x, mark.y, 5, 0, Math.PI * 2);
                 specCtx.fill();
 
-                specCtx.fillStyle = '#11111b';
-                specCtx.font = 'bold 8px monospace';
-                specCtx.fillText(`${mark.a}`, mark.x - 3, mark.y + 3);
+                specCtx.fillStyle = '#ffffff';
+                specCtx.font = 'bold 9px monospace';
+                specCtx.fillText(`${mark.a}`, mark.x - 14, mark.y + 4);
                 specCtx.shadowBlur = 0;
             });
 
-            // 9. ANIMATE ION PARTICLES WITH CORRECT DEFLECTION MATH
+            // 9. ANIMATE ION PARTICLES ALONG ACCURATE DEFLECTION VECTORS
             for (let i = activeIons.length - 1; i >= 0; i--) {
                 const ion = activeIons[i];
 
@@ -565,8 +573,8 @@
                     ion.x += ion.vx;
                     if (ion.x >= magStartX) {
                         ion.stage = 'deflection';
-                        // Curvature inversely proportional to mass: lighter = tighter downward curve
-                        ion.deflectionFactor = (0.012 / (ion.iso.actualMass * 0.08)) * (bField / 0.5);
+                        // Curvature inversely proportional to mass: lighter = tighter downward deflection
+                        ion.deflectionFactor = (0.009 / (ion.iso.actualMass * 0.085)) * (bField / 0.5);
                     }
                 } else if (ion.stage === 'deflection') {
                     ion.angle += ion.deflectionFactor;
@@ -577,12 +585,12 @@
                         ion.stage = 'post';
                     }
                 } else if (ion.stage === 'post') {
-                    // Straight trajectory toward detector at final deflected angle
                     ion.x += Math.cos(ion.angle) * ion.vx;
                     ion.y += Math.sin(ion.angle) * ion.vx;
 
-                    // Collision with Detector Target Disk
-                    if (ion.x >= detX - 15 || ion.y >= detY + 45) {
+                    // Collision Detection with Curved Detector Arc
+                    const distToCenter = Math.hypot(ion.x - arcCenterX, ion.y - arcCenterY);
+                    if (distToCenter >= arcRadius - 5 && ion.x >= w - 120) {
                         const hitKey = ion.iso.a;
                         spectrumHits[hitKey] = (spectrumHits[hitKey] || 0) + 1;
 
@@ -604,7 +612,7 @@
                 specCtx.shadowColor = ion.iso.color;
                 specCtx.shadowBlur = 8;
                 specCtx.beginPath();
-                specCtx.arc(ion.x, ion.y, 5, 0, Math.PI * 2);
+                specCtx.arc(ion.x, ion.y, 4.5, 0, Math.PI * 2);
                 specCtx.fill();
                 specCtx.shadowBlur = 0;
             }
