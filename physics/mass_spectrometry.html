@@ -237,6 +237,7 @@
             <h2 style="font-size: 1rem; color: var(--accent-blue);">Mass Spectrometry & Aston's Packing Fraction Visualizer</h2>
         </div>
         <div class="nav-group">
+            <button class="btn" id="audioToggleBtn" onclick="toggleAudio()">🔊 Audio: ON</button>
             <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
         </div>
     </header>
@@ -343,10 +344,68 @@
         let spectrumHits = {};
         let detectorImpactMarks = [];
         let activeSample = "MIXED";
+        let audioEnabled = true;
 
         const mp = 1.007276;
         const mn = 1.008665;
         const me = 0.0005485;
+
+        // Web Audio Synthesizer Engine
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            document.getElementById('audioToggleBtn').innerText = audioEnabled ? '🔊 Audio: ON' : '🔇 Audio: OFF';
+        }
+
+        function playBeamSound() {
+            if (!audioEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(320, audioCtx.currentTime + 0.18);
+
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.22);
+        }
+
+        function playHitSound(massA) {
+            if (!audioEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+
+            // Higher mass = lower pitch sound
+            const freq = Math.max(200, 900 - massA * 10);
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+            gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.09);
+        }
 
         const isotopeDatabase = {
             H1: { name: "Hydrogen-1 (¹H⁺)", a: 1, z: 1, n: 0, actualMass: 1.007825, color: '#89b4fa' },
@@ -415,6 +474,7 @@
         }
 
         function fireIons() {
+            playBeamSound();
             let pool = [];
             if (activeSample === "MIXED") pool = [isotopeDatabase.H1, isotopeDatabase.He4, isotopeDatabase.C12, isotopeDatabase.Fe56];
             else if (activeSample === "HYDROGEN") pool = [isotopeDatabase.H1, isotopeDatabase.H2, isotopeDatabase.H3];
@@ -428,10 +488,38 @@
                         normX: 0.05,
                         normY: 0.5 + (Math.random() - 0.5) * 0.015,
                         angle: 0,
-                        stage: 'straight'
+                        stage: 'straight',
+                        history: []
                     });
                 }
             });
+        }
+
+        function drawLabelBadge(ctx, text, x, y, font = 'bold 10px monospace', textColor = '#fab387', bgColor = 'rgba(13, 14, 21, 0.85)') {
+            ctx.font = font;
+            const textWidth = ctx.measureText(text).width;
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(x - 4, y - 10, textWidth + 8, 14);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x - 4, y - 10, textWidth + 8, 14);
+            ctx.fillStyle = textColor;
+            ctx.fillText(text, x, y);
+        }
+
+        // Line-segment intersection helper
+        function lineIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+            const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+            if (denom === 0) return null;
+            const ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denom;
+            const ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denom;
+            if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1) {
+                return {
+                    x: x1 + ua * (x2 - x1),
+                    y: y1 + ua * (y2 - y1)
+                };
+            }
+            return null;
         }
 
         function drawSpectrometer() {
@@ -443,12 +531,11 @@
             const magStartX = w * 0.32;
             const magEndX = w * 0.44;
 
-            // DETECTOR ARC RELATIVE POSITIONING
-            const arcCenterX = w * 0.82;
-            const arcCenterY = h * 0.25;
-            const arcRadius = h * 0.52;
-            const arcStartAngle = Math.PI * 0.20;
-            const arcEndAngle = Math.PI * 0.48;
+            // FLAT DETECTOR SCREEN LINE SEGMENT (COVERING BROAD DEFL. SPECTRUM)
+            const p1x = w * 0.72;
+            const p1y = h * 0.12;
+            const p2x = w * 0.96;
+            const p2y = h * 0.95;
 
             // 1. APPARATUS GLASS TUBE GEOMETRY
             specCtx.strokeStyle = 'rgba(137, 180, 250, 0.4)';
@@ -465,9 +552,9 @@
             // Broadened Deflection Chamber
             specCtx.beginPath();
             specCtx.moveTo(magStartX, h * 0.5 - 35);
-            specCtx.lineTo(w - 20, h * 0.15);
+            specCtx.lineTo(p1x, p1y - 10);
             specCtx.moveTo(magStartX, h * 0.5 + 35);
-            specCtx.lineTo(w - 20, h - 20);
+            specCtx.lineTo(p2x, p2y + 10);
             specCtx.stroke();
 
             // 2. SAMPLE INJECTOR PORT
@@ -477,9 +564,7 @@
             specCtx.arc(w * 0.05, h * 0.5, 14, 0, Math.PI * 2);
             specCtx.fill();
             specCtx.stroke();
-            specCtx.fillStyle = '#a6e3a1';
-            specCtx.font = '9px monospace';
-            specCtx.fillText('Injector Port', w * 0.02, h * 0.5 - 20);
+            drawLabelBadge(specCtx, 'Injector Port', w * 0.01, h * 0.5 - 22, 'bold 10px monospace', '#a6e3a1');
 
             // 3. VAPORIZER FILAMENT
             specCtx.strokeStyle = '#fab387';
@@ -490,14 +575,12 @@
                 specCtx.arc(startX + i * 6, h * 0.5 - 20, 4, 0, Math.PI, true);
             }
             specCtx.stroke();
-            specCtx.fillStyle = '#fab387';
-            specCtx.fillText('Vaporizer Filament', w * 0.07, h * 0.5 - 32);
+            drawLabelBadge(specCtx, 'Vaporizer Filament', w * 0.06, h * 0.5 - 34, 'bold 10px monospace', '#fab387');
 
             // 4. ELECTRON GUN IONIZER
             specCtx.fillStyle = '#45475a';
             specCtx.fillRect(w * 0.13, h * 0.5 + 15, 20, 20);
-            specCtx.fillStyle = '#89dceb';
-            specCtx.fillText('Electron Gun', w * 0.11, h * 0.5 + 48);
+            drawLabelBadge(specCtx, 'Electron Gun', w * 0.10, h * 0.5 + 48, 'bold 10px monospace', '#89dceb');
 
             specCtx.strokeStyle = 'rgba(137, 220, 235, 0.6)';
             specCtx.setLineDash([2, 4]);
@@ -511,8 +594,7 @@
             specCtx.fillStyle = '#fab387';
             specCtx.fillRect(w * 0.20, h * 0.5 - 30, 6, 60);
             specCtx.fillRect(w * 0.25, h * 0.5 - 30, 6, 60);
-            specCtx.fillStyle = '#fab387';
-            specCtx.fillText('Accelerating Anodes', w * 0.18, h * 0.5 + 46);
+            drawLabelBadge(specCtx, 'Accelerating Anodes', w * 0.17, h * 0.5 - 38, 'bold 10px monospace', '#fab387');
 
             // 6. ELECTROMAGNET POLES & GLOW ZONE
             specCtx.fillStyle = '#6c7086';
@@ -520,35 +602,33 @@
             specCtx.lineWidth = 2;
             specCtx.fillRect(magStartX, h * 0.5 - 120, magEndX - magStartX, 60);
             specCtx.strokeRect(magStartX, h * 0.5 - 120, magEndX - magStartX, 60);
-            specCtx.fillStyle = '#89b4fa';
-            specCtx.fillText('Magnet (N)', magStartX + 5, h * 0.5 - 128);
+            drawLabelBadge(specCtx, 'Magnet (N)', magStartX + 5, h * 0.5 - 128, 'bold 10px monospace', '#89b4fa');
 
             specCtx.fillRect(magStartX, h * 0.5 + 60, magEndX - magStartX, 60);
             specCtx.strokeRect(magStartX, h * 0.5 + 60, magEndX - magStartX, 60);
-            specCtx.fillStyle = '#89b4fa';
-            specCtx.fillText('Magnet (S)', magStartX + 5, h * 0.5 + 132);
+            drawLabelBadge(specCtx, 'Magnet (S)', magStartX + 5, h * 0.5 + 132, 'bold 10px monospace', '#89b4fa');
 
             specCtx.fillStyle = 'rgba(137, 180, 250, 0.12)';
             specCtx.fillRect(magStartX, h * 0.5 - 35, magEndX - magStartX, 70);
 
-            // 7. EXTENDED CURVED DETECTOR ARC PLATE
-            specCtx.strokeStyle = '#df8e1d';
+            // 7. FLAT DETECTOR SCREEN ASSEMBLY (FIG 1.9 STYLING)
+            specCtx.strokeStyle = '#fab387';
             specCtx.lineWidth = 10;
             specCtx.beginPath();
-            specCtx.arc(arcCenterX, arcCenterY, arcRadius, arcStartAngle, arcEndAngle);
+            specCtx.moveTo(p1x, p1y);
+            specCtx.lineTo(p2x, p2y);
             specCtx.stroke();
 
             specCtx.strokeStyle = '#f9e2af';
             specCtx.lineWidth = 3;
             specCtx.beginPath();
-            specCtx.arc(arcCenterX, arcCenterY, arcRadius, arcStartAngle, arcEndAngle);
+            specCtx.moveTo(p1x, p1y);
+            specCtx.lineTo(p2x, p2y);
             specCtx.stroke();
 
-            specCtx.fillStyle = '#f9e2af';
-            specCtx.font = 'bold 11px monospace';
-            specCtx.fillText('CURVED DETECTOR FOCAL ARC PLATE', w - 240, h - 15);
+            drawLabelBadge(specCtx, 'FLAT DETECTOR SCREEN PLATE', w * 0.65, p1y - 12, 'bold 11px monospace', '#f9e2af');
 
-            // 8. RENDER PERSISTENT IMPACT MARKS (SCALED TO VIEWPORT)
+            // 8. RENDER PERSISTENT IMPACT MARKS
             detectorImpactMarks.forEach(mark => {
                 const px = mark.normX * w;
                 const py = mark.normY * h;
@@ -557,16 +637,16 @@
                 specCtx.shadowColor = mark.color;
                 specCtx.shadowBlur = 10;
                 specCtx.beginPath();
-                specCtx.arc(px, py, 5, 0, Math.PI * 2);
+                specCtx.arc(px, py, 6, 0, Math.PI * 2);
                 specCtx.fill();
 
                 specCtx.fillStyle = '#ffffff';
-                specCtx.font = 'bold 9px monospace';
-                specCtx.fillText(`${mark.a}`, px - 14, py + 4);
+                specCtx.font = 'bold 10px monospace';
+                specCtx.fillText(`${mark.a}`, px - 18, py + 4);
                 specCtx.shadowBlur = 0;
             });
 
-            // 9. ANIMATE ION PARTICLES WITH RELATIVE KINEMATICS
+            // 9. ANIMATE ION PARTICLES WITH WAVE TRAILS AND EXACT SEGMENT INTERSECTION
             const speed = 0.006 + (eField * 0.0003);
 
             for (let i = activeIons.length - 1; i >= 0; i--) {
@@ -574,14 +654,21 @@
                 let px = ion.normX * w;
                 let py = ion.normY * h;
 
+                const prevPx = px;
+                const prevPy = py;
+
                 if (ion.stage === 'straight') {
                     ion.normX += speed;
                     if (px >= magStartX) {
                         ion.stage = 'deflection';
-                        ion.deflectionFactor = (0.008 / (ion.iso.actualMass * 0.085)) * (bField / 0.5);
+                        // Calibrated deflection step to prevent over-rotation around lower magnet
+                        ion.deflectionFactor = Math.min(0.012, (0.0028 / (ion.iso.actualMass * 0.065)) * (bField / 0.5));
                     }
                 } else if (ion.stage === 'deflection') {
-                    ion.angle += ion.deflectionFactor;
+                    // Maximum deflection angle clamp to prevent orbiting/revolving backwards around magnet
+                    if (ion.angle < 0.45) {
+                        ion.angle += ion.deflectionFactor;
+                    }
                     ion.normX += Math.cos(ion.angle) * speed;
                     ion.normY += Math.sin(ion.angle) * speed;
 
@@ -592,24 +679,59 @@
                     ion.normX += Math.cos(ion.angle) * speed;
                     ion.normY += Math.sin(ion.angle) * speed;
 
-                    // Collision Check with Curved Detector Arc
-                    const distToCenter = Math.hypot(px - arcCenterX, py - arcCenterY);
-                    if (distToCenter >= arcRadius - 5 && px >= w * 0.70) {
+                    // Exact segment collision check between movement vector and flat detector line segment
+                    const nextPx = ion.normX * w;
+                    const nextPy = ion.normY * h;
+                    const hitPoint = lineIntersect(prevPx, prevPy, nextPx, nextPy, p1x, p1y, p2x, p2y);
+
+                    if (hitPoint) {
                         const hitKey = ion.iso.a;
                         spectrumHits[hitKey] = (spectrumHits[hitKey] || 0) + 1;
 
                         detectorImpactMarks.push({
-                            normX: ion.normX,
-                            normY: ion.normY,
+                            normX: hitPoint.x / w,
+                            normY: hitPoint.y / h,
                             color: ion.iso.color,
                             a: ion.iso.a
                         });
 
+                        playHitSound(ion.iso.a);
                         updateTelemetry(ion.iso);
                         activeIons.splice(i, 1);
                         drawGraphs();
                         continue;
                     }
+
+                    // Remove stray particles that go past canvas boundaries
+                    if (nextPx > w || nextPy > h || nextPy < 0) {
+                        activeIons.splice(i, 1);
+                        continue;
+                    }
+                }
+
+                px = ion.normX * w;
+                py = ion.normY * h;
+
+                // De Broglie Quantum Matter Wave Trail
+                ion.history.push({ x: px, y: py });
+                if (ion.history.length > 18) ion.history.shift();
+
+                if (ion.history.length > 1) {
+                    specCtx.strokeStyle = ion.iso.color;
+                    specCtx.lineWidth = 1.5;
+                    specCtx.beginPath();
+
+                    for (let j = 0; j < ion.history.length; j++) {
+                        const pt = ion.history[j];
+                        // Wave amplitude inversely proportional to momentum
+                        const waveOffset = Math.sin(j * 0.8) * (3.5 / Math.sqrt(ion.iso.actualMass));
+                        const wx = pt.x + Math.sin(ion.angle) * waveOffset;
+                        const wy = pt.y - Math.cos(ion.angle) * waveOffset;
+
+                        if (j === 0) specCtx.moveTo(wx, wy);
+                        else specCtx.lineTo(wx, wy);
+                    }
+                    specCtx.stroke();
                 }
 
                 specCtx.fillStyle = ion.iso.color;
