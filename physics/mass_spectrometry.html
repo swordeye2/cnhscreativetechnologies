@@ -47,7 +47,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--canvas-bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { background-color: var(--canvas-bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; overflow-y: auto; }
 
         header {
             background-color: var(--panel-bg);
@@ -57,9 +57,11 @@
             justify-content: space-between;
             align-items: center;
             z-index: 10;
+            position: sticky;
+            top: 0;
         }
 
-        .nav-group { display: flex; align-items: center; gap: 10px; }
+        .nav-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .btn {
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid var(--border-color);
@@ -76,23 +78,28 @@
 
         .workspace {
             display: grid;
-            grid-template-columns: 1fr 420px;
+            grid-template-columns: 1fr 440px;
             gap: 15px;
             padding: 15px;
             flex: 1;
-            height: calc(100vh - 55px);
-            overflow: hidden;
+            min-height: calc(100vh - 55px);
+            box-sizing: border-box;
         }
-        @media (max-width: 1024px) { .workspace { grid-template-columns: 1fr; overflow-y: auto; } }
+        @media (max-width: 1100px) { 
+            .workspace { 
+                grid-template-columns: 1fr; 
+                height: auto;
+            } 
+        }
 
         .viewport-card {
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 12px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             position: relative;
         }
 
@@ -118,49 +125,61 @@
 
         .canvas-container {
             width: 100%;
-            flex: 1;
+            height: 520px;
             background: var(--canvas-bg);
             border: 1px solid var(--border-color);
             border-radius: 6px;
             position: relative;
             overflow: hidden;
-            min-height: 320px;
         }
         canvas#spectrometerCanvas { width: 100%; height: 100%; display: block; }
 
-        .graphs-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            height: 200px;
+        .sidebar { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            overflow-y: auto; 
+            max-height: calc(100vh - 80px);
+            padding-right: 4px;
         }
-        .graph-card {
-            background: var(--canvas-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
+        @media (max-width: 1100px) {
+            .sidebar {
+                max-height: none;
+                overflow-y: visible;
+            }
         }
-        .graph-title { font-size: 0.78rem; font-weight: bold; color: var(--accent-cyan); margin-bottom: 4px; }
-        canvas.graphCanvas { width: 100%; flex: 1; display: block; }
 
-        .sidebar { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
         .panel-card {
             background-color: var(--panel-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
         .panel-title {
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             font-weight: bold;
             color: var(--accent-blue);
-            margin-bottom: 10px;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+
+        .graph-wrapper {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            height: 180px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        canvas.graphCanvas { width: 100%; height: 100%; display: block; }
 
         .telemetry-row {
             display: flex;
@@ -178,7 +197,6 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 10px;
-            margin-top: 8px;
             font-family: monospace;
             font-size: 0.78rem;
         }
@@ -189,7 +207,6 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
-            margin-bottom: 8px;
         }
         .slider-group label { font-size: 0.82rem; font-weight: 600; display: flex; justify-content: space-between; }
         .slider-group input { width: 100%; accent-color: var(--accent-blue); }
@@ -208,6 +225,7 @@
     </header>
 
     <div class="workspace">
+        <!-- LEFT MAIN APPARATUS VIEWPORT -->
         <div class="viewport-card">
             <div class="controls-bar">
                 <div class="nav-group">
@@ -225,24 +243,12 @@
                 </div>
             </div>
 
-            <!-- APPARATUS ANIMATION CANVAS -->
             <div class="canvas-container">
                 <canvas id="spectrometerCanvas"></canvas>
             </div>
-
-            <!-- REAL-TIME GRAPHICAL TELEMETRY CARDS -->
-            <div class="graphs-container">
-                <div class="graph-card">
-                    <div class="graph-title">📊 Mass Spectrum (Intensity vs. m/q)</div>
-                    <canvas id="spectrumCanvas" class="graphCanvas"></canvas>
-                </div>
-                <div class="graph-card">
-                    <div class="graph-title">📉 Aston's Packing Fraction Curve (f vs. A)</div>
-                    <canvas id="packingCanvas" class="graphCanvas"></canvas>
-                </div>
-            </div>
         </div>
 
+        <!-- RIGHT SIDE PANEL FOR CONTROLS, TELEMETRY, AND DUAL GRAPH CARDS -->
         <div class="sidebar">
             <div class="panel-card">
                 <div class="panel-title">Electromagnetic Sector Control</div>
@@ -256,9 +262,25 @@
                 </div>
             </div>
 
+            <!-- SIDE GRAPH CARD 1: MASS SPECTRUM -->
+            <div class="panel-card">
+                <div class="panel-title">📊 Mass Spectrum (Intensity vs. m/q)</div>
+                <div class="graph-wrapper">
+                    <canvas id="spectrumCanvas" class="graphCanvas"></canvas>
+                </div>
+            </div>
+
+            <!-- SIDE GRAPH CARD 2: PACKING FRACTION -->
+            <div class="panel-card">
+                <div class="panel-title">📉 Aston's Packing Fraction Curve (f vs. A)</div>
+                <div class="graph-wrapper">
+                    <canvas id="packingCanvas" class="graphCanvas"></canvas>
+                </div>
+            </div>
+
             <!-- STEP-BY-STEP MASS SPECTROMETRY TELEMETRY CARD -->
             <div class="panel-card">
-                <div class="panel-title">📐 Mass Spectrograph & Mass Defect Analysis</div>
+                <div class="panel-title">📐 Spectrogram Telemetry & Mass Defect</div>
                 <div class="telemetry-row"><span class="telemetry-label">Active Ion:</span><span class="telemetry-val" id="activeIonLabel">Carbon-12 (¹²C⁺)</span></div>
                 <div class="telemetry-row"><span class="telemetry-label">Deflection Radius (r = mv/qB):</span><span class="telemetry-val" id="radiusVal">0.320 m</span></div>
                 
@@ -271,15 +293,6 @@
                         <span>Aston Packing Fraction (f):</span>
                         <span id="specPackingFraction">-0.0000 × 10⁴</span>
                     </div>
-                </div>
-            </div>
-
-            <div class="panel-card">
-                <div class="panel-title">💡 Spectrometry Physics Principles</div>
-                <div style="font-size:0.78rem; color:var(--text-sub); line-height:1.5;">
-                    1. <b>Velocity Selector (E/B₁):</b> Passes ions with constant speed $v = E/B_1$.<br>
-                    2. <b>Magnetic Sector (B₂):</b> Bends ions into circular arc $r = \frac{m \cdot v}{q \cdot B_2}$. Lighter isotopes curve tighter!<br>
-                    3. <b>Packing Fraction ($f$):</b> Aston defined $f = \frac{M_{\text{actual}} - A}{A} \times 10^4$. Negative values reveal missing mass converted into binding energy ($E_b = \Delta m \cdot c^2$).
                 </div>
             </div>
         </div>
@@ -320,10 +333,10 @@
             specCanvas.height = specCanvas.parentElement.clientHeight;
 
             spectrumCanvas.width = spectrumCanvas.parentElement.clientWidth;
-            spectrumCanvas.height = spectrumCanvas.parentElement.clientHeight - 20;
+            spectrumCanvas.height = spectrumCanvas.parentElement.clientHeight;
 
             packingCanvas.width = packingCanvas.parentElement.clientWidth;
-            packingCanvas.height = packingCanvas.parentElement.clientHeight - 20;
+            packingCanvas.height = packingCanvas.parentElement.clientHeight;
         }
         window.addEventListener('resize', () => { resizeCanvases(); drawGraphs(); });
 
@@ -416,7 +429,7 @@
             // 3. Deflection B-Field Sector (Magnetic Sector)
             specCtx.fillStyle = 'rgba(137, 220, 235, 0.08)';
             specCtx.beginPath();
-            specCtx.arc(220, h / 2, 120, -Math.PI / 2, Math.PI / 2);
+            specCtx.arc(220, h / 2, 140, -Math.PI / 2, Math.PI / 2);
             specCtx.fill();
             specCtx.strokeStyle = '#89dceb';
             specCtx.setLineDash([4, 4]);
@@ -427,7 +440,7 @@
 
             // 4. Detector Plate / Photographic Film
             specCtx.fillStyle = '#f38ba8';
-            specCtx.fillRect(220, h - 30, w - 240, 8);
+            specCtx.fillRect(220, h - 30, Math.max(100, w - 240), 8);
             specCtx.fillStyle = '#ffffff';
             specCtx.fillText('Photographic Detector Plate', 230, h - 10);
 
@@ -452,7 +465,6 @@
                     ion.y = ion.centerY + Math.sin(ion.arcAngle) * ion.radius + ion.radius;
 
                     if (ion.y >= h - 30 || ion.arcAngle >= Math.PI / 2) {
-                        // Impacted Detector
                         const hitKey = ion.iso.a;
                         spectrumHits[hitKey] = (spectrumHits[hitKey] || 0) + 1;
                         updateTelemetry(ion.iso);
@@ -462,7 +474,6 @@
                     }
                 }
 
-                // Render Active Ion
                 specCtx.fillStyle = ion.iso.color;
                 specCtx.shadowColor = ion.iso.color;
                 specCtx.shadowBlur = 8;
@@ -476,7 +487,7 @@
         }
 
         function drawGraphs() {
-            // Draw Mass Spectrum Graph
+            // 1. Draw Mass Spectrum Graph
             const sw = spectrumCanvas.width;
             const sh = spectrumCanvas.height;
             spectrumCtx.clearRect(0, 0, sw, sh);
@@ -489,21 +500,23 @@
             spectrumCtx.stroke();
 
             const keys = Object.keys(isotopeDatabase);
-            keys.forEach((k, idx) => {
+            keys.forEach((k) => {
                 const iso = isotopeDatabase[k];
                 const x = 30 + (iso.a / 60) * (sw - 50);
                 const hits = spectrumHits[iso.a] || 0;
                 const barH = Math.min(sh - 30, hits * 8);
 
-                spectrumCtx.fillStyle = iso.color;
-                spectrumCtx.fillRect(x - 3, sh - 20 - barH, 6, barH);
+                if (hits > 0) {
+                    spectrumCtx.fillStyle = iso.color;
+                    spectrumCtx.fillRect(x - 3, sh - 20 - barH, 6, barH);
+                }
 
                 spectrumCtx.fillStyle = '#a6adc8';
-                spectrumCtx.font = '8px monospace';
-                spectrumCtx.fillText(`${iso.a}`, x - 4, sh - 8);
+                spectrumCtx.font = '9px monospace';
+                spectrumCtx.fillText(`${iso.a}`, x - 4, sh - 6);
             });
 
-            // Draw Aston's Packing Fraction Curve Graph
+            // 2. Draw Aston's Packing Fraction Curve Graph
             const pw = packingCanvas.width;
             const ph = packingCanvas.height;
             packingCtx.clearRect(0, 0, pw, ph);
@@ -518,10 +531,9 @@
             packingCtx.fillStyle = '#a6adc8';
             packingCtx.font = '8px monospace';
             packingCtx.fillText('0', 10, zeroY + 3);
-            packingCtx.fillText('-f', 10, ph - 10);
-            packingCtx.fillText('+f', 10, 15);
+            packingCtx.fillText('-f', 10, ph - 6);
+            packingCtx.fillText('+f', 10, 12);
 
-            // Draw Packing Fraction Curve Line
             packingCtx.strokeStyle = '#fab387';
             packingCtx.lineWidth = 1.5;
             packingCtx.beginPath();
@@ -537,7 +549,7 @@
 
                 packingCtx.fillStyle = iso.color;
                 packingCtx.beginPath();
-                packingCtx.arc(px, py, 3, 0, Math.PI * 2);
+                packingCtx.arc(px, py, 3.5, 0, Math.PI * 2);
                 packingCtx.fill();
             });
             packingCtx.stroke();
