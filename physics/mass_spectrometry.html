@@ -131,6 +131,7 @@
             border-radius: 6px;
             position: relative;
             overflow: hidden;
+            cursor: crosshair;
         }
         canvas#spectrometerCanvas { width: 100%; height: 100%; display: block; }
 
@@ -261,8 +262,9 @@
                 </div>
             </div>
 
-            <div class="canvas-container">
+            <div class="canvas-container" id="specContainer">
                 <canvas id="spectrometerCanvas"></canvas>
+                <div class="chart-tooltip" id="detectorTooltip"></div>
             </div>
         </div>
 
@@ -328,6 +330,9 @@
     <script>
         const specCanvas = document.getElementById('spectrometerCanvas');
         const specCtx = specCanvas.getContext('2d');
+        const specContainer = document.getElementById('specContainer');
+        const detectorTooltip = document.getElementById('detectorTooltip');
+
         const spectrumCanvas = document.getElementById('spectrumCanvas');
         const spectrumCtx = spectrumCanvas.getContext('2d');
         const packingCanvas = document.getElementById('packingCanvas');
@@ -345,6 +350,7 @@
         let detectorImpactMarks = [];
         let activeSample = "MIXED";
         let audioEnabled = true;
+        let hoveredMark = null;
 
         const mp = 1.007276;
         const mn = 1.008665;
@@ -394,7 +400,6 @@
             const gain = audioCtx.createGain();
             osc.type = 'sine';
 
-            // Higher mass = lower pitch sound
             const freq = Math.max(200, 900 - massA * 10);
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
@@ -450,9 +455,15 @@
             spectrumHits = {};
             detectorImpactMarks = [];
             activeIons = [];
+            hoveredMark = null;
+            detectorTooltip.style.display = 'none';
             spectrumTooltip.style.display = 'none';
             packingTooltip.style.display = 'none';
             drawGraphs();
+        }
+
+        function getIsoByA(massA) {
+            return Object.values(isotopeDatabase).find(iso => iso.a === massA) || isotopeDatabase.C12;
         }
 
         function updateTelemetry(iso) {
@@ -507,7 +518,6 @@
             ctx.fillText(text, x, y);
         }
 
-        // Line-segment intersection helper
         function lineIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
             const denom = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
             if (denom === 0) return null;
@@ -531,7 +541,7 @@
             const magStartX = w * 0.32;
             const magEndX = w * 0.44;
 
-            // FLAT DETECTOR SCREEN LINE SEGMENT (COVERING BROAD DEFL. SPECTRUM)
+            // FLAT DETECTOR SCREEN LINE SEGMENT
             const p1x = w * 0.72;
             const p1y = h * 0.12;
             const p2x = w * 0.96;
@@ -611,7 +621,7 @@
             specCtx.fillStyle = 'rgba(137, 180, 250, 0.12)';
             specCtx.fillRect(magStartX, h * 0.5 - 35, magEndX - magStartX, 70);
 
-            // 7. FLAT DETECTOR SCREEN ASSEMBLY (FIG 1.9 STYLING)
+            // 7. FLAT DETECTOR SCREEN ASSEMBLY
             specCtx.strokeStyle = '#fab387';
             specCtx.lineWidth = 10;
             specCtx.beginPath();
@@ -628,17 +638,25 @@
 
             drawLabelBadge(specCtx, 'FLAT DETECTOR SCREEN PLATE', w * 0.65, p1y - 12, 'bold 11px monospace', '#f9e2af');
 
-            // 8. RENDER PERSISTENT IMPACT MARKS
+            // 8. RENDER PERSISTENT IMPACT MARKS WITH HOVER HIGHLIGHT
             detectorImpactMarks.forEach(mark => {
                 const px = mark.normX * w;
                 const py = mark.normY * h;
 
+                const isHovered = hoveredMark && hoveredMark.a === mark.a;
+
                 specCtx.fillStyle = mark.color;
                 specCtx.shadowColor = mark.color;
-                specCtx.shadowBlur = 10;
+                specCtx.shadowBlur = isHovered ? 20 : 10;
                 specCtx.beginPath();
-                specCtx.arc(px, py, 6, 0, Math.PI * 2);
+                specCtx.arc(px, py, isHovered ? 9 : 6, 0, Math.PI * 2);
                 specCtx.fill();
+
+                if (isHovered) {
+                    specCtx.strokeStyle = '#ffffff';
+                    specCtx.lineWidth = 2;
+                    specCtx.stroke();
+                }
 
                 specCtx.fillStyle = '#ffffff';
                 specCtx.font = 'bold 10px monospace';
@@ -646,7 +664,7 @@
                 specCtx.shadowBlur = 0;
             });
 
-            // 9. ANIMATE ION PARTICLES WITH WAVE TRAILS AND EXACT SEGMENT INTERSECTION
+            // 9. ANIMATE ION PARTICLES WITH WAVE TRAILS
             const speed = 0.006 + (eField * 0.0003);
 
             for (let i = activeIons.length - 1; i >= 0; i--) {
@@ -661,11 +679,9 @@
                     ion.normX += speed;
                     if (px >= magStartX) {
                         ion.stage = 'deflection';
-                        // Calibrated deflection step to prevent over-rotation around lower magnet
                         ion.deflectionFactor = Math.min(0.012, (0.0028 / (ion.iso.actualMass * 0.065)) * (bField / 0.5));
                     }
                 } else if (ion.stage === 'deflection') {
-                    // Maximum deflection angle clamp to prevent orbiting/revolving backwards around magnet
                     if (ion.angle < 0.45) {
                         ion.angle += ion.deflectionFactor;
                     }
@@ -679,7 +695,6 @@
                     ion.normX += Math.cos(ion.angle) * speed;
                     ion.normY += Math.sin(ion.angle) * speed;
 
-                    // Exact segment collision check between movement vector and flat detector line segment
                     const nextPx = ion.normX * w;
                     const nextPy = ion.normY * h;
                     const hitPoint = lineIntersect(prevPx, prevPy, nextPx, nextPy, p1x, p1y, p2x, p2y);
@@ -702,7 +717,6 @@
                         continue;
                     }
 
-                    // Remove stray particles that go past canvas boundaries
                     if (nextPx > w || nextPy > h || nextPy < 0) {
                         activeIons.splice(i, 1);
                         continue;
@@ -712,7 +726,6 @@
                 px = ion.normX * w;
                 py = ion.normY * h;
 
-                // De Broglie Quantum Matter Wave Trail
                 ion.history.push({ x: px, y: py });
                 if (ion.history.length > 18) ion.history.shift();
 
@@ -723,7 +736,6 @@
 
                     for (let j = 0; j < ion.history.length; j++) {
                         const pt = ion.history[j];
-                        // Wave amplitude inversely proportional to momentum
                         const waveOffset = Math.sin(j * 0.8) * (3.5 / Math.sqrt(ion.iso.actualMass));
                         const wx = pt.x + Math.sin(ion.angle) * waveOffset;
                         const wy = pt.y - Math.cos(ion.angle) * waveOffset;
@@ -745,6 +757,59 @@
 
             requestAnimationFrame(drawSpectrometer);
         }
+
+        // HOVER TOOLTIP INTERACTION FOR THE DETECTOR SCREEN PLATE
+        specContainer.addEventListener('mousemove', (e) => {
+            const rect = specContainer.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const w = specCanvas.width;
+            const h = specCanvas.height;
+
+            let closestMark = null;
+            let minDist = 25;
+
+            detectorImpactMarks.forEach(mark => {
+                const px = mark.normX * w;
+                const py = mark.normY * h;
+                const dist = Math.hypot(mouseX - px, mouseY - py);
+
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestMark = mark;
+                }
+            });
+
+            hoveredMark = closestMark;
+
+            if (closestMark) {
+                const iso = getIsoByA(closestMark.a);
+                const hits = spectrumHits[iso.a] || 0;
+                const sumMass = (iso.z * mp) + (iso.n * mn) + (iso.z * me);
+                const deltaM = Math.max(0, sumMass - iso.actualMass);
+
+                detectorTooltip.style.display = 'block';
+                detectorTooltip.style.left = `${Math.min(rect.width - 200, mouseX + 15)}px`;
+                detectorTooltip.style.top = `${Math.max(10, mouseY - 20)}px`;
+                detectorTooltip.innerHTML = `
+                    <b style="color:${iso.color}">📍 DETECTOR IMPACT TARGET</b><br>
+                    Isotope: <b>${iso.name}</b><br>
+                    Mass Number (A): <b>${iso.a}</b><br>
+                    Measured Mass: <b>${iso.actualMass.toFixed(4)} amu</b><br>
+                    Mass Defect (Δm): <b>${deltaM.toFixed(4)} amu</b><br>
+                    Detector Hits: <span style="color:var(--accent-yellow)"><b>${hits}</b></span>
+                `;
+                updateTelemetry(iso);
+            } else {
+                detectorTooltip.style.display = 'none';
+            }
+        });
+
+        specContainer.addEventListener('mouseleave', () => {
+            hoveredMark = null;
+            detectorTooltip.style.display = 'none';
+        });
 
         function getSampleRange() {
             if (activeSample === "HYDROGEN") return { minA: 0.5, maxA: 3.5, label: "Hydrogen Isotopes (A = 1 to 3)" };
