@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Angular Momentum & Vector Cone Visualizer - GIT GUD Physics</title>
+
+    <!-- Suite Assets & Parent Theme -->
+    <link rel="icon" type="image/png" href="./icon-512.png">
+    <link rel="apple-touch-icon" href="./icon-512.png">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="../theme.css">
+
+    <!-- Legal IP Assertions -->
+    <meta name="author" content="Jorge Victor M. Sales">
+    <meta name="copyright" content="Copyright © 2026 Jorge Victor M. Sales. All rights reserved.">
+
+    <style>
+        :root {
+            --canvas-bg: #0d0e15;
+            --panel-bg: #181825;
+            --border-color: #45475a;
+            --text-main: #cdd6f4;
+            --text-sub: #a6adc8;
+            --accent-blue: #89b4fa;
+            --accent-green: #a6e3a1;
+            --accent-red: #f38ba8;
+            --accent-yellow: #f9e2af;
+            --accent-purple: #cba6f7;
+            --accent-orange: #fab387;
+            --accent-cyan: #89dceb;
+        }
+
+        [data-theme="light"] {
+            --canvas-bg: #e6e9ef;
+            --panel-bg: #dce0e8;
+            --border-color: #bcc0cc;
+            --text-main: #4c4f69;
+            --text-sub: #5c5f77;
+            --accent-blue: #1e66f5;
+            --accent-green: #40a02b;
+            --accent-red: #d20f39;
+            --accent-yellow: #df8e1d;
+            --accent-purple: #8839ef;
+            --accent-orange: #fe640b;
+            --accent-cyan: #04a5e5;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--canvas-bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; overflow-y: auto; }
+
+        header {
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            position: sticky;
+            top: 0;
+        }
+
+        .nav-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 15px;
+            padding: 15px;
+            flex: 1;
+            min-height: calc(100vh - 55px);
+            box-sizing: border-box;
+        }
+        @media (max-width: 1100px) { 
+            .workspace { 
+                grid-template-columns: 1fr; 
+                height: auto;
+            } 
+        }
+
+        .viewport-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .select-input {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.88rem;
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 540px;
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            cursor: grab;
+        }
+        .canvas-container:active { cursor: grabbing; }
+        canvas#quantumCanvas { width: 100%; height: 100%; display: block; }
+
+        .sidebar { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            overflow-y: auto; 
+            max-height: calc(100vh - 80px);
+            padding-right: 4px;
+        }
+        @media (max-width: 1100px) {
+            .sidebar {
+                max-height: none;
+                overflow-y: visible;
+            }
+        }
+
+        .panel-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+        }
+        .panel-title {
+            font-size: 0.92rem;
+            font-weight: bold;
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .slider-group label { font-size: 0.82rem; font-weight: 600; display: flex; justify-content: space-between; }
+        .slider-group input { width: 100%; accent-color: var(--accent-blue); }
+
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 0.82rem;
+            font-family: monospace;
+        }
+        .telemetry-label { color: var(--text-sub); }
+        .telemetry-val { font-weight: bold; color: var(--accent-yellow); }
+
+        .calc-box {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.78rem;
+        }
+        .calc-line { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .calc-highlight { color: var(--accent-red); font-weight: bold; border-top: 1px solid var(--border-color); padding-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="nav-group">
+            <a href="./index.html" class="btn">🔬 Physics Suite</a>
+            <h2 style="font-size: 1rem; color: var(--accent-blue);">Quantum Angular Momentum & Vector Cone Visualizer</h2>
+        </div>
+        <div class="nav-group">
+            <button class="btn" id="audioToggleBtn" onclick="toggleAudio()">🔊 Audio: ON</button>
+            <button class="btn" onclick="toggleTheme()">🌙 Theme</button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <!-- LEFT 3D VECTOR CONE VIEWPORT -->
+        <div class="viewport-card">
+            <div class="controls-bar">
+                <div class="nav-group">
+                    <label style="font-size:0.85rem; font-weight:bold; color:var(--accent-yellow);">Mode:</label>
+                    <select class="select-input" id="modeSelect" onchange="changeMode()">
+                        <option value="SINGLE" selected>Single Electron Orbital Cone (l, ml)</option>
+                        <option value="STACK">Space Quantization Stack (All ml States)</option>
+                        <option value="LS">L-S Coupling Vector Addition (J = L + S)</option>
+                    </select>
+                </div>
+                <div class="nav-group">
+                    <button class="btn" onclick="togglePrecession()">⏯️ Pause/Play Precession</button>
+                    <button class="btn" onclick="resetView()">🔄 Reset 3D View</button>
+                </div>
+            </div>
+
+            <div class="canvas-container" id="canvasWrapper">
+                <canvas id="quantumCanvas"></canvas>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE CONTROL & TELEMETRY PANEL -->
+        <div class="sidebar">
+            <div class="panel-card">
+                <div class="panel-title">Quantum State Controls</div>
+                
+                <div class="slider-group" id="lSliderGroup">
+                    <label>Orbital Quantum Number (l): <span id="lVal" style="color:var(--accent-cyan);">l = 2 (d-subshell)</span></label>
+                    <input type="range" id="lSlider" min="0" max="4" step="1" value="2" oninput="updateQuantumNumbers()">
+                </div>
+
+                <div class="slider-group" id="mlSliderGroup">
+                    <label>Magnetic Quantum Number (mₗ): <span id="mlVal" style="color:var(--accent-purple);">mₗ = +1</span></label>
+                    <input type="range" id="mlSlider" min="-2" max="2" step="1" value="1" oninput="updateQuantumNumbers()">
+                </div>
+
+                <div class="slider-group" id="spinSliderGroup" style="display:none;">
+                    <label>Spin Projection (mₛ): <span id="spinVal" style="color:var(--accent-orange);">+1/2 (Up)</span></label>
+                    <input type="range" id="spinSlider" min="-0.5" max="0.5" step="1" value="0.5" oninput="updateQuantumNumbers()">
+                </div>
+
+                <div class="slider-group">
+                    <label>Larmor Precession Speed: <span id="speedVal" style="color:var(--accent-green);">1.0×</span></label>
+                    <input type="range" id="speedSlider" min="0.1" max="3.0" step="0.1" value="1.0" oninput="updateSpeed()">
+                </div>
+            </div>
+
+            <!-- TELEMETRY & QUANTUM FORMULA CARD -->
+            <div class="panel-card">
+                <div class="panel-title">📐 Quantum Angular Momentum Telemetry</div>
+                
+                <div class="telemetry-row"><span class="telemetry-label">Subshell Designation:</span><span class="telemetry-val" id="subshellLabel">3d subshell</span></div>
+                <div class="telemetry-row"><span class="telemetry-label">Total Orientations (2l + 1):</span><span class="telemetry-val" id="orientationsVal">5 states</span></div>
+
+                <div class="calc-box">
+                    <div class="calc-line"><span style="color:var(--accent-blue);">Vector Length |L| = √(l(l+1)) ℏ:</span><span id="magVal">2.449 ℏ</span></div>
+                    <div class="calc-line"><span style="color:var(--accent-purple);">Z-Projection L_z = m_l ℏ:</span><span id="lzVal">+1.000 ℏ</span></div>
+                    <div class="calc-line calc-highlight"><span>Cone Tilt Angle θ = arccos(L_z / |L|):</span><span id="angleVal">65.91°</span></div>
+                    <div class="calc-line" style="color:var(--accent-yellow); font-weight:bold; border-top:1px dashed var(--border-color); padding-top:4px; margin-top:4px;">
+                        <span>Transverse Uncertainty √(L_x² + L_y²):</span>
+                        <span id="transverseVal">2.236 ℏ</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-title">💡 Pedagogical Physics Notes</div>
+                <p style="font-size:0.78rem; color:var(--text-sub); line-height:1.4;">
+                    Due to Heisenberg's Uncertainty Principle, the transverse components $L_x$ and $L_y$ cannot be measured simultaneously with $L_z$. Consequently, the angular momentum vector $\vec{L}$ precesses continuously around the $z$-axis on the surface of a cone with fixed projection $m_l \hbar$.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../theme.js"></script>
+    <script>
+        const canvas = document.getElementById('quantumCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasWrapper = document.getElementById('canvasWrapper');
+
+        let mode = "SINGLE"; // "SINGLE", "STACK", "LS"
+        let l = 2;
+        let ml = 1;
+        let ms = 0.5;
+        let precessionSpeed = 1.0;
+        let isPrecessPaused = false;
+        let audioEnabled = true;
+
+        // 3D Rotation angles for user interaction
+        let rotX = 0.35;
+        let rotY = 0.45;
+        let isDragging = false;
+        let prevMouseX = 0;
+        let prevMouseY = 0;
+
+        let precessionAngle = 0;
+
+        // Web Audio Synthesizer Engine
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            document.getElementById('audioToggleBtn').innerText = audioEnabled ? '🔊 Audio: ON' : '🔇 Audio: OFF';
+        }
+
+        function playTone(freq) {
+            if (!audioEnabled) return;
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.11);
+        }
+
+        function resizeCanvas() {
+            canvas.width = canvasWrapper.clientWidth;
+            canvas.height = canvasWrapper.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Interactive 3D Drag Rotation
+        canvasWrapper.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            prevMouseX = e.clientX;
+            prevMouseY = e.clientY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - prevMouseX;
+            const dy = e.clientY - prevMouseY;
+            rotY += dx * 0.008;
+            rotX += dy * 0.008;
+            prevMouseX = e.clientX;
+            prevMouseY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        function resetView() {
+            rotX = 0.35;
+            rotY = 0.45;
+        }
+
+        function togglePrecession() {
+            isPrecessPaused = !isPrecessPaused;
+            playTone(440);
+        }
+
+        function changeMode() {
+            mode = document.getElementById('modeSelect').value;
+            const spinGroup = document.getElementById('spinSliderGroup');
+            spinGroup.style.display = mode === 'LS' ? 'flex' : 'none';
+            updateQuantumNumbers();
+            playTone(520);
+        }
+
+        function updateSpeed() {
+            precessionSpeed = parseFloat(document.getElementById('speedSlider').value);
+            document.getElementById('speedVal').innerText = `${precessionSpeed.toFixed(1)}×`;
+        }
+
+        function updateQuantumNumbers() {
+            l = parseInt(document.getElementById('lSlider').value);
+            
+            const mlSlider = document.getElementById('mlSlider');
+            mlSlider.min = -l;
+            mlSlider.max = l;
+            if (parseInt(mlSlider.value) > l) mlSlider.value = l;
+            if (parseInt(mlSlider.value) < -l) mlSlider.value = -l;
+            ml = parseInt(mlSlider.value);
+
+            ms = parseFloat(document.getElementById('spinSlider').value);
+
+            const subshellNames = ['s', 'p', 'd', 'f', 'g'];
+            document.getElementById('lVal').innerText = `l = ${l} (${subshellNames[l]}-subshell)`;
+            document.getElementById('mlVal').innerText = `mₗ = ${ml >= 0 ? '+' + ml : ml}`;
+            document.getElementById('spinVal').innerText = ms > 0 ? '+1/2 (Up)' : '-1/2 (Down)';
+            document.getElementById('subshellLabel').innerText = `${l + 1}${subshellNames[l]} subshell`;
+            document.getElementById('orientationsVal').innerText = `${2 * l + 1} states`;
+
+            const mag = Math.sqrt(l * (l + 1));
+            const lz = ml;
+            const angleRad = mag > 0 ? Math.acos(lz / mag) : 0;
+            const angleDeg = (angleRad * 180 / Math.PI).toFixed(2);
+            const transverse = Math.sqrt(Math.max(0, mag * mag - lz * lz)).toFixed(3);
+
+            document.getElementById('magVal').innerText = `${mag.toFixed(3)} ℏ`;
+            document.getElementById('lzVal').innerText = `${lz >= 0 ? '+' : ''}${lz.toFixed(3)} ℏ`;
+            document.getElementById('angleVal').innerText = `${angleDeg}°`;
+            document.getElementById('transverseVal').innerText = `${transverse} ℏ`;
+
+            playTone(300 + l * 80 + ml * 30);
+        }
+
+        // 3D Isometric Projection Helper
+        function project3D(x, y, z, cx, cy, scale) {
+            // Rotate Y
+            let x1 = x * Math.cos(rotY) + z * Math.sin(rotY);
+            let z1 = -x * Math.sin(rotY) + z * Math.cos(rotY);
+
+            // Rotate X
+            let y2 = y * Math.cos(rotX) - z1 * Math.sin(rotX);
+            let z2 = y * Math.sin(rotX) + z1 * Math.cos(rotX);
+
+            return {
+                x: cx + x1 * scale,
+                y: cy - y2 * scale,
+                depth: z2
+            };
+        }
+
+        function drawCone(cx, cy, scale, lVal, mlVal, color, isDashed = false) {
+            if (lVal === 0) return;
+
+            const mag = Math.sqrt(lVal * (lVal + 1));
+            const lz = mlVal;
+            const rTransverse = Math.sqrt(Math.max(0, mag * mag - lz * lz));
+
+            // Cone base circle steps
+            const steps = 36;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = isDashed ? 1 : 1.5;
+            if (isDashed) ctx.setLineDash([3, 3]);
+
+            const apex = project3D(0, 0, 0, cx, cy, scale);
+
+            // Draw Base Ring
+            ctx.beginPath();
+            for (let i = 0; i <= steps; i++) {
+                const theta = (i / steps) * Math.PI * 2;
+                const bx = rTransverse * Math.cos(theta);
+                const by = rTransverse * Math.sin(theta);
+                const p = project3D(bx, by, lz, cx, cy, scale);
+
+                if (i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            }
+            ctx.stroke();
+
+            // Draw Cone Side Lines
+            for (let i = 0; i < 4; i++) {
+                const theta = (i / 4) * Math.PI * 2;
+                const bx = rTransverse * Math.cos(theta);
+                const by = rTransverse * Math.sin(theta);
+                const p = project3D(bx, by, lz, cx, cy, scale);
+
+                ctx.beginPath();
+                ctx.moveTo(apex.x, apex.y);
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        }
+
+        function drawPrecessVector(cx, cy, scale, lVal, mlVal, phi, color, label) {
+            const mag = Math.sqrt(lVal * (lVal + 1));
+            const lz = mlVal;
+            const rTransverse = Math.sqrt(Math.max(0, mag * mag - lz * lz));
+
+            const vx = rTransverse * Math.cos(phi);
+            const vy = rTransverse * Math.sin(phi);
+
+            const origin = project3D(0, 0, 0, cx, cy, scale);
+            const tip = project3D(vx, vy, lz, cx, cy, scale);
+
+            // Draw Main Vector Line
+            ctx.strokeStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(origin.x, origin.y);
+            ctx.lineTo(tip.x, tip.y);
+            ctx.stroke();
+
+            // Vector Arrow Head
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(tip.x, tip.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Z-projection projection line
+            const zProj = project3D(0, 0, lz, cx, cy, scale);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 4]);
+            ctx.beginPath();
+            ctx.moveTo(tip.x, tip.y);
+            ctx.lineTo(zProj.x, zProj.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Label
+            ctx.fillStyle = color;
+            ctx.font = 'bold 12px monospace';
+            ctx.fillText(label, tip.x + 8, tip.y - 4);
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2 + 20;
+            const scale = Math.min(canvas.width, canvas.height) * 0.11;
+
+            if (!isPrecessPaused) {
+                precessionAngle += 0.03 * precessionSpeed;
+            }
+
+            // Draw Coordinate Axes (X, Y, Z)
+            const origin = project3D(0, 0, 0, cx, cy, scale);
+            const xAxis = project3D(3.5, 0, 0, cx, cy, scale);
+            const yAxis = project3D(0, 3.5, 0, cx, cy, scale);
+            const zTop = project3D(0, 0, 3.5, cx, cy, scale);
+            const zBottom = project3D(0, 0, -3.5, cx, cy, scale);
+
+            ctx.strokeStyle = '#45475a';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+
+            // X Axis
+            ctx.beginPath(); ctx.moveTo(origin.x, origin.y); ctx.lineTo(xAxis.x, xAxis.y); ctx.stroke();
+            ctx.fillStyle = '#a6adc8'; ctx.font = '10px monospace'; ctx.fillText('x', xAxis.x + 5, xAxis.y);
+
+            // Y Axis
+            ctx.beginPath(); ctx.moveTo(origin.x, origin.y); ctx.lineTo(yAxis.x, yAxis.y); ctx.stroke();
+            ctx.fillText('y', yAxis.x + 5, yAxis.y);
+
+            // Z Axis
+            ctx.setLineDash([]);
+            ctx.strokeStyle = '#cba6f7';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(zBottom.x, zBottom.y); ctx.lineTo(zTop.x, zTop.y); ctx.stroke();
+            ctx.fillStyle = '#cba6f7'; ctx.font = 'bold 12px monospace'; ctx.fillText('z (Quantization Axis)', zTop.x - 40, zTop.y - 10);
+
+            if (mode === "SINGLE") {
+                // Render Single Quantum Cone
+                drawCone(cx, cy, scale, l, ml, 'rgba(137, 180, 250, 0.4)');
+                drawPrecessVector(cx, cy, scale, l, ml, precessionAngle, '#89b4fa', `L (l=${l}, mₗ=${ml >= 0 ? '+' : ''}${ml})`);
+            } else if (mode === "STACK") {
+                // Render Stack of All 2l+1 Orientations
+                for (let m = -l; m <= l; m++) {
+                    const isSelected = (m === ml);
+                    const color = isSelected ? '#89b4fa' : 'rgba(166, 173, 200, 0.25)';
+                    drawCone(cx, cy, scale, l, m, color, !isSelected);
+                    if (isSelected) {
+                        drawPrecessVector(cx, cy, scale, l, m, precessionAngle, '#89b4fa', `mₗ = ${m >= 0 ? '+' : ''}${m}`);
+                    }
+                }
+            } else if (mode === "LS") {
+                // Render L-S Vector Addition
+                drawCone(cx, cy, scale, l, ml, 'rgba(137, 180, 250, 0.3)');
+                drawPrecessVector(cx, cy, scale, l, ml, precessionAngle, '#89b4fa', 'L');
+
+                // Spin Vector S
+                const sVal = 0.5;
+                const msVal = ms;
+                drawPrecessVector(cx, cy, scale, sVal, msVal, precessionAngle + Math.PI, '#fab387', 'S');
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        resizeCanvas();
+        updateQuantumNumbers();
+        requestAnimationFrame(render);
+    </script>
+</body>
+</html>
