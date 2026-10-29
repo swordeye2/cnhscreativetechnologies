@@ -273,12 +273,12 @@
                 <div class="telemetry-row"><span class="telemetry-label">Total Orientations (2l + 1):</span><span class="telemetry-val" id="orientationsVal">5 states</span></div>
 
                 <div class="calc-box">
-                    <div class="calc-line"><span style="color:var(--accent-blue);">Vector Length |L| = √(l(l+1)) ℏ:</span><span id="magVal">2.449 ℏ</span></div>
+                    <div class="calc-line"><span style="color:var(--accent-blue);">Vector Length |L| = √(l(l+1)) ℏ:</span><span id="magVal">√6 ℏ = 2.449 ℏ</span></div>
                     <div class="calc-line"><span style="color:var(--accent-purple);">Z-Projection L_z = m_l ℏ:</span><span id="lzVal">+1.000 ℏ</span></div>
                     <div class="calc-line calc-highlight"><span>Cone Tilt Angle θ = arccos(L_z / |L|):</span><span id="angleVal">65.91°</span></div>
                     <div class="calc-line" style="color:var(--accent-yellow); font-weight:bold; border-top:1px dashed var(--border-color); padding-top:4px; margin-top:4px;">
-                        <span>Transverse Uncertainty √(L_x² + L_y²):</span>
-                        <span id="transverseVal">2.236 ℏ</span>
+                        <span>Transverse Uncertainty √(l(l+1) - m_l²):</span>
+                        <span id="transverseVal">√5 ℏ = 2.236 ℏ</span>
                     </div>
                 </div>
             </div>
@@ -286,7 +286,7 @@
             <div class="panel-card">
                 <div class="panel-title">💡 Pedagogical Physics Notes</div>
                 <p style="font-size:0.78rem; color:var(--text-sub); line-height:1.4;">
-                    Due to Heisenberg's Uncertainty Principle, the transverse components $L_x$ and $L_y$ cannot be measured simultaneously with $L_z$. Consequently, the angular momentum vector $\vec{L}$ precesses continuously around the $z$-axis on the surface of a cone with fixed projection $m_l \hbar$.
+                    Due to Heisenberg's Uncertainty Principle, $L_x$ and $L_y$ cannot be measured simultaneously with $L_z$. The total magnitude $|\vec{L}| = \sqrt{l(l+1)}\,\hbar$ is strictly greater than the maximum projection $L_z = l\,\hbar$, forcing the vector to precess along a cone.
                 </p>
             </div>
         </div>
@@ -298,7 +298,7 @@
         const ctx = canvas.getContext('2d');
         const canvasWrapper = document.getElementById('canvasWrapper');
 
-        let mode = "SINGLE"; // "SINGLE", "STACK", "LS"
+        let mode = "SINGLE";
         let l = 2;
         let ml = 1;
         let ms = 0.5;
@@ -306,7 +306,6 @@
         let isPrecessPaused = false;
         let audioEnabled = true;
 
-        // 3D Rotation angles for user interaction
         let rotX = 0.35;
         let rotY = 0.45;
         let isDragging = false;
@@ -315,7 +314,6 @@
 
         let precessionAngle = 0;
 
-        // Web Audio Synthesizer Engine
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
 
@@ -350,7 +348,6 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // Interactive 3D Drag Rotation
         canvasWrapper.addEventListener('mousedown', (e) => {
             isDragging = true;
             prevMouseX = e.clientX;
@@ -411,27 +408,38 @@
             document.getElementById('subshellLabel').innerText = `${l + 1}${subshellNames[l]} subshell`;
             document.getElementById('orientationsVal').innerText = `${2 * l + 1} states`;
 
-            const mag = Math.sqrt(l * (l + 1));
+            const magSq = l * (l + 1);
+            const mag = Math.sqrt(magSq);
             const lz = ml;
             const angleRad = mag > 0 ? Math.acos(lz / mag) : 0;
             const angleDeg = (angleRad * 180 / Math.PI).toFixed(2);
-            const transverse = Math.sqrt(Math.max(0, mag * mag - lz * lz)).toFixed(3);
+            const transSq = Math.max(0, magSq - lz * lz);
+            const transverse = Math.sqrt(transSq).toFixed(3);
 
-            document.getElementById('magVal').innerText = `${mag.toFixed(3)} ℏ`;
+            document.getElementById('magVal').innerText = `√${magSq} ℏ = ${mag.toFixed(3)} ℏ`;
             document.getElementById('lzVal').innerText = `${lz >= 0 ? '+' : ''}${lz.toFixed(3)} ℏ`;
             document.getElementById('angleVal').innerText = `${angleDeg}°`;
-            document.getElementById('transverseVal').innerText = `${transverse} ℏ`;
+            document.getElementById('transverseVal').innerText = `√${transSq} ℏ = ${transverse} ℏ`;
 
             playTone(300 + l * 80 + ml * 30);
         }
 
-        // 3D Isometric Projection Helper
+        function drawBadge(text, x, y, textColor, bgColor = 'rgba(13, 14, 21, 0.85)') {
+            ctx.font = 'bold 11px monospace';
+            const tw = ctx.measureText(text).width;
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(x - 4, y - 10, tw + 8, 14);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x - 4, y - 10, tw + 8, 14);
+            ctx.fillStyle = textColor;
+            ctx.fillText(text, x, y);
+        }
+
         function project3D(x, y, z, cx, cy, scale) {
-            // Rotate Y
             let x1 = x * Math.cos(rotY) + z * Math.sin(rotY);
             let z1 = -x * Math.sin(rotY) + z * Math.cos(rotY);
 
-            // Rotate X
             let y2 = y * Math.cos(rotX) - z1 * Math.sin(rotX);
             let z2 = y * Math.sin(rotX) + z1 * Math.cos(rotX);
 
@@ -449,7 +457,6 @@
             const lz = mlVal;
             const rTransverse = Math.sqrt(Math.max(0, mag * mag - lz * lz));
 
-            // Cone base circle steps
             const steps = 36;
             ctx.strokeStyle = color;
             ctx.lineWidth = isDashed ? 1 : 1.5;
@@ -457,7 +464,6 @@
 
             const apex = project3D(0, 0, 0, cx, cy, scale);
 
-            // Draw Base Ring
             ctx.beginPath();
             for (let i = 0; i <= steps; i++) {
                 const theta = (i / steps) * Math.PI * 2;
@@ -470,7 +476,6 @@
             }
             ctx.stroke();
 
-            // Draw Cone Side Lines
             for (let i = 0; i < 4; i++) {
                 const theta = (i / 4) * Math.PI * 2;
                 const bx = rTransverse * Math.cos(theta);
@@ -486,9 +491,11 @@
         }
 
         function drawPrecessVector(cx, cy, scale, lVal, mlVal, phi, color, label) {
-            const mag = Math.sqrt(lVal * (lVal + 1));
+            const magSq = lVal * (lVal + 1);
+            const mag = Math.sqrt(magSq);
             const lz = mlVal;
-            const rTransverse = Math.sqrt(Math.max(0, mag * mag - lz * lz));
+            const transSq = Math.max(0, magSq - lz * lz);
+            const rTransverse = Math.sqrt(transSq);
 
             const vx = rTransverse * Math.cos(phi);
             const vy = rTransverse * Math.sin(phi);
@@ -496,7 +503,7 @@
             const origin = project3D(0, 0, 0, cx, cy, scale);
             const tip = project3D(vx, vy, lz, cx, cy, scale);
 
-            // Draw Main Vector Line
+            // Vector Line
             ctx.strokeStyle = color;
             ctx.shadowColor = color;
             ctx.shadowBlur = 10;
@@ -506,14 +513,13 @@
             ctx.lineTo(tip.x, tip.y);
             ctx.stroke();
 
-            // Vector Arrow Head
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(tip.x, tip.y, 5, 0, Math.PI * 2);
             ctx.fill();
             ctx.shadowBlur = 0;
 
-            // Z-projection projection line
+            // Z-projection line
             const zProj = project3D(0, 0, lz, cx, cy, scale);
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
             ctx.lineWidth = 1;
@@ -524,10 +530,13 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Label
-            ctx.fillStyle = color;
-            ctx.font = 'bold 12px monospace';
-            ctx.fillText(label, tip.x + 8, tip.y - 4);
+            // QUANTUM LEVEL LABELS & BADGES
+            drawBadge(`${label} = √${magSq} ℏ`, tip.x + 10, tip.y - 6, color);
+            drawBadge(`L_z = ${lz >= 0 ? '+' : ''}${lz} ℏ`, zProj.x - 45, zProj.y, '#cba6f7');
+
+            // Transverse uncertainty base label
+            const basePt = project3D(vx, vy, 0, cx, cy, scale);
+            drawBadge(`√(L_x²+L_y²) = √${transSq} ℏ`, basePt.x + 10, basePt.y + 12, '#f9e2af');
         }
 
         function render() {
@@ -541,7 +550,6 @@
                 precessionAngle += 0.03 * precessionSpeed;
             }
 
-            // Draw Coordinate Axes (X, Y, Z)
             const origin = project3D(0, 0, 0, cx, cy, scale);
             const xAxis = project3D(3.5, 0, 0, cx, cy, scale);
             const yAxis = project3D(0, 3.5, 0, cx, cy, scale);
@@ -552,41 +560,39 @@
             ctx.lineWidth = 1;
             ctx.setLineDash([3, 3]);
 
-            // X Axis
             ctx.beginPath(); ctx.moveTo(origin.x, origin.y); ctx.lineTo(xAxis.x, xAxis.y); ctx.stroke();
             ctx.fillStyle = '#a6adc8'; ctx.font = '10px monospace'; ctx.fillText('x', xAxis.x + 5, xAxis.y);
 
-            // Y Axis
             ctx.beginPath(); ctx.moveTo(origin.x, origin.y); ctx.lineTo(yAxis.x, yAxis.y); ctx.stroke();
             ctx.fillText('y', yAxis.x + 5, yAxis.y);
 
-            // Z Axis
             ctx.setLineDash([]);
             ctx.strokeStyle = '#cba6f7';
             ctx.lineWidth = 1.5;
             ctx.beginPath(); ctx.moveTo(zBottom.x, zBottom.y); ctx.lineTo(zTop.x, zTop.y); ctx.stroke();
-            ctx.fillStyle = '#cba6f7'; ctx.font = 'bold 12px monospace'; ctx.fillText('z (Quantization Axis)', zTop.x - 40, zTop.y - 10);
+            ctx.fillStyle = '#cba6f7'; ctx.font = 'bold 12px monospace'; ctx.fillText('z (Quantization Axis)', zTop.x - 45, zTop.y - 12);
 
             if (mode === "SINGLE") {
-                // Render Single Quantum Cone
                 drawCone(cx, cy, scale, l, ml, 'rgba(137, 180, 250, 0.4)');
-                drawPrecessVector(cx, cy, scale, l, ml, precessionAngle, '#89b4fa', `L (l=${l}, mₗ=${ml >= 0 ? '+' : ''}${ml})`);
+                drawPrecessVector(cx, cy, scale, l, ml, precessionAngle, '#89b4fa', 'L');
             } else if (mode === "STACK") {
-                // Render Stack of All 2l+1 Orientations
                 for (let m = -l; m <= l; m++) {
                     const isSelected = (m === ml);
                     const color = isSelected ? '#89b4fa' : 'rgba(166, 173, 200, 0.25)';
                     drawCone(cx, cy, scale, l, m, color, !isSelected);
+
+                    // Level label on quantization z-axis
+                    const zLevelPt = project3D(0, 0, m, cx, cy, scale);
+                    drawBadge(`m_l = ${m >= 0 ? '+' : ''}${m} ℏ`, zLevelPt.x - 65, zLevelPt.y, isSelected ? '#89b4fa' : '#a6adc8');
+
                     if (isSelected) {
-                        drawPrecessVector(cx, cy, scale, l, m, precessionAngle, '#89b4fa', `mₗ = ${m >= 0 ? '+' : ''}${m}`);
+                        drawPrecessVector(cx, cy, scale, l, m, precessionAngle, '#89b4fa', 'L');
                     }
                 }
             } else if (mode === "LS") {
-                // Render L-S Vector Addition
                 drawCone(cx, cy, scale, l, ml, 'rgba(137, 180, 250, 0.3)');
                 drawPrecessVector(cx, cy, scale, l, ml, precessionAngle, '#89b4fa', 'L');
 
-                // Spin Vector S
                 const sVal = 0.5;
                 const msVal = ms;
                 drawPrecessVector(cx, cy, scale, sVal, msVal, precessionAngle + Math.PI, '#fab387', 'S');
