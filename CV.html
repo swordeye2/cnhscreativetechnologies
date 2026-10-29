@@ -4,363 +4,348 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dr. Jorge Victor M. Sales, PhD - Curriculum Vitae</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        royal: {
-                            800: '#002673',
-                            900: '#003399',
-                            950: '#001a4d',
-                        },
-                        gold: {
-                            400: '#D4AF37',
-                            500: '#C5A059',
-                            600: '#A37F38',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
     <style>
-        /* Exact A4 Print Optimization */
-        @page {
-            size: A4;
-            margin: 12mm;
+        :root {
+            --primary-blue: #003399;
+            --accent-gold: #C5A059;
+            --dark-text: #1A1A1A;
+            --light-gray: #F8F9FA;
+            --border-color: #E2E8F0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            color: #1f2937;
-            background-color: #f8fafc;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            font-family: 'Calibri', 'Arial', sans-serif;
+            color: var(--dark-text);
+            background-color: #FFFFFF;
+            line-height: 1.45;
+            font-size: 10.5pt;
         }
 
-        .a4-container {
-            width: 210mm;
-            min-height: 297mm;
+        .cv-container {
+            max-width: 210mm;
             margin: 0 auto;
-            background: #ffffff;
+            padding: 15mm;
+            background: #FFFFFF;
         }
 
-        /* Screen Preview Card Shadow */
-        @media screen {
-            .a4-container {
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-                margin-top: 20px;
-                margin-bottom: 20px;
-                border-radius: 4px;
-            }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--primary-blue);
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+            gap: 15px;
         }
 
-        /* Print Override Styles */
+        .header-text {
+            flex: 1;
+        }
+
+        h1 {
+            font-size: 20pt;
+            color: var(--primary-blue);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+        }
+
+        .subtitle {
+            font-size: 11pt;
+            color: var(--accent-gold);
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .contact-info {
+            font-size: 9.5pt;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: #4A5568;
+        }
+
+        .contact-info item {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .photo-container {
+            width: 100px;
+            height: 120px;
+            border: 2px solid var(--accent-gold);
+            border-radius: 4px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background-color: var(--light-gray);
+        }
+
+        .profile-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        section {
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            font-size: 11pt;
+            color: var(--primary-blue);
+            text-transform: uppercase;
+            font-weight: bold;
+            border-bottom: 1px solid var(--accent-gold);
+            padding-bottom: 2px;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-p {
+            text-align: justify;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .skill-group {
+            background: var(--light-gray);
+            padding: 8px 10px;
+            border-left: 3px solid var(--primary-blue);
+            border-radius: 2px;
+        }
+
+        .skill-title {
+            font-weight: bold;
+            font-size: 9.5pt;
+            color: var(--primary-blue);
+            margin-bottom: 2px;
+        }
+
+        .job-card {
+            margin-bottom: 10px;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2px;
+        }
+
+        .job-title {
+            font-weight: bold;
+            color: var(--dark-text);
+            font-size: 10.5pt;
+        }
+
+        .job-company {
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+
+        .job-dates {
+            font-size: 9pt;
+            color: var(--accent-gold);
+            font-weight: bold;
+        }
+
+        ul {
+            padding-left: 16px;
+            margin-top: 3px;
+        }
+
+        li {
+            margin-bottom: 3px;
+            text-align: justify;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .edu-item, .elig-item {
+            margin-bottom: 6px;
+        }
+
+        .edu-degree {
+            font-weight: bold;
+            color: var(--dark-text);
+        }
+
+        .edu-school {
+            color: #4A5568;
+            font-size: 9.5pt;
+        }
+
+        .edu-date {
+            float: right;
+            color: var(--accent-gold);
+            font-size: 9pt;
+            font-weight: bold;
+        }
+
         @media print {
             body {
-                background: #ffffff !important;
-                padding: 0 !important;
+                background: white;
             }
-            .a4-container {
-                box-shadow: none !important;
-                margin: 0 !important;
-                width: 100% !important;
-                padding: 0 !important;
+            .cv-container {
+                padding: 0;
+                width: 100%;
             }
-            .no-print {
-                display: none !important;
+            @page {
+                size: A4;
+                margin: 12mm;
             }
-            .page-break-inside-avoid {
-                break-inside: avoid;
-            }
-        }
-
-        /* STAR Bullet Point Styles */
-        .star-bullet {
-            position: relative;
-            padding-left: 1.25rem;
-        }
-        .star-bullet::before {
-            content: "▪";
-            position: absolute;
-            left: 0;
-            color: #C5A059;
-            font-size: 1rem;
-            line-height: 1;
         }
     </style>
 </head>
-<body class="text-slate-800">
+<body>
 
-    <!-- Top Action Bar (Hides in PDF Print) -->
-    <div class="no-print bg-royal-900 text-white py-3 px-4 sticky top-0 z-50 border-b-2 border-gold-500 shadow-md">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-2 text-xs">
-                <span class="bg-gold-500 text-slate-900 font-bold px-2 py-0.5 rounded">ATS & A4 OPTIMIZED</span>
-                <span class="hidden sm:inline text-slate-200">| Ready for Export / Print</span>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button onclick="window.print()" class="bg-gold-500 hover:bg-gold-600 text-slate-900 font-bold px-4 py-1.5 rounded text-xs transition flex items-center shadow">
-                    <i class="fa-solid fa-file-pdf mr-2"></i> Print / Save as PDF
-                </button>
+<div class="cv-container">
+    <header>
+        <div class="header-text">
+            <h1>Dr. Jorge Victor M. Sales, PhD</h1>
+            <div class="subtitle">Educational Technology Specialist & Physics Research Consultant</div>
+            <div class="contact-info">
+                <span>📍 Baras, Catanduanes, Philippines</span>
+                <span>📱 +63 908-869-1218</span>
+                <span>✉️ jorge.victor.m.sales@gmail.com</span>
             </div>
         </div>
-    </div>
+        <div class="photo-container">
+            <img src="photo.jpg" alt="Dr. Jorge Victor M. Sales" class="profile-photo">
+        </div>
+    </header>
 
-    <!-- MAIN A4 DOCUMENT CONTAINER -->
-    <div class="a4-container p-8 sm:p-10 border border-slate-200">
+    <section>
+        <div class="section-title">Professional Summary</div>
+        <p class="summary-p">
+            Accomplished <strong>Educational Technology Specialist and Physics Educator</strong> holding a <strong>PhD in Science Education (Physics)</strong> from De La Salle University Manila[cite: 1]. Over 18 years of progressive leadership in secondary, tertiary, and graduate-level instruction, curriculum innovation, and regional research[cite: 1, 2, 4]. Honored as a <strong>Bayani sa Last Mile Awardee (DICT Region V)</strong> and international peer reviewer, with expertise in educational technology automation, statistical analysis, and action research frameworks[cite: 3, 4].
+        </p>
+    </section>
 
-        <!-- HEADER / BRANDING WITH PHOTO -->
-        <header class="border-b-2 border-royal-900 pb-5 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            
-            <div class="flex-1">
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-royal-900 tracking-tight">
-                    DR. JORGE VICTOR M. SALES, PhD
-                </h1>
-                <p class="text-gold-600 font-bold text-sm tracking-wide uppercase mt-0.5">
-                    Senior Educational Technology Specialist | Physics Research Consultant
-                </p>
-
-                <!-- ATS Contact Matrix -->
-                <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 font-medium">
-                    <div class="flex items-center">
-                        <i class="fa-solid fa-envelope text-royal-900 w-4 mr-1.5"></i>
-                        <a href="mailto:jorge.victor.m.sales@gmail.com" class="hover:underline">jorge.victor.m.sales@gmail.com</a>
-                    </div>
-                    <div class="flex items-center">
-                        <i class="fa-solid fa-phone text-royal-900 w-4 mr-1.5"></i>
-                        <span>+63 908-869-1218</span>
-                    </div>
-                    <div class="flex items-center">
-                        <i class="fa-solid fa-location-dot text-royal-900 w-4 mr-1.5"></i>
-                        <span>Baras, Catanduanes, Philippines</span>
-                    </div>
-                    <div class="flex items-center">
-                        <i class="fa-solid fa-id-card text-royal-900 w-4 mr-1.5"></i>
-                        <span>LET Rating: 84.4% (Lic. #1003385)</span>
-                    </div>
-                </div>
+    <section>
+        <div class="section-title">Core Competencies & Technical Skills</div>
+        <div class="skills-grid">
+            <div class="skill-group">
+                <div class="skill-title">Educational Technology & Automation</div>
+                <div>Python Programming & Robotics, MS Word/Excel Workflow Automation, LMS & OER Development, DRRM Municipal Planning[cite: 3, 4].</div>
             </div>
-
-            <!-- Professional Photo Container -->
-            <div class="shrink-0 w-28 h-36 rounded border-2 border-gold-500 overflow-hidden shadow-sm bg-slate-100">
-                <svg class="w-full h-full object-cover" viewBox="0 0 300 380" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Photo Silhouette / Frame Accent -->
-                    <rect width="300" height="380" fill="#f1f5f9"/>
-                    <path d="M150 110 C175 110 195 130 195 160 C195 190 175 210 150 210 C125 210 105 190 105 160 C105 130 125 110 150 110 Z" fill="#e2e8f0"/>
-                    <path d="M100 150 C100 110 120 95 150 95 C180 95 200 110 200 150 C190 120 170 110 150 110 C130 110 110 120 100 150 Z" fill="#1e293b"/>
-                    <path d="M70 340 L110 230 L150 260 L190 230 L230 340 Z" fill="#0f172a"/>
-                    <path d="M125 230 L150 280 L175 230 Z" fill="#FFFFFF"/>
-                    <path d="M143 235 L157 235 L160 310 L150 325 L140 310 Z" fill="#003399"/>
-                </svg>
+            <div class="skill-group">
+                <div class="skill-title">Pedagogy & Research Analytics</div>
+                <div>Physics & General Science Instruction, Scoping Research Methodologies, Statistical Data Analysis (MS Excel, Harzing's Publish or Perish)[cite: 1, 3, 4].</div>
             </div>
+        </div>
+    </section>
 
-        </header>
+    <section>
+        <div class="section-title">Professional Experience</div>
 
-        <!-- SECTION 1: PROFESSIONAL SUMMARY -->
-        <section class="mb-5 page-break-inside-avoid">
-            <h2 class="text-xs font-bold text-royal-900 uppercase tracking-wider border-b border-royal-900/30 pb-1 mb-2 flex items-center">
-                <i class="fa-solid fa-user-check text-gold-500 mr-2 text-xs"></i> Professional Summary
-            </h2>
-            <p class="text-xs text-slate-700 leading-relaxed text-justify">
-                Accomplished <strong>Educational Technology Specialist and Physics Educator</strong> holding a <strong>PhD in Science Education (Physics)</strong> from De La Salle University Manila. Demonstrates 18+ years of progressive impact across secondary, tertiary, and graduate instruction, curriculum design, and educational technology integration. Honored as a <strong>PAG-ONRA Bayani sa Last Mile Awardee (DICT Region V)</strong> for pioneering digital transformation in remote schools. Expert in Python coding, automated educational workflows, scoping research, and data science methodologies.
-            </p>
-        </section>
-
-        <!-- SECTION 2: CORE COMPETENCIES -->
-        <section class="mb-5 page-break-inside-avoid">
-            <h2 class="text-xs font-bold text-royal-900 uppercase tracking-wider border-b border-royal-900/30 pb-1 mb-2 flex items-center">
-                <i class="fa-solid fa-layer-group text-gold-500 mr-2 text-xs"></i> Core Competencies & Technical Skills
-            </h2>
-            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-                <div>
-                    <span class="font-bold text-slate-900 block text-[11px] uppercase text-royal-900">Education & Science Expertise:</span>
-                    <p class="text-slate-700 text-[11px]">Physics Pedagogy, Action Research (PDSA Framework), Scoping Research, STEM Curriculum Design, Educational Evaluation.</p>
-                </div>
-                <div>
-                    <span class="font-bold text-slate-900 block text-[11px] uppercase text-royal-900">Technical & Software Skills:</span>
-                    <p class="text-slate-700 text-[11px]">Python Programming & Robotics, MS Excel Statistical Modeling, Automated Form Workflows, Harzing's Publish/Perish, LMS Development.</p>
-                </div>
+        <div class="job-card">
+            <div class="job-header">
+                <div><span class="job-title">Adjunct Professor</span> — <span class="job-company">Centro Escolar University</span></div>
+                <div class="job-dates">05/2026 – Present</div>
             </div>
-        </section>
-
-        <!-- SECTION 3: PROFESSIONAL EXPERIENCE (STAR FRAMEWORK) -->
-        <section class="mb-5">
-            <h2 class="text-xs font-bold text-royal-900 uppercase tracking-wider border-b border-royal-900/30 pb-1 mb-3 flex items-center">
-                <i class="fa-solid fa-briefcase text-gold-500 mr-2 text-xs"></i> Professional Experience (STAR Framework)
-            </h2>
-
-            <div class="space-y-4">
-
-                <!-- ROLE 1 -->
-                <div class="page-break-inside-avoid">
-                    <div class="flex justify-between items-baseline">
-                        <h3 class="text-xs font-bold text-slate-900">ADJUNCT PROFESSOR</h3>
-                        <span class="text-[11px] font-semibold text-royal-900">05/2026 – Present</span>
-                    </div>
-                    <p class="text-[11px] text-gold-600 font-semibold mb-1">Centro Escolar University | Manila, Philippines</p>
-                    <ul class="text-xs text-slate-700 space-y-1">
-                        <li class="star-bullet"><strong>Situation & Action:</strong> Delivered graduate-level courses in educational technology and statistical methodologies to master's and doctoral students.</li>
-                        <li class="star-bullet"><strong>Result:</strong> Mentored 15+ postgraduate researchers in quantitative data analysis, increasing thesis completion rate and academic rigor.</li>
-                    </ul>
-                </div>
-
-                <!-- ROLE 2 -->
-                <div class="page-break-inside-avoid">
-                    <div class="flex justify-between items-baseline">
-                        <h3 class="text-xs font-bold text-slate-900">TEACHER VI (SENIOR HIGH SCHOOL)</h3>
-                        <span class="text-[11px] font-semibold text-royal-900">01/2026 – Present</span>
-                    </div>
-                    <p class="text-[11px] text-gold-600 font-semibold mb-1">Department of Education – Division of Catanduanes | Catanduanes, Philippines</p>
-                    <ul class="text-xs text-slate-700 space-y-1">
-                        <li class="star-bullet"><strong>Task & Action:</strong> Promoted to SG 16-1 to lead STEM physics curriculum delivery and oversee institutional educational technology integration across Senior High School programs.</li>
-                        <li class="star-bullet"><strong>Result:</strong> Designed automated learning tracking systems, cutting administrative report generation time by 40% division-wide.</li>
-                    </ul>
-                </div>
-
-                <!-- ROLE 3 -->
-                <div class="page-break-inside-avoid">
-                    <div class="flex justify-between items-baseline">
-                        <h3 class="text-xs font-bold text-slate-900">TEACHER III (SENIOR HIGH SCHOOL)</h3>
-                        <span class="text-[11px] font-semibold text-royal-900">06/2016 – 01/2026</span>
-                    </div>
-                    <p class="text-[11px] text-gold-600 font-semibold mb-1">Department of Education – Division of Catanduanes | Catanduanes, Philippines</p>
-                    <ul class="text-xs text-slate-700 space-y-1">
-                        <li class="star-bullet"><strong>Situation:</strong> Observed low engagement in Disaster Readiness and Risk Reduction (DRRR) subjects among senior high students.</li>
-                        <li class="star-bullet"><strong>Action:</strong> Engineered localized self-learning modules using the PDSA action research framework and incorporated digital simulations.</li>
-                        <li class="star-bullet"><strong>Result:</strong> Boosted student mastery scores by 28% and published research findings in international conference proceedings.</li>
-                    </ul>
-                </div>
-
-                <!-- ROLE 4 -->
-                <div class="page-break-inside-avoid">
-                    <div class="flex justify-between items-baseline">
-                        <h3 class="text-xs font-bold text-slate-900">RESEARCH ASSISTANT</h3>
-                        <span class="text-[11px] font-semibold text-royal-900">12/2022 – Present</span>
-                    </div>
-                    <p class="text-[11px] text-gold-600 font-semibold mb-1">De La Salle University | Manila, Philippines</p>
-                    <ul class="text-xs text-slate-700 space-y-1">
-                        <li class="star-bullet"><strong>Action & Result:</strong> Conducted quantitative statistical scoping analysis on educational technology frameworks, co-authoring 3+ peer-reviewed papers.</li>
-                    </ul>
-                </div>
-
-                <!-- ROLE 5 -->
-                <div class="page-break-inside-avoid">
-                    <div class="flex justify-between items-baseline">
-                        <h3 class="text-xs font-bold text-slate-900">TEACHER I & III (SECONDARY GRADES)</h3>
-                        <span class="text-[11px] font-semibold text-royal-900">08/2009 – 05/2016</span>
-                    </div>
-                    <p class="text-[11px] text-gold-600 font-semibold mb-1">Baras Rural Development High School | Catanduanes, Philippines</p>
-                    <ul class="text-xs text-slate-700 space-y-1">
-                        <li class="star-bullet"><strong>Action & Result:</strong> Taught physics and mathematics; introduced digital record management that reduced grading errors to under 1%.</li>
-                    </ul>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- SECTION 4: EDUCATION -->
-        <section class="mb-5 page-break-inside-avoid">
-            <h2 class="text-xs font-bold text-royal-900 uppercase tracking-wider border-b border-royal-900/30 pb-1 mb-2 flex items-center">
-                <i class="fa-solid fa-graduation-cap text-gold-500 mr-2 text-xs"></i> Education & Academic Credentials
-            </h2>
-
-            <div class="space-y-2 text-xs">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <span class="font-bold text-slate-900">Doctor of Philosophy (PhD) in Science Education - Major in Physics</span>
-                        <p class="text-slate-600 text-[11px]">De La Salle University Manila (2019 – 2025)</p>
-                    </div>
-                    <span class="bg-royal-900/10 text-royal-900 font-bold px-2 py-0.5 rounded text-[10px]">Doctorate</span>
-                </div>
-
-                <div class="flex justify-between items-start">
-                    <div>
-                        <span class="font-bold text-slate-900">Master of Arts in Teaching Physics</span>
-                        <p class="text-slate-600 text-[11px]">Catanduanes State University (2008 – 2017)</p>
-                    </div>
-                    <span class="bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded text-[10px]">Master's</span>
-                </div>
-
-                <div class="flex justify-between items-start">
-                    <div>
-                        <span class="font-bold text-slate-900">Bachelor of Secondary Education - Major in General Science</span>
-                        <p class="text-slate-600 text-[11px]">Catanduanes State University (2004 – 2008) — <strong class="text-gold-600">Cum Laude</strong></p>
-                    </div>
-                    <span class="bg-gold-500/20 text-gold-600 font-bold px-2 py-0.5 rounded text-[10px]">Honors</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION 5: CIVIL SERVICE & ELIGIBILITY -->
-        <section class="mb-5 page-break-inside-avoid">
-            <h2 class="text-xs font-bold text-royal-900 uppercase tracking-wider border-b border-royal-900/30 pb-1 mb-2 flex items-center">
-                <i class="fa-solid fa-id-card text-gold-500 mr-2 text-xs"></i> Civil Service Eligibility & Credentials
-            </h2>
-            <div class="grid grid-cols-2 gap-3 text-xs">
-                <div>
-                    <span class="font-bold text-slate-900 block">Licensure Examination for Teachers (LET)</span>
-                    <p class="text-slate-600 text-[11px]">Rating: 84.4% | License #1003385 (Valid thru 18/12/2028)</p>
-                </div>
-                <div>
-                    <span class="font-bold text-slate-900 block">Career Service Professional Eligibility</span>
-                    <p class="text-slate-600 text-[11px]">PD 907 - Professional Honor Graduate Eligibility (March 2008)</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECTION 6: HONORS & AWARDS -->
-        <section class="mb-5 page-break-inside-avoid">
-            <h2 class="text-xs font-bold text-royal-900 uppercase tracking-wider border-b border-royal-900/30 pb-1 mb-2 flex items-center">
-                <i class="fa-solid fa-trophy text-gold-500 mr-2 text-xs"></i> Honors, Consultancies & Recognitions
-            </h2>
-            <ul class="text-xs text-slate-700 space-y-1">
-                <li class="star-bullet"><strong>Awardee – PAG-ONRA 2026 Bayani sa Last Mile Awards:</strong> DICT Region V recognition for last-mile ICT empowerment.</li>
-                <li class="star-bullet"><strong>Awardee – Best Presenter (2022):</strong> 13th International Conference on E-Education, E-Business & E-Learning (IC4E 2022).</li>
-                <li class="star-bullet"><strong>Author & Lead Consultant:</strong> Authored Municipal Disaster Risk Reduction and Management (DRRM) Plan.</li>
-                <li class="star-bullet"><strong>Resource Speaker & Workshop Leader:</strong> Conducted regional workshops for DICT Region V (Python, Statistics & Form Automation).</li>
-                <li class="star-bullet"><strong>International Peer Reviewer:</strong> Reviewer for <em>IJIET</em> and <em>International Academic Forum</em>.</li>
+            <ul>
+                <li>Deliver graduate-level instruction and research mentoring in educational technology, physics pedagogy, and advanced instructional strategies[cite: 1, 2, 4].</li>
             </ul>
-        </section>
+        </div>
 
-        <!-- SECTION 7: CONTINUING PROFESSIONAL DEVELOPMENT -->
-        <section class="mb-5 page-break-inside-avoid">
-            <h2 class="text-xs font-bold text-royal-900 uppercase tracking-wider border-b border-royal-900/30 pb-1 mb-2 flex items-center">
-                <i class="fa-solid fa-certificate text-gold-500 mr-2 text-xs"></i> Continuous Professional Development (Selected)
-            </h2>
-            <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-700">
-                <div>• <strong>ARAL Series: Master Class on SEL (2026)</strong> — SEAMEO INNOTECH (16 hrs)</div>
-                <div>• <strong>16th Asian Conference on Education (2024)</strong> — IAF (40 hrs)</div>
-                <div>• <strong>Japanese Language Training N5 (2024)</strong> — Learn Japanese Center (120 hrs)</div>
-                <div>• <strong>Python Programming TOT (2023)</strong> — DICT Region V (40 hrs)</div>
+        <div class="job-card">
+            <div class="job-header">
+                <div><span class="job-title">Teacher VI / Senior High School Teacher</span> — <span class="job-company">Department of Education, Division of Catanduanes</span></div>
+                <div class="job-dates">06/2016 – Present</div>
+            </div>
+            <ul>
+                <li>Engineered and executed Senior High School STEM and science curricula, leading student cohorts to successful research outputs and regional conference presentations[cite: 1, 2, 4].</li>
+                <li>Spearheaded local action research using the PDSA framework to create and optimize Disaster Readiness and Risk Reduction (DRRR) self-learning modules[cite: 4].</li>
+                <li>Promoted from Teacher III to Teacher VI (SG 16-1) in recognition of consistent exemplary performance, advanced doctoral studies, and regional capacity-building engagements[cite: 1, 2, 3, 4].</li>
+            </ul>
+        </div>
+
+        <div class="job-card">
+            <div class="job-header">
+                <div><span class="job-title">Research Assistant</span> — <span class="job-company">De La Salle University Manila</span></div>
+                <div class="job-dates">12/2022 – Present</div>
+            </div>
+            <ul>
+                <li>Conduct quantitative data analysis, scoping literature reviews, and interdisciplinary educational technology research alongside university faculty[cite: 2, 4].</li>
+            </ul>
+        </div>
+
+        <div class="job-card">
+            <div class="job-header">
+                <div><span class="job-title">Secondary School Teacher (Teacher I - III)</span> — <span class="job-company">Baras Rural Development High School</span></div>
+                <div class="job-dates">08/2009 – 05/2016</div>
+            </div>
+            <ul>
+                <li>Taught secondary science and mathematics while introducing digital tools to enhance classroom management and student technical engagement[cite: 1, 2, 4].</li>
+            </ul>
+        </div>
+    </section>
+
+    <div class="two-column">
+        <section>
+            <div class="section-title">Education</div>
+            <div class="edu-item">
+                <span class="edu-date">2019 – 2025</span>
+                <div class="edu-degree">PhD in Science Education - Physics</div>
+                <div class="edu-school">De La Salle University Manila[cite: 1]</div>
+            </div>
+            <div class="edu-item">
+                <span class="edu-date">2008 – 2017</span>
+                <div class="edu-degree">Master of Arts in Teaching Physics</div>
+                <div class="edu-school">Catanduanes State University[cite: 1]</div>
+            </div>
+            <div class="edu-item">
+                <span class="edu-date">2004 – 2008</span>
+                <div class="edu-degree">BSEd - Major in General Science</div>
+                <div class="edu-school">Catanduanes State University (Cum Laude)[cite: 1]</div>
             </div>
         </section>
 
-        <!-- SECTION 8: MEMBERSHIPS -->
-        <section class="page-break-inside-avoid">
-            <h2 class="text-xs font-bold text-royal-900 uppercase tracking-wider border-b border-royal-900/30 pb-1 mb-2 flex items-center">
-                <i class="fa-solid fa-users text-gold-500 mr-2 text-xs"></i> Professional Memberships
-            </h2>
-            <p class="text-xs text-slate-700">
-                Philippine Association of Physics and Science Instructors (PAPSI) | Catanduanes State University Alumni Association | Kabalikat CIVICOM
-            </p>
+        <section>
+            <div class="section-title">Civil Service & Licenses</div>
+            <div class="elig-item">
+                <div class="edu-degree">Licensure Examination for Teachers (LET)</div>
+                <div class="edu-school">Rating: 84.4% | License No: 1003385[cite: 2]</div>
+            </div>
+            <div class="elig-item">
+                <div class="edu-degree">Career Service Professional</div>
+                <div class="edu-school">PD 907 - Professional Eligibility[cite: 2]</div>
+            </div>
+            <div class="elig-item">
+                <div class="edu-degree">Driver's License</div>
+                <div class="edu-school">Categories A, A1, B[cite: 3]</div>
+            </div>
         </section>
-
     </div>
+
+    <section>
+        <div class="section-title">Key Distinctions, Consultancies & Awards</div>
+        <ul>
+            <li><strong>Awardee – PAG-ONRA 2026 Bayani sa Last Mile Awards:</strong> DICT Region V[cite: 3].</li>
+            <li><strong>Awardee – Best Presenter (2022):</strong> 13th International Conference on E-Education, E-Business, E-Management and E-Learning (IC4E 2022)[cite: 3].</li>
+            <li><strong>Author & Lead Consultant:</strong> Authored the Municipal Plan for Disaster Risk Reduction and Management (DRRM)[cite: 3].</li>
+            <li><strong>Resource Speaker:</strong> DICT Region V & Department of Education (Python, Excel Statistics, Automation, Action Research)[cite: 3, 4].</li>
+            <li><strong>Peer Reviewer:</strong> <i>International Journal of Information and Education Technology</i> & <i>International Academic Forum</i>[cite: 3].</li>
+        </ul>
+    </section>
+</div>
 
 </body>
 </html>
