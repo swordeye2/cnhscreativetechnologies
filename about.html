@@ -1,55 +1,94 @@
-<!-- Platform Overview -->
-<div class="card-panel p-6">
-  <h2 class="text-xl font-bold text-[var(--accent,#89b4fa)] mb-3">🌐 Educational Vision & Platform Architecture</h2>
-  <p class="text-sm text-slate-300 leading-relaxed mb-4">
-    The <strong>RP2040 MicroPython Laboratory Suite</strong> (<code class="text-amber-300">rpithon.com</code>) is an interactive, open-access STEM learning platform created to bridge theoretical physical science with real-world embedded systems engineering. Designed for secondary and tertiary students, educators, and robotics enthusiasts, the suite provides real-time browser simulations decoupling physical mechanics from hardware execution logic.
-  </p>
-  <p class="text-sm text-slate-300 leading-relaxed">
-    By offering zero-setup HTML5 Canvas visualizers, students can analyze complex concepts—such as gas diffusion kinetics, thin-lens optics ray tracing, differential mobile kinematics, and quadcopter 6-DoF stability—while inspecting the exact MicroPython register calls (`duty_u16`, `read_u16`, hardware interrupts) driving physical actuators.
-  </p>
-</div>
-
-<!-- Core Objectives -->
-<div class="card-panel p-6 border-l-4 border-l-emerald-500">
-  <h2 class="text-xl font-bold text-[var(--accent,#89b4fa)] mb-3">🎯 Core Learning Objectives</h2>
-  <ul class="styled-list text-xs md:text-sm text-slate-300 space-y-2">
-    <li><strong>Interactive Physics Simulation:</strong> Visualize wave refraction, rotational inertia, salient pole magnetic vectors, and fluid thermodynamics in real time.</li>
-    <li><strong>Microcontroller Register Hardware Abstraction:</strong> Map 12-bit ADC inputs directly into 16-bit PWM duty cycles and 50Hz servo timing constraints.</li>
-    <li><strong>Student Safety & Accessibility:</strong> Zero installation required; fully compatible with desktop web browsers and mobile PWA/APK deployment in low-bandwidth educational environments.</li>
-    <li><strong>Automated Assessment:</strong> Diagnostic 40-minute review modules with randomized question pools, automated scoring, and cloud log integration for classroom teachers.</li>
-  </ul>
-</div>
-
-<!-- Author & Institutional Background -->
-<div class="card-panel p-6 border-l-4 border-l-amber-500">
-  <div class="flex flex-wrap justify-between items-start gap-4 mb-3">
-    <div>
-      <h2 class="text-xl font-bold text-[var(--accent,#89b4fa)]">👨‍🏫 Lead Author & Researcher</h2>
-      <span class="text-xs text-amber-400 font-mono font-bold">Jorge Victor M. Sales, Ph.D. (swordeye / thearbiter)</span>
+    <div class="header-content">
+      <h1>ℹ️ About the RP2040 Laboratory Suite</h1>
+      <p>Educational Vision, Platform Architecture & Institutional Context</p>
+      <div class="author-badge">
+        Author & Creator: <a href="./about_author.html" class="author-link">Dr. Jorge Victor M. Sales</a> (swordeye / thearbiter) | License: CC BY-NC-SA 4.0
+      </div>
     </div>
-    <a href="./about_author.html" class="px-3 py-1.5 rounded bg-[var(--accent,#89b4fa)] text-[#11111b] text-xs font-bold hover:opacity-90 transition-all">
-      View Full Research Profile →
-    </a>
   </div>
 
-  <p class="text-sm text-slate-300 leading-relaxed mb-4">
-    Dr. Jorge Victor M. Sales is a physics educator and research specialist affiliated with the <strong>Department of Education (DepEd) – Schools Division of Catanduanes</strong> and <strong>De La Salle University–Manila</strong>.
-  </p>
+  <div class="flex items-center gap-3 flex-wrap">
+    <a href="./index.html" class="nav-policy-btn">
+      <span>🏠</span> <span>Main Lab Hub</span>
+    </a>
 
-  <ul class="styled-list text-xs md:text-sm text-slate-300 space-y-2">
-    <li><strong>Academic Specialization:</strong> Doctor of Philosophy in Science Education (Major in Physics) from De La Salle University–Manila, focusing on Just-in-Time Teaching (JiTT), PhET simulations, and metacognitive mechanics problem solving.</li>
-    <li><strong>International Recognition:</strong> Awarded <em>Best Oral Presentation</em> at the 13th International Conference on E-Education, E-Business, E-Management and E-Learning (IC4E 2022).</li>
-    <li><strong>Community ICT Capacity Building:</strong> Technical resource speaker for DICT Region V, leading workshops on digital skills, robotics, and open-access STEM software design.</li>
+    <a href="./about_author.html" class="about-author-btn">
+      <span>👨‍🏫</span> <span>About Author</span>
+    </a>
+
+    <a href="./privacy.html" class="nav-policy-btn">
+      <span>🔒</span> <span>Privacy Policy</span>
+    </a>
+
+    <button class="theme-toggle-btn" id="themeBtn" onclick="toggleTheme()">
+      <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+    </button>
+  </div>
+</header>
+
+<!-- Card 1: Platform Overview -->
+<div class="card">
+  <h2>🌐 Educational Vision & Platform Architecture</h2>
+  <p>
+    The <strong>RP2040 MicroPython Laboratory Suite</strong> (<code style="color:var(--tag-color);">rpithon.com</code>) is an interactive, open-access STEM learning platform created to bridge theoretical physical science with real-world embedded systems engineering. Designed for secondary and tertiary students, educators, and robotics enthusiasts, the suite provides zero-setup browser visualizers that decouple physical mechanics from hardware execution logic.
+  </p>
+  <p>
+    By offering interactive HTML5 Canvas models, learners can analyze complex concepts—such as gas particle diffusion, ray optics focus equations, differential mobile robot steering, and quadcopter 6-DoF flight dynamics—while inspecting the exact MicroPython register calls (`duty_u16`, `read_u16`, hardware interrupts) driving physical hardware.
+  </p>
+  <div class="tag-container">
+    <span class="tag">HTML5 Canvas</span>
+    <span class="tag">MicroPython RP2040</span>
+    <span class="tag">Interactive Visualizer</span>
+    <span class="tag">Open-Access STEM</span>
+  </div>
+</div>
+
+<!-- Card 2: Core Learning Objectives -->
+<div class="card" style="border-left: 4px solid #a6e3a1;">
+  <h2>🎯 Core Educational Objectives</h2>
+  <ul class="styled-list">
+    <li><strong>Interactive Physics Modeling:</strong> Visualize light ray refraction, rotational moments of inertia, salient-pole rotor magnetic vectors, and gas thermodynamics in real time.</li>
+    <li><strong>Microcontroller Register Hardware Abstraction:</strong> Map 12-bit ADC input voltages directly into 16-bit PWM duty cycles and 50Hz servo timing constraints.</li>
+    <li><strong>Student Safety & Offline Accessibility:</strong> Zero installation or setup required; fully compatible with desktop web browsers and mobile PWA/APK deployment in low-bandwidth classroom environments.</li>
+    <li><strong>Automated Assessment & Research:</strong> Built-in 25-minute exam review modules with randomized question pools, automated scoring, and cloud log sync for classroom teachers.</li>
   </ul>
 </div>
 
-<!-- Copyright & Licensing -->
-<div class="card-panel p-6">
-  <h2 class="text-xl font-bold text-[var(--accent,#89b4fa)] mb-3">📜 Intellectual Property & Licensing</h2>
-  <p class="text-sm text-slate-300 leading-relaxed mb-3">
-    All simulation engines, custom SVG graphics, educational lesson materials, and MicroPython software mappings hosted on <code class="text-amber-300">rpithon.com</code> are copyright <strong>© 2026 Jorge Victor M. Sales</strong>.
+<!-- Card 3: Lead Author & Academic Context -->
+<div class="card" style="border-left: 4px solid var(--accent, #89b4fa);">
+  <h2>👨‍🏫 Lead Author & Researcher</h2>
+  <p>
+    <strong>Jorge Victor M. Sales, Ph.D.</strong> (swordeye / thearbiter) is a physics educator and research specialist affiliated with the <strong>Department of Education (DepEd) – Schools Division of Catanduanes</strong> and <strong>De La Salle University–Manila</strong>.
   </p>
-  <p class="text-xs text-[var(--text-sub,#a6adc8)] leading-relaxed">
+  <ul class="styled-list">
+    <li><strong>Academic Specialization:</strong> Ph.D. in Science Education (Major in Physics) from De La Salle University–Manila, focusing on Just-in-Time Teaching (JiTT), PhET simulations, and metacognitive mechanics problem solving.</li>
+    <li><strong>International Recognition:</strong> Awarded <em>Best Oral Presentation</em> at the 13th International Conference on E-Education, E-Business, E-Management and E-Learning (IC4E 2022).</li>
+    <li><strong>Community ICT Capacity Building:</strong> Technical resource speaker for DICT Region V, leading regional workshops on digital skills, robotics, and open-access STEM software design.</li>
+  </ul>
+</div>
+
+<!-- Card 4: Copyright & Licensing -->
+<div class="card">
+  <h2>📜 Intellectual Property & Licensing</h2>
+  <p>
+    All simulation engines, custom graphics, educational lesson materials, and MicroPython software mappings hosted on <code style="color:var(--tag-color);">rpithon.com</code> are copyright <strong>© 2026 Jorge Victor M. Sales</strong>.
+  </p>
+  <p style="font-size: 0.88rem;">
     Distributed under the <strong>Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)</strong>. Schools, teachers, and students are permitted to freely adapt and use these visualizers for non-commercial educational purposes provided attribution is maintained.
   </p>
 </div>
+
+<!-- Footer -->
+<footer class="flex flex-col items-center justify-center gap-2">
+  <div class="flex items-center gap-3">
+    <img src="./icon-512.png" alt="Logo" class="w-6 h-6 rounded-md opacity-80">
+    <span>RP2040 MicroPython Visualizers for CNHS Creative Technologies | © 2026 Jorge Victor M. Sales</span>
+  </div>
+  <div class="text-xs text-[var(--accent)] font-semibold mt-1 flex items-center gap-4 flex-wrap justify-center">
+    <a href="./index.html" class="hover:underline">Main Lab Hub</a>
+    <span>•</span>
+    <a href="./about_author.html" class="hover:underline">About Author (Dr. Jorge Victor M. Sales)</a>
+    <span>•</span>
+    <a href="./privacy.html" class="hover:underline">Privacy Policy</a>
+  </div>
+</footer>
