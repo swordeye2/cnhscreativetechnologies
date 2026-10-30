@@ -1,85 +1,245 @@
-<!-- Effective Date & Introduction -->
-<div class="card-panel p-6">
-  <div class="flex justify-between items-center mb-3 border-b border-[var(--card-border)] pb-2">
-    <span class="text-xs font-mono font-bold text-amber-400">Effective Date: January 1, 2026</span>
-    <span class="text-xs font-mono text-[var(--text-sub)]">Domain: rpithon.com</span>
-  </div>
-  <p class="text-sm text-slate-300 leading-relaxed mb-3">
-    The <strong>RP2040 MicroPython Laboratory Suite</strong> (<code class="text-amber-300">rpithon.com</code>), founded and authored by <strong>Jorge Victor M. Sales, Ph.D.</strong>, is committed to providing a transparent, secure, and privacy-first digital learning environment for secondary, tertiary, and independent STEM learners.
-  </p>
-  <p class="text-sm text-slate-300 leading-relaxed">
-    Because our visualizers and interactive mechatronic models are designed primarily for classroom and self-guided educational use, our core guiding principle is simple: <strong>We do not collect, harvest, store, or sell personal identifiable information (PII) from any user.</strong>
-  </p>
-</div>
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy | RP2040 MicroPython Laboratory Suite</title>
 
-<!-- COPPA & Learner Safety -->
-<div class="card-panel p-6 border-l-4 border-l-emerald-500">
-  <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)] mb-3">🛡️ Children's Online Privacy Protection (COPPA) & Student Safety</h2>
-  <p class="text-sm text-slate-300 leading-relaxed mb-3">
-    In compliance with the Children’s Online Privacy Protection Act (COPPA) and international educational safety protocols, <code class="text-amber-300">rpithon.com</code> does not knowingly collect personal information from children under 13 years of age.
-  </p>
-  <ul class="styled-list text-xs md:text-sm text-slate-300 space-y-2">
-    <li><strong>No Account Registration Required:</strong> Access to all interactive HTML5 simulation modules, circuit schematics, and MicroPython code visualizers is completely anonymous and open. No account creation, login credentials, or email disclosures are required.</li>
-    <li><strong>Client-Side Local Storage:</strong> User preferences (such as Catppuccin light/dark theme toggles and session-based quiz scores) are saved exclusively inside your local web browser (`localStorage` / `sessionStorage`) and are never transmitted to external servers.</li>
-  </ul>
-</div>
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png">
+  <link rel="manifest" href="./manifest.json">
 
-<!-- Monetization, AdSense & Cookies -->
-<div class="card-panel p-6 border-l-4 border-l-amber-500">
-  <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)] mb-3">📢 Advertising & Non-Personalized Ad Cookies</h2>
-  <p class="text-sm text-slate-300 leading-relaxed mb-3">
-    To support ongoing server hosting, open-access development, and maintenance of our free educational tools, <code class="text-amber-300">rpithon.com</code> displays non-intrusive advertisements managed via <strong>Google AdSense</strong>.
-  </p>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./theme.css">
 
-  <div class="p-4 bg-[#11111b] rounded-lg border border-[var(--card-border)] mb-4 text-xs font-mono space-y-2">
-    <div class="text-emerald-400 font-bold">AdSense Non-Personalized Mode Enforced:</div>
-    <div class="text-slate-300">
-      <code class="text-amber-300">(adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;</code>
+  <style>
+    :root, [data-theme="dark"] {
+      --bg-color: #1e1e2e;
+      --card-bg: #181825;
+      --card-border: #313244;
+      --text-main: #cdd6f4;
+      --text-sub: #a6adc8;
+      --accent: #89b4fa;
+      --inner-box: #11111b;
+      --tag-color: #fab387;
+      --btn-hover: #b4befe;
+    }
+
+    [data-theme="light"] {
+      --bg-color: #eff1f5;
+      --card-bg: #e6e9ef;
+      --card-border: #ccd0da;
+      --text-main: #4c4f69;
+      --text-sub: #6c6f85;
+      --accent: #1e66f5;
+      --inner-box: #dce0e8;
+      --tag-color: #fe640b;
+      --btn-hover: #7287fd;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      padding: 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .header-content h1 {
+      margin: 0 0 5px 0;
+      font-size: 1.6rem;
+      color: var(--accent);
+    }
+
+    .header-content p {
+      margin: 0;
+      color: var(--text-sub);
+      font-size: 0.9rem;
+    }
+
+    .nav-btn {
+      background: var(--card-border);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--btn-hover);
+      color: #11111b;
+    }
+
+    .content-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .content-card h2 {
+      margin-top: 0;
+      color: var(--accent);
+      font-size: 1.25rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .content-card p, .content-card li {
+      color: var(--text-main);
+      font-size: 0.92rem;
+    }
+
+    .content-card ul {
+      padding-left: 20px;
+      margin-bottom: 0;
+    }
+
+    .content-card li {
+      margin-bottom: 8px;
+    }
+
+    .inner-info-box {
+      background: var(--inner-box);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 14px;
+      margin-top: 12px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      border-top: 1px solid var(--card-border);
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="flex items-center gap-3">
+        <img src="./icon-512.png" alt="RP2040 Suite Logo" class="w-12 h-12 rounded-lg border border-[var(--card-border)] bg-[var(--inner-box)] p-1">
+        <div class="header-content">
+          <h1>🔒 Privacy Policy & Data Protections</h1>
+          <p>RP2040 MicroPython Laboratory Suite — Learner Data & Advertising Compliance Policy</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a href="./index.html" class="nav-btn">
+          <span>🏠</span> <span>Main Lab Hub</span>
+        </a>
+        <button class="nav-btn" id="themeBtn" onclick="toggleTheme()">
+          <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="content-card">
+      <h2>🛡️ Student Data Privacy Statement</h2>
+      <p>
+        The <strong>RP2040 MicroPython Laboratory Suite</strong> (<code>rpithon.com</code>) is built specifically for educational environments. We respect student privacy and do not require user accounts, email registration, passwords, or personal identity collection to access any simulator or review module.
+      </p>
     </div>
-    <div class="text-slate-400">
-      Our platform explicitly forces Google AdSense to serve <strong>non-personalized contextual ads only</strong> (Slot ID: `7135124606`). Non-personalized ads are targeted using contextual web page content rather than a user’s past search history or demographic tracking profile.
+
+    <div class="content-card">
+      <h2>👶 COPPA & Student Safety Compliance</h2>
+      <p>
+        In accordance with the Children's Online Privacy Protection Act (COPPA), <code>rpithon.com</code> does not knowingly collect personal information from children under 13.
+      </p>
+      <ul>
+        <li><strong>No Personal Tracking:</strong> We do not ask for or store real names, home addresses, or contact information.</li>
+        <li><strong>Non-Personalized Ads:</strong> Google AdSense is explicitly configured to serve <strong>non-personalized ads only</strong> across the entire domain. Advertisements are selected based on contextual content rather than student behavioral tracking.</li>
+      </ul>
+      <div class="inner-info-box">
+        // AdSense Non-Personalized Mode Configuration<br>
+        (adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
+      </div>
     </div>
+
+    <div class="content-card">
+      <h2>🍪 Cookies & Third-Party Vendors</h2>
+      <p>
+        While <code>rpithon.com</code> itself does not place tracking cookies, third-party vendors (including Google AdSense) may use cookies to serve non-personalized ads or manage frequency capping and ad performance reporting.
+      </p>
+      <ul>
+        <li>Users can manage or disable cookie preferences through their browser settings at any time.</li>
+        <li>For more information on how Google uses data in advertising, visit <a href="https://policies.google.com/technologies/ads" target="_blank" style="color:var(--accent);">Google's Advertising Policies</a>.</li>
+      </ul>
+    </div>
+
+    <div class="content-card">
+      <h2>📬 Contact & Administrative Inquiries</h2>
+      <p>
+        If you have questions regarding this privacy policy or educational platform administration, please contact:
+      </p>
+      <div class="inner-info-box" style="font-family:inherit;">
+        <strong>Platform Administrator:</strong> Dr. Jorge Victor M. Sales<br>
+        <strong>Educational Affiliation:</strong> DepEd Schools Division of Catanduanes / De La Salle University-Manila<br>
+        <strong>Domain:</strong> <code>https://rpithon.com</code>
+      </div>
+    </div>
+
+    <footer>
+      <div class="flex items-center justify-center gap-3">
+        <span>RP2040 MicroPython Suite | © 2026 Jorge Victor M. Sales</span>
+      </div>
+      <div style="margin-top:8px;">
+        <a href="./index.html">Main Lab Hub</a> • 
+        <a href="./about.html">About Platform</a> • 
+        <a href="./about_author.html">About Author</a>
+      </div>
+    </footer>
   </div>
 
-  <ul class="styled-list text-xs md:text-sm text-slate-300 space-y-2">
-    <li><strong>Third-Party Vendors:</strong> Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this website or other websites on the internet.</li>
-    <li><strong>Cookie Management:</strong> Cookies are small text files placed on your device to assist in frequency capping, aggregated ad reporting, and preventing click fraud. Users may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer" class="text-[var(--accent,#89b4fa)] underline">Google Ads Settings</a> or <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" class="text-[var(--accent,#89b4fa)] underline">aboutads.info</a>.</li>
-  </ul>
-</div>
-
-<!-- Analytics & Technical Logging -->
-<div class="card-panel p-6">
-  <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)] mb-3">📊 Technical Server Logs & Analytics</h2>
-  <p class="text-sm text-slate-300 leading-relaxed mb-3">
-    Like standard web servers, hosting platforms (such as GitHub Pages and CDN edge nodes) may log routine technical request header data, including:
-  </p>
-  <ul class="styled-list text-xs md:text-sm text-slate-300 space-y-1">
-    <li>IP addresses (processed anonymously for geographical request routing)</li>
-    <li>Browser type, language settings, and operating system version</li>
-    <li>Referring site URLs and page timestamp access logs</li>
-  </ul>
-  <p class="text-xs text-[var(--text-sub,#a6adc8)] mt-3">
-    This diagnostic information is utilized strictly to monitor system performance, optimize PWA service worker caching, and safeguard web application infrastructure against malicious traffic.
-  </p>
-</div>
-
-<!-- External Links & Third-Party Repositories -->
-<div class="card-panel p-6">
-  <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)] mb-3">🔗 Third-Party Services & External Links</h2>
-  <p class="text-sm text-slate-300 leading-relaxed">
-    Our pages contain links to external resources, such as GitHub repositories (`/app_version` directory for Android APK distribution), official DepEd portal links, and educational research archives. Please note that <code class="text-amber-300">rpithon.com</code> is not responsible for the privacy practices or content of third-party external web domains.
-  </p>
-</div>
-
-<!-- Contact Details -->
-<div class="card-panel p-6 border-l-4 border-l-[var(--accent,#89b4fa)]">
-  <h2 class="text-lg font-bold text-[var(--accent,#89b4fa)] mb-2">✉️ Privacy Contact & Inquiries</h2>
-  <p class="text-sm text-slate-300 leading-relaxed mb-2">
-    If you have questions regarding this privacy policy, data practices, or educational research integration, please contact the lead author:
-  </p>
-  <div class="text-xs font-mono space-y-1 text-slate-300">
-    <div><strong>Author:</strong> Jorge Victor M. Sales, Ph.D. (swordeye / thearbiter)</div>
-    <div><strong>Institutional Affiliation:</strong> DepEd – Schools Division of Catanduanes / DLSU–Manila</div>
-    <div><strong>Website Hub:</strong> <a href="https://rpithon.com" class="text-[var(--accent,#89b4fa)] underline">https://rpithon.com</a></div>
-  </div>
-</div>
+  <script src="./theme.js"></script>
+</body>
+</html>
