@@ -215,7 +215,7 @@
         <span id="timerText" class="font-bold text-sm">60:00</span>
       </div>
 
-      <button onclick="submitExam('Manual Student Submission')" class="bg-[#a6e3a1] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3.5 rounded-lg transition-all shadow-md">
+      <button onclick="confirmSubmitExam()" class="bg-[#a6e3a1] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3.5 rounded-lg transition-all shadow-md">
         📜 Submit Final Exam
       </button>
     </div>
@@ -230,10 +230,23 @@
     </div>
 
     <div id="questionsContainer" class="flex flex-col gap-6"></div>
+
+    <!-- BOTTOM EXAM SUBMISSION ACTION CONTAINER -->
+    <div id="bottomSubmitContainer" class="mt-8 mb-12 hidden">
+      <div class="glass-card p-6 text-center border-2 border-[#a6e3a1] shadow-2xl max-w-2xl mx-auto">
+        <h3 class="text-lg font-bold text-[#a6e3a1] mb-2">🏁 Reached End of Examination</h3>
+        <p class="text-xs text-[var(--text-sub)] font-mono mb-4">
+          Please review your selected answers above before submitting. Once submitted, your score will be locked on Google Sheets.
+        </p>
+        <button onclick="confirmSubmitExam()" class="w-full bg-[#a6e3a1] hover:opacity-90 text-[#11111b] text-sm font-bold py-3.5 px-6 rounded-lg transition-all shadow-lg font-mono uppercase tracking-wider">
+          📜 Submit Final Examination Paper
+        </button>
+      </div>
+    </div>
   </main>
 
   <script>
-    const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyIpydlsfnsBmAXcI_c3luOyjjCBqHeW6YeQio6KHHhs5lL03gAHWF1lWhKCVKUXYoV-g/exec";
+    const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwBAbJY9yNpiDubpB9pvedUrVK9lhZ648dBevZWvx4En0hec7FcTB6AhOF3nC7NYZr89w/exec";
 
     // --- BANK 1: TERM 2 SUMMATIVE 1 (30 Questions) ---
     const bankSummative1 = [
@@ -432,6 +445,7 @@
       fetch(`${GOOGLE_SCRIPT_WEB_APP_URL}?action=lock&code=${encodeURIComponent(validatedCodeStr)}`, { mode: 'no-cors' });
 
       document.getElementById('quizStartSplash').style.display = 'none';
+      document.getElementById('bottomSubmitContainer').classList.remove('hidden');
       examStarted = true;
 
       // Anti-Back Button Trap (Android / Mobile Protection)
@@ -577,6 +591,21 @@
       if (!examEnded) {
         userAnswers[qId] = optIdx;
         renderQuestions();
+      }
+    }
+
+    function confirmSubmitExam() {
+      if (examEnded) return;
+      const answeredCount = Object.keys(userAnswers).length;
+      const totalCount = activeQuestions.length;
+      
+      let confirmMsg = `Are you sure you want to finalize and submit your examination paper?\n\nAnswered: ${answeredCount} of ${totalCount} questions.`;
+      if (answeredCount < totalCount) {
+        confirmMsg += `\n⚠️ Warning: You have ${totalCount - answeredCount} unanswered questions!`;
+      }
+
+      if (confirm(confirmMsg)) {
+        submitExam('Manual Student Submission');
       }
     }
 
