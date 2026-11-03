@@ -14,13 +14,18 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./theme.css">
+
+  <!-- TensorFlow.js Core & COCO-SSD Object Detection Model -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;500;600;700&display=swap');
 
     * { 
       box-sizing: border-box; 
       font-family: 'Inter', sans-serif;
-      user-select: none; /* Prevents text selection */
+      user-select: none;
       -webkit-user-select: none;
     }
 
@@ -90,15 +95,15 @@
   <div id="quizStartSplash" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="glass-card max-w-lg w-full p-6 text-center relative border border-[#f38ba8] shadow-2xl my-auto max-h-[95vh] overflow-y-auto">
       <div class="border-b border-[var(--card-border)] pb-3 mb-4">
-        <span class="text-xs font-mono uppercase tracking-widest text-[#f38ba8] font-bold">🔒 Strict Proctored Major Assessment</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-[#f38ba8] font-bold">🤖 AI & Camera-Proctored Major Assessment</span>
         <h2 class="text-xl font-bold text-[var(--accent)] mt-1">Creative Technologies Major Exam</h2>
       </div>
 
       <div class="space-y-2 text-xs text-[var(--text-sub)] text-left bg-[#421e25]/40 p-3.5 rounded-lg border border-[#f38ba8] mb-4 leading-relaxed">
-        <p class="text-[#f38ba8] font-bold">⚠️ EXAM RULES & SECURITY PROTOCOLS:</p>
-        <p>• <strong>Strict 60-Minute Duration:</strong> Timer is active once launched. The exam automatically submits when time expires.</p>
-        <p>• <strong>Window & Tab Policy:</strong> Switching tabs or losing window focus triggers a <strong>1-TIME WARNING</strong>. A second offense instantly terminates and submits your paper.</p>
-        <p>• <strong>Cloud Recording:</strong> Score breakdown and security logs are recorded directly to the instructor's database.</p>
+        <p class="text-[#f38ba8] font-bold">📷 AI & WEBCAM PROCTORING RULES:</p>
+        <p>• <strong>Multi-Person Detection:</strong> If another person enters the camera frame beside you, a security strike will trigger.</p>
+        <p>• <strong>Presence & Focus Lock:</strong> Leaving camera view, covering the lens, or switching tabs receives a warning. 3rd strike automatically submits your test paper.</p>
+        <p>• <strong>Strict Duration:</strong> Exactly <strong>60 MINUTES</strong> countdown active once started.</p>
       </div>
 
       <div class="space-y-3 mb-5 text-left">
@@ -121,33 +126,32 @@
           </select>
         </div>
 
-        <!-- Mandatory Confirmation Checkbox -->
-        <div class="pt-2">
-          <label class="flex items-start gap-2.5 cursor-pointer bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)] hover:border-[#f38ba8]">
-            <input type="checkbox" id="confirmRulesCheck" onchange="toggleStartBtn()" class="mt-0.5 accent-[#f38ba8]">
-            <span class="text-xs text-[var(--text-main)] leading-snug">
-              I understand that I have strictly <strong>60 MINUTES</strong> to finish, and leaving or switching away from this tab will result in a warning and potential automatic submission.
-            </span>
-          </label>
+        <!-- Camera Status Feedback -->
+        <div id="camStatus" class="p-2.5 rounded-lg text-xs font-mono text-center bg-[var(--inner-box)] border border-[var(--card-border)] text-[#f9e2af]">
+          📷 Camera & AI Proctor: Click button below to initialize system.
         </div>
       </div>
 
+      <button id="initCamBtn" onclick="requestWebcamAndAI()" class="w-full bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-xs font-bold py-2.5 px-4 rounded-lg mb-3 transition-all">
+        🤖 Enable Camera & Load AI Proctor Engine
+      </button>
+
       <button id="startExamBtn" onclick="startProctoredExam()" disabled class="w-full bg-[#f38ba8] opacity-50 cursor-not-allowed text-[#11111b] text-sm font-bold py-3 px-4 rounded-lg transition-all shadow-lg">
-        🔒 Confirm Rules & Launch 60-Minute Exam →
+        🔒 Launch 60-Minute AI-Proctored Exam →
       </button>
     </div>
   </div>
 
-  <!-- TAB SHIFT WARNING MODAL (1ST OFFENSE) -->
+  <!-- WARNING MODAL (STRIKE SYSTEM) -->
   <div id="warningModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
     <div class="glass-card max-w-md w-full p-6 text-center border-2 border-[#fab387] shadow-2xl">
-      <div class="text-3xl mb-2">⚠️</div>
-      <h2 class="text-lg font-bold text-[#fab387]">SECURITY WARNING: FOCUS LOST</h2>
-      <p class="text-xs text-[var(--text-main)] mt-2 leading-relaxed bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)]">
-        You switched tabs or moved focus away from the exam window. This is your <strong>FIRST AND ONLY WARNING</strong>.
+      <div class="text-3xl mb-2">🚨</div>
+      <h2 class="text-lg font-bold text-[#fab387]" id="warningTitle">PROCTOR SECURITY WARNING</h2>
+      <p class="text-xs text-[var(--text-main)] mt-2 leading-relaxed bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)]" id="warningMsg">
+        Camera focus or window presence was lost.
       </p>
-      <p class="text-xs text-[#f38ba8] font-bold mt-3">
-        Any further tab or window switching will INSTANTLY lock and auto-submit your exam!
+      <p class="text-xs text-[#f38ba8] font-bold mt-3" id="warningStrikeText">
+        Strike 1 of 2. Exceeding warnings will instantly auto-submit your exam!
       </p>
       <button onclick="dismissWarning()" class="mt-5 w-full bg-[#fab387] hover:opacity-90 text-[#11111b] text-xs font-bold py-2.5 px-4 rounded-lg transition-all">
         I Understand - Resume Exam →
@@ -186,9 +190,15 @@
 
   <header class="max-w-6xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
     <div class="flex items-center gap-3">
-      <span class="text-xs font-mono tracking-wider uppercase text-[#f38ba8] font-bold">🔒 PROCTORED MODE ACTIVE</span>
-      <span class="text-[var(--card-border)]">|</span>
-      <span id="activeBankBadge" class="text-xs font-mono text-[var(--text-sub)]">Bank Loading...</span>
+      <!-- Live WebCam Stream Preview Header Widget -->
+      <div class="relative w-12 h-9 rounded bg-black border border-[var(--card-border)] overflow-hidden flex items-center justify-center">
+        <video id="headerCamVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+        <div id="camDot" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+      </div>
+      <div>
+        <span class="text-xs font-mono tracking-wider uppercase text-[#f38ba8] font-bold block">🤖 AI PROCTOR ACTIVE</span>
+        <span id="activeBankBadge" class="text-xs font-mono text-[var(--text-sub)]">Bank Loading...</span>
+      </div>
     </div>
 
     <div class="flex items-center gap-3 flex-wrap">
@@ -207,7 +217,7 @@
     <div class="text-center mb-6">
       <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight" id="examTitle">📝 Major Examination</h1>
       <p class="text-sm text-[#f38ba8] mt-1 max-w-3xl mx-auto font-mono">
-        ⚠️ Strictly 60 Minutes. You are allowed 1 warning for window switching before auto-submission.
+        ⚠️ Strictly 60 Minutes. Multi-person & camera monitoring active. 2 warning strikes allowed before auto-submission.
       </p>
     </div>
 
@@ -217,96 +227,51 @@
   <script>
     const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxssshzZu5lxu9FHbzZdD9EAOZgukeVAf7Itglf52hfYHdzMbAH-a02DdyrZauTxzwS/exec";
 
-    // --- BANK 1: TERM 2 SUMMATIVE 1 (30 Questions) ---
+    // --- BANK DATA ARRAYS ---
     const bankSummative1 = [
       { id: 101, topic: "Rotational Kinematics", q: "Modern computer HDDs store data on spinning platters. Model B spins at 7200 RPM. What is its exact angular velocity in standard SI units?", opts: ["A. 60 π rad/s", "B. 120 π rad/s", "C. 240 π rad/s", "D. 3600 π rad/s", "E. 7200 π rad/s"], ans: 2 },
-      { id: 102, topic: "Rotational Kinematics", q: "On a HDD platter spinning at constant ω, Point X is 1.5 cm from center and Point Y is 4.5 cm from center. Which statement compares their motion?", opts: ["A. Point X has lower angular and linear velocity.", "B. Point X has higher angular and linear velocity.", "C. Both points have identical angular velocity, but Point Y has 3x the linear speed of Point X.", "D. Both points have identical linear speed.", "E. Both points have identical linear velocity."], ans: 2 },
-      { id: 103, topic: "Rotational Kinematics", q: "Which of the following best defines angular velocity?", opts: ["A. Linear distance traveled per unit time.", "B. Rate of change of angular displacement with respect to time.", "C. Total time required for one revolution.", "D. Centripetal force toward center.", "E. Change of linear speed divided by mass."], ans: 1 },
-      { id: 104, topic: "Rotational Kinematics", q: "What is the standard formula used to calculate angular velocity when period T is known?", opts: ["A. ω = 2π / T", "B. ω = 2π × T", "C. ω = T / 2π", "D. ω = v / T", "E. ω = 2πr / T"], ans: 0 },
-      { id: 105, topic: "Rotational Kinematics", q: "A flywheel completes 10 radians of angular displacement in 2 seconds. What is its average angular velocity in rad/s?", opts: ["A. 0.2", "B. 5", "C. 8", "D. 12", "E. 20"], ans: 1 },
-      { id: 106, topic: "Rotational Kinematics", q: "Which statement best describes the direction of tangential velocity for an object in circular motion?", opts: ["A. Pointed toward center", "B. Pointed away from center", "C. Parallel to radius", "D. Tangent to the circular path at any given instant", "E. Opposite to angular displacement"], ans: 3 },
-      { id: 107, topic: "Rotational Kinematics", q: "What is the standard formula relating tangential velocity, radius, and angular velocity?", opts: ["A. v = ω / r", "B. v = ω × r", "C. v = r ω", "D. v = ω² × r", "E. v = 2πω × r"], ans: 2 },
-      { id: 108, topic: "Rotational Kinematics", q: "A child on a merry-go-round sits at r = 2 m. If it completes 1 full rotation in 4 seconds, what is tangential velocity in m/s?", opts: ["A. 0.5 π m/s", "B. 1.0 π m/s", "C. 2.0 π m/s", "D. 4.0 π m/s", "E. 8.0 π m/s"], ans: 1 },
-      { id: 109, topic: "Rotational Kinematics", q: "A grinding wheel rotates with w = 10 rad/s. What is tangential speed of a point at r = 0.15 m?", opts: ["A. 0.015 m/s", "B. 0.67 m/s", "C. 1.5 m/s", "D. 15 m/s", "E. 66.7 m/s"], ans: 2 },
-      { id: 110, topic: "Units", q: "What is the standard SI unit for tangential velocity?", opts: ["A. Radians per second", "B. Revolutions per minute", "C. Meters per second", "D. Radians per second squared", "E. Meters per second squared"], ans: 2 },
-      { id: 111, topic: "Rotational Kinematics", q: "Centrifuge sample positions: Position A at 6 cm, Position B at 12 cm. Spinning at 3000 RPM, evaluate tangential and angular velocities.", opts: ["A. Same tangential velocity, double angular velocity.", "B. Position B has 2x tangential velocity of Position A; both share exact same angular velocity.", "C. Position B has 4x tangential velocity.", "D. Position A has 2x tangential velocity.", "E. Neither has tangential velocity."], ans: 1 },
-      { id: 112, topic: "Earth Kinematics", q: "Why prefer launching rockets eastward from near Equator rather than near Poles?", opts: ["A. Equator has higher angular velocity.", "B. Equator is further from Earth axis, giving higher initial eastward tangential speed before engine ignition.", "C. Tangential speed at Equator is zero.", "D. Earth spin is westward at Poles.", "E. Smaller radius near Equator."], ans: 1 },
-      { id: 113, topic: "Motor Drivers", q: "What is the primary function of a DC motor driver board (L298N/L293D) in a microcontroller project?", opts: ["A. Store Python code", "B. Supply high current/voltage to motor while accepting low-power microcontroller control signals", "C. Convert DC to AC", "D. Measure shaft RPM", "E. Step down voltage"], ans: 1 },
-      { id: 114, topic: "H-Bridge Logic", q: "An H-bridge circuit inside a motor driver allows a DC motor to do which of the following?", opts: ["A. Rotate in both forward and reverse directions by switching current polarity", "B. Measure coil temp", "C. Block battery current", "D. Regulate charge rate", "E. Increase torque without changing voltage"], ans: 0 },
-      { id: 115, topic: "PWM Speed Control", q: "Which signal technique is applied to Enable pin to adjust DC motor speed?", opts: ["A. Analog Read", "B. Digital Input", "C. Pulse Width Modulation (PWM)", "D. String Formatting", "E. Threading Interrupt"], ans: 2 },
-      { id: 116, topic: "H-Bridge Direction", q: "To make a motor rotate in a specific direction using H-Bridge driver, how configure IN1 and IN2?", opts: ["A. Both HIGH", "B. Both LOW", "C. Set IN1 to HIGH and IN2 to LOW (or vice versa)", "D. Set IN1 duty 100%", "E. Set both as inputs"], ans: 2 },
-      { id: 117, topic: "MicroPython Execution", q: "Given in1.value(1), in2.value(0), and ena.duty_u16(0), how will the motor behave?", opts: ["A. Spin forward max speed", "B. Spin backward max speed", "C. Spin half speed", "D. Remain stopped/stationary because duty_u16 is set to 0", "E. Rapidly alternate direction"], ans: 3 },
-      { id: 118, topic: "Circuit Grounding", q: "When connecting battery pack, motor driver, and single-board computer, what connection is strictly required?", opts: ["A. Motor positive to 3.3V pin", "B. Connecting a shared common Ground (GND)", "C. Enable pin to TX/RX", "D. Direction pins to battery VCC", "E. Resistor in series with power"], ans: 1 },
-      { id: 119, topic: "Brushed Motor", q: "Which two components transfer current to spinning rotor and reverse current direction every half-rotation?", opts: ["A. Stator magnets and shaft", "B. Carbon brushes and commutator segments", "C. Gearbox and encoder", "D. Bearings and flywheel", "E. PWM controller and diode"], ans: 1 },
-      { id: 120, topic: "Stall Physics", q: "What occurs inside a brushed DC motor when the shaft is held still (stalled) while full voltage is applied?", opts: ["A. Internal resistance increases", "B. Motor stops drawing current", "C. Current spikes to maximum (stall current), generating rapid heat in coils that can damage motor or driver", "D. Converts voltage to AC", "E. Increases speed automatically"], ans: 2 },
-      { id: 121, topic: "Servo Frequency", q: "When controlling standard hobby servo using MicroPython PWM class, what standard frequency is used?", opts: ["A. 10 Hz", "B. 50 Hz", "C. 1000 Hz", "D. 10000 Hz", "E. 65535 Hz"], ans: 1 },
-      { id: 122, topic: "Servo Timing", q: "Standard servos determine target angle based on pulse width within 20ms period. What pulse width range in ms moves 0° to 180°?", opts: ["A. 0.1 to 0.5 ms", "B. 0.5 to 2.5 ms", "C. 5 to 10 ms", "D. 10 to 15 ms", "E. 15 to 20 ms"], ans: 1 },
-      { id: 123, topic: "Servo PWM", q: "If duty_u16 ranges 0 to 65535, what does servo.duty_u16(0) do to a servo signal?", opts: ["A. Spins full speed backward", "B. Locks at 180°", "C. Sends a 0V flat signal, effectively turning off active position holding", "D. Calibrates potentiometer", "E. Reverses power polarity"], ans: 2 },
-      { id: 124, topic: "Troubleshooting", q: "A servo sweeping script executes without error, but arm stays stationary. Missing code: servo.freq(50). Why did it fail?", opts: ["A. Omitting PWM frequency causes invalid/zero-frequency timing signal", "B. sleep() pauses hardware", "C. Requires Pin.OUT mode", "D. Requires negative duty_u16", "E. GP15 lacks PWM support"], ans: 0 },
-      { id: 125, topic: "Power Electronics", q: "Servo powered from separate 6V battery twitches wildly and ignores commanded pulse angles. What missing hardware connection causes this?", opts: ["A. Decoupling capacitor on signal", "B. Shared common Ground (GND) wire connecting battery GND to RP2040 GND", "C. Level shifter to 12V", "D. H-Bridge motor driver", "E. Pull-up resistor on 3.3V"], ans: 1 },
-      { id: 126, topic: "Control Systems", q: "DC motor is open-loop; 180° Positional Servo is closed-loop. What hardware feature gives servo closed-loop control?", opts: ["A. External H-Bridge driver", "B. Internal potentiometer connected to output gear and control circuit", "C. Dual optical encoders", "D. High-voltage capacitor", "E. MicroPython machine.PWM library"], ans: 1 },
-      { id: 127, topic: "Wiring Standards", q: "When connecting 180° servo directly to microcontroller, how many wires are connected and what are their functions?", opts: ["A. 2 wires: variable DC", "B. 3 wires: Ground (GND), Power, and PWM Signal", "C. 4 wires: IN1, IN2, ENA, GND", "D. 5 wires: Power, GND, Step, Dir, Enable", "E. 2 wires: Forward and Reverse"], ans: 1 },
-      { id: 128, topic: "PWM Differences", q: "How is PWM used differently between DC Motor driver and Servo Motor?", opts: ["A. DC: sets direction | Servo: sets power", "B. DC Motor: PWM varies average voltage to control speed | Servo: PWM pulse width specifies a target angle position", "C. DC: reads speed | Servo: supplies all current", "D. DC: 50Hz | Servo: 1000Hz", "E. DC: not required | Servo: requires 2 pins"], ans: 1 },
-      { id: 129, topic: "Servo Positioning", q: "To move to a different angle orientation on a 180° Servo Motor, what parameter must code alter?", opts: ["A. Swap 5V and GND wires", "B. Toggle logic level on direction pin", "C. Send a different PWM pulse width (duty cycle) to single signal line", "D. Lower PWM frequency below 10Hz", "E. Change Pin mode to Pin.IN"], ans: 2 },
-      { id: 130, topic: "Motor Selection", q: "Which motor setup is appropriate for (1) spinning driving wheels continuously and (2) steering arm to precise angles?", opts: ["A. Wheels: Servo | Steering: DC", "B. Wheels: DC Motor with H-Bridge Driver | Steering Arm: 180° Servo Motor", "C. Wheels: Stepper | Steering: DC", "D. Wheels: Servo | Steering: Servo", "E. Wheels: Unpowered DC | Steering: Direct GPIO DC"], ans: 1 }
+      { id: 102, topic: "Rotational Kinematics", q: "On a HDD platter spinning at constant ω, Point X is 1.5 cm from center and Point Y is 4.5 cm from center. Which statement compares their motion?", opts: ["A. Point X has lower angular and linear velocity.", "B. Point X has higher angular and linear velocity.", "C. Both points have identical angular velocity, but Point Y has 3x the linear speed of Point X.", "D. Both points have identical linear speed.", "E. Both points have identical linear velocity."], ans: 2 }
     ];
 
-    // --- BANK 2: TERM 2 SUMMATIVE 2 (25 Questions) ---
     const bankSummative2 = [
-      { id: 201, topic: "PWM Math", q: "MicroPython code requires 16-bit PWM at 75% duty cycle. Which function call sets this output?", opts: ["A) pwm.duty_u16(75)", "B) pwm.duty_u16(49151)", "C) pwm.duty_u16(191)", "D) pwm.duty_u16(32768)", "E) pwm.duty_u16(65535)"], ans: 1 },
-      { id: 202, topic: "Motor Drivers", q: "What architectural feature makes TB6612FNG driver more resource-efficient than DRV8833 regarding PWM pin allocation?", opts: ["A) Internal potentiometers", "B) I2C communication bus", "C) Dual PWM per channel", "D) Dedicated speed pin (PWMA) requiring only 1 PWM channel per motor", "E) Onboard DAC"], ans: 3 },
-      { id: 203, topic: "Effective Voltage", q: "A robot with 12V supply uses PWM duty cycle at 40%. What effective average voltage (Veff) is supplied across motor terminals?", opts: ["A) 3.0V", "B) 12.0V", "C) 4.8V", "D) 7.2V", "E) 1.6V"], ans: 2 },
-      { id: 204, topic: "Aerodynamics", q: "In quadcopters, how does motor RPM influence vertical aerodynamic lift force (F_Thrust)?", opts: ["A) Proportional to square of rotational speed (F_Thrust ∝ RPM²)", "B) Inversely proportional", "C) Independent of RPM", "D) Linearly proportional", "E) Proportional to square root"], ans: 0 },
-      { id: 205, topic: "H-Bridge Logic", q: "Setting AIN1 = HIGH and AIN2 = HIGH on TB6612FNG driver while sending active PWM produces what motor behavior?", opts: ["A) Spins clockwise max speed", "B) Enters Short Brake (Active Lock) condition", "C) Spins counter-clockwise half speed", "D) Coast freely to stop", "E) Thermal shutdown"], ans: 1 },
-      { id: 206, topic: "Power Sags", q: "SG90 servo continuously jitters, buzzes, and causes RP2040 to reboot when sweeping 0° to 180°. Primary cause?", opts: ["A) Missing 4.7 kΩ pull-up", "B) 50 Hz configured instead of 1000 Hz", "C) Servo draws excessive current directly from 3.3V rail, causing voltage sag and brown-out reset", "D) Control pins swapped with H-bridge", "E) 8-bit register used instead of 16-bit"], ans: 2 },
-      { id: 207, topic: "Servo Positioning", q: "Code executes duty_u16(32768) at 50 Hz. Servo slams mechanical stop and buzzes. What fix centres servo at 90°?", opts: ["A) Decrease PWM to 10 Hz", "B) Change duty_u16(32768) to approximately duty_u16(4915) (1.5 ms pulse)", "C) Add second direction pin", "D) Invert pin mode to Pin.IN", "E) Increase voltage to 12V"], ans: 1 },
-      { id: 208, topic: "Stepper Hardware", q: "Bipolar stepper motor vibrates loudly and twitches back and forth without completing rotation. Root hardware defect?", opts: ["A) Power supply too stable", "B) Two wires from different phase coils (e.g. A+ and B+) were swapped on output terminals", "C) Running in 2-coil mode instead of 1-coil", "D) Microstepping pins tied to GND", "E) Missing optical encoder"], ans: 1 },
-      { id: 209, topic: "Software Logic", q: "Stepper motor script executes `for i, p in enumerate(pins): p.value(FULL_STEP[step_idx][i]); time.sleep_ms(5)`. Shaft clicks once and stops. Why?", opts: ["A) 2-coil excitation short circuits GPIO", "B) step_idx variable is declared statically and never updated inside a loop", "C) Pin.OUT disables PWM", "D) Delay 5ms too fast", "E) Arrays cannot index integers"], ans: 1 },
-      { id: 210, topic: "Gas Sensors", q: "MQ-135 Gas Sensor powered by 5V has Analog Output connected directly to RP2040 GP26. What issue occurs and how to fix?", opts: ["A) 5.0V output exceeds 3.3V ADC tolerance; resistive voltage divider must be added", "B) Requires I2C pull-up", "C) Resolution fixed at 8-bit", "D) Negative voltage output", "E) Requires optocoupler isolation"], ans: 0 },
-      { id: 211, topic: "1-Wire Protocol", q: "DS18B20 1-Wire scan returns empty array []. Power supply 3.3V and GND are connected. What missing component causes this?", opts: ["A) 50kΩ series resistor", "B) 4.7kΩ pull-up resistor connected between DQ data line and 3.3V VCC", "C) Active H-Bridge driver", "D) Flyback diode", "E) 50 Hz PWM clock"], ans: 1 },
-      { id: 212, topic: "Relay Drivers", q: "Setting GPIO output to 0 (LOW logic) clicks 5V Optocoupled Relay ON unexpectedly. What explains this?", opts: ["A) Relay module uses Active-LOW trigger logic", "B) Setting 0 enables 100% PWM", "C) Automatic inversion on USB power", "D) Optocoupler failed from floating ADC", "E) Grounding IN causes permanent latch"], ans: 0 },
-      { id: 213, topic: "PIR Interrupts", q: "Polling HC-SR501 PIR sensor in fast `while True` loop causes high CPU load and misses motion. Best resolution?", opts: ["A) Increase voltage from 5V to 12V", "B) Replace digital input with ADC", "C) Configure hardware interrupt on input pin using .irq(trigger=Pin.IRQ_RISING)", "D) Add 10kΩ potentiometer", "E) Switch pin to open-drain mode"], ans: 2 },
-      { id: 214, topic: "Analog ADC", q: "Potentiometer wiper connected to GP26 returns wild random values between 0 and 65535 when held still. Hardware defect?", opts: ["A) Requires 4.7kΩ pull-up", "B) Wiper connection is broken/loose, leaving high-impedance ADC pin in a floating state", "C) Potentiometer missing relay switch", "D) ADC configured as active output", "E) Requires 30s pre-heat"], ans: 1 },
-      { id: 215, topic: "Loop State", q: "Why does `step_idx = 0` outside a loop fail to achieve continuous stepper motor rotation?", opts: ["A) Iteration inherits step_idx value", "B) Variable step_idx is never updated, causing script to stay stuck on Step 0 forever", "C) Enumerate sets all pins LOW", "D) Nested array requires floats", "E) time.sleep_ms forces hard reset"], ans: 1 },
-      { id: 216, topic: "Ring Buffers", q: "Which code block updates step_idx smoothly through row indices 0 → 1 → 2 → 3 → 0 without throwing IndexError?", opts: ["A) step_idx = step_idx + 1", "B) step_idx = (step_idx + 1) % len(FULL_STEP)", "C) step_idx = len(FULL_STEP) + 1", "D) step_idx = step_idx * 4", "E) if step_idx == 4: step_idx = 4"], ans: 1 },
-      { id: 217, topic: "Python Enumerate", q: "In `for i, p in enumerate(pins):`, what do variables `i` and `p` represent?", opts: ["A) i = pin number, p = voltage reading", "B) i = loop iteration index (0, 1, 2, 3), p = individual Pin object", "C) i = output state, p = total array length", "D) Both hold identical integers", "E) i = step_idx, p = duty cycle"], ans: 1 },
-      { id: 218, topic: "Python Syntax", q: "`def proximity_isr(pin)` header causes SyntaxError: invalid syntax. Which syntax element is missing?", opts: ["A) Keyword DEF in uppercase", "B) Trailing colon (:) missing at end of function header", "C) Parameter in square brackets", "D) Function body wrapped in braces", "E) Underscores forbidden"], ans: 1 },
-      { id: 219, topic: "Python Syntax", q: "`if temp > 30 and humidity > 70: close_roof() else temp > 32: open_roof()` fails with SyntaxError. Why?", opts: ["A) 'and' operator not supported", "B) 'else' keyword cannot accept a conditional expression; 'elif' must be used instead", "C) Missing semicolon at end", "D) Variables require $ sign", "E) '>' operator invalid"], ans: 1 },
-      { id: 220, topic: "Python Syntax", q: "Matrix declaration `FULL_STEP = [[1, 1, 0, 0], [0, 1, 1, 0] [0, 0, 1, 1], [1, 0, 0, 1]]` causes SyntaxError on line 3. Why?", opts: ["A) Matrix elements require semicolons", "B) Comma (,) missing at end of second row [0, 1, 1, 0]", "C) Requires tuple brackets", "D) Zeroes must be written as False", "E) Sub-lists require string labels"], ans: 1 },
-      { id: 221, topic: "Python Syntax", q: "`pir.irq(handler = pir_handler trigger = Pin.IRQ_RISING)` throws SyntaxError. What mistake was made?", opts: ["A) Keyword arguments passed to method must be separated by a comma (,)", "B) Equal signs forbidden in keyword args", "C) Function name requires quotes", "D) irq() accepts only 1 argument", "E) IRQ_RISING must be inside while loop"], ans: 0 },
-      { id: 222, topic: "ADC Electronics", q: "Potentiometer wiper connected to GP26 returns wild random values 0-65535. Primary cause?", opts: ["A) Requires 4.7k pull-up", "B) Wiper connection is broken, leaving high-impedance ADC pin in floating state", "C) Hardware reads only 8-bit", "D) Wiper wired to 5V VBUS", "E) Sampling clock requires active-LOW"], ans: 1 },
-      { id: 223, topic: "ADC Hardware", q: "MQ-135 outputting 0-5.0V signal connected directly to 3.3V RP2040 ADC pin risks what issue?", opts: ["A) 5.0V voltage exceeds 3.3V tolerance of RP2040 ADC pin, risking permanent microcontroller damage", "B) Signal automatically capped to 1.5V", "C) Requires active PWM clock", "D) Sensor fails to heat up", "E) 1-Wire bus collapses"], ans: 0 },
-      { id: 224, topic: "Servo Mechanics", q: "Code executes duty_u16(32768) at 50 Hz. Servo slams mechanical stop and overheats. Why?", opts: ["A) Servos use pulse-width duration (1ms-2ms) rather than raw percentage; 50% duty sends 10ms pulse exceeding physical limits", "B) Frequency must be 10,000 Hz", "C) Requires complementary pins", "D) duty_u16 accepts only 8-bit", "E) Sets pin to digital input"], ans: 0 },
-      { id: 225, topic: "Pull-Up Resistors", q: "Push-button connected between GP14 and GND without external resistor returns random 0 and 1 when unpressed. How fix in code?", opts: ["A) Reconfigure pin initialization to Pin(14, Pin.IN, Pin.PULL_UP) to engage internal pull-up resistor", "B) Reconfigure to Pin.PULL_DOWN", "C) Change mode to Pin.OUT", "D) Convert to ADC channel", "E) Attach 50 Hz clock"], ans: 0 }
+      { id: 201, topic: "PWM Math", q: "MicroPython code requires 16-bit PWM at 75% duty cycle. Which function call sets this output?", opts: ["A) pwm.duty_u16(75)", "B) pwm.duty_u16(49151)", "C) pwm.duty_u16(191)", "D) pwm.duty_u16(32768)", "E) pwm.duty_u16(65535)"], ans: 1 }
     ];
 
     let activeQuestions = [];
     let userAnswers = {};
     let timerInterval = null;
-    let totalSeconds = 60 * 60; // Set to 60 Minutes (3600 seconds)
+    let totalSeconds = 60 * 60;
     let timeElapsedSeconds = 0;
     let examEnded = false;
     let examStarted = false;
     let terminationReason = "Completed Normally";
-    let warningCount = 0; // Tracks tab/window shift violations
+    let warningCount = 0;
+    let mediaStream = null;
+    let cocoModel = null;
+    let aiMonitorInterval = null;
 
-    function shuffleArray(arr) {
-      const shuffled = [...arr];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled;
-    }
+    async function requestWebcamAndAI() {
+      const statusEl = document.getElementById('camStatus');
+      const startBtn = document.getElementById('startExamBtn');
 
-    function toggleStartBtn() {
-      const chk = document.getElementById('confirmRulesCheck').checked;
-      const btn = document.getElementById('startExamBtn');
-      btn.disabled = !chk;
-      if (chk) {
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
-      } else {
-        btn.classList.add('opacity-50', 'cursor-not-allowed');
+      statusEl.textContent = "⏳ Requesting Camera & Loading AI Model...";
+
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        document.getElementById('headerCamVideo').srcObject = mediaStream;
+        
+        statusEl.textContent = "⏳ Loading TensorFlow COCO-SSD Model...";
+        cocoModel = await cocoSsd.load();
+
+        statusEl.className = "p-2.5 rounded-lg text-xs font-mono text-center bg-[#274029] border border-[#a6e3a1] text-[#a6e3a1]";
+        statusEl.textContent = "✓ Camera & AI Multi-Person Proctor Loaded!";
+        
+        startBtn.disabled = false;
+        startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      } catch (err) {
+        statusEl.className = "p-2.5 rounded-lg text-xs font-mono text-center bg-[#421e25] border border-[#f38ba8] text-[#f38ba8]";
+        statusEl.textContent = "⚠️ Camera / AI initialization failed. Camera access is strictly required.";
+        console.error(err);
       }
     }
 
@@ -320,31 +285,33 @@
         return;
       }
 
+      if (!mediaStream || !cocoModel) {
+        alert("⚠️ Camera & AI Model are required. Please initialize camera first.");
+        return;
+      }
+
       document.getElementById('quizStartSplash').style.display = 'none';
       examStarted = true;
 
       if (selectedBank === 'BANK_SUM1') {
         activeQuestions = [...bankSummative1];
-        document.getElementById('activeBankBadge').textContent = "Term 2 Summative 1 (30 Qs)";
-        document.getElementById('examTitle').textContent = "📝 Term 2 Summative 1 Examination";
+        document.getElementById('activeBankBadge').textContent = "Term 2 Summative 1";
       } else if (selectedBank === 'BANK_SUM2') {
         activeQuestions = [...bankSummative2];
-        document.getElementById('activeBankBadge').textContent = "Term 2 Summative 2 (25 Qs)";
-        document.getElementById('examTitle').textContent = "📝 Term 2 Summative 2 Examination";
+        document.getElementById('activeBankBadge').textContent = "Term 2 Summative 2";
       } else {
-        const combined = [...bankSummative1, ...bankSummative2];
-        activeQuestions = shuffleArray(combined).slice(0, 20);
-        document.getElementById('activeBankBadge').textContent = "Master Mix (20 Qs)";
-        document.getElementById('examTitle').textContent = "📝 Master Mix Major Examination";
+        activeQuestions = [...bankSummative1, ...bankSummative2];
+        document.getElementById('activeBankBadge').textContent = "Master Mix";
       }
 
       renderQuestions();
       startTimer();
       attachProctorGuardrails();
+      startAIMultiPersonMonitoring();
     }
 
     function startTimer() {
-      totalSeconds = 60 * 60; // 60 minutes
+      totalSeconds = 60 * 60;
       timerInterval = setInterval(() => {
         if (totalSeconds <= 0) {
           clearInterval(timerInterval);
@@ -361,31 +328,54 @@
       }, 1000);
     }
 
-    /* 1-WARNING PROCTOR & TAB SHIFT ENGINE */
-    function attachProctorGuardrails() {
-      const handleFocusLoss = () => {
-        if (!examStarted || examEnded) return;
+    /* REAL-TIME AI MULTI-PERSON & PRESENCE DETECTOR */
+    function startAIMultiPersonMonitoring() {
+      const video = document.getElementById('headerCamVideo');
 
-        if (warningCount === 0) {
-          warningCount = 1;
-          document.getElementById('warningModal').classList.remove('hidden');
-        } else {
-          submitExam("VIOLATION: Multiple Tab/Window Switches");
+      aiMonitorInterval = setInterval(async () => {
+        if (!examStarted || examEnded || !cocoModel) return;
+
+        try {
+          const predictions = await cocoModel.detect(video);
+          const people = predictions.filter(p => p.class === 'person' && p.score > 0.45);
+
+          if (people.length > 1) {
+            issueProctorWarning("AI Alert: Multiple People Detected in Camera Frame!");
+          } else if (people.length === 0) {
+            issueProctorWarning("AI Alert: No Student Detected in Camera View!");
+          }
+        } catch (e) {
+          console.warn("AI Detection frame skipped", e);
         }
-      };
+      }, 2000);
+    }
 
+    /* PROCTOR STRIKE ENGINE (2 WARNINGS -> 3RD EXAM AUTO-SUBMIT) */
+    function issueProctorWarning(reason) {
+      if (!examStarted || examEnded) return;
+
+      warningCount++;
+      if (warningCount < 3) {
+        document.getElementById('warningTitle').textContent = `PROCTOR WARNING #${warningCount}`;
+        document.getElementById('warningMsg').textContent = `Reason: ${reason}`;
+        document.getElementById('warningStrikeText').textContent = `Strike ${warningCount} of 2. A 3rd strike will terminate and submit your paper!`;
+        document.getElementById('warningModal').classList.remove('hidden');
+      } else {
+        submitExam(`EXCEEDED WARNINGS: ${reason}`);
+      }
+    }
+
+    function attachProctorGuardrails() {
       document.addEventListener('visibilitychange', () => {
-        if (document.hidden) handleFocusLoss();
+        if (document.hidden) issueProctorWarning("Tab Switch / Window Minimized");
       });
 
       window.addEventListener('blur', () => {
-        handleFocusLoss();
+        issueProctorWarning("Window Focus Lost");
       });
 
       document.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'a')) {
-          e.preventDefault();
-        }
+        if (e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'a')) e.preventDefault();
         if (e.key === 'F12') e.preventDefault();
       });
     }
@@ -435,9 +425,10 @@
       if (examEnded) return;
       examEnded = true;
       clearInterval(timerInterval);
+      if (aiMonitorInterval) clearInterval(aiMonitorInterval);
       terminationReason = reason;
 
-      if (reason.includes("VIOLATION")) {
+      if (reason.includes("EXCEEDED WARNINGS")) {
         alert(`🚨 EXAM TERMINATED AUTOMATICALLY!\nReason: ${reason}\nYour examination paper has been locked and submitted.`);
       }
 
@@ -494,7 +485,7 @@
       })
       .then(() => {
         statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[#274029] border border-[#a6e3a1] text-[#a6e3a1]";
-        statusEl.textContent = "✓ Successfully logged exam score & item analysis (1/0) to cloud!";
+        statusEl.textContent = "✓ Successfully logged score, AI proctor audit & item analysis (1/0)!";
       })
       .catch(() => {
         statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[#421e25] border border-[#f38ba8] text-[#f38ba8]";
