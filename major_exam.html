@@ -95,21 +95,32 @@
   <div id="quizStartSplash" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="glass-card max-w-lg w-full p-6 text-center relative border border-[#f38ba8] shadow-2xl my-auto max-h-[95vh] overflow-y-auto">
       <div class="border-b border-[var(--card-border)] pb-3 mb-4">
-        <span class="text-xs font-mono uppercase tracking-widest text-[#f38ba8] font-bold">🤖 AI & Camera-Proctored Major Assessment</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-[#f38ba8] font-bold">🔑 Authorization & Camera Proctored Exam</span>
         <h2 class="text-xl font-bold text-[var(--accent)] mt-1">Creative Technologies Major Exam</h2>
       </div>
 
       <div class="space-y-2 text-xs text-[var(--text-sub)] text-left bg-[#421e25]/40 p-3.5 rounded-lg border border-[#f38ba8] mb-4 leading-relaxed">
-        <p class="text-[#f38ba8] font-bold">📷 AI & WEBCAM PROCTORING RULES:</p>
-        <p>• <strong>Multi-Person Detection:</strong> If another person enters the camera frame beside you, a security strike will trigger.</p>
-        <p>• <strong>Presence & Focus Lock:</strong> Leaving camera view, covering the lens, or switching tabs receives a warning. 3rd strike automatically submits your test paper.</p>
-        <p>• <strong>Strict Duration:</strong> Exactly <strong>60 MINUTES</strong> countdown active once started.</p>
+        <p class="text-[#f38ba8] font-bold">🔒 SINGLE-TAKE AUTHORIZATION & SECURITY:</p>
+        <p>• <strong>Unique Authorization Code:</strong> Enter your designated access code. Each code permits exactly <strong>ONE TEST ATTEMPT</strong>.</p>
+        <p>• <strong>AI & Multi-Person Monitoring:</strong> Camera must remain active. Multiple people or leaving the camera frame triggers strikes.</p>
+        <p>• <strong>60-Minute Limit:</strong> Strictly 60 minutes session duration.</p>
       </div>
 
       <div class="space-y-3 mb-5 text-left">
         <div>
-          <label for="splashName" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Student Full Name (Required):</label>
-          <input type="text" id="splashName" placeholder="e.g. Juan Dela Cruz" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]" required>
+          <label for="splashAuthCode" class="block text-xs font-mono font-bold text-[#f9e2af] mb-1">🔑 Authorization Access Code (Required):</label>
+          <div class="flex gap-2">
+            <input type="text" id="splashAuthCode" placeholder="e.g. CT2026-X89A" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)] code-font font-bold uppercase" required>
+            <button type="button" onclick="validateAuthCode()" class="bg-[#89b4fa] hover:opacity-90 text-[#11111b] text-xs font-bold px-4 rounded-lg transition-all">
+              Validate
+            </button>
+          </div>
+          <p id="codeFeedback" class="text-[11px] font-mono mt-1 text-[var(--text-sub)]"></p>
+        </div>
+
+        <div>
+          <label for="splashName" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Student Full Name (Auto-Filled / Verified):</label>
+          <input type="text" id="splashName" placeholder="e.g. Juan Dela Cruz" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]" required readonly>
         </div>
 
         <div>
@@ -128,11 +139,11 @@
 
         <!-- Camera Status Feedback -->
         <div id="camStatus" class="p-2.5 rounded-lg text-xs font-mono text-center bg-[var(--inner-box)] border border-[var(--card-border)] text-[#f9e2af]">
-          📷 Camera & AI Proctor: Click button below to initialize system.
+          📷 Camera & AI Proctor: Validate code and initialize camera below.
         </div>
       </div>
 
-      <button id="initCamBtn" onclick="requestWebcamAndAI()" class="w-full bg-[var(--accent)] hover:opacity-90 text-[#11111b] text-xs font-bold py-2.5 px-4 rounded-lg mb-3 transition-all">
+      <button id="initCamBtn" onclick="requestWebcamAndAI()" disabled class="w-full bg-[var(--accent)] opacity-50 cursor-not-allowed text-[#11111b] text-xs font-bold py-2.5 px-4 rounded-lg mb-3 transition-all">
         🤖 Enable Camera & Load AI Proctor Engine
       </button>
 
@@ -167,6 +178,7 @@
       </div>
 
       <div class="space-y-3 code-font text-xs bg-[var(--inner-box)] p-4 rounded-lg border border-[var(--card-border)] mb-4">
+        <div><span class="text-[var(--text-sub)]">Auth Access Code:</span> <strong id="recAuthCode" class="text-[#f9e2af]">--</strong></div>
         <div><span class="text-[var(--text-sub)]">Learner Name:</span> <strong id="recName" class="text-white">--</strong></div>
         <div><span class="text-[var(--text-sub)]">Class Section:</span> <strong id="recSection" class="text-white">--</strong></div>
         <div><span class="text-[var(--text-sub)]">Exam Bank:</span> <strong id="recBank" class="text-[#f9e2af]">--</strong></div>
@@ -190,7 +202,6 @@
 
   <header class="max-w-6xl mx-auto w-full mb-6 flex flex-wrap justify-between items-center bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3 shadow-lg gap-3">
     <div class="flex items-center gap-3">
-      <!-- Live WebCam Stream Preview Header Widget -->
       <div class="relative w-12 h-9 rounded bg-black border border-[var(--card-border)] overflow-hidden flex items-center justify-center">
         <video id="headerCamVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
         <div id="camDot" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
@@ -244,13 +255,63 @@
     let timeElapsedSeconds = 0;
     let examEnded = false;
     let examStarted = false;
+    let isCodeValidated = false;
+    let validatedCodeStr = "";
     let terminationReason = "Completed Normally";
     let warningCount = 0;
     let mediaStream = null;
     let cocoModel = null;
     let aiMonitorInterval = null;
 
+    /* REAL-TIME AUTHORIZATION CODE VALIDATOR */
+    function validateAuthCode() {
+      const codeInput = document.getElementById('splashAuthCode').value.trim();
+      const fb = document.getElementById('codeFeedback');
+      const nameInput = document.getElementById('splashName');
+      const initCamBtn = document.getElementById('initCamBtn');
+
+      if (!codeInput) {
+        fb.style.color = "#f38ba8";
+        fb.textContent = "⚠️ Please enter an authorization code!";
+        return;
+      }
+
+      fb.style.color = "#f9e2af";
+      fb.textContent = "⏳ Validating code with server...";
+
+      fetch(`${GOOGLE_SCRIPT_WEB_APP_URL}?action=validate&code=${encodeURIComponent(codeInput)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.result === "valid") {
+            isCodeValidated = true;
+            validatedCodeStr = codeInput.toUpperCase();
+            nameInput.value = data.studentName || "";
+            nameInput.removeAttribute("readonly");
+            
+            fb.style.color = "#a6e3a1";
+            fb.textContent = `✓ Code Authorized for student: ${data.studentName || 'Verified'}`;
+            
+            initCamBtn.disabled = false;
+            initCamBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          } else {
+            isCodeValidated = false;
+            fb.style.color = "#f38ba8";
+            fb.textContent = data.message || "❌ Invalid authorization code!";
+          }
+        })
+        .catch(err => {
+          fb.style.color = "#f38ba8";
+          fb.textContent = "⚠️ Server connection error. Please try again.";
+          console.error(err);
+        });
+    }
+
     async function requestWebcamAndAI() {
+      if (!isCodeValidated) {
+        alert("⚠️ Please validate your Authorization Code first!");
+        return;
+      }
+
       const statusEl = document.getElementById('camStatus');
       const startBtn = document.getElementById('startExamBtn');
 
@@ -279,6 +340,11 @@
       const splashName = document.getElementById('splashName').value.trim();
       const splashSection = document.getElementById('splashSection').value.trim();
       const selectedBank = document.getElementById('splashBankSelect').value;
+
+      if (!isCodeValidated) {
+        alert("⚠️ Valid Authorization Code Required!");
+        return;
+      }
 
       if (!splashName || !splashSection) {
         alert("⚠️ Please enter your Full Name and Section before starting!");
@@ -328,7 +394,6 @@
       }, 1000);
     }
 
-    /* REAL-TIME AI MULTI-PERSON & PRESENCE DETECTOR */
     function startAIMultiPersonMonitoring() {
       const video = document.getElementById('headerCamVideo');
 
@@ -350,7 +415,6 @@
       }, 2000);
     }
 
-    /* PROCTOR STRIKE ENGINE (2 WARNINGS -> 3RD EXAM AUTO-SUBMIT) */
     function issueProctorWarning(reason) {
       if (!examStarted || examEnded) return;
 
@@ -456,6 +520,7 @@
       const pct = activeQuestions.length > 0 ? ((correctCount / activeQuestions.length) * 100).toFixed(1) : "0.0";
       const statusEl = document.getElementById('cloudSyncStatus');
 
+      document.getElementById('recAuthCode').textContent = validatedCodeStr;
       document.getElementById('recName').textContent = name;
       document.getElementById('recSection').textContent = section;
       document.getElementById('recBank').textContent = bankBadgeText;
@@ -472,6 +537,7 @@
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          authCode: validatedCodeStr,
           name: name,
           section: section,
           bank: bankBadgeText,
@@ -485,7 +551,7 @@
       })
       .then(() => {
         statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[#274029] border border-[#a6e3a1] text-[#a6e3a1]";
-        statusEl.textContent = "✓ Successfully logged score, AI proctor audit & item analysis (1/0)!";
+        statusEl.textContent = "✓ Successfully logged score, single-take lock & item analysis (1/0)!";
       })
       .catch(() => {
         statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[#421e25] border border-[#f38ba8] text-[#f38ba8]";
@@ -498,7 +564,7 @@
       const section = document.getElementById('splashSection').value.trim();
       const bankBadgeText = document.getElementById('activeBankBadge').textContent;
       
-      let csvContent = `data:text/csv;charset=utf-8,Student Name,Section,Bank,Status\n"${name}","${section}","${bankBadgeText}","${terminationReason}"`;
+      let csvContent = `data:text/csv;charset=utf-8,Auth Code,Student Name,Section,Bank,Status\n"${validatedCodeStr}","${name}","${section}","${bankBadgeText}","${terminationReason}"`;
       const link = document.createElement("a");
       link.setAttribute("href", encodeURI(csvContent));
       link.setAttribute("download", `MajorExam_${name.replace(/\s+/g, '_')}.csv`);
