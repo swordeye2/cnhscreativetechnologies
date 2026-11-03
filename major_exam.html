@@ -102,7 +102,7 @@
       <div class="space-y-2 text-xs text-[var(--text-sub)] text-left bg-[#421e25]/40 p-3.5 rounded-lg border border-[#f38ba8] mb-4 leading-relaxed">
         <p class="text-[#f38ba8] font-bold">🔒 SINGLE-TAKE AUTHORIZATION & SECURITY:</p>
         <p>• <strong>Unique Authorization Code:</strong> Enter your designated access code. Each code permits exactly <strong>ONE TEST ATTEMPT</strong>.</p>
-        <p>• <strong>AI & Multi-Person Monitoring:</strong> Camera must remain active. Multiple people or leaving the camera frame triggers strikes.</p>
+        <p>• <strong>Anti-Back Button Lock:</strong> Pressing the device Back button or switching tabs triggers security strikes.</p>
         <p>• <strong>60-Minute Limit:</strong> Strictly 60 minutes session duration.</p>
       </div>
 
@@ -110,7 +110,7 @@
         <div>
           <label for="splashAuthCode" class="block text-xs font-mono font-bold text-[#f9e2af] mb-1">🔑 Authorization Access Code (Required):</label>
           <div class="flex gap-2">
-            <input type="text" id="splashAuthCode" placeholder="e.g. CT2026-X89A" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)] code-font font-bold uppercase" required>
+            <input type="text" id="splashAuthCode" placeholder="e.g. CT2026-AAAA" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)] code-font font-bold uppercase" required>
             <button type="button" onclick="validateAuthCode()" class="bg-[#89b4fa] hover:opacity-90 text-[#11111b] text-xs font-bold px-4 rounded-lg transition-all">
               Validate
             </button>
@@ -119,13 +119,13 @@
         </div>
 
         <div>
-          <label for="splashName" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Student Full Name (Auto-Filled / Verified):</label>
-          <input type="text" id="splashName" placeholder="e.g. Juan Dela Cruz" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]" required readonly>
+          <label for="splashName" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Student Full Name (Auto-Filled):</label>
+          <input type="text" id="splashName" placeholder="Auto-filled from Code" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]" required readonly>
         </div>
 
         <div>
-          <label for="splashSection" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Class / Section Register (Required):</label>
-          <input type="text" id="splashSection" placeholder="e.g. Grade 12 - Creative Tech A" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]" required>
+          <label for="splashSection" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Class / Section Register (Auto-Filled):</label>
+          <input type="text" id="splashSection" placeholder="Auto-filled from Code" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]" required readonly>
         </div>
 
         <div>
@@ -236,7 +236,7 @@
   </main>
 
   <script>
-    const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw9ZrGOjnBv5ZLBszG9BJ48PAUa2nn9QtOWc_wyN49k33O1EmLiXAmFxbtuODVTI6aUug/exec";
+    const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxkAu2MChPXJHFoSng-jgmPSwFxPmBDJ9umRfZdWl7fgZCzEnzOPv0me-G90YsqEFKPhA/exec";
 
     // --- BANK DATA ARRAYS ---
     const bankSummative1 = [
@@ -268,6 +268,7 @@
       const codeInput = document.getElementById('splashAuthCode').value.trim();
       const fb = document.getElementById('codeFeedback');
       const nameInput = document.getElementById('splashName');
+      const sectionInput = document.getElementById('splashSection');
       const initCamBtn = document.getElementById('initCamBtn');
 
       if (!codeInput) {
@@ -286,10 +287,10 @@
             isCodeValidated = true;
             validatedCodeStr = codeInput.toUpperCase();
             nameInput.value = data.studentName || "";
-            nameInput.removeAttribute("readonly");
+            sectionInput.value = data.section || "";
             
             fb.style.color = "#a6e3a1";
-            fb.textContent = `✓ Code Authorized for student: ${data.studentName || 'Verified'}`;
+            fb.textContent = `✓ Authorized for: ${data.studentName || 'Verified'} (${data.section || 'Verified'})`;
             
             initCamBtn.disabled = false;
             initCamBtn.classList.remove('opacity-50', 'cursor-not-allowed');
@@ -347,7 +348,7 @@
       }
 
       if (!splashName || !splashSection) {
-        alert("⚠️ Please enter your Full Name and Section before starting!");
+        alert("⚠️ Please validate a code to auto-fill student name and section!");
         return;
       }
 
@@ -356,8 +357,18 @@
         return;
       }
 
+      // Lock Code on Cloud Immediately so back-button / tab close invalidates re-take
+      fetch(`${GOOGLE_SCRIPT_WEB_APP_URL}?action=lock&code=${encodeURIComponent(validatedCodeStr)}`, { mode: 'no-cors' });
+
       document.getElementById('quizStartSplash').style.display = 'none';
       examStarted = true;
+
+      // Anti-Back Button Trap (Android / Mobile Protection)
+      history.pushState(null, null, location.href);
+      window.onpopstate = function () {
+        history.pushState(null, null, location.href);
+        issueProctorWarning("Hardware Back Button Pressed!");
+      };
 
       if (selectedBank === 'BANK_SUM1') {
         activeQuestions = [...bankSummative1];
@@ -438,6 +449,14 @@
         issueProctorWarning("Window Focus Lost");
       });
 
+      window.addEventListener('beforeunload', (e) => {
+        if (examStarted && !examEnded) {
+          submitExam("VIOLATION: Browser Closed / Refreshed");
+          e.preventDefault();
+          e.returnValue = '';
+        }
+      });
+
       document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'a')) e.preventDefault();
         if (e.key === 'F12') e.preventDefault();
@@ -492,7 +511,7 @@
       if (aiMonitorInterval) clearInterval(aiMonitorInterval);
       terminationReason = reason;
 
-      if (reason.includes("EXCEEDED WARNINGS")) {
+      if (reason.includes("EXCEEDED WARNINGS") || reason.includes("VIOLATION")) {
         alert(`🚨 EXAM TERMINATED AUTOMATICALLY!\nReason: ${reason}\nYour examination paper has been locked and submitted.`);
       }
 
