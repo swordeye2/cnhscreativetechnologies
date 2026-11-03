@@ -102,6 +102,7 @@
       <div class="space-y-2 text-xs text-[var(--text-sub)] text-left bg-[#421e25]/40 p-3.5 rounded-lg border border-[#f38ba8] mb-4 leading-relaxed">
         <p class="text-[#f38ba8] font-bold">🔒 SINGLE-TAKE AUTHORIZATION & SECURITY:</p>
         <p>• <strong>Unique Authorization Code:</strong> Enter your designated access code. Each code permits exactly <strong>ONE TEST ATTEMPT</strong>.</p>
+        <p>• <strong>Auto-Assigned Exam:</strong> Your exam module is automatically locked to your access code.</p>
         <p>• <strong>Anti-Back Button Lock:</strong> Pressing the device Back button or switching tabs triggers security strikes.</p>
         <p>• <strong>60-Minute Limit:</strong> Strictly 60 minutes session duration.</p>
       </div>
@@ -129,12 +130,8 @@
         </div>
 
         <div>
-          <label for="splashBankSelect" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Select Major Examination Bank:</label>
-          <select id="splashBankSelect" class="w-full bg-[var(--inner-box)] text-[var(--text-main)] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none focus:border-[var(--accent)]">
-            <option value="BANK_SUM1">📘 Term 2 Summative 1: Rotational Physics & Motor Control (30 Qs)</option>
-            <option value="BANK_SUM2">📙 Term 2 Summative 2: Hardware, MicroPython & Relays (25 Qs)</option>
-            <option value="BANK_ALL">🌐 Master Mix: All Major Banks (20 Randomized)</option>
-          </select>
+          <label for="splashAssignedBankDisplay" class="block text-xs font-mono font-bold text-[var(--accent)] mb-1">Assigned Exam Module (Auto-Locked):</label>
+          <input type="text" id="splashAssignedBankDisplay" placeholder="Auto-assigned from Code" class="w-full bg-[var(--inner-box)] text-[#f9e2af] border border-[var(--card-border)] text-xs rounded-lg p-2.5 outline-none font-bold font-mono" required readonly>
         </div>
 
         <!-- Camera Status Feedback -->
@@ -236,7 +233,7 @@
   </main>
 
   <script>
-    const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxkAu2MChPXJHFoSng-jgmPSwFxPmBDJ9umRfZdWl7fgZCzEnzOPv0me-G90YsqEFKPhA/exec";
+    const GOOGLE_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyIpydlsfnsBmAXcI_c3luOyjjCBqHeW6YeQio6KHHhs5lL03gAHWF1lWhKCVKUXYoV-g/exec";
 
     // --- BANK 1: TERM 2 SUMMATIVE 1 (30 Questions) ---
     const bankSummative1 = [
@@ -310,6 +307,7 @@
     let examStarted = false;
     let isCodeValidated = false;
     let validatedCodeStr = "";
+    let assignedBankCode = "BANK_ALL";
     let terminationReason = "Completed Normally";
     let warningCount = 0;
     let mediaStream = null;
@@ -331,6 +329,7 @@
       const fb = document.getElementById('codeFeedback');
       const nameInput = document.getElementById('splashName');
       const sectionInput = document.getElementById('splashSection');
+      const bankDisplayInput = document.getElementById('splashAssignedBankDisplay');
       const initCamBtn = document.getElementById('initCamBtn');
 
       if (!codeInput) {
@@ -340,7 +339,7 @@
       }
 
       fb.style.color = "#f9e2af";
-      fb.textContent = "⏳ Validating code with server...";
+      fb.textContent = "⏳ Validating code & retrieving assigned exam...";
 
       fetch(`${GOOGLE_SCRIPT_WEB_APP_URL}?action=validate&code=${encodeURIComponent(codeInput)}`)
         .then(res => res.json())
@@ -348,8 +347,19 @@
           if (data.result === "valid") {
             isCodeValidated = true;
             validatedCodeStr = codeInput.toUpperCase();
+            assignedBankCode = data.examBank || "BANK_ALL";
+            
             nameInput.value = data.studentName || "";
             sectionInput.value = data.section || "";
+
+            // Format Display Label based on Assigned Exam Bank Code
+            if (assignedBankCode === "BANK_SUM1") {
+              bankDisplayInput.value = "📘 Term 2 Summative 1: Rotational Physics & Motors (30 Qs)";
+            } else if (assignedBankCode === "BANK_SUM2") {
+              bankDisplayInput.value = "📙 Term 2 Summative 2: MicroPython, Hardware & Relays (25 Qs)";
+            } else {
+              bankDisplayInput.value = "🌐 Master Mix: All Major Banks (20 Randomized Qs)";
+            }
             
             fb.style.color = "#a6e3a1";
             fb.textContent = `✓ Authorized for: ${data.studentName || 'Verified'} (${data.section || 'Verified'})`;
@@ -402,7 +412,6 @@
     function startProctoredExam() {
       const splashName = document.getElementById('splashName').value.trim();
       const splashSection = document.getElementById('splashSection').value.trim();
-      const selectedBank = document.getElementById('splashBankSelect').value;
 
       if (!isCodeValidated) {
         alert("⚠️ Valid Authorization Code Required!");
@@ -432,11 +441,12 @@
         issueProctorWarning("Hardware Back Button Pressed!");
       };
 
-      if (selectedBank === 'BANK_SUM1') {
+      // Automatically Load the Assigned Exam Bank from Cloud Validation
+      if (assignedBankCode === 'BANK_SUM1') {
         activeQuestions = [...bankSummative1];
         document.getElementById('activeBankBadge').textContent = "Term 2 Summative 1 (30 Qs)";
         document.getElementById('examTitle').textContent = "📝 Term 2 Summative 1 Examination";
-      } else if (selectedBank === 'BANK_SUM2') {
+      } else if (assignedBankCode === 'BANK_SUM2') {
         activeQuestions = [...bankSummative2];
         document.getElementById('activeBankBadge').textContent = "Term 2 Summative 2 (25 Qs)";
         document.getElementById('examTitle').textContent = "📝 Term 2 Summative 2 Examination";
