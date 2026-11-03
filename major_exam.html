@@ -96,9 +96,9 @@
 
       <div class="space-y-2 text-xs text-[var(--text-sub)] text-left bg-[#421e25]/40 p-3.5 rounded-lg border border-[#f38ba8] mb-4 leading-relaxed">
         <p class="text-[#f38ba8] font-bold">⚠️ EXAM RULES & SECURITY PROTOCOLS:</p>
-        <p>• <strong>Strict Tab Lockdown:</strong> Switching tabs, minimizing windows, or navigating away will <strong>INSTANTLY SUBMIT</strong> your examination paper.</p>
-        <p>• <strong>Session Duration:</strong> Strictly <strong>25 MINUTES</strong> timer active once launched.</p>
-        <p>• <strong>Auto-Submission:</strong> Score and cheat alerts are logged immediately to the cloud database.</p>
+        <p>• <strong>Strict 60-Minute Duration:</strong> Timer is active once launched. The exam automatically submits when time expires.</p>
+        <p>• <strong>Window & Tab Policy:</strong> Switching tabs or losing window focus triggers a <strong>1-TIME WARNING</strong>. A second offense instantly terminates and submits your paper.</p>
+        <p>• <strong>Cloud Recording:</strong> Score breakdown and security logs are recorded directly to the instructor's database.</p>
       </div>
 
       <div class="space-y-3 mb-5 text-left">
@@ -120,10 +120,37 @@
             <option value="BANK_ALL">🌐 Master Mix: All Major Banks (20 Randomized)</option>
           </select>
         </div>
+
+        <!-- Mandatory Confirmation Checkbox -->
+        <div class="pt-2">
+          <label class="flex items-start gap-2.5 cursor-pointer bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)] hover:border-[#f38ba8]">
+            <input type="checkbox" id="confirmRulesCheck" onchange="toggleStartBtn()" class="mt-0.5 accent-[#f38ba8]">
+            <span class="text-xs text-[var(--text-main)] leading-snug">
+              I understand that I have strictly <strong>60 MINUTES</strong> to finish, and leaving or switching away from this tab will result in a warning and potential automatic submission.
+            </span>
+          </label>
+        </div>
       </div>
 
-      <button onclick="startProctoredExam()" class="w-full bg-[#f38ba8] hover:opacity-90 text-[#11111b] text-sm font-bold py-3 px-4 rounded-lg transition-all shadow-lg">
-        🔒 I Accept Rules & Start Major Exam →
+      <button id="startExamBtn" onclick="startProctoredExam()" disabled class="w-full bg-[#f38ba8] opacity-50 cursor-not-allowed text-[#11111b] text-sm font-bold py-3 px-4 rounded-lg transition-all shadow-lg">
+        🔒 Confirm Rules & Launch 60-Minute Exam →
+      </button>
+    </div>
+  </div>
+
+  <!-- TAB SHIFT WARNING MODAL (1ST OFFENSE) -->
+  <div id="warningModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card max-w-md w-full p-6 text-center border-2 border-[#fab387] shadow-2xl">
+      <div class="text-3xl mb-2">⚠️</div>
+      <h2 class="text-lg font-bold text-[#fab387]">SECURITY WARNING: FOCUS LOST</h2>
+      <p class="text-xs text-[var(--text-main)] mt-2 leading-relaxed bg-[var(--inner-box)] p-3 rounded-lg border border-[var(--card-border)]">
+        You switched tabs or moved focus away from the exam window. This is your <strong>FIRST AND ONLY WARNING</strong>.
+      </p>
+      <p class="text-xs text-[#f38ba8] font-bold mt-3">
+        Any further tab or window switching will INSTANTLY lock and auto-submit your exam!
+      </p>
+      <button onclick="dismissWarning()" class="mt-5 w-full bg-[#fab387] hover:opacity-90 text-[#11111b] text-xs font-bold py-2.5 px-4 rounded-lg transition-all">
+        I Understand - Resume Exam →
       </button>
     </div>
   </div>
@@ -167,7 +194,7 @@
     <div class="flex items-center gap-3 flex-wrap">
       <div id="timerBox" class="text-xs font-mono bg-[var(--inner-box)] px-3 py-1.5 rounded-lg border border-[var(--card-border)] text-[#f9e2af] flex items-center gap-1.5">
         <span>⏱️ Time Remaining:</span>
-        <span id="timerText" class="font-bold text-sm">25:00</span>
+        <span id="timerText" class="font-bold text-sm">60:00</span>
       </div>
 
       <button onclick="submitExam('Manual Student Submission')" class="bg-[#a6e3a1] hover:opacity-90 text-[#11111b] text-xs font-bold py-2 px-3.5 rounded-lg transition-all shadow-md">
@@ -180,7 +207,7 @@
     <div class="text-center mb-6">
       <h1 class="text-2xl md:text-3xl font-bold text-[var(--accent)] tracking-tight" id="examTitle">📝 Major Examination</h1>
       <p class="text-sm text-[#f38ba8] mt-1 max-w-3xl mx-auto font-mono">
-        ⚠️ Warning: Do NOT switch tabs or minimize window! Doing so terminates the exam instantly.
+        ⚠️ Strictly 60 Minutes. You are allowed 1 warning for window switching before auto-submission.
       </p>
     </div>
 
@@ -256,11 +283,12 @@
     let activeQuestions = [];
     let userAnswers = {};
     let timerInterval = null;
-    let totalSeconds = 25 * 60;
+    let totalSeconds = 60 * 60; // Set to 60 Minutes (3600 seconds)
     let timeElapsedSeconds = 0;
     let examEnded = false;
     let examStarted = false;
     let terminationReason = "Completed Normally";
+    let warningCount = 0; // Tracks tab/window shift violations
 
     function shuffleArray(arr) {
       const shuffled = [...arr];
@@ -269,6 +297,17 @@
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
       }
       return shuffled;
+    }
+
+    function toggleStartBtn() {
+      const chk = document.getElementById('confirmRulesCheck').checked;
+      const btn = document.getElementById('startExamBtn');
+      btn.disabled = !chk;
+      if (chk) {
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      } else {
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
     }
 
     function startProctoredExam() {
@@ -284,7 +323,6 @@
       document.getElementById('quizStartSplash').style.display = 'none';
       examStarted = true;
 
-      // Select Exam Question Pool Based on Bank Choice
       if (selectedBank === 'BANK_SUM1') {
         activeQuestions = [...bankSummative1];
         document.getElementById('activeBankBadge').textContent = "Term 2 Summative 1 (30 Qs)";
@@ -306,6 +344,7 @@
     }
 
     function startTimer() {
+      totalSeconds = 60 * 60; // 60 minutes
       timerInterval = setInterval(() => {
         if (totalSeconds <= 0) {
           clearInterval(timerInterval);
@@ -322,28 +361,37 @@
       }, 1000);
     }
 
-    /* STRICT TAB SHIFT & PROCTOR DETECTION ENGINE */
+    /* 1-WARNING PROCTOR & TAB SHIFT ENGINE */
     function attachProctorGuardrails() {
-      // 1. Detect Tab or Window Switching
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden && examStarted && !examEnded) {
-          submitExam("VIOLATION: Tab/Window Switch Detected!");
+      const handleFocusLoss = () => {
+        if (!examStarted || examEnded) return;
+
+        if (warningCount === 0) {
+          warningCount = 1;
+          document.getElementById('warningModal').classList.remove('hidden');
+        } else {
+          submitExam("VIOLATION: Multiple Tab/Window Switches");
         }
+      };
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) handleFocusLoss();
       });
 
       window.addEventListener('blur', () => {
-        if (examStarted && !examEnded) {
-          submitExam("VIOLATION: Window Focus Lost!");
-        }
+        handleFocusLoss();
       });
 
-      // 2. Prevent Keyboard Copying Shortcuts
       document.addEventListener('keydown', (e) => {
         if (e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'a')) {
           e.preventDefault();
         }
         if (e.key === 'F12') e.preventDefault();
       });
+    }
+
+    function dismissWarning() {
+      document.getElementById('warningModal').classList.add('hidden');
     }
 
     function renderQuestions() {
@@ -402,9 +450,16 @@
       const bankBadgeText = document.getElementById('activeBankBadge').textContent;
       
       let correctCount = 0;
-      Object.keys(userAnswers).forEach(qId => {
-        const qObj = activeQuestions.find(q => q.id === parseInt(qId));
-        if (qObj && userAnswers[qId] === qObj.ans) correctCount++;
+      const itemAnalysisVector = [];
+
+      activeQuestions.forEach(qObj => {
+        const userAns = userAnswers[qObj.id];
+        if (userAns !== undefined && userAns === qObj.ans) {
+          correctCount++;
+          itemAnalysisVector.push(1);
+        } else {
+          itemAnalysisVector.push(0);
+        }
       });
 
       const pct = activeQuestions.length > 0 ? ((correctCount / activeQuestions.length) * 100).toFixed(1) : "0.0";
@@ -433,12 +488,13 @@
           total: activeQuestions.length,
           percent: `${pct}%`,
           status: terminationReason,
+          itemAnalysis: itemAnalysisVector,
           timestamp: new Date().toISOString()
         })
       })
       .then(() => {
         statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[#274029] border border-[#a6e3a1] text-[#a6e3a1]";
-        statusEl.textContent = "✓ Successfully logged exam score & proctor audit to cloud!";
+        statusEl.textContent = "✓ Successfully logged exam score & item analysis (1/0) to cloud!";
       })
       .catch(() => {
         statusEl.className = "mb-4 p-2.5 rounded-lg text-xs font-mono text-center bg-[#421e25] border border-[#f38ba8] text-[#f38ba8]";
