@@ -270,7 +270,7 @@
         </div>
       </div>
 
-      <!-- Container Holding All 30 Questions -->
+      <!-- Container Holding All Questions -->
       <div id="allQuestionsContainer" style="margin-top: 1.5rem;"></div>
 
       <!-- Final Submit Section -->
@@ -321,7 +321,7 @@
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzst_3v54lPIPyaxVs42cqeuhRBER6QrAMesFgW1GyfeyFjC8PYFxdmGIZsyy_V5tuU1g/exec";
 
     // -------------------------------------------------------------
-    // COMBINED MASTER QUESTION POOLS BY DOMAIN CATEGORY
+    // FULL EXTENDED MASTER QUESTION POOLS (GUARANTEED UNIQUE ITEMS)
     // -------------------------------------------------------------
 
     const POOL_UMPIRE_MASTER = [
@@ -339,7 +339,23 @@
       { bankId: "BANK_TT_UMPIRING_FULL", id: "Q12", topic: "Racket Hand Switch", question: "During a rally A changes his racket from one hand to the other and makes a good return which X is unable to return.", options: ["Point to A (Legal switch)", "Point to X (Illegal switch)", "Call a Let", "Take No Action"], answer: 0 },
       { bankId: "BANK_TT_UMPIRING_FULL", id: "Q13", topic: "Under Net Return", question: "A bends low and returns ball under net projection outside table onto X court with ultra low bounce.", options: ["Point to A (Legal return under projection)", "Point to X (Must pass over net)", "Call a Let", "Take No Action"], answer: 0 },
       { bankId: "BANK_TT_UMPIRING_FULL", id: "Q14", topic: "Racket Blade Material", question: "At least 85% of the blade by thickness shall be of natural wood.", options: ["True", "False — Must be 100% wood", "False — 70% natural wood", "True — Only for defensive blades"], answer: 0 },
-      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q15", topic: "Advice During Play", question: "Players may receive advice from anyone at any time during a match.", options: ["False — Advice can only be given between games or during authorized suspensions", "True — Advice can be shouted during rallies", "True — Only in team matches", "False — No advice permitted ever"], answer: 0 }
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q15", topic: "Advice During Play", question: "Players may receive advice from anyone at any time during a match.", options: ["False — Advice can only be given between games or during authorized suspensions", "True — Advice can be shouted during rallies", "True — Only in team matches", "False — No advice permitted ever"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q16", topic: "Edge Ball Ruling", question: "If the ball touches the vertical side of the table surface below the edge during play, it is considered:", options: ["In play", "Out of play (Point awarded to opponent)", "A let", "Re-served"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q17", topic: "Umpire Jurisdiction", question: "Who has the final decision on questions of fact occurring during a match?", options: ["The Tournament Referee", "The Umpire", "The Assistant Umpire", "The Jury Chairman"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q18", topic: "Racket Covering", question: "A side of the blade used for striking the ball shall be covered with ordinary pimpled rubber or sandwich rubber with total thickness not exceeding:", options: ["2.0 mm for pimpled / 4.0 mm for sandwich", "3.0 mm for both", "1.5 mm for sandwich", "5.0 mm maximum"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q19", topic: "Yellow Card Penalty", question: "If a player commits an initial minor offense such as throwing the racket or bad language, the umpire shall:", options: ["Award a point to opponent", "Display a Yellow Card and warn the player", "Disqualify immediately", "Call a let"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q20", topic: "Red Card Penalty", question: "If a player receives a second formal warning in the same match, the umpire shall display a Red & Yellow card and:", options: ["Warn again", "Award 1 point to opponent", "Award 2 points to opponent", "Disqualify candidate"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q21", topic: "Third Misconduct Penalty", question: "If a player receives a third formal warning in the same match, the umpire shall display Red & Yellow cards and:", options: ["Award 1 point", "Award 2 points to opponent", "Disqualify candidate", "Call referee"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q22", topic: "Ball Trajectory Height", question: "During service, as soon as the ball is projected upwards, it must remain above the level of the playing surface and behind the server's end line.", options: ["True", "False", "Only in doubles", "Umpire discretion"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q23", topic: "Server Hiding Ball", question: "As soon as the ball is projected, the server's free arm and hand must be removed from the space between the ball and the net.", options: ["True", "False", "Only for backhand serve", "Optional"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q24", topic: "Service Let Conditions", question: "If in service the ball touches the net assembly, provided the service is otherwise good, the call is:", options: ["Point to receiver", "Let", "Point to server", "Fault"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q25", topic: "Interval between Games", question: "Players are entitled to an interval of up to how long between successive games of a match?", options: ["30 seconds", "1 minute", "2 minutes", "3 minutes"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q26", topic: "Towel Break Rule", question: "Players are entitled to brief towel breaks after every how many points from the start of each game?", options: ["4 points", "6 points", "8 points", "10 points"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q27", topic: "Racket Inspection", question: "Before the start of a match and whenever a player changes racket during a match, the player shall show the racket to the opponent and the umpire.", options: ["True", "False", "Only if requested by opponent", "Only at national events"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q28", topic: "Moving Playing Surface", question: "If a player or anything they wear touches the playing surface while the ball is in play, causing it to move, what is the call?", options: ["Point to opponent", "Let", "Play continues", "Warning"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q29", topic: "Expedite Serve Rotation", question: "Under the expedite system, service rotates after every single point.", options: ["True", "False — Service stays 2 points", "False — Service rotates every 5 points", "True — Only in deciding game"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q30", topic: "Expedite Stroke Count Limit", question: "Under the expedite system, if the receiving player makes how many good returns, the receiver wins the point?", options: ["10 returns", "12 returns", "13 returns", "15 returns"], answer: 2 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q31", topic: "Unintentional Double Hit", question: "If a player strikes the ball unintentionally twice in one continuous striking movement during a rally, the return is considered:", options: ["Illegal - point to opponent", "Legal - play continues", "Let", "Umpire warning"], answer: 1 }
     ];
 
     const POOL_COACH_MASTER = [
@@ -355,7 +371,24 @@
       { bankId: "BANK_BIOMECHANICS", id: "Q10", topic: "Center of Gravity", question: "The center of gravity is the point around which body weight is balanced. In humans, this is located near the:", options: ["Legs", "Navel / Sacrum level", "Chest", "Shoulders"], answer: 1 },
       { bankId: "BANK_BIOMECHANICS", id: "Q11", topic: "Summation of Force", question: "Which concept involves initiating movement with larger, slower muscle groups to generate optimal power?", options: ["Power", "Biomechanics", "Summation of force", "Flexibility"], answer: 2 },
       { bankId: "BANK_SPORTS_MED", id: "Q12", topic: "Sports Med - Weakest Link", question: "What is considered the 'Weakest Link' in the musculoskeletal system of a growing child athlete?", options: ["Ligaments", "Joint Capsules", "Growth Plates / Epiphyseal Plates", "Tendons"], answer: 2 },
-      { bankId: "BANK_SPORTS_MED", id: "Q13", topic: "Nutritional Golden Rules", question: "According to table tennis nutritional guidelines, what should players decrease in their daily diet?", options: ["Fats", "Fats, excessive salt, alcohol", "Complex carbs", "Water"], answer: 1 }
+      { bankId: "BANK_SPORTS_MED", id: "Q13", topic: "Nutritional Golden Rules", question: "According to table tennis nutritional guidelines, what should players decrease in their daily diet?", options: ["Fats", "Fats, excessive salt, alcohol", "Complex carbs", "Water"], answer: 1 },
+      { bankId: "BANK_TT_L3", id: "Q14", topic: "Footwork Patterns", question: "Which footwork pattern is most suitable for covering wide forehand topspin recovery in fast rallies?", options: ["One-step shuffle", "Cross-step footwork", "In-and-out hop", "Static pivot"], answer: 1 },
+      { bankId: "BANK_TT_L3", id: "Q15", topic: "Spin Recognition", question: "When receiving a server's hidden wrist action, reading the stroke contact point relative to the ball center helps detect:", options: ["Ball weight", "Topspin vs Underspin component", "Table speed", "Racket tension"], answer: 1 },
+      { bankId: "BANK_BIOMECHANICS", id: "Q16", topic: "Kinetic Chain", question: "In forehand drive stroke execution, movement energy flows sequentially from ground reaction forces through:", options: ["Legs -> Hips -> Torso -> Arm -> Wrist", "Wrist -> Arm -> Hips -> Legs", "Arm -> Legs -> Hips", "Torso -> Legs -> Wrist"], answer: 0 },
+      { bankId: "BANK_BIOMECHANICS", id: "Q17", topic: "Newton's Third Law", question: "The force exerted against the floor during a quick lateral push-off is an example of:", options: ["Inertia", "Action-Reaction", "Acceleration", "Centripetal force"], answer: 1 },
+      { bankId: "BANK_SPORTS_MED", id: "Q18", topic: "Overuse Injury Prevention", question: "The most effective method to prevent shoulder rotator cuff tendinitis in adolescent table tennis athletes is:", options: ["Continuous heavy weight training", "Scapular stabilization exercises and controlled volume management", "Complete bed rest", "Stretching only"], answer: 1 },
+      { bankId: "BANK_SPORTS_MED", id: "Q19", topic: "Hydration Protocol", question: "During high-intensity multi-ball or match play, athletes should consume fluid at intervals of every:", options: ["15-20 minutes", "45 minutes", "At game end only", "Only when thirsty"], answer: 0 },
+      { bankId: "BANK_TT_MASTER", id: "Q20", topic: "Tactical Placement", question: "Targeting the opponent's 'elbow' or transition point between forehand and backhand is designed to cause:", options: ["Higher topspin", "Decision hesitation and body crowding", "Faster returns", "Out-of-bounds serve"], answer: 1 },
+      { bankId: "BANK_TT_MASTER", id: "Q21", topic: "Periodization", question: "The training phase focused on high-volume technique refinement before competitive tapering is known as:", options: ["Competitive Phase", "General Preparation Phase", "Transition Phase", "Peak Phase"], answer: 1 },
+      { bankId: "BANK_TT_L3", id: "Q22", topic: "Service Variation", question: "A coach advising a player on serve effectiveness should emphasize identical toss motion with variations in:", options: ["Contact point and wrist acceleration speed", "Height of toss", "Body standing location", "Racket color"], answer: 0 },
+      { bankId: "BANK_BIOMECHANICS", id: "Q23", topic: "Momentum Transfer", question: "Increasing racket head velocity right before ball contact increases:", options: ["Linear & Angular Momentum Transfer", "Ball friction only", "Wind resistance", "Gravity effect"], answer: 0 },
+      { bankId: "BANK_SPORTS_MED", id: "Q24", topic: "Acute Injury Protocol", question: "The immediate first-aid management protocol for acute soft tissue sprains is:", options: ["HARM (Heat, Alcohol, Running, Massage)", "PRICE / RICE (Protection, Rest, Ice, Compression, Elevation)", "Immediate intense stretching", "Hot compress application"], answer: 1 },
+      { bankId: "BANK_TT_MASTER", id: "Q25", topic: "Psychological Focus", question: "Routine pre-performance rituals before serve execution serve to:", options: ["Delay the game", "Regulate arousal and enhance attentional focus", "Intimidate opponent", "Rest physical muscles"], answer: 1 },
+      { bankId: "BANK_TT_L3", id: "Q26", topic: "Pimple Rubber Tactics", question: "Against long-pimple block returns, the incoming spin on a drive stroke will reverse into:", options: ["Topspin", "Underspin / Backspin", "Sidespin", "No spin"], answer: 1 },
+      { bankId: "BANK_BIOMECHANICS", id: "Q27", topic: "Rotational Inertia", question: "Tucking the free arm close to the torso during hip rotation serves to decrease moment of inertia and increase:", options: ["Rotational speed (Angular velocity)", "Weight", "Linear height", "Balance loss"], answer: 0 },
+      { bankId: "BANK_SPORTS_MED", id: "Q28", topic: "Carbohydrate Loading", question: "For multi-day tournament endurance, complex carbohydrates should comprise approximately what percentage of total daily caloric intake?", options: ["20-30%", "55-65%", "80-90%", "10-15%"], answer: 1 },
+      { bankId: "BANK_TT_MASTER", id: "Q29", topic: "Counter-Loop Mechanics", question: "When counter-looping close to table, the optimal point of ball contact is:", options: ["At peak or early rising phase", "At falling phase near floor", "Behind body line", "At net height"], answer: 0 },
+      { bankId: "BANK_TT_L3", id: "Q30", topic: "Match Coaching Rules", question: "During an active game, a coach sitting in the designated bench area may give advice:", options: ["Only between games and during authorized timeouts", "Shouted during live rally", "By entering court anytime", "Never"], answer: 0 }
     ];
 
     let currentExam = [];
@@ -433,9 +466,9 @@
             }
 
             if (verifiedTrack === 'UMPIRE') {
-              previewExamType.innerText = `Umpire Category Pool: 30 Items drawn from 85 Master Questions (${verifiedTestType}-TEST)`;
+              previewExamType.innerText = `Umpire Category Pool: Randomized Unique Items drawn from Master Questions (${verifiedTestType}-TEST)`;
             } else {
-              previewExamType.innerText = `Coach Category Pool: 30 Items drawn from 115 Master Questions (${verifiedTestType}-TEST)`;
+              previewExamType.innerText = `Coach Category Pool: Randomized Unique Items drawn from Master Questions (${verifiedTestType}-TEST)`;
             }
 
             startBtn.disabled = false;
@@ -473,7 +506,7 @@
         document.getElementById('previewTypeBadge').innerText = verifiedTestType + '-TEST';
         document.getElementById('previewTypeBadge').className = 'badge ' + (verifiedTestType === 'PRE' ? 'badge-pre' : 'badge-post');
         
-        document.getElementById('previewExamType').innerText = `Demo Mode: 30 Items drawn from combined ${verifiedTrack} master pool`;
+        document.getElementById('previewExamType').innerText = `Demo Mode: Randomized Unique Items drawn from combined ${verifiedTrack} master pool`;
         previewCard.classList.remove('hidden');
         startBtn.disabled = false;
       }
@@ -483,7 +516,6 @@
     async function showRulesModal() {
       document.getElementById('rulesModal').classList.remove('hidden');
       
-      // Launch Splash WebCam Distance Preview
       try {
         if (!videoStream) {
           videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
@@ -517,7 +549,6 @@
             const height = pred.bottomRight[1] - pred.topLeft[1];
             const ratio = Math.abs(width * height) / videoArea;
 
-            // DISTANCE CALIBRATION: 0.5m to 1.0m (0.015 to 0.12 ratio)
             if (ratio >= 0.015 && ratio <= 0.12) {
               badge.innerText = "SAFE DISTANCE (0.5m - 1.0m)";
               badge.className = "badge badge-safe";
@@ -561,18 +592,24 @@
       return array;
     }
 
+    // STRICT UNIQUE RANDOMIZATION ENGINE (NO DUPLICATES/REPETITION)
     function buildExamPool(sourcePool, targetLength = 30) {
       if (!sourcePool || sourcePool.length === 0) return [];
-      let expanded = [...sourcePool];
-      while (expanded.length < targetLength) {
-        const remainingNeeded = targetLength - expanded.length;
-        const clones = sourcePool.slice(0, remainingNeeded).map((q, idx) => ({
-          ...q,
-          id: `${q.id}_dup_${expanded.length + idx}`
-        }));
-        expanded = expanded.concat(clones);
-      }
-      return shuffle(expanded).slice(0, targetLength);
+      
+      // 1. Deduplicate source array by unique question identity (bankId + id)
+      const uniqueMap = new Map();
+      sourcePool.forEach(q => {
+        const uniqueKey = `${q.bankId}__${q.id}`;
+        if (!uniqueMap.has(uniqueKey)) {
+          uniqueMap.set(uniqueKey, q);
+        }
+      });
+      
+      const uniquePool = Array.from(uniqueMap.values());
+      const shuffled = shuffle(uniquePool);
+      
+      // 2. Return unique items up to target length without duplicate cloning
+      return shuffled.slice(0, Math.min(targetLength, shuffled.length));
     }
 
     async function startExam() {
@@ -670,7 +707,7 @@
         qCard.innerHTML = `
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
             <small style="color: var(--primary); font-weight: bold;">${q.bankId} • ${q.topic}</small>
-            <small style="color: #a6adc8; font-weight: bold;">Question ${idx + 1} of 30</small>
+            <small style="color: #a6adc8; font-weight: bold;">Question ${idx + 1} of ${currentExam.length}</small>
           </div>
           <h4 style="margin-bottom: 1.25rem;">${q.question}</h4>
           <div>${optionsHTML}</div>
@@ -678,7 +715,7 @@
         container.appendChild(qCard);
       });
 
-      document.getElementById('progressDisplay').innerText = `${Object.keys(userAnswers).length}/30`;
+      document.getElementById('progressDisplay').innerText = `${Object.keys(userAnswers).length}/${currentExam.length}`;
     }
 
     function selectOption(qIdx, optIdx) {
@@ -686,7 +723,7 @@
       userAnswers[qIdx] = optIdx;
       const qCard = document.getElementById('q-card-' + qIdx);
       if (qCard) qCard.classList.add('is-answered');
-      document.getElementById('progressDisplay').innerText = `${Object.keys(userAnswers).length}/30`;
+      document.getElementById('progressDisplay').innerText = `${Object.keys(userAnswers).length}/${currentExam.length}`;
       saveLocalSession();
     }
 
@@ -714,8 +751,6 @@
           const predictions = await faceModel.estimateFaces(video, false);
           const videoArea = video.videoWidth * video.videoHeight || 1;
 
-          // RECALIBRATED DISTANCE & PROXIMITY DETECTION
-          // 1. Primary Test Taker Detection: Face area ratio >= 0.015 (Valid up to 1.0 meter away)
           const validPrimaryFaces = predictions.filter(pred => {
             const width = pred.topLeft[0] - pred.bottomRight[0];
             const height = pred.bottomRight[1] - pred.topLeft[1];
@@ -723,7 +758,6 @@
             return ratio >= 0.015;
           });
 
-          // 2. Secondary Proximity Violation: Secondary faces within close proximity (<0.25m from candidate / ratio > 0.012)
           const closeSecondaryFaces = predictions.filter(pred => {
             const width = pred.topLeft[0] - pred.bottomRight[0];
             const height = pred.bottomRight[1] - pred.topLeft[1];
@@ -870,10 +904,11 @@
         tbody.appendChild(tr);
       });
 
-      const pct = ((correct / 30) * 100).toFixed(1);
+      const totalItems = currentExam.length;
+      const pct = ((correct / totalItems) * 100).toFixed(1);
       const name = document.getElementById('studentName').value;
 
-      document.getElementById('scoreDisplay').innerText = `${correct} / 30`;
+      document.getElementById('scoreDisplay').innerText = `${correct} / ${totalItems}`;
       document.getElementById('percentageDisplay').innerText = `${pct}% Score`;
       document.getElementById('resultSummaryText').innerText = `Candidate: ${name} | Code: ${code} | Track: ${verifiedTrack} | Test Type: ${verifiedTestType}-TEST`;
 
