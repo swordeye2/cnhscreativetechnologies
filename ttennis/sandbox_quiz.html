@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>requiz — Practice Sandbox</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+  <style>
+    :root {
+      --primary: #89b4fa;
+      --background: #1e1e2e;
+      --card-bg: #181825;
+      --text: #cdd6f4;
+      --accent-green: #a6e3a1;
+      --accent-red: #f38ba8;
+      --accent-yellow: #f9e2af;
+      --border-color: #313244;
+    }
+    body { background-color: var(--background); color: var(--text); padding-bottom: 3rem; }
+    .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    .hidden { display: none !important; }
+    .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+    .badge-practice { background-color: var(--accent-green); color: #11111b; }
+    
+    .question-item { border-left: 4px solid var(--border-color); transition: border-color 0.2s; }
+    .question-item.answered-correct { border-left-color: var(--accent-green); }
+    .question-item.answered-wrong { border-left-color: var(--accent-red); }
+
+    .option-label { 
+      display: flex; 
+      align-items: flex-start; 
+      gap: 10px; 
+      padding: 10px 14px; 
+      border: 1px solid var(--border-color); 
+      border-radius: 6px; 
+      margin-bottom: 8px; 
+      cursor: pointer; 
+      transition: background 0.2s, border-color 0.2s; 
+    }
+    .option-label:hover { background-color: #313244; }
+    .option-label input[type="radio"] { margin-top: 3px; }
+
+    .option-label.opt-correct {
+      border-color: var(--accent-green) !important;
+      background-color: rgba(166, 227, 161, 0.15) !important;
+      color: var(--accent-green) !important;
+      font-weight: bold;
+    }
+    .option-label.opt-wrong {
+      border-color: var(--accent-red) !important;
+      background-color: rgba(243, 139, 168, 0.15) !important;
+      color: var(--accent-red) !important;
+    }
+
+    .feedback-box {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    .feedback-correct { background-color: rgba(166, 227, 161, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+    .feedback-wrong { background-color: rgba(243, 139, 168, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+
+    .sticky-filter {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: #181825;
+      border-bottom: 2px solid var(--border-color);
+      padding: 1rem 1.5rem;
+      margin-left: -1.5rem;
+      margin-right: -1.5rem;
+      border-radius: 8px 8px 0 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container" style="max-width: 920px; margin-top: 2rem;">
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+      <div>
+        <h2 style="margin: 0; color: var(--accent-green);">Practice Sandbox</h2>
+        <small style="color: #a6adc8;">Self-Paced Topic Practice & Instant Verification</small>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <a href="index.html" role="button" class="outline secondary" style="font-size: 0.85rem;">&larr; Navigation Hub</a>
+        <a href="quiz.html" role="button" class="outline contrast" style="font-size: 0.85rem;">Official Exam &rarr;</a>
+      </div>
+    </header>
+
+    <!-- SANDBOX FILTER CONTROLS -->
+    <div class="card" style="padding-top: 0;">
+      <div class="sticky-filter">
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0;">
+          <div>
+            <label for="bankSelect" style="font-size: 0.85rem; font-weight: bold; color: var(--primary);">Filter by Question Bank</label>
+            <select id="bankSelect" onchange="filterQuestions()" style="margin: 0;">
+              <option value="ALL">All Question Banks (Combined)</option>
+              <option value="BANK_TT_UMPIRING_GENERAL">Umpiring Baseline (Pre-Test)</option>
+              <option value="BANK_TT_UMPIRING_FULL">Umpiring Full / Scotland Paper No. 15 (Post-Test)</option>
+              <option value="BANK_TT_MASTER">Coaching Master Baseline (Pre-Test)</option>
+              <option value="BANK_TT_L3">Level 3 Coaching Mechanics (Post-Test)</option>
+              <option value="BANK_BIOMECHANICS">Biomechanics & Kinesiology (Post-Test)</option>
+              <option value="BANK_SPORTS_MED">Sports Medicine & Rehabilitation (Post-Test)</option>
+            </select>
+          </div>
+          <div>
+            <label for="topicSelect" style="font-size: 0.85rem; font-weight: bold; color: var(--accent-yellow);">Filter by Specific Topic</label>
+            <select id="topicSelect" onchange="filterQuestions()" style="margin: 0;">
+              <option value="ALL">All Topics</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; font-size: 0.85rem;">
+          <span>Showing <strong id="itemCount" style="color: var(--primary);">0</strong> items for practice</span>
+          <span>Score: <strong id="scoreCounter" style="color: var(--accent-green);">0 Correct</strong></span>
+        </div>
+      </div>
+
+      <!-- CONTAINER FOR RENDERED PRACTICE ITEMS -->
+      <div id="practiceContainer" style="margin-top: 1.5rem;"></div>
+    </div>
+  </main>
+
+  <script>
+    // MASTER QUESTION POOL FOR SANDBOX PRACTICE
+    const MASTER_PRACTICE_POOL = [
+      // Umpiring Baseline
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_1", topic: "Toss Height Rule", question: "When serving, the ball must be thrown almost vertically upwards at least how many centimeters?", options: ["10 cm", "16 cm", "20 cm", "25 cm"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_2", topic: "Service Warning", question: "If an umpire suspects the legality of a service for the first time in a match, what action should be taken?", options: ["Award point to receiver", "Issue a formal warning without awarding a point", "Call a let and re-serve immediately", "Disqualify the player"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_3", topic: "Doubles Service Box", question: "In doubles, the serve must land sequentially in which courts?", options: ["Right half court of server to left half court of receiver", "Right half court of server to right half court of receiver", "Any court chosen by the server", "Left half court to right half court"], answer: 1 },
+      
+      // Umpiring Full
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_1", topic: "Cramp Suspension", question: "The umpire should suspend play if satisfied that a player is suffering from cramp and needs a short rest.", options: ["True — Umpire must suspend play for cramp.", "False — Play may not be suspended for cramp, as it is a fitness condition.", "True — Provided both players agree.", "False — Only if referee approves."], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_2", topic: "Time-Out Requests", question: "A player can interrupt a rally to request a time out.", options: ["True — A time out can be called mid-rally.", "False — A time out request can only be made when the ball is out of play.", "True — Provided ball hasn't crossed net.", "False — Only coaches can request time outs."], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_3", topic: "Racket Hand Switch", question: "During a rally A changes his racket from one hand to the other and makes a good return which X is unable to return.", options: ["Point to A (Legal switch)", "Point to X (Illegal switch)", "Call a Let", "Take No Action"], answer: 0 },
+      
+      // Coaching Baseline
+      { bankId: "BANK_TT_MASTER", id: "C_PRE_1", topic: "Ready Position", question: "What is the recommended body stance weight distribution for a table tennis player in neutral ready position?", options: ["Heels flat on floor with leaning backward stance", "On balls of feet with knees slightly bent and torso leaning forward", "Weight completely on dominant leg", "Stiff legs with upright spine"], answer: 1 },
+      { bankId: "BANK_TT_MASTER", id: "C_PRE_2", topic: "Grip Basics", question: "Which racket grip allows equal forehand and backhand reach without significant wrist readjustment?", options: ["Penhold Japanese Grip", "Shakehand Neutral Grip", "V-Grip", "Seemiller Grip"], answer: 1 },
+      
+      // Level 3 Coaching
+      { bankId: "BANK_TT_L3", id: "C_POST_1", topic: "Equipment Specs", question: "According to ITTF rules, what are the official dimensions of the table tennis playing surface?", options: ["2.50m x 1.50m, 75cm high", "2.74m x 1.525m, 76cm high", "3.00m x 1.60m, 80cm high", "2.74m x 1.45m, 70cm high"], answer: 1 },
+      { bankId: "BANK_TT_L3", id: "C_POST_2", topic: "Coaching Tactics", question: "Which tactics are recommended when playing against a player settled at Middle or Far Distance?", options: ["Play long high balls", "Play short balls and table play to bring them into uncomfortable close zone", "Give them time to setup heavy topspins", "Match their topspin from far distance"], answer: 1 },
+      
+      // Biomechanics
+      { bankId: "BANK_BIOMECHANICS", id: "BIO_1", topic: "Biomechanics - Levers", question: "Which class of levers represents the majority of muscles in the human body?", options: ["First Class Lever", "Second Class Lever", "Third Class Lever", "Fourth Class Lever"], answer: 2 },
+      
+      // Sports Medicine
+      { bankId: "BANK_SPORTS_MED", id: "MED_1", topic: "Sports Med - Weakest Link", question: "What is considered the 'Weakest Link' in the musculoskeletal system of a growing child athlete?", options: ["Ligaments", "Joint Capsules", "Growth Plates / Epiphyseal Plates", "Tendons"], answer: 2 }
+    ];
+
+    let userScores = {};
+
+    window.onload = function() {
+      populateTopicDropdown();
+      filterQuestions();
+    };
+
+    function populateTopicDropdown() {
+      const topicSelect = document.getElementById('topicSelect');
+      const topics = [...new Set(MASTER_PRACTICE_POOL.map(q => q.topic))];
+      
+      topics.sort().forEach(topic => {
+        const opt = document.createElement('option');
+        opt.value = topic;
+        opt.innerText = topic;
+        topicSelect.appendChild(opt);
+      });
+    }
+
+    function filterQuestions() {
+      const selectedBank = document.getElementById('bankSelect').value;
+      const selectedTopic = document.getElementById('topicSelect').value;
+
+      let filtered = MASTER_PRACTICE_POOL.filter(q => {
+        const matchBank = selectedBank === 'ALL' || q.bankId === selectedBank;
+        const matchTopic = selectedTopic === 'ALL' || q.topic === selectedTopic;
+        return matchBank && matchTopic;
+      });
+
+      document.getElementById('itemCount').innerText = filtered.length;
+      renderPracticeItems(filtered);
+    }
+
+    function renderPracticeItems(items) {
+      const container = document.getElementById('practiceContainer');
+      container.innerHTML = '';
+
+      if (items.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #a6adc8; margin: 2rem 0;">No practice questions match the selected filter combination.</p>';
+        return;
+      }
+
+      items.forEach((q, idx) => {
+        const qCard = document.createElement('div');
+        qCard.className = 'card question-item';
+        qCard.id = 'practice-card-' + q.id;
+
+        let optionsHTML = '';
+        q.options.forEach((opt, optIdx) => {
+          optionsHTML += `
+            <label class="option-label" id="label-${q.id}-${optIdx}">
+              <input type="radio" name="practiceOpt_${q.id}" value="${optIdx}" onchange="checkAnswer('${q.id}', ${optIdx}, ${q.answer})">
+              <span>${opt}</span>
+            </label>
+          `;
+        });
+
+        qCard.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <small style="color: var(--primary); font-weight: bold;">${q.bankId} • ${q.topic}</small>
+            <small style="color: #a6adc8;">Item #${idx + 1}</small>
+          </div>
+          <h4 style="margin-bottom: 1rem;">${q.question}</h4>
+          <div>${optionsHTML}</div>
+          <div id="feedback-${q.id}" class="feedback-box hidden"></div>
+        `;
+
+        container.appendChild(qCard);
+      });
+    }
+
+    function checkAnswer(qId, selectedIdx, correctIdx) {
+      const feedback = document.getElementById('feedback-' + qId);
+      const card = document.getElementById('practice-card-' + qId);
+      const labels = document.querySelectorAll(`[id^="label-${qId}-"]`);
+
+      labels.forEach(lbl => {
+        lbl.classList.remove('opt-correct', 'opt-wrong');
+      });
+
+      const selectedLabel = document.getElementById(`label-${qId}-${selectedIdx}`);
+      const correctLabel = document.getElementById(`label-${qId}-${correctIdx}`);
+
+      if (selectedIdx === correctIdx) {
+        userScores[qId] = true;
+        card.className = 'card question-item answered-correct';
+        selectedLabel.classList.add('opt-correct');
+        feedback.className = 'feedback-box feedback-correct';
+        feedback.innerText = "✓ Correct Answer!";
+      } else {
+        userScores[qId] = false;
+        card.className = 'card question-item answered-wrong';
+        selectedLabel.classList.add('opt-wrong');
+        correctLabel.classList.add('opt-correct');
+        feedback.className = 'feedback-box feedback-wrong';
+        feedback.innerText = "❌ Incorrect. The correct answer is highlighted above in green.";
+      }
+
+      feedback.classList.remove('hidden');
+
+      const totalCorrect = Object.values(userScores).filter(v => v === true).length;
+      document.getElementById('scoreCounter').innerText = `${totalCorrect} Correct`;
+    }
+  </script>
+</body>
+</html>
