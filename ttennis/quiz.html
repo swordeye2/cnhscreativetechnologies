@@ -42,6 +42,45 @@
       background-color: #11111b;
     }
 
+    /* RULES SPLASH SCREEN MODAL */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(17, 17, 27, 0.92);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+    }
+    .modal-box {
+      background-color: #181825;
+      border: 2px solid var(--primary);
+      border-radius: 12px;
+      max-width: 650px;
+      width: 100%;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .rules-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 1.5rem 0;
+    }
+    .rules-list li {
+      padding: 0.65rem 0.85rem;
+      border-left: 3px solid var(--border-color);
+      margin-bottom: 0.75rem;
+      background-color: #11111b;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+    .rules-list li strong { color: var(--primary); }
+
     /* STICKY HEADER WITH WEBCAM AI HUD */
     .sticky-header {
       position: sticky;
@@ -76,6 +115,13 @@
     .option-label:hover { background-color: #313244; }
     .option-label input[type="radio"] { margin-top: 3px; }
     .strike-warning { color: var(--accent-red); font-weight: bold; }
+
+    /* ITEM ANALYSIS TABLE */
+    .analysis-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
+    .analysis-table th, .analysis-table td { padding: 8px 12px; border: 1px solid var(--border-color); text-align: left; }
+    .analysis-table th { background-color: #11111b; color: var(--primary); }
+    .status-correct { color: var(--accent-green); font-weight: bold; }
+    .status-incorrect { color: var(--accent-red); font-weight: bold; }
   </style>
 </head>
 <body>
@@ -84,17 +130,17 @@
     <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
       <div>
         <h2 style="margin: 0; color: var(--primary);">requiz Engine</h2>
-        <small style="color: #a6adc8;">Proctored Examination Portal (Combined Category Master Pools)</small>
+        <small style="color: #a6adc8;">Proctored Examination Portal</small>
       </div>
       <div>
         <a href="teacher.html" role="button" class="outline secondary" style="font-size: 0.85rem;">Teacher Admin Portal &rarr;</a>
       </div>
     </header>
 
-    <!-- ENTRY FORM WITH LIVE GOOGLE SHEETS LOOKUP & CAMERA PERMISSION -->
+    <!-- ENTRY FORM WITH LIVE GOOGLE SHEETS LOOKUP -->
     <div id="authSection" class="card">
       <h3>Candidate Registration & Exam Auth</h3>
-      <form id="entryForm" onsubmit="event.preventDefault(); startExam();">
+      <form id="entryForm" onsubmit="event.preventDefault(); showRulesModal();">
         <label for="authCode">Authorization Code</label>
         <input type="text" id="authCode" placeholder="e.g. UMP-PRE-001, UMP-POST-001, COACH-PRE-001, COACH-POST-001" style="text-transform: uppercase;" oninput="verifyCodeLive()" required>
         <small style="color: #a6adc8;">Supported Prefix Routes: <code>UMP-PRE</code> | <code>UMP-POST</code> | <code>COACH-PRE</code> | <code>COACH-POST</code></small>
@@ -111,11 +157,47 @@
             <strong>Exam Type:</strong> <span id="previewTypeBadge" class="badge">—</span>
           </p>
           <p style="margin: 2px 0;"><strong>Question Pool Focus:</strong> <span id="previewExamType" style="color: var(--accent-green);">—</span></p>
-          <p style="margin: 0.5rem 0 0 0; font-size: 0.82rem; color: #a6adc8;">⚠️ WebCam AI access will be requested upon clicking start for live proctoring.</p>
         </div>
 
-        <button type="submit" id="startBtn" style="margin-top: 1.5rem;" class="contrast" disabled>Enable Camera & Begin Examination</button>
+        <button type="submit" id="startBtn" style="margin-top: 1.5rem;" class="contrast" disabled>Begin Examination Setup &rarr;</button>
       </form>
+    </div>
+
+    <!-- PROCTORING RULES SPLASH SCREEN MODAL -->
+    <div id="rulesModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <h3 style="color: var(--accent-yellow); margin-bottom: 0.25rem;">⚠️ Examination Conduct & Proctoring Rules</h3>
+        <small style="color: #a6adc8;">Please review the mandatory anti-cheat protocols carefully before proceeding.</small>
+
+        <ul class="rules-list">
+          <li style="border-left-color: var(--primary);">
+            <strong>1. Environment & Camera Line-of-Sight:</strong><br>
+            You must take this exam in a quiet room where <strong>only you are present and visible</strong>. No other person should enter the camera view or assist you.
+          </li>
+          <li style="border-left-color: var(--accent-purple);">
+            <strong>2. Navigation & Window Controls:</strong><br>
+            <strong>Tab switching, minimizing the browser, using Alt-Tab, or pressing the Back button</strong> is strictly monitored and blocked.
+          </li>
+          <li style="border-left-color: var(--accent-red);">
+            <strong>3. Secondary Devices & Photography:</strong><br>
+            Taking photos, screenshots, or using external devices (cellphones, tablets, secondary screens) is prohibited. The AI model monitors for mobile phone objects in frame.
+          </li>
+          <li style="border-left-color: var(--accent-yellow);">
+            <strong>4. Three (3) Strike Policy:</strong><br>
+            You are allowed a maximum of <strong>3 combined strike warnings</strong> (face missing, phone detected, multiple persons, or lost tab focus). Upon receiving Strike 3, your exam will be <strong>terminated and auto-submitted immediately</strong>.
+          </li>
+        </ul>
+
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: #11111b; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+          <input type="checkbox" id="understandCheck" onchange="toggleLaunchButton()" style="margin: 0;">
+          <span style="font-size: 0.9rem; font-weight: bold; color: var(--text);">I have read, understood, and agree to abide by all examination conduct rules.</span>
+        </label>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button type="button" onclick="closeRulesModal()" class="secondary outline" style="width: auto;">Cancel</button>
+          <button type="button" id="launchExamBtn" onclick="startExam()" class="contrast" style="width: auto; border-color: var(--accent-green); color: var(--accent-green);" disabled>Enable Camera & Start Exam</button>
+        </div>
+      </div>
     </div>
 
     <!-- ACTIVE EXAM INTERFACE WITH AI PROCTOR HUD -->
@@ -156,7 +238,7 @@
       </div>
     </div>
 
-    <!-- RESULT SUMMARY -->
+    <!-- RESULT SUMMARY & DYNAMIC ITEM ANALYSIS -->
     <div id="resultSection" class="card hidden">
       <h3 style="color: var(--accent-green);">Examination Completed</h3>
       <p id="resultSummaryText">Processing score report...</p>
@@ -165,8 +247,24 @@
         <h4>Score Breakdown</h4>
         <h1 id="scoreDisplay" style="color: var(--primary); font-size: 3rem; margin: 0;">0 / 30</h1>
         <p id="percentageDisplay" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-green);">0%</p>
-        <p style="margin-top: 1rem; color: #a6adc8;">Bank-Aware Response Payload (Recorded to Google Sheets):</p>
-        <code id="responseVector" style="word-break: break-all; font-size: 0.85rem; display: block; max-height: 150px; overflow-y: auto;">{}</code>
+      </div>
+
+      <!-- DYNAMIC ITEM ANALYSIS REPORT -->
+      <div class="card" style="background: #181825; border: 1px solid var(--border-color);">
+        <h4 style="color: var(--primary); margin-bottom: 0.5rem;">📊 Candidate Item & Topic Analysis</h4>
+        <p style="font-size: 0.88rem; color: #a6adc8;">Review your performance on each item below. Topic masteries are synced to Google Sheets for psychometric $P/D$ index calculation.</p>
+        
+        <table class="analysis-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Bank ID</th>
+              <th>Topic Area</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody id="analysisTableBody"></tbody>
+        </table>
       </div>
 
       <div id="syncStatus" style="color: var(--accent-yellow); font-size: 0.9rem; margin-bottom: 1rem; font-weight: bold;">
@@ -184,9 +282,7 @@
     // COMBINED MASTER QUESTION POOLS BY DOMAIN CATEGORY
     // -------------------------------------------------------------
 
-    // 1. Umpire Category Master Pool (85 Total Available Items)
     const POOL_UMPIRE_MASTER = [
-      // --- BANK_TT_UMPIRING_GENERAL Items ---
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q1", topic: "Toss Height Rule", question: "When serving, the ball must be thrown almost vertically upwards at least how many centimeters?", options: ["10 cm", "16 cm", "20 cm", "25 cm"], answer: 1 },
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q2", topic: "Service Warning", question: "If an umpire suspects the legality of a service for the first time in a match, what action should be taken?", options: ["Award point to receiver", "Issue a formal warning without awarding a point", "Call a let and re-serve immediately", "Disqualify the player"], answer: 1 },
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q3", topic: "Doubles Service Box", question: "In doubles, the serve must land sequentially in which courts?", options: ["Right half court of server to left half court of receiver", "Right half court of server to right half court of receiver", "Any court chosen by the server", "Left half court to right half court"], answer: 1 },
@@ -195,8 +291,6 @@
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q6", topic: "Free Hand Contact", question: "While the ball is in play, the player touches the playing surface with their free hand. What is the call?", options: ["Point to opponent", "Play continues", "Call a let", "Issue warning"], answer: 0 },
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q7", topic: "Service Palm Openness", question: "The service launch must start with the ball resting freely on the open palm of the server's stationary free hand.", options: ["True", "False — Fingers can cupped", "False — Can be launched from fingers", "True — Only in singles"], answer: 0 },
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q8", topic: "Clothing Color Conflict", question: "The main color of a shirt, skirt or shorts, other than sleeves and collar, shall be clearly different from that of the ball in use.", options: ["True", "False", "Only in international events", "Umpire discretion"], answer: 0 },
-
-      // --- BANK_TT_UMPIRING_FULL / Scotland Paper No. 15 Items ---
       { bankId: "BANK_TT_UMPIRING_FULL", id: "Q9", topic: "Cramp Suspension", question: "The umpire should suspend play if satisfied that a player is suffering from cramp and needs a short rest.", options: ["True — Umpire must suspend play for cramp.", "False — Play may not be suspended for cramp, as it is a fitness condition.", "True — Provided both players agree.", "False — Only if referee approves."], answer: 1 },
       { bankId: "BANK_TT_UMPIRING_FULL", id: "Q10", topic: "Time-Out Requests", question: "A player can interrupt a rally to request a time out.", options: ["True — A time out can be called mid-rally.", "False — A time out request can only be made when the ball is out of play.", "True — Provided ball hasn't crossed net.", "False — Only coaches can request time outs."], answer: 1 },
       { bankId: "BANK_TT_UMPIRING_FULL", id: "Q11", topic: "Ball Specifications", question: "The ball may be of any colour that is clearly different from that of the shirt or shorts of either player.", options: ["True — Any contrasting color is legal.", "False — The ball must be matte white or matte orange only.", "True — Yellow and green balls are legal.", "False — Must match table color."], answer: 1 },
@@ -206,26 +300,18 @@
       { bankId: "BANK_TT_UMPIRING_FULL", id: "Q15", topic: "Advice During Play", question: "Players may receive advice from anyone at any time during a match.", options: ["False — Advice can only be given between games or during authorized suspensions", "True — Advice can be shouted during rallies", "True — Only in team matches", "False — No advice permitted ever"], answer: 0 }
     ];
 
-    // 2. Coach Category Master Pool (115 Total Available Items)
     const POOL_COACH_MASTER = [
-      // --- BANK_TT_MASTER Items ---
       { bankId: "BANK_TT_MASTER", id: "Q1", topic: "Ready Position", question: "What is the recommended body stance weight distribution for a table tennis player in neutral ready position?", options: ["Heels flat on floor with leaning backward stance", "On balls of feet with knees slightly bent and torso leaning forward", "Weight completely on dominant leg", "Stiff legs with upright spine"], answer: 1 },
       { bankId: "BANK_TT_MASTER", id: "Q2", topic: "Grip Basics", question: "Which racket grip allows equal forehand and backhand reach without significant wrist readjustment?", options: ["Penhold Japanese Grip", "Shakehand Neutral Grip", "V-Grip", "Seemiller Grip"], answer: 1 },
       { bankId: "BANK_TT_MASTER", id: "Q3", topic: "Multiball Training", question: "Primary objective of multiball feeding in initial skill acquisition phase:", options: ["To exhaust candidate cardiovascular endurance", "High volume repetition of stroke technique in controlled environment", "To simulate match strategy speed", "To test reaction times under pressure"], answer: 1 },
       { bankId: "BANK_TT_MASTER", id: "Q4", topic: "Exercise Physiology", question: "The athlete will be able to produce more _______ for his daily actions than his full potential.", options: ["stress", "rhythm", "energy", "exercise"], answer: 2 },
       { bankId: "BANK_TT_MASTER", id: "Q5", topic: "Training Adaptation", question: "The period of fatigue is necessary for _______.", options: ["optimum energy", "growth development", "skill development", "progress"], answer: 3 },
-
-      // --- BANK_TT_L3 Items ---
       { bankId: "BANK_TT_L3", id: "Q6", topic: "Equipment Specs", question: "According to ITTF rules, what are the official dimensions of the table tennis playing surface?", options: ["2.50m x 1.50m, 75cm high", "2.74m x 1.525m, 76cm high", "3.00m x 1.60m, 80cm high", "2.74m x 1.45m, 70cm high"], answer: 1 },
       { bankId: "BANK_TT_L3", id: "Q7", topic: "Coaching Tactics", question: "Which tactics are recommended when playing against a player settled at Middle or Far Distance?", options: ["Play long high balls", "Play short balls and table play to bring them into uncomfortable close zone", "Give them time to setup heavy topspins", "Match their topspin from far distance"], answer: 1 },
       { bankId: "BANK_TT_L3", id: "Q8", topic: "Match Analysis", question: "What primary tools should a coach use to systematically learn from and breakdown an opponent's playstyle?", options: ["Variations & Game Scheme", "Video analysis & Note Taking", "Game Structure & Game System", "Intuition only"], answer: 1 },
-
-      // --- BANK_BIOMECHANICS Items ---
       { bankId: "BANK_BIOMECHANICS", id: "Q9", topic: "Biomechanics - Levers", question: "Which class of levers represents the majority of muscles in the human body?", options: ["First Class Lever", "Second Class Lever", "Third Class Lever", "Fourth Class Lever"], answer: 2 },
       { bankId: "BANK_BIOMECHANICS", id: "Q10", topic: "Center of Gravity", question: "The center of gravity is the point around which body weight is balanced. In humans, this is located near the:", options: ["Legs", "Navel / Sacrum level", "Chest", "Shoulders"], answer: 1 },
       { bankId: "BANK_BIOMECHANICS", id: "Q11", topic: "Summation of Force", question: "Which concept involves initiating movement with larger, slower muscle groups to generate optimal power?", options: ["Power", "Biomechanics", "Summation of force", "Flexibility"], answer: 2 },
-
-      // --- BANK_SPORTS_MED Items ---
       { bankId: "BANK_SPORTS_MED", id: "Q12", topic: "Sports Med - Weakest Link", question: "What is considered the 'Weakest Link' in the musculoskeletal system of a growing child athlete?", options: ["Ligaments", "Joint Capsules", "Growth Plates / Epiphyseal Plates", "Tendons"], answer: 2 },
       { bankId: "BANK_SPORTS_MED", id: "Q13", topic: "Nutritional Golden Rules", question: "According to table tennis nutritional guidelines, what should players decrease in their daily diet?", options: ["Fats", "Fats, excessive salt, alcohol", "Complex carbs", "Water"], answer: 1 }
     ];
@@ -236,6 +322,7 @@
     let timerInterval = null;
     let aiInterval = null;
     let timeLeft = 2700;
+    let isExamSubmitted = false; // FLAG TO PREVENT POST-SUBMIT STRIKES
     
     let verifiedTrack = "UMPIRE";
     let verifiedTestType = "PRE";
@@ -324,6 +411,22 @@
       }
     }
 
+    // RULES MODAL FUNCTIONS
+    function showRulesModal() {
+      document.getElementById('rulesModal').classList.remove('hidden');
+    }
+
+    function closeRulesModal() {
+      document.getElementById('rulesModal').classList.add('hidden');
+      document.getElementById('understandCheck').checked = false;
+      document.getElementById('launchExamBtn').disabled = true;
+    }
+
+    function toggleLaunchButton() {
+      const check = document.getElementById('understandCheck');
+      document.getElementById('launchExamBtn').disabled = !check.checked;
+    }
+
     function shuffle(arr) {
       let array = [...arr];
       for (let i = array.length - 1; i > 0; i--) {
@@ -333,10 +436,8 @@
       return array;
     }
 
-    // Safety Array Extension — Guarantees exactly 30 questions are built
     function buildExamPool(sourcePool, targetLength = 30) {
       if (!sourcePool || sourcePool.length === 0) return [];
-      
       let expanded = [...sourcePool];
       while (expanded.length < targetLength) {
         const remainingNeeded = targetLength - expanded.length;
@@ -346,21 +447,18 @@
         }));
         expanded = expanded.concat(clones);
       }
-      
       return shuffle(expanded).slice(0, targetLength);
     }
 
     async function startExam() {
+      closeRulesModal();
+      isExamSubmitted = false;
       const code = document.getElementById('authCode').value.trim().toUpperCase();
       const name = document.getElementById('studentName').value.trim();
       
-      // Select Category Master Pool based on Verified Track Domain
       let categoryPool = (verifiedTrack === 'UMPIRE') ? POOL_UMPIRE_MASTER : POOL_COACH_MASTER;
-
-      // Draw Guaranteed 30 Unique Non-Repeating Questions from the Combined Master Pool
       currentExam = buildExamPool(categoryPool, 30);
 
-      // WebCam & AI Initialization
       try {
         videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         const videoElement = document.getElementById('webcamFeed');
@@ -423,6 +521,7 @@
     }
 
     function selectOption(qIdx, optIdx) {
+      if (isExamSubmitted) return;
       userAnswers[qIdx] = optIdx;
       const qCard = document.getElementById('q-card-' + qIdx);
       if (qCard) qCard.classList.add('is-answered');
@@ -434,40 +533,45 @@
       const statusLabel = document.getElementById('aiStatusLabel');
 
       aiInterval = setInterval(async () => {
-        if (!faceModel || !objectModel || !video) return;
+        if (isExamSubmitted || !faceModel || !objectModel || !video) return;
 
-        const predictions = await faceModel.estimateFaces(video, false);
-        const faceCount = predictions.length;
+        try {
+          const predictions = await faceModel.estimateFaces(video, false);
+          const faceCount = predictions.length;
 
-        const objects = await objectModel.detect(video);
-        const phoneDetected = objects.some(obj => obj.class === 'cell phone' || obj.class === 'camera');
+          const objects = await objectModel.detect(video);
+          const phoneDetected = objects.some(obj => obj.class === 'cell phone' || obj.class === 'camera');
 
-        if (phoneDetected) {
-          statusLabel.innerText = "PHONE DETECTED!";
-          statusLabel.style.color = "var(--accent-red)";
-          recordStrike("Cell phone or camera object detected on camera feed");
-        } else if (faceCount === 0) {
-          statusLabel.innerText = "FACE MISSING";
-          statusLabel.style.color = "var(--accent-yellow)";
-          recordStrike("No candidate face detected in camera view");
-        } else if (faceCount > 1) {
-          statusLabel.innerText = "MULTIPLE FACES";
-          statusLabel.style.color = "var(--accent-red)";
-          recordStrike("Multiple persons detected in camera view");
-        } else {
-          statusLabel.innerText = "AI MONITORING";
-          statusLabel.style.color = "var(--accent-green)";
+          if (isExamSubmitted) return; // Re-check before recording strike
+
+          if (phoneDetected) {
+            statusLabel.innerText = "PHONE DETECTED!";
+            statusLabel.style.color = "var(--accent-red)";
+            recordStrike("Cell phone or camera object detected on camera feed");
+          } else if (faceCount === 0) {
+            statusLabel.innerText = "FACE MISSING";
+            statusLabel.style.color = "var(--accent-yellow)";
+            recordStrike("No candidate face detected in camera view");
+          } else if (faceCount > 1) {
+            statusLabel.innerText = "MULTIPLE FACES";
+            statusLabel.style.color = "var(--accent-red)";
+            recordStrike("Multiple persons detected in camera view");
+          } else {
+            statusLabel.innerText = "AI MONITORING";
+            statusLabel.style.color = "var(--accent-green)";
+          }
+        } catch (e) {
+          console.warn("AI Loop interrupted:", e);
         }
       }, 3000);
     }
 
     function startProctoring() {
-      window.addEventListener('blur', () => recordStrike("Window focus lost / Alt-Tab switch"));
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) recordStrike("Tab hidden or window minimized");
-      });
+      window.addEventListener('blur', handleWindowBlur);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
 
       timerInterval = setInterval(() => {
+        if (isExamSubmitted) return;
         timeLeft--;
         const mins = Math.floor(timeLeft / 60);
         const secs = timeLeft % 60;
@@ -476,16 +580,29 @@
       }, 1000);
     }
 
+    function handleWindowBlur() {
+      if (!isExamSubmitted) recordStrike("Window focus lost / Alt-Tab switch");
+    }
+
+    function handleVisibilityChange() {
+      if (!isExamSubmitted && document.hidden) recordStrike("Tab hidden or window minimized");
+    }
+
     function setupAntiBackTrap() {
       history.pushState(null, null, location.href);
       window.onpopstate = () => {
-        history.pushState(null, null, location.href);
-        alert("Navigation disabled during active examination.");
+        if (!isExamSubmitted) {
+          history.pushState(null, null, location.href);
+          alert("Navigation disabled during active examination.");
+        }
       };
-      window.onbeforeunload = () => "Active exam in progress. Navigating away will submit your answers.";
+      window.onbeforeunload = () => {
+        if (!isExamSubmitted) return "Active exam in progress. Navigating away will submit your answers.";
+      };
     }
 
     function recordStrike(reason) {
+      if (isExamSubmitted) return;
       strikeCount++;
       document.getElementById('strikeDisplay').innerText = `${strikeCount}/3`;
       if (strikeCount >= 3) {
@@ -499,24 +616,47 @@
     }
 
     function submitExam() {
+      if (isExamSubmitted) return; // PREVENT DUPLICATE SUBMISSIONS
+      isExamSubmitted = true;
+
+      // STOP ALL TIMERS & PROCTORING LISTENERS IMMEDIATELY
       clearInterval(timerInterval);
       clearInterval(aiInterval);
-      if (videoStream) videoStream.getTracks().forEach(track => track.stop());
-
+      window.removeEventListener('blur', handleWindowBlur);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.onbeforeunload = null;
       window.onpopstate = null;
+
+      // SHUT DOWN WEBCAM HARDWARE FEED
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+      }
 
       document.getElementById('examSection').classList.add('hidden');
       document.getElementById('resultSection').classList.remove('hidden');
 
       let correct = 0;
       let itemResponses = {};
+      const tbody = document.getElementById('analysisTableBody');
+      tbody.innerHTML = '';
 
       currentExam.forEach((q, idx) => {
         const isRight = userAnswers[idx] === q.answer ? 1 : 0;
         if (isRight) correct++;
+        
         const itemKey = `${q.bankId}__${q.id}`;
         itemResponses[itemKey] = { correct: isRight, topic: q.topic };
+
+        // GENERATE ITEM ANALYSIS ROW
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${idx + 1}</strong></td>
+          <td><code>${q.bankId}</code></td>
+          <td>${q.topic}</td>
+          <td class="${isRight ? 'status-correct' : 'status-incorrect'}">${isRight ? '✓ Correct' : '❌ Incorrect'}</td>
+        `;
+        tbody.appendChild(tr);
       });
 
       const pct = ((correct / 30) * 100).toFixed(1);
@@ -525,7 +665,6 @@
 
       document.getElementById('scoreDisplay').innerText = `${correct} / 30`;
       document.getElementById('percentageDisplay').innerText = `${pct}% Score`;
-      document.getElementById('responseVector').innerText = JSON.stringify(itemResponses, null, 2);
       document.getElementById('resultSummaryText').innerText = `Candidate: ${name} | Code: ${code} | Track: ${verifiedTrack} | Test Type: ${verifiedTestType}-TEST`;
 
       const payload = {
@@ -546,8 +685,13 @@
         body: JSON.stringify(payload)
       })
       .then(() => {
-        document.getElementById('syncStatus').innerText = "✓ Results successfully logged to Google Sheets!";
+        document.getElementById('syncStatus').innerText = "✓ Results & Item Analysis successfully logged to Google Sheets!";
         document.getElementById('syncStatus').style.color = "var(--accent-green)";
+      })
+      .catch(err => {
+        console.error("Sync error:", err);
+        document.getElementById('syncStatus').innerText = "❌ Sync Alert: Unable to log results to Google Sheets.";
+        document.getElementById('syncStatus').style.color = "var(--accent-red)";
       });
     }
   </script>
