@@ -34,6 +34,8 @@
     .badge-pre { background-color: #f9e2af; color: #11111b; }
     .badge-post { background-color: #a6e3a1; color: #11111b; }
     .badge-ongoing { background-color: var(--accent-yellow); color: #11111b; }
+    .badge-safe { background-color: var(--accent-green); color: #11111b; }
+    .badge-warn { background-color: var(--accent-red); color: #11111b; }
     
     .preview-box {
       margin-top: 1rem;
@@ -47,7 +49,7 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(17, 17, 27, 0.92);
+      background: rgba(17, 17, 27, 0.94);
       backdrop-filter: blur(8px);
       z-index: 2000;
       display: flex;
@@ -59,7 +61,7 @@
       background-color: #181825;
       border: 2px solid var(--primary);
       border-radius: 12px;
-      max-width: 650px;
+      max-width: 680px;
       width: 100%;
       padding: 2rem;
       box-shadow: 0 10px 30px rgba(0,0,0,0.8);
@@ -69,7 +71,7 @@
     .rules-list {
       list-style: none;
       padding-left: 0;
-      margin: 1.5rem 0;
+      margin: 1.25rem 0;
     }
     .rules-list li {
       padding: 0.65rem 0.85rem;
@@ -77,10 +79,31 @@
       margin-bottom: 0.75rem;
       background-color: #11111b;
       border-radius: 0 6px 6px 0;
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       line-height: 1.4;
     }
     .rules-list li strong { color: var(--primary); }
+
+    /* SPLASH CAMERA DISTANCE CHECK HUD */
+    .splash-cam-container {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      background: #11111b;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 1.25rem;
+    }
+    .splash-cam-preview {
+      width: 120px;
+      height: 90px;
+      background: #000;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--primary);
+    }
+    #splashWebcamFeed { width: 100%; height: 100%; object-fit: cover; }
 
     /* STICKY HEADER WITH WEBCAM AI HUD */
     .sticky-header {
@@ -164,43 +187,57 @@
           </p>
         </div>
 
-        <button type="submit" id="startBtn" style="margin-top: 1.5rem;" class="contrast" disabled>Begin Examination Setup</button>
+        <button type="submit" id="startBtn" style="margin-top: 1.5rem;" class="contrast" disabled>Begin Examination Setup &rarr;</button>
       </form>
     </div>
 
-    <!-- PROCTORING RULES SPLASH SCREEN MODAL -->
+    <!-- PROCTORING RULES SPLASH SCREEN MODAL WITH LIVE CAMERA DISTANCE CHECK -->
     <div id="rulesModal" class="modal-overlay hidden">
       <div class="modal-box">
-        <h3 style="color: var(--accent-yellow); margin-bottom: 0.25rem;">⚠️ Examination Conduct & Classroom Proctoring Rules</h3>
-        <small style="color: #a6adc8;">Please review the anti-cheat protocols carefully before proceeding.</small>
+        <h3 style="color: var(--accent-yellow); margin-bottom: 0.25rem;">⚠️ Camera Distance & Classroom Rules</h3>
+        <small style="color: #a6adc8;">Ensure proper camera distance and review conduct guidelines before starting.</small>
+
+        <!-- LIVE DISTANCE VERIFICATION HUD -->
+        <div class="splash-cam-container">
+          <div class="splash-cam-preview">
+            <video id="splashWebcamFeed" autoplay playsinline muted></video>
+          </div>
+          <div>
+            <strong style="display: block; font-size: 0.9rem;">Camera Distance Verification:</strong>
+            <span id="distanceBadge" class="badge badge-warn">TOO FAR / CHECK CAMERA</span>
+            <p id="distanceMsg" style="margin: 4px 0 0 0; font-size: 0.8rem; color: #a6adc8;">
+              Position yourself <strong>0.5m to 1.0m</strong> from the camera so your face is clearly visible.
+            </p>
+          </div>
+        </div>
 
         <ul class="rules-list">
           <li style="border-left-color: var(--primary);">
-            <strong>1. Environment & Classroom Proximity:</strong><br>
-            You must sit facing your device. The AI engine is calibrated for classroom settings and monitors for secondary persons within close proximity (&lt;0.25m frame ratio).
+            <strong>1. Distance Calibration (0.5m - 1.0m):</strong><br>
+            Sit facing your camera at <strong>0.5m to 1.0m distance</strong>. Secondary persons must stay clear of your immediate area (&gt;0.25m away).
           </li>
           <li style="border-left-color: var(--accent-purple);">
-            <strong>2. Navigation & Window Controls:</strong><br>
-            <strong>Tab switching, minimizing the browser, using Alt-Tab, or pressing the Back button</strong> triggers strike warnings.
+            <strong>2. Navigation Controls & Window Traps:</strong><br>
+            <strong>Tab switching, minimizing, Alt-Tab, or Back button</strong> triggers warning strikes.
           </li>
           <li style="border-left-color: var(--accent-red);">
-            <strong>3. Secondary Devices & Object AI:</strong><br>
-            Using cellphones, secondary screens, or taking photos is monitored via live object detection.
+            <strong>3. Object AI & Secondary Devices:</strong><br>
+            Cellphones, tablets, and cameras in frame are flagged by live object AI.
           </li>
           <li style="border-left-color: var(--accent-yellow);">
-            <strong>4. Session State & 3 Strike Policy:</strong><br>
-            If accidentally closed, your test state will set to <code>ON_GOING</code> so you can re-login and resume. Accumulating 3 strikes terminates and auto-submits your test.
+            <strong>4. Session Resume & 3 Strike Policy:</strong><br>
+            If closed accidentally, progress is saved as <code>ON_GOING</code>. Accumulating 3 strikes terminates the attempt.
           </li>
         </ul>
 
         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: #11111b; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
           <input type="checkbox" id="understandCheck" onchange="toggleLaunchButton()" style="margin: 0;">
-          <span style="font-size: 0.9rem; font-weight: bold; color: var(--text);">I have read, understood, and agree to abide by all examination conduct rules.</span>
+          <span style="font-size: 0.88rem; font-weight: bold; color: var(--text);">I am seated at a safe distance (0.5m - 1.0m) and agree to all proctoring rules.</span>
         </label>
 
         <div style="display: flex; gap: 12px; justify-content: flex-end;">
           <button type="button" onclick="closeRulesModal()" class="secondary outline" style="width: auto;">Cancel</button>
-          <button type="button" id="launchExamBtn" onclick="startExam()" class="contrast" style="width: auto; border-color: var(--accent-green); color: var(--accent-green);" disabled>Enable Camera & Launch Exam</button>
+          <button type="button" id="launchExamBtn" onclick="startExam()" class="contrast" style="width: auto; border-color: var(--accent-green); color: var(--accent-green);" disabled>Launch Exam &rarr;</button>
         </div>
       </div>
     </div>
@@ -326,6 +363,7 @@
     let strikeCount = 0;
     let timerInterval = null;
     let aiInterval = null;
+    let splashInterval = null;
     let timeLeft = 2700;
     let isExamSubmitted = false;
     
@@ -336,7 +374,6 @@
     let objectModel = null;
     let videoStream = null;
 
-    // PRE-FETCH MODEL ENGINE TO ELIMINATE LOADING DELAYS
     window.addEventListener('DOMContentLoaded', () => {
       preloadAIModels();
     });
@@ -348,7 +385,6 @@
       } catch(e) { console.log("AI Preload notice:", e); }
     }
 
-    // Live Code Lookup and Route Parsing
     function verifyCodeLive() {
       const code = document.getElementById('authCode').value.trim().toUpperCase();
       const previewCard = document.getElementById('previewCard');
@@ -385,7 +421,6 @@
             previewTypeBadge.innerText = verifiedTestType + '-TEST';
             previewTypeBadge.className = 'badge ' + (verifiedTestType === 'PRE' ? 'badge-pre' : 'badge-post');
 
-            // Check local storage for active session
             const savedSession = localStorage.getItem('requiz_session_' + code);
             if (savedSession || data.status === 'ON_GOING') {
               resumeBadge.classList.remove('hidden');
@@ -444,12 +479,69 @@
       }
     }
 
-    // RULES MODAL FUNCTIONS
-    function showRulesModal() {
+    // RULES MODAL & CAMERA DISTANCE HUD
+    async function showRulesModal() {
       document.getElementById('rulesModal').classList.remove('hidden');
+      
+      // Launch Splash WebCam Distance Preview
+      try {
+        if (!videoStream) {
+          videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+        const splashFeed = document.getElementById('splashWebcamFeed');
+        splashFeed.srcObject = videoStream;
+
+        if (!faceModel) faceModel = await blazeface.load();
+        
+        startSplashDistanceLoop();
+      } catch(e) {
+        console.warn("Splash camera access:", e);
+      }
+    }
+
+    function startSplashDistanceLoop() {
+      const splashFeed = document.getElementById('splashWebcamFeed');
+      const badge = document.getElementById('distanceBadge');
+      const msg = document.getElementById('distanceMsg');
+
+      splashInterval = setInterval(async () => {
+        if (!faceModel || !splashFeed || document.getElementById('rulesModal').classList.contains('hidden')) return;
+
+        try {
+          const preds = await faceModel.estimateFaces(splashFeed, false);
+          const videoArea = splashFeed.videoWidth * splashFeed.videoHeight || 1;
+
+          if (preds.length > 0) {
+            const pred = preds[0];
+            const width = pred.topLeft[0] - pred.bottomRight[0];
+            const height = pred.bottomRight[1] - pred.topLeft[1];
+            const ratio = Math.abs(width * height) / videoArea;
+
+            // DISTANCE CALIBRATION: 0.5m to 1.0m (0.015 to 0.12 ratio)
+            if (ratio >= 0.015 && ratio <= 0.12) {
+              badge.innerText = "SAFE DISTANCE (0.5m - 1.0m)";
+              badge.className = "badge badge-safe";
+              msg.innerText = "✓ Excellent position. You are seated at an optimal distance.";
+            } else if (ratio > 0.12) {
+              badge.innerText = "TOO CLOSE (< 0.4m)";
+              badge.className = "badge badge-warn";
+              msg.innerText = "⚠️ Please lean back slightly to reach 0.5m - 1.0m distance.";
+            } else {
+              badge.innerText = "TOO FAR (> 1.2m)";
+              badge.className = "badge badge-warn";
+              msg.innerText = "⚠️ Please move closer to your camera (~0.5m).";
+            }
+          } else {
+            badge.innerText = "NO FACE DETECTED";
+            badge.className = "badge badge-warn";
+            msg.innerText = "⚠️ Position your face clearly in front of the camera.";
+          }
+        } catch(e) {}
+      }, 1000);
     }
 
     function closeRulesModal() {
+      clearInterval(splashInterval);
       document.getElementById('rulesModal').classList.add('hidden');
       document.getElementById('understandCheck').checked = false;
       document.getElementById('launchExamBtn').disabled = true;
@@ -486,14 +578,14 @@
     async function startExam() {
       const launchBtn = document.getElementById('launchExamBtn');
       launchBtn.disabled = true;
-      launchBtn.innerText = "Initializing AI Engine...";
+      launchBtn.innerText = "Launching...";
 
+      clearInterval(splashInterval);
       closeRulesModal();
       isExamSubmitted = false;
       const code = document.getElementById('authCode').value.trim().toUpperCase();
       const name = document.getElementById('studentName').value.trim();
 
-      // Check for Resumable Local Storage State
       const savedSessionRaw = localStorage.getItem('requiz_session_' + code);
       if (savedSessionRaw) {
         try {
@@ -517,7 +609,6 @@
         strikeCount = 0;
       }
 
-      // Notify Google Sheets status -> ON_GOING
       updateBackendStatus(code, name, "ON_GOING");
 
       try {
@@ -553,7 +644,7 @@
         alert("WebCam Access Required: Camera permission is required for proctored examination.");
         console.error(err);
       } finally {
-        launchBtn.innerText = "Enable Camera & Launch Exam";
+        launchBtn.innerText = "Launch Exam \u2192";
       }
     }
 
@@ -623,16 +714,22 @@
           const predictions = await faceModel.estimateFaces(video, false);
           const videoArea = video.videoWidth * video.videoHeight || 1;
 
-          // CLASSROOM PROXIMITY CALIBRATION (<0.25m / Close Frame Fill)
-          // Filter faces: Only count faces that occupy >12% of frame area (Primary candidate sitting <0.25m close)
-          const closeFaces = predictions.filter(pred => {
+          // RECALIBRATED DISTANCE & PROXIMITY DETECTION
+          // 1. Primary Test Taker Detection: Face area ratio >= 0.015 (Valid up to 1.0 meter away)
+          const validPrimaryFaces = predictions.filter(pred => {
             const width = pred.topLeft[0] - pred.bottomRight[0];
             const height = pred.bottomRight[1] - pred.topLeft[1];
-            const faceArea = Math.abs(width * height);
-            return (faceArea / videoArea) > 0.08; 
+            const ratio = Math.abs(width * height) / videoArea;
+            return ratio >= 0.015;
           });
 
-          const faceCount = closeFaces.length;
+          // 2. Secondary Proximity Violation: Secondary faces within close proximity (<0.25m from candidate / ratio > 0.012)
+          const closeSecondaryFaces = predictions.filter(pred => {
+            const width = pred.topLeft[0] - pred.bottomRight[0];
+            const height = pred.bottomRight[1] - pred.topLeft[1];
+            const ratio = Math.abs(width * height) / videoArea;
+            return ratio > 0.012;
+          });
 
           const objects = await objectModel.detect(video);
           const phoneDetected = objects.some(obj => (obj.class === 'cell phone' || obj.class === 'camera') && obj.score > 0.6);
@@ -643,14 +740,14 @@
             statusLabel.innerText = "PHONE DETECTED!";
             statusLabel.style.color = "var(--accent-red)";
             recordStrike("Cell phone or camera object detected on camera feed");
-          } else if (faceCount === 0) {
-            statusLabel.innerText = "FACE MISSING";
+          } else if (validPrimaryFaces.length === 0) {
+            statusLabel.innerText = "FACE MISSING / TOO FAR";
             statusLabel.style.color = "var(--accent-yellow)";
-            recordStrike("No candidate face detected in primary camera view");
-          } else if (faceCount > 1) {
+            recordStrike("No test taker face detected within 1.0m camera range");
+          } else if (closeSecondaryFaces.length > 1) {
             statusLabel.innerText = "PROXIMITY WARNING";
             statusLabel.style.color = "var(--accent-red)";
-            recordStrike("Secondary person detected within immediate proximity (<0.25m)");
+            recordStrike("Secondary person detected within close proximity (<0.25m)");
           } else {
             statusLabel.innerText = "AI MONITORING";
             statusLabel.style.color = "var(--accent-green)";
@@ -672,7 +769,6 @@
         const secs = timeLeft % 60;
         document.getElementById('timerDisplay').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
         
-        // Auto-save session state every 5 seconds
         if (timeLeft % 5 === 0) saveLocalSession();
 
         if (timeLeft <= 0) submitExam();
@@ -734,10 +830,11 @@
       isExamSubmitted = true;
 
       const code = document.getElementById('authCode').value.trim().toUpperCase();
-      localStorage.removeItem('requiz_session_' + code); // Clean session storage upon completion
+      localStorage.removeItem('requiz_session_' + code);
 
       clearInterval(timerInterval);
       clearInterval(aiInterval);
+      clearInterval(splashInterval);
       window.removeEventListener('blur', handleWindowBlur);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.onbeforeunload = null;
