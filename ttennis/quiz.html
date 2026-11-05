@@ -33,6 +33,7 @@
     .badge-coach { background-color: #89b4fa; color: #11111b; }
     .badge-pre { background-color: #f9e2af; color: #11111b; }
     .badge-post { background-color: #a6e3a1; color: #11111b; }
+    .badge-ongoing { background-color: var(--accent-yellow); color: #11111b; }
     
     .preview-box {
       margin-top: 1rem;
@@ -137,7 +138,7 @@
       </div>
     </header>
 
-    <!-- ENTRY FORM WITH LIVE GOOGLE SHEETS LOOKUP -->
+    <!-- ENTRY FORM WITH LIVE GOOGLE SHEETS LOOKUP & RESUME DETECTOR -->
     <div id="authSection" class="card">
       <h3>Candidate Registration & Exam Auth</h3>
       <form id="entryForm" onsubmit="event.preventDefault(); showRulesModal();">
@@ -155,8 +156,12 @@
           <p style="margin: 2px 0;">
             <strong>Track Domain:</strong> <span id="previewBadge" class="badge">—</span>
             <strong>Exam Type:</strong> <span id="previewTypeBadge" class="badge">—</span>
+            <span id="resumeBadge" class="badge badge-ongoing hidden">SESSION RESUMABLE</span>
           </p>
           <p style="margin: 2px 0;"><strong>Question Pool Focus:</strong> <span id="previewExamType" style="color: var(--accent-green);">—</span></p>
+          <p id="resumeNotice" style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--accent-yellow);" class="hidden">
+            ⚠️ Active session found! Clicking start will restore your exact remaining time and answered progress.
+          </p>
         </div>
 
         <button type="submit" id="startBtn" style="margin-top: 1.5rem;" class="contrast" disabled>Begin Examination Setup &rarr;</button>
@@ -166,25 +171,25 @@
     <!-- PROCTORING RULES SPLASH SCREEN MODAL -->
     <div id="rulesModal" class="modal-overlay hidden">
       <div class="modal-box">
-        <h3 style="color: var(--accent-yellow); margin-bottom: 0.25rem;">⚠️ Examination Conduct & Proctoring Rules</h3>
-        <small style="color: #a6adc8;">Please review the mandatory anti-cheat protocols carefully before proceeding.</small>
+        <h3 style="color: var(--accent-yellow); margin-bottom: 0.25rem;">⚠️ Examination Conduct & Classroom Proctoring Rules</h3>
+        <small style="color: #a6adc8;">Please review the anti-cheat protocols carefully before proceeding.</small>
 
         <ul class="rules-list">
           <li style="border-left-color: var(--primary);">
-            <strong>1. Environment & Camera Line-of-Sight:</strong><br>
-            You must take this exam in a quiet room where <strong>only you are present and visible</strong>. No other person should enter the camera view or assist you.
+            <strong>1. Environment & Classroom Proximity:</strong><br>
+            You must sit facing your device. The AI engine is calibrated for classroom settings and monitors for secondary persons within close proximity (&lt;0.25m frame ratio).
           </li>
           <li style="border-left-color: var(--accent-purple);">
             <strong>2. Navigation & Window Controls:</strong><br>
-            <strong>Tab switching, minimizing the browser, using Alt-Tab, or pressing the Back button</strong> is strictly monitored and blocked.
+            <strong>Tab switching, minimizing the browser, using Alt-Tab, or pressing the Back button</strong> triggers strike warnings.
           </li>
           <li style="border-left-color: var(--accent-red);">
-            <strong>3. Secondary Devices & Photography:</strong><br>
-            Taking photos, screenshots, or using external devices (cellphones, tablets, secondary screens) is prohibited. The AI model monitors for mobile phone objects in frame.
+            <strong>3. Secondary Devices & Object AI:</strong><br>
+            Using cellphones, secondary screens, or taking photos is monitored via live object detection.
           </li>
           <li style="border-left-color: var(--accent-yellow);">
-            <strong>4. Three (3) Strike Policy:</strong><br>
-            You are allowed a maximum of <strong>3 combined strike warnings</strong> (face missing, phone detected, multiple persons, or lost tab focus). Upon receiving Strike 3, your exam will be <strong>terminated and auto-submitted immediately</strong>.
+            <strong>4. Session State & 3 Strike Policy:</strong><br>
+            If accidentally closed, your test state will set to <code>ON_GOING</code> so you can re-login and resume. Accumulating 3 strikes terminates and auto-submits your test.
           </li>
         </ul>
 
@@ -195,7 +200,7 @@
 
         <div style="display: flex; gap: 12px; justify-content: flex-end;">
           <button type="button" onclick="closeRulesModal()" class="secondary outline" style="width: auto;">Cancel</button>
-          <button type="button" id="launchExamBtn" onclick="startExam()" class="contrast" style="width: auto; border-color: var(--accent-green); color: var(--accent-green);" disabled>Enable Camera & Start Exam</button>
+          <button type="button" id="launchExamBtn" onclick="startExam()" class="contrast" style="width: auto; border-color: var(--accent-green); color: var(--accent-green);" disabled>Enable Camera & Launch Exam</button>
         </div>
       </div>
     </div>
@@ -252,7 +257,7 @@
       <!-- DYNAMIC ITEM ANALYSIS REPORT -->
       <div class="card" style="background: #181825; border: 1px solid var(--border-color);">
         <h4 style="color: var(--primary); margin-bottom: 0.5rem;">📊 Candidate Item & Topic Analysis</h4>
-        <p style="font-size: 0.88rem; color: #a6adc8;">Review your performance on each item below. Topic masteries are synced to Google Sheets for psychometric $P/D$ index calculation.</p>
+        <p style="font-size: 0.88rem; color: #a6adc8;">Review your performance on each item below. Topic masteries are synced to Google Sheets for psychometric P/D index calculation.</p>
         
         <table class="analysis-table">
           <thead>
@@ -271,7 +276,7 @@
         Syncing test results with Google Sheets...
       </div>
 
-      <button onclick="location.reload()" class="contrast">Take Another Exam</button>
+      <button onclick="clearSessionAndReload()" class="contrast">Take Another Exam</button>
     </div>
   </main>
 
@@ -322,7 +327,7 @@
     let timerInterval = null;
     let aiInterval = null;
     let timeLeft = 2700;
-    let isExamSubmitted = false; // FLAG TO PREVENT POST-SUBMIT STRIKES
+    let isExamSubmitted = false;
     
     let verifiedTrack = "UMPIRE";
     let verifiedTestType = "PRE";
@@ -330,6 +335,18 @@
     let faceModel = null;
     let objectModel = null;
     let videoStream = null;
+
+    // PRE-FETCH MODEL ENGINE TO ELIMINATE LOADING DELAYS
+    window.addEventListener('DOMContentLoaded', () => {
+      preloadAIModels();
+    });
+
+    async function preloadAIModels() {
+      try {
+        if (!faceModel) faceModel = await blazeface.load();
+        if (!objectModel) objectModel = await cocoSsd.load();
+      } catch(e) { console.log("AI Preload notice:", e); }
+    }
 
     // Live Code Lookup and Route Parsing
     function verifyCodeLive() {
@@ -339,6 +356,8 @@
       const previewBadge = document.getElementById('previewBadge');
       const previewTypeBadge = document.getElementById('previewTypeBadge');
       const previewExamType = document.getElementById('previewExamType');
+      const resumeBadge = document.getElementById('resumeBadge');
+      const resumeNotice = document.getElementById('resumeNotice');
       const startBtn = document.getElementById('startBtn');
       const nameInput = document.getElementById('studentName');
 
@@ -353,12 +372,12 @@
         .then(res => res.json())
         .then(data => {
           previewCard.classList.remove('hidden');
-          if (data.valid) {
+          if (data.valid || data.status === 'ON_GOING') {
             verifiedTrack = data.track || (code.includes('COACH') ? 'COACH' : 'UMPIRE');
             verifiedTestType = data.testType || (code.includes('POST') ? 'POST' : 'PRE');
             
-            nameInput.value = data.candidateName;
-            previewName.innerText = data.candidateName;
+            nameInput.value = data.candidateName || "Candidate";
+            previewName.innerText = nameInput.value;
             
             previewBadge.innerText = verifiedTrack + ' TRACK';
             previewBadge.className = 'badge ' + (verifiedTrack === 'UMPIRE' ? 'badge-umpire' : 'badge-coach');
@@ -366,10 +385,22 @@
             previewTypeBadge.innerText = verifiedTestType + '-TEST';
             previewTypeBadge.className = 'badge ' + (verifiedTestType === 'PRE' ? 'badge-pre' : 'badge-post');
 
-            if (verifiedTrack === 'UMPIRE') {
-              previewExamType.innerText = `Umpire Category Pool: 30 Randomized Items drawn from 85 Master Officiating Questions (${verifiedTestType}-TEST)`;
+            // Check local storage for active session
+            const savedSession = localStorage.getItem('requiz_session_' + code);
+            if (savedSession || data.status === 'ON_GOING') {
+              resumeBadge.classList.remove('hidden');
+              resumeNotice.classList.remove('hidden');
+              startBtn.innerText = "Resume Active Session &rarr;";
             } else {
-              previewExamType.innerText = `Coach Category Pool: 30 Randomized Items drawn from 115 Master Coaching/Science Questions (${verifiedTestType}-TEST)`;
+              resumeBadge.classList.add('hidden');
+              resumeNotice.classList.add('hidden');
+              startBtn.innerText = "Begin Examination Setup &rarr;";
+            }
+
+            if (verifiedTrack === 'UMPIRE') {
+              previewExamType.innerText = `Umpire Category Pool: 30 Items drawn from 85 Master Questions (${verifiedTestType}-TEST)`;
+            } else {
+              previewExamType.innerText = `Coach Category Pool: 30 Items drawn from 115 Master Questions (${verifiedTestType}-TEST)`;
             }
 
             startBtn.disabled = false;
@@ -379,6 +410,8 @@
             previewBadge.style.backgroundColor = 'var(--accent-red)';
             previewTypeBadge.innerText = 'INVALID';
             previewTypeBadge.className = 'badge';
+            resumeBadge.classList.add('hidden');
+            resumeNotice.classList.add('hidden');
             previewExamType.innerText = data.message || "Invalid or already completed authorization code.";
             nameInput.value = "";
             startBtn.disabled = true;
@@ -405,7 +438,7 @@
         document.getElementById('previewTypeBadge').innerText = verifiedTestType + '-TEST';
         document.getElementById('previewTypeBadge').className = 'badge ' + (verifiedTestType === 'PRE' ? 'badge-pre' : 'badge-post');
         
-        document.getElementById('previewExamType').innerText = `Demo Mode: 30 Randomized Items drawn from combined ${verifiedTrack} master pool`;
+        document.getElementById('previewExamType').innerText = `Demo Mode: 30 Items drawn from combined ${verifiedTrack} master pool`;
         previewCard.classList.remove('hidden');
         startBtn.disabled = false;
       }
@@ -451,21 +484,51 @@
     }
 
     async function startExam() {
+      const launchBtn = document.getElementById('launchExamBtn');
+      launchBtn.disabled = true;
+      launchBtn.innerText = "Initializing AI Engine...";
+
       closeRulesModal();
       isExamSubmitted = false;
       const code = document.getElementById('authCode').value.trim().toUpperCase();
       const name = document.getElementById('studentName').value.trim();
-      
-      let categoryPool = (verifiedTrack === 'UMPIRE') ? POOL_UMPIRE_MASTER : POOL_COACH_MASTER;
-      currentExam = buildExamPool(categoryPool, 30);
+
+      // Check for Resumable Local Storage State
+      const savedSessionRaw = localStorage.getItem('requiz_session_' + code);
+      if (savedSessionRaw) {
+        try {
+          const session = JSON.parse(savedSessionRaw);
+          currentExam = session.currentExam;
+          userAnswers = session.userAnswers || {};
+          timeLeft = session.timeLeft || 2700;
+          strikeCount = session.strikeCount || 0;
+        } catch(e) {
+          setupNewExam();
+        }
+      } else {
+        setupNewExam();
+      }
+
+      function setupNewExam() {
+        let categoryPool = (verifiedTrack === 'UMPIRE') ? POOL_UMPIRE_MASTER : POOL_COACH_MASTER;
+        currentExam = buildExamPool(categoryPool, 30);
+        userAnswers = {};
+        timeLeft = 2700;
+        strikeCount = 0;
+      }
+
+      // Notify Google Sheets status -> ON_GOING
+      updateBackendStatus(code, name, "ON_GOING");
 
       try {
-        videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        if (!videoStream) {
+          videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
         const videoElement = document.getElementById('webcamFeed');
         videoElement.srcObject = videoStream;
 
-        faceModel = await blazeface.load();
-        objectModel = await cocoSsd.load();
+        if (!faceModel) faceModel = await blazeface.load();
+        if (!objectModel) objectModel = await cocoSsd.load();
 
         document.getElementById('authSection').classList.add('hidden');
         document.getElementById('examSection').classList.remove('hidden');
@@ -480,6 +543,8 @@
         testBadge.innerText = verifiedTestType + '-TEST';
         testBadge.className = 'badge ' + (verifiedTestType === 'PRE' ? 'badge-pre' : 'badge-post');
 
+        document.getElementById('strikeDisplay').innerText = `${strikeCount}/3`;
+
         renderAllQuestions();
         startProctoring();
         startAIProctoringLoop();
@@ -487,6 +552,8 @@
       } catch (err) {
         alert("WebCam Access Required: Camera permission is required for proctored examination.");
         console.error(err);
+      } finally {
+        launchBtn.innerText = "Enable Camera & Launch Exam";
       }
     }
 
@@ -495,14 +562,15 @@
       container.innerHTML = '';
       currentExam.forEach((q, idx) => {
         const qCard = document.createElement('div');
-        qCard.className = 'card question-item';
+        qCard.className = 'card question-item' + (userAnswers[idx] !== undefined ? ' is-answered' : '');
         qCard.id = 'q-card-' + idx;
 
         let optionsHTML = '';
         q.options.forEach((opt, optIdx) => {
+          const isChecked = userAnswers[idx] === optIdx ? 'checked' : '';
           optionsHTML += `
             <label class="option-label">
-              <input type="radio" name="qOpt_${idx}" value="${optIdx}" onchange="selectOption(${idx}, ${optIdx})">
+              <input type="radio" name="qOpt_${idx}" value="${optIdx}" ${isChecked} onchange="selectOption(${idx}, ${optIdx})">
               <span>${opt}</span>
             </label>
           `;
@@ -518,6 +586,8 @@
         `;
         container.appendChild(qCard);
       });
+
+      document.getElementById('progressDisplay').innerText = `${Object.keys(userAnswers).length}/30`;
     }
 
     function selectOption(qIdx, optIdx) {
@@ -526,6 +596,20 @@
       const qCard = document.getElementById('q-card-' + qIdx);
       if (qCard) qCard.classList.add('is-answered');
       document.getElementById('progressDisplay').innerText = `${Object.keys(userAnswers).length}/30`;
+      saveLocalSession();
+    }
+
+    function saveLocalSession() {
+      const code = document.getElementById('authCode').value.trim().toUpperCase();
+      if (!code || isExamSubmitted) return;
+      const sessionData = {
+        currentExam: currentExam,
+        userAnswers: userAnswers,
+        timeLeft: timeLeft,
+        strikeCount: strikeCount,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('requiz_session_' + code, JSON.stringify(sessionData));
     }
 
     function startAIProctoringLoop() {
@@ -537,12 +621,23 @@
 
         try {
           const predictions = await faceModel.estimateFaces(video, false);
-          const faceCount = predictions.length;
+          const videoArea = video.videoWidth * video.videoHeight || 1;
+
+          // CLASSROOM PROXIMITY CALIBRATION (<0.25m / Close Frame Fill)
+          // Filter faces: Only count faces that occupy >12% of frame area (Primary candidate sitting <0.25m close)
+          const closeFaces = predictions.filter(pred => {
+            const width = pred.topLeft[0] - pred.bottomRight[0];
+            const height = pred.bottomRight[1] - pred.topLeft[1];
+            const faceArea = Math.abs(width * height);
+            return (faceArea / videoArea) > 0.08; 
+          });
+
+          const faceCount = closeFaces.length;
 
           const objects = await objectModel.detect(video);
-          const phoneDetected = objects.some(obj => obj.class === 'cell phone' || obj.class === 'camera');
+          const phoneDetected = objects.some(obj => (obj.class === 'cell phone' || obj.class === 'camera') && obj.score > 0.6);
 
-          if (isExamSubmitted) return; // Re-check before recording strike
+          if (isExamSubmitted) return;
 
           if (phoneDetected) {
             statusLabel.innerText = "PHONE DETECTED!";
@@ -551,17 +646,17 @@
           } else if (faceCount === 0) {
             statusLabel.innerText = "FACE MISSING";
             statusLabel.style.color = "var(--accent-yellow)";
-            recordStrike("No candidate face detected in camera view");
+            recordStrike("No candidate face detected in primary camera view");
           } else if (faceCount > 1) {
-            statusLabel.innerText = "MULTIPLE FACES";
+            statusLabel.innerText = "PROXIMITY WARNING";
             statusLabel.style.color = "var(--accent-red)";
-            recordStrike("Multiple persons detected in camera view");
+            recordStrike("Secondary person detected within immediate proximity (<0.25m)");
           } else {
             statusLabel.innerText = "AI MONITORING";
             statusLabel.style.color = "var(--accent-green)";
           }
         } catch (e) {
-          console.warn("AI Loop interrupted:", e);
+          console.warn("AI Loop notice:", e);
         }
       }, 3000);
     }
@@ -576,6 +671,10 @@
         const mins = Math.floor(timeLeft / 60);
         const secs = timeLeft % 60;
         document.getElementById('timerDisplay').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        
+        // Auto-save session state every 5 seconds
+        if (timeLeft % 5 === 0) saveLocalSession();
+
         if (timeLeft <= 0) submitExam();
       }, 1000);
     }
@@ -593,11 +692,11 @@
       window.onpopstate = () => {
         if (!isExamSubmitted) {
           history.pushState(null, null, location.href);
-          alert("Navigation disabled during active examination.");
+          alert("Navigation disabled during active examination. Your progress is saved.");
         }
       };
       window.onbeforeunload = () => {
-        if (!isExamSubmitted) return "Active exam in progress. Navigating away will submit your answers.";
+        if (!isExamSubmitted) return "Active exam in progress. Your attempt status is saved as ON_GOING.";
       };
     }
 
@@ -605,10 +704,25 @@
       if (isExamSubmitted) return;
       strikeCount++;
       document.getElementById('strikeDisplay').innerText = `${strikeCount}/3`;
+      saveLocalSession();
       if (strikeCount >= 3) {
         alert(`Proctoring Strike 3 Triggered (${reason}). Exam auto-submitting.`);
         submitExam();
       }
+    }
+
+    function updateBackendStatus(code, candidateName, statusStr) {
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'UPDATE_STATUS',
+          authCode: code,
+          candidateName: candidateName,
+          status: statusStr
+        })
+      }).catch(e => console.log("Status update sync notice:", e));
     }
 
     function confirmSubmission() {
@@ -616,10 +730,12 @@
     }
 
     function submitExam() {
-      if (isExamSubmitted) return; // PREVENT DUPLICATE SUBMISSIONS
+      if (isExamSubmitted) return;
       isExamSubmitted = true;
 
-      // STOP ALL TIMERS & PROCTORING LISTENERS IMMEDIATELY
+      const code = document.getElementById('authCode').value.trim().toUpperCase();
+      localStorage.removeItem('requiz_session_' + code); // Clean session storage upon completion
+
       clearInterval(timerInterval);
       clearInterval(aiInterval);
       window.removeEventListener('blur', handleWindowBlur);
@@ -627,7 +743,6 @@
       window.onbeforeunload = null;
       window.onpopstate = null;
 
-      // SHUT DOWN WEBCAM HARDWARE FEED
       if (videoStream) {
         videoStream.getTracks().forEach(track => track.stop());
         videoStream = null;
@@ -648,7 +763,6 @@
         const itemKey = `${q.bankId}__${q.id}`;
         itemResponses[itemKey] = { correct: isRight, topic: q.topic };
 
-        // GENERATE ITEM ANALYSIS ROW
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><strong>${idx + 1}</strong></td>
@@ -661,13 +775,13 @@
 
       const pct = ((correct / 30) * 100).toFixed(1);
       const name = document.getElementById('studentName').value;
-      const code = document.getElementById('authCode').value.toUpperCase();
 
       document.getElementById('scoreDisplay').innerText = `${correct} / 30`;
       document.getElementById('percentageDisplay').innerText = `${pct}% Score`;
       document.getElementById('resultSummaryText').innerText = `Candidate: ${name} | Code: ${code} | Track: ${verifiedTrack} | Test Type: ${verifiedTestType}-TEST`;
 
       const payload = {
+        action: 'SUBMIT_EXAM',
         candidateName: name,
         authCode: code,
         track: verifiedTrack,
@@ -675,6 +789,7 @@
         score: correct,
         percentage: pct,
         strikes: strikeCount,
+        status: 'COMPLETED',
         itemResponses: itemResponses
       };
 
@@ -693,6 +808,12 @@
         document.getElementById('syncStatus').innerText = "❌ Sync Alert: Unable to log results to Google Sheets.";
         document.getElementById('syncStatus').style.color = "var(--accent-red)";
       });
+    }
+
+    function clearSessionAndReload() {
+      const code = document.getElementById('authCode').value.trim().toUpperCase();
+      if (code) localStorage.removeItem('requiz_session_' + code);
+      location.reload();
     }
   </script>
 </body>
