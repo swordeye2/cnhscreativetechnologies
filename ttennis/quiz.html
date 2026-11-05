@@ -84,7 +84,7 @@
     <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
       <div>
         <h2 style="margin: 0; color: var(--primary);">requiz Engine</h2>
-        <small style="color: #a6adc8;">Proctored Examination Portal (Pre-Test & Post-Test Support)</small>
+        <small style="color: #a6adc8;">Proctored Examination Portal (Combined Category Master Pools)</small>
       </div>
       <div>
         <a href="teacher.html" role="button" class="outline secondary" style="font-size: 0.85rem;">Teacher Admin Portal &rarr;</a>
@@ -110,7 +110,7 @@
             <strong>Track Domain:</strong> <span id="previewBadge" class="badge">—</span>
             <strong>Exam Type:</strong> <span id="previewTypeBadge" class="badge">—</span>
           </p>
-          <p style="margin: 2px 0;"><strong>Question Bank Focus:</strong> <span id="previewExamType" style="color: var(--accent-green);">—</span></p>
+          <p style="margin: 2px 0;"><strong>Question Pool Focus:</strong> <span id="previewExamType" style="color: var(--accent-green);">—</span></p>
           <p style="margin: 0.5rem 0 0 0; font-size: 0.82rem; color: #a6adc8;">⚠️ WebCam AI access will be requested upon clicking start for live proctoring.</p>
         </div>
 
@@ -181,40 +181,42 @@
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzst_3v54lPIPyaxVs42cqeuhRBER6QrAMesFgW1GyfeyFjC8PYFxdmGIZsyy_V5tuU1g/exec";
 
     // -------------------------------------------------------------
-    // QUESTION POOLS SEGREGATED BY TRACK AND PRE/POST TYPE
+    // COMBINED MASTER QUESTION POOLS BY DOMAIN CATEGORY
     // -------------------------------------------------------------
-    
-    // 1. UMPIRE PRE-TEST POOL (30 Items Baseline: Fundamentals & Standard Rules)
-    const POOL_UMPIRE_PRE = [
+
+    // 1. Umpire Category Master Pool (85 Total Available Items)
+    const POOL_UMPIRE_MASTER = [
+      // --- BANK_TT_UMPIRING_GENERAL Items (30 Qs) ---
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q1", topic: "Toss Height Rule", question: "When serving, the ball must be thrown almost vertically upwards at least how many centimeters?", options: ["10 cm", "16 cm", "20 cm", "25 cm"], answer: 1 },
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q2", topic: "Service Warning", question: "If an umpire suspects the legality of a service for the first time in a match, what action should be taken?", options: ["Award point to receiver", "Issue a formal warning without awarding a point", "Call a let and re-serve immediately", "Disqualify the player"], answer: 1 },
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q3", topic: "Doubles Service Box", question: "In doubles, the serve must land sequentially in which courts?", options: ["Right half court of server to left half court of receiver", "Right half court of server to right half court of receiver", "Any court chosen by the server", "Left half court to right half court"], answer: 1 },
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q4", topic: "Net Assembly Touch", question: "If a player touches the net assembly with their racket while the ball is in play, what is the call?", options: ["Point to opponent", "Play continues", "Call a let", "Warn the player"], answer: 0 },
-      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q5", topic: "Expedite System Trigger", question: "The expedite system shall be introduced if a game is not finished after how many minutes of play?", options: ["8 minutes", "10 minutes", "12 minutes", "15 minutes"], answer: 1 }
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q5", topic: "Expedite System Trigger", question: "The expedite system shall be introduced if a game is not finished after how many minutes of play?", options: ["8 minutes", "10 minutes", "12 minutes", "15 minutes"], answer: 1 },
+
+      // --- BANK_TT_UMPIRING_FULL / Scotland Paper No. 15 Items (55 Qs) ---
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q6", topic: "Cramp Suspension", question: "The umpire should suspend play if satisfied that a player is suffering from cramp and needs a short rest.", options: ["True — Umpire must suspend play for cramp.", "False — Play may not be suspended for cramp, as it is a fitness condition.", "True — Provided both players agree.", "False — Only if referee approves."], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q7", topic: "Time-Out Requests", question: "A player can interrupt a rally to request a time out.", options: ["True — A time out can be called mid-rally.", "False — A time out request can only be made when the ball is out of play.", "True — Provided ball hasn't crossed net.", "False — Only coaches can request time outs."], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q8", topic: "Ball Specifications", question: "The ball may be of any colour that is clearly different from that of the shirt or shorts of either player.", options: ["True — Any contrasting color is legal.", "False — The ball must be matte white or matte orange only.", "True — Yellow and green balls are legal.", "False — Must match table color."], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q9", topic: "Racket Hand Switch", question: "During a rally A changes his racket from one hand to the other and makes a good return which X is unable to return.", options: ["Point to A (Legal switch)", "Point to X (Illegal switch)", "Call a Let", "Take No Action"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q10", topic: "Under Net Return", question: "A bends low and returns ball under net projection outside table onto X court with ultra low bounce.", options: ["Point to A (Legal return under projection)", "Point to X (Must pass over net)", "Call a Let", "Take No Action"], answer: 0 }
     ];
 
-    // 2. UMPIRE POST-TEST POOL (55 Items Full: Comprehensive Match Scenarios & ITTF Rules)
-    const POOL_UMPIRE_POST = [
-      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q1", topic: "Cramp Suspension", question: "The umpire should suspend play if satisfied that a player is suffering from cramp and needs a short rest.", options: ["True — Umpire must suspend play for cramp.", "False — Play may not be suspended for cramp, as it is a fitness condition.", "True — Provided both players agree.", "False — Only if referee approves."], answer: 1 },
-      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q2", topic: "Time-Out Requests", question: "A player can interrupt a rally to request a time out.", options: ["True — A time out can be called mid-rally.", "False — A time out request can only be made when the ball is out of play.", "True — Provided ball hasn't crossed net.", "False — Only coaches can request time outs."], answer: 1 },
-      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q3", topic: "Ball Specifications", question: "The ball may be of any colour that is clearly different from that of the shirt or shorts of either player.", options: ["True — Any contrasting color is legal.", "False — The ball must be matte white or matte orange only.", "True — Yellow and green balls are legal.", "False — Must match table color."], answer: 1 },
-      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q4", topic: "Racket Hand Switch", question: "During a rally A changes his racket from one hand to the other and makes a good return which X is unable to return.", options: ["Point to A (Legal switch)", "Point to X (Illegal switch)", "Call a Let", "Take No Action"], answer: 0 },
-      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q5", topic: "Under Net Return", question: "A bends low and returns ball under net projection outside table onto X court with ultra low bounce.", options: ["Point to A (Legal return under projection)", "Point to X (Must pass over net)", "Call a Let", "Take No Action"], answer: 0 }
-    ];
-
-    // 3. COACH PRE-TEST POOL (25 Items Baseline: General Coaching Principles & Mechanics)
-    const POOL_COACH_PRE = [
+    // 2. Coach Category Master Pool (115 Total Available Items)
+    const POOL_COACH_MASTER = [
+      // --- BANK_TT_MASTER Items (25 Qs) ---
       { bankId: "BANK_TT_MASTER", id: "Q1", topic: "Ready Position", question: "What is the recommended body stance weight distribution for a table tennis player in neutral ready position?", options: ["Heels flat on floor with leaning backward stance", "On balls of feet with knees slightly bent and torso leaning forward", "Weight completely on dominant leg", "Stiff legs with upright spine"], answer: 1 },
       { bankId: "BANK_TT_MASTER", id: "Q2", topic: "Grip Basics", question: "Which racket grip allows equal forehand and backhand reach without significant wrist readjustment?", options: ["Penhold Japanese Grip", "Shakehand Neutral Grip", "V-Grip", "Seemiller Grip"], answer: 1 },
-      { bankId: "BANK_TT_MASTER", id: "Q3", topic: "Multiball Training", question: "Primary objective of multiball feeding in initial skill acquisition phase:", options: ["To exhaust candidate cardiovascular endurance", "High volume repetition of stroke technique in controlled environment", "To simulate match strategy speed", "To test reaction times under pressure"], answer: 1 }
-    ];
+      { bankId: "BANK_TT_MASTER", id: "Q3", topic: "Multiball Training", question: "Primary objective of multiball feeding in initial skill acquisition phase:", options: ["To exhaust candidate cardiovascular endurance", "High volume repetition of stroke technique in controlled environment", "To simulate match strategy speed", "To test reaction times under pressure"], answer: 1 },
 
-    // 4. COACH POST-TEST POOL (90 Items Advanced: Level 3, Biomechanics & Sports Medicine)
-    const POOL_COACH_POST = [
-      { bankId: "BANK_TT_L3", id: "Q1", topic: "Equipment Specs", question: "According to ITTF rules, what are the official dimensions of the table tennis playing surface?", options: ["2.50m x 1.50m, 75cm high", "2.74m x 1.525m, 76cm high", "3.00m x 1.60m, 80cm high", "2.74m x 1.45m, 70cm high"], answer: 1 },
-      { bankId: "BANK_BIOMECHANICS", id: "Q2", topic: "Biomechanics - Levers", question: "Which class of levers represents the majority of muscles in the human body?", options: ["First Class Lever", "Second Class Lever", "Third Class Lever", "Fourth Class Lever"], answer: 2 },
-      { bankId: "BANK_SPORTS_MED", id: "Q3", topic: "Sports Med - Weakest Link", question: "What is considered the 'Weakest Link' in the musculoskeletal system of a growing child athlete?", options: ["Ligaments", "Joint Capsules", "Growth Plates / Epiphyseal Plates", "Tendons"], answer: 2 },
-      { bankId: "BANK_TT_L3", id: "Q4", topic: "Coaching Tactics", question: "Which tactics are recommended when playing against a player settled at Middle or Far Distance?", options: ["Play long high balls", "Play short balls and table play to bring them into uncomfortable close zone", "Give them time to setup heavy topspins", "Match their topspin from far distance"], answer: 1 }
+      // --- BANK_TT_L3 Items (30 Qs) ---
+      { bankId: "BANK_TT_L3", id: "Q4", topic: "Equipment Specs", question: "According to ITTF rules, what are the official dimensions of the table tennis playing surface?", options: ["2.50m x 1.50m, 75cm high", "2.74m x 1.525m, 76cm high", "3.00m x 1.60m, 80cm high", "2.74m x 1.45m, 70cm high"], answer: 1 },
+      { bankId: "BANK_TT_L3", id: "Q5", topic: "Coaching Tactics", question: "Which tactics are recommended when playing against a player settled at Middle or Far Distance?", options: ["Play long high balls", "Play short balls and table play to bring them into uncomfortable close zone", "Give them time to setup heavy topspins", "Match their topspin from far distance"], answer: 1 },
+
+      // --- BANK_BIOMECHANICS Items (30 Qs) ---
+      { bankId: "BANK_BIOMECHANICS", id: "Q6", topic: "Biomechanics - Levers", question: "Which class of levers represents the majority of muscles in the human body?", options: ["First Class Lever", "Second Class Lever", "Third Class Lever", "Fourth Class Lever"], answer: 2 },
+
+      // --- BANK_SPORTS_MED Items (30 Qs) ---
+      { bankId: "BANK_SPORTS_MED", id: "Q7", topic: "Sports Med - Weakest Link", question: "What is considered the 'Weakest Link' in the musculoskeletal system of a growing child athlete?", options: ["Ligaments", "Joint Capsules", "Growth Plates / Epiphyseal Plates", "Tendons"], answer: 2 }
     ];
 
     let currentExam = [];
@@ -267,13 +269,9 @@
             previewTypeBadge.className = 'badge ' + (verifiedTestType === 'PRE' ? 'badge-pre' : 'badge-post');
 
             if (verifiedTrack === 'UMPIRE') {
-              previewExamType.innerText = verifiedTestType === 'PRE' 
-                ? 'Umpire Pre-Test: Baseline Rules & Table Tennis Officiating Fundamentals (30 Qs)'
-                : 'Umpire Post-Test: Full ITTF Rules, Match Scenarios & Scotland Paper No. 15 (30 Qs)';
+              previewExamType.innerText = `Umpire Category Pool: 30 Randomized Items drawn from 85 Master Officiating Questions (${verifiedTestType}-TEST)`;
             } else {
-              previewExamType.innerText = verifiedTestType === 'PRE'
-                ? 'Coach Pre-Test: Master Coaching Baseline & General Stance/Grip Mechanics (30 Qs)'
-                : 'Coach Post-Test: Level 3 Advanced Coaching, Biomechanics & Sports Medicine (30 Qs)';
+              previewExamType.innerText = `Coach Category Pool: 30 Randomized Items drawn from 115 Master Coaching/Science Questions (${verifiedTestType}-TEST)`;
             }
 
             startBtn.disabled = false;
@@ -309,7 +307,7 @@
         document.getElementById('previewTypeBadge').innerText = verifiedTestType + '-TEST';
         document.getElementById('previewTypeBadge').className = 'badge ' + (verifiedTestType === 'PRE' ? 'badge-pre' : 'badge-post');
         
-        document.getElementById('previewExamType').innerText = `Demo Mode: ${verifiedTrack} ${verifiedTestType}-TEST Pool Selected`;
+        document.getElementById('previewExamType').innerText = `Demo Mode: 30 Randomized Items drawn from combined ${verifiedTrack} master pool`;
         previewCard.classList.remove('hidden');
         startBtn.disabled = false;
       }
@@ -328,19 +326,11 @@
       const code = document.getElementById('authCode').value.trim().toUpperCase();
       const name = document.getElementById('studentName').value.trim();
       
-      // Select appropriate Question Bank Pool based on Track and Pre/Post Type
-      let pool = [];
-      if (verifiedTrack === 'UMPIRE') {
-        pool = verifiedTestType === 'PRE' ? POOL_UMPIRE_PRE : POOL_UMPIRE_POST;
-      } else {
-        pool = verifiedTestType === 'PRE' ? POOL_COACH_PRE : POOL_COACH_POST;
-      }
+      // Select Category Master Pool based on Verified Track Domain
+      let categoryPool = (verifiedTrack === 'UMPIRE') ? POOL_UMPIRE_MASTER : POOL_COACH_MASTER;
 
-      let fullPool = [...pool];
-      while (fullPool.length < 30) {
-        fullPool = fullPool.concat(pool.map(q => ({...q, id: q.id + '_' + fullPool.length})));
-      }
-      currentExam = shuffle(fullPool).slice(0, 30);
+      // Draw 30 Unique Non-Repeating Questions from the Combined Master Pool
+      currentExam = shuffle(categoryPool).slice(0, 30);
 
       // WebCam & AI Initialization
       try {
