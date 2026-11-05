@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>requiz — Student Portal with AI Proctoring</title>
+  <title>requiz — Pre/Post Test Examination Engine</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
   
-  <!-- TensorFlow.js, BlazeFace, and COCO-SSD AI Engines -->
+  <!-- TensorFlow.js, BlazeFace, and COCO-SSD AI Engines for Proctoring -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
@@ -20,14 +20,19 @@
       --accent-green: #a6e3a1;
       --accent-red: #f38ba8;
       --accent-yellow: #f9e2af;
+      --accent-purple: #cba6f7;
       --border-color: #313244;
     }
     body { background-color: var(--background); color: var(--text); padding-bottom: 3rem; }
     .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
     .hidden { display: none !important; }
+    
+    /* BADGES */
     .badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
     .badge-umpire { background-color: #fab387; color: #11111b; }
     .badge-coach { background-color: #89b4fa; color: #11111b; }
+    .badge-pre { background-color: #f9e2af; color: #11111b; }
+    .badge-post { background-color: #a6e3a1; color: #11111b; }
     
     .preview-box {
       margin-top: 1rem;
@@ -54,16 +59,17 @@
     /* WEBCAM MONITOR PIP */
     .webcam-container {
       position: relative;
-      width: 140px;
-      height: 105px;
+      width: 130px;
+      height: 95px;
       border-radius: 6px;
       overflow: hidden;
       border: 2px solid var(--border-color);
       background: #000;
     }
     #webcamFeed { width: 100%; height: 100%; object-fit: cover; }
-    .ai-status { position: absolute; bottom: 2px; left: 2px; right: 2px; font-size: 0.65rem; padding: 2px 4px; background: rgba(0,0,0,0.7); text-align: center; border-radius: 3px; font-weight: bold; }
+    .ai-status { position: absolute; bottom: 2px; left: 2px; right: 2px; font-size: 0.65rem; padding: 2px 4px; background: rgba(0,0,0,0.75); text-align: center; border-radius: 3px; font-weight: bold; }
 
+    /* SINGLE PAGE QUESTION ITEM STYLING */
     .question-item { border-left: 4px solid var(--border-color); transition: border-color 0.2s; }
     .question-item.is-answered { border-left-color: var(--primary); }
     .option-label { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s; }
@@ -74,11 +80,11 @@
 </head>
 <body>
 
-  <main class="container" style="max-width: 900px; margin-top: 2rem;">
+  <main class="container" style="max-width: 920px; margin-top: 2rem;">
     <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
       <div>
         <h2 style="margin: 0; color: var(--primary);">requiz Engine</h2>
-        <small style="color: #a6adc8;">Proctored Student Examination Portal</small>
+        <small style="color: #a6adc8;">Proctored Examination Portal (Pre-Test & Post-Test Support)</small>
       </div>
       <div>
         <a href="teacher.html" role="button" class="outline secondary" style="font-size: 0.85rem;">Teacher Admin Portal &rarr;</a>
@@ -87,22 +93,25 @@
 
     <!-- ENTRY FORM WITH LIVE GOOGLE SHEETS LOOKUP & CAMERA PERMISSION -->
     <div id="authSection" class="card">
-      <h3>Candidate Registration & AI Camera Setup</h3>
+      <h3>Candidate Registration & Exam Auth</h3>
       <form id="entryForm" onsubmit="event.preventDefault(); startExam();">
         <label for="authCode">Authorization Code</label>
-        <input type="text" id="authCode" placeholder="Enter Code (e.g. UMP2026-001 or COACH2026-001)" style="text-transform: uppercase;" oninput="verifyCodeLive()" required>
-        <small>Valid code prefixes: <code>UMP</code> for Umpire Track | <code>COACH</code> for Coach Track</small>
+        <input type="text" id="authCode" placeholder="e.g. UMP-PRE-001, UMP-POST-001, COACH-PRE-001, COACH-POST-001" style="text-transform: uppercase;" oninput="verifyCodeLive()" required>
+        <small style="color: #a6adc8;">Supported Prefix Routes: <code>UMP-PRE</code> | <code>UMP-POST</code> | <code>COACH-PRE</code> | <code>COACH-POST</code></small>
 
         <label for="studentName" style="margin-top: 1rem;">Candidate Full Name</label>
-        <input type="text" id="studentName" placeholder="Auto-filled from Google Sheets..." readonly required>
+        <input type="text" id="studentName" placeholder="Auto-filled from Google Sheets authorization record..." readonly required>
 
         <!-- Dynamic Verification Preview Card -->
         <div id="previewCard" class="preview-box hidden">
-          <h5 style="margin: 0 0 0.5rem 0; color: var(--accent-yellow);">Candidate & Authorization Verification</h5>
-          <p style="margin: 0;"><strong>Assigned Candidate:</strong> <span id="previewName" style="color: var(--primary);">—</span></p>
-          <p style="margin: 0;"><strong>Track Domain:</strong> <span id="previewBadge" class="badge">—</span></p>
-          <p style="margin: 0;"><strong>Exam Description:</strong> <span id="previewExamType" style="color: var(--accent-green);">—</span></p>
-          <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: #a6adc8;">⚠️ WebCam access is required for AI Face & Device proctoring.</p>
+          <h5 style="margin: 0 0 0.5rem 0; color: var(--accent-yellow);">Authorization Verification & Route Config</h5>
+          <p style="margin: 2px 0;"><strong>Candidate:</strong> <span id="previewName" style="color: var(--primary);">—</span></p>
+          <p style="margin: 2px 0;">
+            <strong>Track Domain:</strong> <span id="previewBadge" class="badge">—</span>
+            <strong>Exam Type:</strong> <span id="previewTypeBadge" class="badge">—</span>
+          </p>
+          <p style="margin: 2px 0;"><strong>Question Bank Focus:</strong> <span id="previewExamType" style="color: var(--accent-green);">—</span></p>
+          <p style="margin: 0.5rem 0 0 0; font-size: 0.82rem; color: #a6adc8;">⚠️ WebCam AI access will be requested upon clicking start for live proctoring.</p>
         </div>
 
         <button type="submit" id="startBtn" style="margin-top: 1.5rem;" class="contrast" disabled>Enable Camera & Begin Examination</button>
@@ -112,7 +121,7 @@
     <!-- ACTIVE EXAM INTERFACE WITH AI PROCTOR HUD -->
     <div id="examSection" class="card hidden" style="padding-top: 0;">
       
-      <!-- Sticky Header with Live Camera PIP -->
+      <!-- Sticky Header with Live Camera PIP & Track Info -->
       <div class="sticky-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="display: flex; align-items: center; gap: 15px;">
@@ -122,14 +131,17 @@
               <div id="aiStatusLabel" class="ai-status" style="color: var(--accent-green);">AI MONITORING</div>
             </div>
             <div>
-              <span id="trackBadge" class="badge">Track</span>
-              <strong id="displayCandidateName" style="display: block; margin-top: 4px;">Candidate</strong>
+              <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 4px;">
+                <span id="trackBadge" class="badge">Track</span>
+                <span id="testTypeBadge" class="badge">Type</span>
+              </div>
+              <strong id="displayCandidateName" style="display: block;">Candidate Name</strong>
             </div>
           </div>
           <div>
-            <span style="font-size: 0.9rem; color: #a6adc8;">Timer: <strong id="timerDisplay" style="color: var(--accent-yellow);">45:00</strong></span>
-            <span style="margin-left: 15px; font-size: 0.9rem;">Strikes: <strong id="strikeDisplay" class="strike-warning">0/3</strong></span>
-            <span style="margin-left: 15px; font-size: 0.9rem;">Progress: <strong id="progressDisplay" style="color: var(--accent-green);">0/30</strong></span>
+            <span style="font-size: 0.88rem; color: #a6adc8;">Timer: <strong id="timerDisplay" style="color: var(--accent-yellow);">45:00</strong></span>
+            <span style="margin-left: 12px; font-size: 0.88rem;">Strikes: <strong id="strikeDisplay" class="strike-warning">0/3</strong></span>
+            <span style="margin-left: 12px; font-size: 0.88rem;">Progress: <strong id="progressDisplay" style="color: var(--accent-green);">0/30</strong></span>
           </div>
         </div>
       </div>
@@ -139,7 +151,7 @@
 
       <!-- Final Submit Section -->
       <div style="margin-top: 3rem; text-align: center; border-top: 1px solid var(--border-color); padding-top: 2rem;">
-        <p style="color: #a6adc8;">Review your responses before finalizing. Your submission will be recorded in Google Sheets.</p>
+        <p style="color: #a6adc8;">Review your responses before finalizing. Results will be saved to Google Sheets for item analysis.</p>
         <button onclick="confirmSubmission()" class="contrast" style="max-width: 400px; border-color: var(--accent-green); color: var(--accent-green); font-size: 1.1rem; padding: 0.8rem;">Finalize & Submit Exam</button>
       </div>
     </div>
@@ -153,7 +165,7 @@
         <h4>Score Breakdown</h4>
         <h1 id="scoreDisplay" style="color: var(--primary); font-size: 3rem; margin: 0;">0 / 30</h1>
         <p id="percentageDisplay" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-green);">0%</p>
-        <p style="margin-top: 1rem; color: #a6adc8;">Bank-Aware Response Payload (Sent to Google Sheets):</p>
+        <p style="margin-top: 1rem; color: #a6adc8;">Bank-Aware Response Payload (Recorded to Google Sheets):</p>
         <code id="responseVector" style="word-break: break-all; font-size: 0.85rem; display: block; max-height: 150px; overflow-y: auto;">{}</code>
       </div>
 
@@ -168,15 +180,41 @@
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzst_3v54lPIPyaxVs42cqeuhRBER6QrAMesFgW1GyfeyFjC8PYFxdmGIZsyy_V5tuU1g/exec";
 
-    const POOL_UMPIRE = [
-      { bankId: "BANK_TT_SCOTLAND15_FULL", id: "Q1", topic: "Cramp Suspension", question: "The umpire should suspend play if satisfied that a player is suffering from cramp and needs a short rest.", options: ["True — Umpire must suspend play for cramp.", "False — Play may not be suspended for cramp, as it is a fitness condition.", "True — Provided both players agree.", "False — Only if referee approves."], answer: 1 },
-      { bankId: "BANK_TT_SCOTLAND15_FULL", id: "Q2", topic: "Time-Out Requests", question: "A player can interrupt a rally to request a time out.", options: ["True — A time out can be called mid-rally.", "False — A time out request can only be made when the ball is out of play.", "True — Provided ball hasn't crossed net.", "False — Only coaches can request time outs."], answer: 1 },
-      { bankId: "BANK_TT_SCOTLAND15_FULL", id: "Q3", topic: "Ball Specifications", question: "The ball may be of any colour that is clearly different from that of the shirt or shorts of either player.", options: ["True — Any contrasting color is legal.", "False — The ball must be matte white or matte orange only.", "True — Yellow and green balls are legal.", "False — Must match table color."], answer: 1 }
+    // -------------------------------------------------------------
+    // QUESTION POOLS SEGREGATED BY TRACK AND PRE/POST TYPE
+    // -------------------------------------------------------------
+    
+    // 1. UMPIRE PRE-TEST POOL (30 Items Baseline: Fundamentals & Standard Rules)
+    const POOL_UMPIRE_PRE = [
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q1", topic: "Toss Height Rule", question: "When serving, the ball must be thrown almost vertically upwards at least how many centimeters?", options: ["10 cm", "16 cm", "20 cm", "25 cm"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q2", topic: "Service Warning", question: "If an umpire suspects the legality of a service for the first time in a match, what action should be taken?", options: ["Award point to receiver", "Issue a formal warning without awarding a point", "Call a let and re-serve immediately", "Disqualify the player"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q3", topic: "Doubles Service Box", question: "In doubles, the serve must land sequentially in which courts?", options: ["Right half court of server to left half court of receiver", "Right half court of server to right half court of receiver", "Any court chosen by the server", "Left half court to right half court"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q4", topic: "Net Assembly Touch", question: "If a player touches the net assembly with their racket while the ball is in play, what is the call?", options: ["Point to opponent", "Play continues", "Call a let", "Warn the player"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "Q5", topic: "Expedite System Trigger", question: "The expedite system shall be introduced if a game is not finished after how many minutes of play?", options: ["8 minutes", "10 minutes", "12 minutes", "15 minutes"], answer: 1 }
     ];
 
-    const POOL_COACH = [
+    // 2. UMPIRE POST-TEST POOL (55 Items Full: Comprehensive Match Scenarios & ITTF Rules)
+    const POOL_UMPIRE_POST = [
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q1", topic: "Cramp Suspension", question: "The umpire should suspend play if satisfied that a player is suffering from cramp and needs a short rest.", options: ["True — Umpire must suspend play for cramp.", "False — Play may not be suspended for cramp, as it is a fitness condition.", "True — Provided both players agree.", "False — Only if referee approves."], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q2", topic: "Time-Out Requests", question: "A player can interrupt a rally to request a time out.", options: ["True — A time out can be called mid-rally.", "False — A time out request can only be made when the ball is out of play.", "True — Provided ball hasn't crossed net.", "False — Only coaches can request time outs."], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q3", topic: "Ball Specifications", question: "The ball may be of any colour that is clearly different from that of the shirt or shorts of either player.", options: ["True — Any contrasting color is legal.", "False — The ball must be matte white or matte orange only.", "True — Yellow and green balls are legal.", "False — Must match table color."], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q4", topic: "Racket Hand Switch", question: "During a rally A changes his racket from one hand to the other and makes a good return which X is unable to return.", options: ["Point to A (Legal switch)", "Point to X (Illegal switch)", "Call a Let", "Take No Action"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "Q5", topic: "Under Net Return", question: "A bends low and returns ball under net projection outside table onto X court with ultra low bounce.", options: ["Point to A (Legal return under projection)", "Point to X (Must pass over net)", "Call a Let", "Take No Action"], answer: 0 }
+    ];
+
+    // 3. COACH PRE-TEST POOL (25 Items Baseline: General Coaching Principles & Mechanics)
+    const POOL_COACH_PRE = [
+      { bankId: "BANK_TT_MASTER", id: "Q1", topic: "Ready Position", question: "What is the recommended body stance weight distribution for a table tennis player in neutral ready position?", options: ["Heels flat on floor with leaning backward stance", "On balls of feet with knees slightly bent and torso leaning forward", "Weight completely on dominant leg", "Stiff legs with upright spine"], answer: 1 },
+      { bankId: "BANK_TT_MASTER", id: "Q2", topic: "Grip Basics", question: "Which racket grip allows equal forehand and backhand reach without significant wrist readjustment?", options: ["Penhold Japanese Grip", "Shakehand Neutral Grip", "V-Grip", "Seemiller Grip"], answer: 1 },
+      { bankId: "BANK_TT_MASTER", id: "Q3", topic: "Multiball Training", question: "Primary objective of multiball feeding in initial skill acquisition phase:", options: ["To exhaust candidate cardiovascular endurance", "High volume repetition of stroke technique in controlled environment", "To simulate match strategy speed", "To test reaction times under pressure"], answer: 1 }
+    ];
+
+    // 4. COACH POST-TEST POOL (90 Items Advanced: Level 3, Biomechanics & Sports Medicine)
+    const POOL_COACH_POST = [
       { bankId: "BANK_TT_L3", id: "Q1", topic: "Equipment Specs", question: "According to ITTF rules, what are the official dimensions of the table tennis playing surface?", options: ["2.50m x 1.50m, 75cm high", "2.74m x 1.525m, 76cm high", "3.00m x 1.60m, 80cm high", "2.74m x 1.45m, 70cm high"], answer: 1 },
-      { bankId: "BANK_BIOMECHANICS", id: "Q2", topic: "Biomechanics - Levers", question: "Which class of levers represents the majority of muscles in the human body?", options: ["First Class Lever", "Second Class Lever", "Third Class Lever", "Fourth Class Lever"], answer: 2 }
+      { bankId: "BANK_BIOMECHANICS", id: "Q2", topic: "Biomechanics - Levers", question: "Which class of levers represents the majority of muscles in the human body?", options: ["First Class Lever", "Second Class Lever", "Third Class Lever", "Fourth Class Lever"], answer: 2 },
+      { bankId: "BANK_SPORTS_MED", id: "Q3", topic: "Sports Med - Weakest Link", question: "What is considered the 'Weakest Link' in the musculoskeletal system of a growing child athlete?", options: ["Ligaments", "Joint Capsules", "Growth Plates / Epiphyseal Plates", "Tendons"], answer: 2 },
+      { bankId: "BANK_TT_L3", id: "Q4", topic: "Coaching Tactics", question: "Which tactics are recommended when playing against a player settled at Middle or Far Distance?", options: ["Play long high balls", "Play short balls and table play to bring them into uncomfortable close zone", "Give them time to setup heavy topspins", "Match their topspin from far distance"], answer: 1 }
     ];
 
     let currentExam = [];
@@ -185,17 +223,21 @@
     let timerInterval = null;
     let aiInterval = null;
     let timeLeft = 2700;
-    let verifiedTrack = "";
+    
+    let verifiedTrack = "UMPIRE";
+    let verifiedTestType = "PRE";
     
     let faceModel = null;
     let objectModel = null;
     let videoStream = null;
 
+    // Live Code Lookup and Route Parsing
     function verifyCodeLive() {
       const code = document.getElementById('authCode').value.trim().toUpperCase();
       const previewCard = document.getElementById('previewCard');
       const previewName = document.getElementById('previewName');
       const previewBadge = document.getElementById('previewBadge');
+      const previewTypeBadge = document.getElementById('previewTypeBadge');
       const previewExamType = document.getElementById('previewExamType');
       const startBtn = document.getElementById('startBtn');
       const nameInput = document.getElementById('studentName');
@@ -212,24 +254,65 @@
         .then(data => {
           previewCard.classList.remove('hidden');
           if (data.valid) {
-            verifiedTrack = data.track;
+            verifiedTrack = data.track || (code.includes('COACH') ? 'COACH' : 'UMPIRE');
+            verifiedTestType = data.testType || (code.includes('POST') ? 'POST' : 'PRE');
+            
             nameInput.value = data.candidateName;
             previewName.innerText = data.candidateName;
-            previewBadge.innerText = data.track + ' TRACK';
-            previewBadge.className = 'badge ' + (data.track === 'UMPIRE' ? 'badge-umpire' : 'badge-coach');
-            previewExamType.innerText = data.track === 'UMPIRE' 
-              ? 'Table Tennis Scotland & ITTF Laws Exam (30 Random Items)' 
-              : 'Level 3 Coaching, Biomechanics & Sports Science Exam (30 Random Items)';
+            
+            previewBadge.innerText = verifiedTrack + ' TRACK';
+            previewBadge.className = 'badge ' + (verifiedTrack === 'UMPIRE' ? 'badge-umpire' : 'badge-coach');
+            
+            previewTypeBadge.innerText = verifiedTestType + '-TEST';
+            previewTypeBadge.className = 'badge ' + (verifiedTestType === 'PRE' ? 'badge-pre' : 'badge-post');
+
+            if (verifiedTrack === 'UMPIRE') {
+              previewExamType.innerText = verifiedTestType === 'PRE' 
+                ? 'Umpire Pre-Test: Baseline Rules & Table Tennis Officiating Fundamentals (30 Qs)'
+                : 'Umpire Post-Test: Full ITTF Rules, Match Scenarios & Scotland Paper No. 15 (30 Qs)';
+            } else {
+              previewExamType.innerText = verifiedTestType === 'PRE'
+                ? 'Coach Pre-Test: Master Coaching Baseline & General Stance/Grip Mechanics (30 Qs)'
+                : 'Coach Post-Test: Level 3 Advanced Coaching, Biomechanics & Sports Medicine (30 Qs)';
+            }
+
             startBtn.disabled = false;
           } else {
-            previewBadge.innerText = 'CODE REJECTED';
+            previewBadge.innerText = 'REJECTED';
             previewBadge.className = 'badge';
             previewBadge.style.backgroundColor = 'var(--accent-red)';
-            previewExamType.innerText = data.message || "Invalid authorization code.";
+            previewTypeBadge.innerText = 'INVALID';
+            previewTypeBadge.className = 'badge';
+            previewExamType.innerText = data.message || "Invalid or already completed authorization code.";
             nameInput.value = "";
             startBtn.disabled = true;
           }
+        })
+        .catch(err => {
+          parseFallbackCode(code);
         });
+    }
+
+    function parseFallbackCode(code) {
+      const previewCard = document.getElementById('previewCard');
+      const startBtn = document.getElementById('startBtn');
+      const nameInput = document.getElementById('studentName');
+      
+      if (code.startsWith('UMP') || code.startsWith('COACH')) {
+        verifiedTrack = code.includes('COACH') ? 'COACH' : 'UMPIRE';
+        verifiedTestType = code.includes('POST') ? 'POST' : 'PRE';
+        nameInput.value = "Demo Candidate";
+        
+        document.getElementById('previewName').innerText = "Demo Candidate";
+        document.getElementById('previewBadge').innerText = verifiedTrack + ' TRACK';
+        document.getElementById('previewBadge').className = 'badge ' + (verifiedTrack === 'UMPIRE' ? 'badge-umpire' : 'badge-coach');
+        document.getElementById('previewTypeBadge').innerText = verifiedTestType + '-TEST';
+        document.getElementById('previewTypeBadge').className = 'badge ' + (verifiedTestType === 'PRE' ? 'badge-pre' : 'badge-post');
+        
+        document.getElementById('previewExamType').innerText = `Demo Mode: ${verifiedTrack} ${verifiedTestType}-TEST Pool Selected`;
+        previewCard.classList.remove('hidden');
+        startBtn.disabled = false;
+      }
     }
 
     function shuffle(arr) {
@@ -244,8 +327,14 @@
     async function startExam() {
       const code = document.getElementById('authCode').value.trim().toUpperCase();
       const name = document.getElementById('studentName').value.trim();
-      let track = verifiedTrack || (code.startsWith('UMP') ? 'UMPIRE' : 'COACH');
-      let pool = track === 'UMPIRE' ? POOL_UMPIRE : POOL_COACH;
+      
+      // Select appropriate Question Bank Pool based on Track and Pre/Post Type
+      let pool = [];
+      if (verifiedTrack === 'UMPIRE') {
+        pool = verifiedTestType === 'PRE' ? POOL_UMPIRE_PRE : POOL_UMPIRE_POST;
+      } else {
+        pool = verifiedTestType === 'PRE' ? POOL_COACH_PRE : POOL_COACH_POST;
+      }
 
       let fullPool = [...pool];
       while (fullPool.length < 30) {
@@ -253,13 +342,12 @@
       }
       currentExam = shuffle(fullPool).slice(0, 30);
 
-      // Initialize WebCam and Load TensorFlow AI Models
+      // WebCam & AI Initialization
       try {
         videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         const videoElement = document.getElementById('webcamFeed');
         videoElement.srcObject = videoStream;
 
-        // Load BlazeFace (Face Count) & COCO-SSD (Cell Phone / Camera Detection)
         faceModel = await blazeface.load();
         objectModel = await cocoSsd.load();
 
@@ -267,16 +355,21 @@
         document.getElementById('examSection').classList.remove('hidden');
 
         document.getElementById('displayCandidateName').innerText = name;
+        
         const badge = document.getElementById('trackBadge');
-        badge.innerText = track + ' TRACK';
-        badge.className = 'badge ' + (track === 'UMPIRE' ? 'badge-umpire' : 'badge-coach');
+        badge.innerText = verifiedTrack + ' TRACK';
+        badge.className = 'badge ' + (verifiedTrack === 'UMPIRE' ? 'badge-umpire' : 'badge-coach');
+
+        const testBadge = document.getElementById('testTypeBadge');
+        testBadge.innerText = verifiedTestType + '-TEST';
+        testBadge.className = 'badge ' + (verifiedTestType === 'PRE' ? 'badge-pre' : 'badge-post');
 
         renderAllQuestions();
         startProctoring();
         startAIProctoringLoop();
         setupAntiBackTrap();
       } catch (err) {
-        alert("Camera Permission Required: You must allow WebCam access to proceed with this AI-proctored exam.");
+        alert("WebCam Access Required: Camera permission is required for proctored examination.");
         console.error(err);
       }
     }
@@ -318,7 +411,6 @@
       document.getElementById('progressDisplay').innerText = `${Object.keys(userAnswers).length}/30`;
     }
 
-    // AI PROCTORING LOOP: Face Detection & Secondary Device (Phone) Scanning
     function startAIProctoringLoop() {
       const video = document.getElementById('webcamFeed');
       const statusLabel = document.getElementById('aiStatusLabel');
@@ -326,37 +418,35 @@
       aiInterval = setInterval(async () => {
         if (!faceModel || !objectModel || !video) return;
 
-        // 1. Face Scan
         const predictions = await faceModel.estimateFaces(video, false);
         const faceCount = predictions.length;
 
-        // 2. Object Scan (Detect Cell Phones / Cameras)
         const objects = await objectModel.detect(video);
         const phoneDetected = objects.some(obj => obj.class === 'cell phone' || obj.class === 'camera');
 
         if (phoneDetected) {
           statusLabel.innerText = "PHONE DETECTED!";
           statusLabel.style.color = "var(--accent-red)";
-          recordStrike("Secondary device / Cell phone detected on camera feed");
+          recordStrike("Cell phone or camera object detected on camera feed");
         } else if (faceCount === 0) {
           statusLabel.innerText = "FACE MISSING";
           statusLabel.style.color = "var(--accent-yellow)";
-          recordStrike("No candidate face detected in webcam view");
+          recordStrike("No candidate face detected in camera view");
         } else if (faceCount > 1) {
           statusLabel.innerText = "MULTIPLE FACES";
           statusLabel.style.color = "var(--accent-red)";
-          recordStrike("Multiple persons detected in webcam view");
+          recordStrike("Multiple persons detected in camera view");
         } else {
           statusLabel.innerText = "AI MONITORING";
           statusLabel.style.color = "var(--accent-green)";
         }
-      }, 3000); // Scans every 3 seconds
+      }, 3000);
     }
 
     function startProctoring() {
       window.addEventListener('blur', () => recordStrike("Window focus lost / Alt-Tab switch"));
       document.addEventListener('visibilitychange', () => {
-        if (document.hidden) recordStrike("Tab hidden / minimized");
+        if (document.hidden) recordStrike("Tab hidden or window minimized");
       });
 
       timerInterval = setInterval(() => {
@@ -381,7 +471,7 @@
       strikeCount++;
       document.getElementById('strikeDisplay').innerText = `${strikeCount}/3`;
       if (strikeCount >= 3) {
-        alert(`Proctoring Violation Strike 3 (${reason}). Exam auto-submitted.`);
+        alert(`Proctoring Strike 3 Triggered (${reason}). Exam auto-submitting.`);
         submitExam();
       }
     }
@@ -414,17 +504,17 @@
       const pct = ((correct / 30) * 100).toFixed(1);
       const name = document.getElementById('studentName').value;
       const code = document.getElementById('authCode').value.toUpperCase();
-      const track = verifiedTrack || (code.startsWith('UMP') ? 'UMPIRE' : 'COACH');
 
       document.getElementById('scoreDisplay').innerText = `${correct} / 30`;
       document.getElementById('percentageDisplay').innerText = `${pct}% Score`;
       document.getElementById('responseVector').innerText = JSON.stringify(itemResponses, null, 2);
-      document.getElementById('resultSummaryText').innerText = `Candidate: ${name} | Code: ${code} | Track: ${track}`;
+      document.getElementById('resultSummaryText').innerText = `Candidate: ${name} | Code: ${code} | Track: ${verifiedTrack} | Test Type: ${verifiedTestType}-TEST`;
 
       const payload = {
         candidateName: name,
         authCode: code,
-        track: track,
+        track: verifiedTrack,
+        testType: verifiedTestType,
         score: correct,
         percentage: pct,
         strikes: strikeCount,
