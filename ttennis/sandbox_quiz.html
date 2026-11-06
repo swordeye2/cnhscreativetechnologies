@@ -85,7 +85,6 @@
         <small style="color: #a6adc8;">Self-Paced Topic Practice & Instant Verification</small>
       </div>
       <div style="display: flex; gap: 10px;">
-        <a href="index.html" role="button" class="outline secondary" style="font-size: 0.85rem;">&larr; Navigation Hub</a>
         <a href="quiz.html" role="button" class="outline contrast" style="font-size: 0.85rem;">Official Exam &rarr;</a>
       </div>
     </header>
@@ -96,7 +95,7 @@
         <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0;">
           <div>
             <label for="bankSelect" style="font-size: 0.85rem; font-weight: bold; color: var(--primary);">Filter by Question Bank</label>
-            <select id="bankSelect" onchange="filterQuestions()" style="margin: 0;">
+            <select id="bankSelect" onchange="handleBankChange()" style="margin: 0;">
               <option value="ALL">All Question Banks (Combined)</option>
               <option value="BANK_TT_UMPIRING_GENERAL">Umpiring Baseline (Pre-Test)</option>
               <option value="BANK_TT_UMPIRING_FULL">Umpiring Full / Scotland Paper No. 15 (Post-Test)</option>
@@ -125,31 +124,69 @@
   </main>
 
   <script>
-    // MASTER QUESTION POOL FOR SANDBOX PRACTICE
+    // FULL UNABRIDGED MASTER PRACTICE POOL
     const MASTER_PRACTICE_POOL = [
-      // Umpiring Baseline
+      // --- BANK_TT_UMPIRING_GENERAL ---
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_1", topic: "Toss Height Rule", question: "When serving, the ball must be thrown almost vertically upwards at least how many centimeters?", options: ["10 cm", "16 cm", "20 cm", "25 cm"], answer: 1 },
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_2", topic: "Service Warning", question: "If an umpire suspects the legality of a service for the first time in a match, what action should be taken?", options: ["Award point to receiver", "Issue a formal warning without awarding a point", "Call a let and re-serve immediately", "Disqualify the player"], answer: 1 },
       { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_3", topic: "Doubles Service Box", question: "In doubles, the serve must land sequentially in which courts?", options: ["Right half court of server to left half court of receiver", "Right half court of server to right half court of receiver", "Any court chosen by the server", "Left half court to right half court"], answer: 1 },
-      
-      // Umpiring Full
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_4", topic: "Net Assembly Touch", question: "If a player touches the net assembly with their racket while the ball is in play, what is the call?", options: ["Point to opponent", "Play continues", "Call a let", "Warn the player"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_5", topic: "Expedite System Trigger", question: "The expedite system shall be introduced if a game is not finished after how many minutes of play?", options: ["8 minutes", "10 minutes", "12 minutes", "15 minutes"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_6", topic: "Free Hand Contact", question: "While the ball is in play, the player touches the playing surface with their free hand. What is the call?", options: ["Point to opponent", "Play continues", "Call a let", "Issue warning"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_7", topic: "Service Palm Openness", question: "The service launch must start with the ball resting freely on the open palm of the server's stationary free hand.", options: ["True", "False — Fingers can cupped", "False — Can be launched from fingers", "True — Only in singles"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_GENERAL", id: "U_PRE_8", topic: "Clothing Color Conflict", question: "The main color of a shirt, skirt or shorts, other than sleeves and collar, shall be clearly different from that of the ball in use.", options: ["True", "False", "Only in international events", "Umpire discretion"], answer: 0 },
+
+      // --- BANK_TT_UMPIRING_FULL ---
       { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_1", topic: "Cramp Suspension", question: "The umpire should suspend play if satisfied that a player is suffering from cramp and needs a short rest.", options: ["True — Umpire must suspend play for cramp.", "False — Play may not be suspended for cramp, as it is a fitness condition.", "True — Provided both players agree.", "False — Only if referee approves."], answer: 1 },
       { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_2", topic: "Time-Out Requests", question: "A player can interrupt a rally to request a time out.", options: ["True — A time out can be called mid-rally.", "False — A time out request can only be made when the ball is out of play.", "True — Provided ball hasn't crossed net.", "False — Only coaches can request time outs."], answer: 1 },
-      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_3", topic: "Racket Hand Switch", question: "During a rally A changes his racket from one hand to the other and makes a good return which X is unable to return.", options: ["Point to A (Legal switch)", "Point to X (Illegal switch)", "Call a Let", "Take No Action"], answer: 0 },
-      
-      // Coaching Baseline
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_3", topic: "Ball Specifications", question: "The ball may be of any colour that is clearly different from that of the shirt or shorts of either player.", options: ["True — Any contrasting color is legal.", "False — The ball must be matte white or matte orange only.", "True — Yellow and green balls are legal.", "False — Must match table color."], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_4", topic: "Racket Hand Switch", question: "During a rally A changes his racket from one hand to the other and makes a good return which X is unable to return.", options: ["Point to A (Legal switch)", "Point to X (Illegal switch)", "Call a Let", "Take No Action"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_5", topic: "Under Net Return", question: "A bends low and returns ball under net projection outside table onto X court with ultra low bounce.", options: ["Point to A (Legal return under projection)", "Point to X (Must pass over net)", "Call a Let", "Take No Action"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_6", topic: "Racket Blade Material", question: "At least 85% of the blade by thickness shall be of natural wood.", options: ["True", "False — Must be 100% wood", "False — 70% natural wood", "True — Only for defensive blades"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_7", topic: "Advice During Play", question: "Players may receive advice from anyone at any time during a match.", options: ["False — Advice can only be given between games or during authorized suspensions", "True — Advice can be shouted during rallies", "True — Only in team matches", "False — No advice permitted ever"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_8", topic: "Edge Ball Ruling", question: "If the ball touches the vertical side of the table surface below the edge during play, it is considered:", options: ["In play", "Out of play (Point awarded to opponent)", "A let", "Re-served"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_9", topic: "Umpire Jurisdiction", question: "Who has the final decision on questions of fact occurring during a match?", options: ["The Tournament Referee", "The Umpire", "The Assistant Umpire", "The Jury Chairman"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_10", topic: "Racket Covering", question: "A side of the blade used for striking the ball shall be covered with ordinary pimpled rubber or sandwich rubber with total thickness not exceeding:", options: ["2.0 mm for pimpled / 4.0 mm for sandwich", "3.0 mm for both", "1.5 mm for sandwich", "5.0 mm maximum"], answer: 0 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_11", topic: "Yellow Card Penalty", question: "If a player commits an initial minor offense such as throwing the racket or bad language, the umpire shall:", options: ["Award a point to opponent", "Display a Yellow Card and warn the player", "Disqualify immediately", "Call a let"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_12", topic: "Red Card Penalty", question: "If a player receives a second formal warning in the same match, the umpire shall display a Red & Yellow card and:", options: ["Warn again", "Award 1 point to opponent", "Award 2 points to opponent", "Disqualify candidate"], answer: 1 },
+      { bankId: "BANK_TT_UMPIRING_FULL", id: "U_POST_13", topic: "Third Misconduct Penalty", question: "If a player receives a third formal warning in the same match, the umpire shall display Red & Yellow cards and:", options: ["Award 1 point", "Award 2 points to opponent", "Disqualify candidate", "Call referee"], answer: 1 },
+
+      // --- BANK_TT_MASTER ---
       { bankId: "BANK_TT_MASTER", id: "C_PRE_1", topic: "Ready Position", question: "What is the recommended body stance weight distribution for a table tennis player in neutral ready position?", options: ["Heels flat on floor with leaning backward stance", "On balls of feet with knees slightly bent and torso leaning forward", "Weight completely on dominant leg", "Stiff legs with upright spine"], answer: 1 },
       { bankId: "BANK_TT_MASTER", id: "C_PRE_2", topic: "Grip Basics", question: "Which racket grip allows equal forehand and backhand reach without significant wrist readjustment?", options: ["Penhold Japanese Grip", "Shakehand Neutral Grip", "V-Grip", "Seemiller Grip"], answer: 1 },
-      
-      // Level 3 Coaching
+      { bankId: "BANK_TT_MASTER", id: "C_PRE_3", topic: "Multiball Training", question: "Primary objective of multiball feeding in initial skill acquisition phase:", options: ["To exhaust candidate cardiovascular endurance", "High volume repetition of stroke technique in controlled environment", "To simulate match strategy speed", "To test reaction times under pressure"], answer: 1 },
+      { bankId: "BANK_TT_MASTER", id: "C_PRE_4", topic: "Exercise Physiology", question: "The athlete will be able to produce more _______ for his daily actions than his full potential.", options: ["stress", "rhythm", "energy", "exercise"], answer: 2 },
+      { bankId: "BANK_TT_MASTER", id: "C_PRE_5", topic: "Training Adaptation", question: "The period of fatigue is necessary for _______.", options: ["optimum energy", "growth development", "skill development", "progress"], answer: 3 },
+      { bankId: "BANK_TT_MASTER", id: "C_PRE_6", topic: "Tactical Placement", question: "Targeting the opponent's 'elbow' or transition point between forehand and backhand is designed to cause:", options: ["Higher topspin", "Decision hesitation and body crowding", "Faster returns", "Out-of-bounds serve"], answer: 1 },
+      { bankId: "BANK_TT_MASTER", id: "C_PRE_7", topic: "Periodization", question: "The training phase focused on high-volume technique refinement before competitive tapering is known as:", options: ["Competitive Phase", "General Preparation Phase", "Transition Phase", "Peak Phase"], answer: 1 },
+      { bankId: "BANK_TT_MASTER", id: "C_PRE_8", topic: "Psychological Focus", question: "Routine pre-performance rituals before serve execution serve to:", options: ["Delay the game", "Regulate arousal and enhance attentional focus", "Intimidate opponent", "Rest physical muscles"], answer: 1 },
+
+      // --- BANK_TT_L3 ---
       { bankId: "BANK_TT_L3", id: "C_POST_1", topic: "Equipment Specs", question: "According to ITTF rules, what are the official dimensions of the table tennis playing surface?", options: ["2.50m x 1.50m, 75cm high", "2.74m x 1.525m, 76cm high", "3.00m x 1.60m, 80cm high", "2.74m x 1.45m, 70cm high"], answer: 1 },
       { bankId: "BANK_TT_L3", id: "C_POST_2", topic: "Coaching Tactics", question: "Which tactics are recommended when playing against a player settled at Middle or Far Distance?", options: ["Play long high balls", "Play short balls and table play to bring them into uncomfortable close zone", "Give them time to setup heavy topspins", "Match their topspin from far distance"], answer: 1 },
-      
-      // Biomechanics
+      { bankId: "BANK_TT_L3", id: "C_POST_3", topic: "Match Analysis", question: "What primary tools should a coach use to systematically learn from and breakdown an opponent's playstyle?", options: ["Variations & Game Scheme", "Video analysis & Note Taking", "Game Structure & Game System", "Intuition only"], answer: 1 },
+      { bankId: "BANK_TT_L3", id: "C_POST_4", topic: "Footwork Patterns", question: "Which footwork pattern is most suitable for covering wide forehand topspin recovery in fast rallies?", options: ["One-step shuffle", "Cross-step footwork", "In-and-out hop", "Static pivot"], answer: 1 },
+      { bankId: "BANK_TT_L3", id: "C_POST_5", topic: "Spin Recognition", question: "When receiving a server's hidden wrist action, reading the stroke contact point relative to the ball center helps detect:", options: ["Ball weight", "Topspin vs Underspin component", "Table speed", "Racket tension"], answer: 1 },
+      { bankId: "BANK_TT_L3", id: "C_POST_6", topic: "Service Variation", question: "A coach advising a player on serve effectiveness should emphasize identical toss motion with variations in:", options: ["Contact point and wrist acceleration speed", "Height of toss", "Body standing location", "Racket color"], answer: 0 },
+      { bankId: "BANK_TT_L3", id: "C_POST_7", topic: "Pimple Rubber Tactics", question: "Against long-pimple block returns, the incoming spin on a drive stroke will reverse into:", options: ["Topspin", "Underspin / Backspin", "Sidespin", "No spin"], answer: 1 },
+      { bankId: "BANK_TT_L3", id: "C_POST_8", topic: "Match Coaching Rules", question: "During an active game, a coach sitting in the designated bench area may give advice:", options: ["Only between games and during authorized timeouts", "Shouted during live rally", "By entering court anytime", "Never"], answer: 0 },
+
+      // --- BANK_BIOMECHANICS ---
       { bankId: "BANK_BIOMECHANICS", id: "BIO_1", topic: "Biomechanics - Levers", question: "Which class of levers represents the majority of muscles in the human body?", options: ["First Class Lever", "Second Class Lever", "Third Class Lever", "Fourth Class Lever"], answer: 2 },
-      
-      // Sports Medicine
-      { bankId: "BANK_SPORTS_MED", id: "MED_1", topic: "Sports Med - Weakest Link", question: "What is considered the 'Weakest Link' in the musculoskeletal system of a growing child athlete?", options: ["Ligaments", "Joint Capsules", "Growth Plates / Epiphyseal Plates", "Tendons"], answer: 2 }
+      { bankId: "BANK_BIOMECHANICS", id: "BIO_2", topic: "Center of Gravity", question: "The center of gravity is the point around which body weight is balanced. In humans, this is located near the:", options: ["Legs", "Navel / Sacrum level", "Chest", "Shoulders"], answer: 1 },
+      { bankId: "BANK_BIOMECHANICS", id: "BIO_3", topic: "Summation of Force", question: "Which concept involves initiating movement with larger, slower muscle groups to generate optimal power?", options: ["Power", "Biomechanics", "Summation of force", "Flexibility"], answer: 2 },
+      { bankId: "BANK_BIOMECHANICS", id: "BIO_4", topic: "Kinetic Chain", question: "In forehand drive stroke execution, movement energy flows sequentially from ground reaction forces through:", options: ["Legs -> Hips -> Torso -> Arm -> Wrist", "Wrist -> Arm -> Hips -> Legs", "Arm -> Legs -> Hips", "Torso -> Legs -> Wrist"], answer: 0 },
+      { bankId: "BANK_BIOMECHANICS", id: "BIO_5", topic: "Newton's Third Law", question: "The force exerted against the floor during a quick lateral push-off is an example of:", options: ["Inertia", "Action-Reaction", "Acceleration", "Centripetal force"], answer: 1 },
+      { bankId: "BANK_BIOMECHANICS", id: "BIO_6", topic: "Momentum Transfer", question: "Increasing racket head velocity right before ball contact increases:", options: ["Linear & Angular Momentum Transfer", "Ball friction only", "Wind resistance", "Gravity effect"], answer: 0 },
+      { bankId: "BANK_BIOMECHANICS", id: "BIO_7", topic: "Rotational Inertia", question: "Tucking the free arm close to the torso during hip rotation serves to decrease moment of inertia and increase:", options: ["Rotational speed (Angular velocity)", "Weight", "Linear height", "Balance loss"], answer: 0 },
+
+      // --- BANK_SPORTS_MED ---
+      { bankId: "BANK_SPORTS_MED", id: "MED_1", topic: "Sports Med - Weakest Link", question: "What is considered the 'Weakest Link' in the musculoskeletal system of a growing child athlete?", options: ["Ligaments", "Joint Capsules", "Growth Plates / Epiphyseal Plates", "Tendons"], answer: 2 },
+      { bankId: "BANK_SPORTS_MED", id: "MED_2", topic: "Nutritional Golden Rules", question: "According to table tennis nutritional guidelines, what should players decrease in their daily diet?", options: ["Fats", "Fats, excessive salt, alcohol", "Complex carbs", "Water"], answer: 1 },
+      { bankId: "BANK_SPORTS_MED", id: "MED_3", topic: "Overuse Injury Prevention", question: "The most effective method to prevent shoulder rotator cuff tendinitis in adolescent table tennis athletes is:", options: ["Continuous heavy weight training", "Scapular stabilization exercises and controlled volume management", "Complete bed rest", "Stretching only"], answer: 1 },
+      { bankId: "BANK_SPORTS_MED", id: "MED_4", topic: "Hydration Protocol", question: "During high-intensity multi-ball or match play, athletes should consume fluid at intervals of every:", options: ["15-20 minutes", "45 minutes", "At game end only", "Only when thirsty"], answer: 0 },
+      { bankId: "BANK_SPORTS_MED", id: "MED_5", topic: "Acute Injury Protocol", question: "The immediate first-aid management protocol for acute soft tissue sprains is:", options: ["HARM (Heat, Alcohol, Running, Massage)", "PRICE / RICE (Protection, Rest, Ice, Compression, Elevation)", "Immediate intense stretching", "Hot compress application"], answer: 1 },
+      { bankId: "BANK_SPORTS_MED", id: "MED_6", topic: "Carbohydrate Loading", question: "For multi-day tournament endurance, complex carbohydrates should comprise approximately what percentage of total daily caloric intake?", options: ["20-30%", "55-65%", "80-90%", "10-15%"], answer: 1 }
     ];
 
     let userScores = {};
@@ -159,9 +196,23 @@
       filterQuestions();
     };
 
+    function handleBankChange() {
+      populateTopicDropdown();
+      filterQuestions();
+    }
+
     function populateTopicDropdown() {
+      const selectedBank = document.getElementById('bankSelect').value;
       const topicSelect = document.getElementById('topicSelect');
-      const topics = [...new Set(MASTER_PRACTICE_POOL.map(q => q.topic))];
+      const previousValue = topicSelect.value;
+      
+      topicSelect.innerHTML = '<option value="ALL">All Topics</option>';
+      
+      const filteredPool = selectedBank === 'ALL' 
+        ? MASTER_PRACTICE_POOL 
+        : MASTER_PRACTICE_POOL.filter(q => q.bankId === selectedBank);
+
+      const topics = [...new Set(filteredPool.map(q => q.topic))];
       
       topics.sort().forEach(topic => {
         const opt = document.createElement('option');
@@ -169,6 +220,12 @@
         opt.innerText = topic;
         topicSelect.appendChild(opt);
       });
+
+      if (topics.includes(previousValue)) {
+        topicSelect.value = previousValue;
+      } else {
+        topicSelect.value = "ALL";
+      }
     }
 
     function filterQuestions() {
