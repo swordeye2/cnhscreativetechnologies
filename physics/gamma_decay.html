@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEJITPhET: Nuclear Decay, Drip-Line &amp; Gamma Cascade Lab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #0b1120;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* PhET-inspired tactile buttons */
+    .phet-btn {
+      transition: transform 0.1s ease, box-shadow 0.15s ease, filter 0.15s ease;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+    }
+    .phet-btn:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+    }
+    .phet-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Custom subtle grid inside canvas container */
+    .cosmic-bg {
+      background: radial-gradient(circle at 50% 50%, #172554 0%, #090d16 75%, #05080f 100%);
+    }
+
+    /* Toggle switch styling */
+    .toggle-checkbox:checked {
+      right: 0;
+      border-color: #22c55e;
+    }
+    .toggle-checkbox:checked + .toggle-label {
+      background-color: #22c55e;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between select-none">
+
+  <!-- TOP HEADER BAR -->
+  <header class="bg-slate-900/95 border-b border-slate-700/80 px-4 py-3 shadow-lg z-10">
+    <div class="max-w-7xl mx-auto flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 flex items-center justify-center shadow-md shrink-0">
+          <span class="text-slate-950 font-black text-xl">γ</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[11px] font-extrabold tracking-wider uppercase rounded-md bg-amber-400 text-slate-950">MEJITPhET</span>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">Nuclear Decay, Drip-Line &amp; Gamma Cascade Lab</h1>
+          </div>
+          <p class="text-xs text-slate-400">Explore α, β, &amp; drip-line emissions, nuclear shell spin/parity rules ($J^\pi$), and γ relaxation</p>
+        </div>
+      </div>
+
+      <!-- Isotope Selector Tabs + Audio & Reset -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div id="isotope-tabs" class="flex flex-wrap gap-1.5 bg-slate-950/80 p-1.5 rounded-xl border border-slate-800">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <button id="btn-sound" class="phet-btn px-3 py-2 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-emerald-400/40" title="Toggle Web Audio Sound Effects">
+          <span id="sound-icon">🔊</span>
+          <span id="sound-label">Sound ON</span>
+        </button>
+
+        <button id="btn-reset" class="phet-btn px-3.5 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-slate-500/40">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Reset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN SIMULATION WORKSPACE -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+    <!-- LEFT/CENTER: NUCLEUS VIEWPORT & STEP CONTROLS (7 cols on lg) -->
+    <section class="lg:col-span-7 flex flex-col gap-3">
+      <!-- Canvas Container -->
+      <div id="canvas-wrapper" class="relative w-full h-[380px] sm:h-[450px] rounded-2xl cosmic-bg border-2 border-slate-700/80 shadow-2xl overflow-hidden">
+        <canvas id="sim-canvas" class="w-full h-full block"></canvas>
+
+        <!-- Top-Left Nucleus Identity Badge -->
+        <div class="absolute top-3 left-3 bg-slate-900/85 backdrop-blur-md border border-slate-700/90 rounded-xl px-3.5 py-2 shadow-lg pointer-events-none">
+          <div class="text-[11px] uppercase tracking-wider font-semibold text-slate-400">Current Nucleus State</div>
+          <div id="hud-nucleus-name" class="text-lg sm:text-xl font-extrabold text-white flex items-center gap-2">
+            Cobalt-60 (<span class="mono">⁶⁰₂₇Co</span>)
+          </div>
+          <div class="mt-1 flex flex-wrap items-center gap-1.5">
+            <div id="hud-state-pill" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/40">
+              <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+              Unstable Parent Nucleus
+            </div>
+            <div id="hud-spin-pill" class="mono inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-amber-300 border border-slate-600">
+              Jπ = 5⁺
+            </div>
+          </div>
+        </div>
+
+        <!-- Top-Right Legend -->
+        <div class="hidden sm:flex flex-col gap-1.5 absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md border border-slate-700/80 rounded-xl px-3 py-2 text-xs pointer-events-none">
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-rose-400 to-red-700 inline-flex items-center justify-center text-[9px] font-black text-white">+</span>
+            <span class="text-slate-300">Proton (p⁺)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-sky-300 to-blue-700 inline-block"></span>
+            <span class="text-slate-300">Neutron (n⁰)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full border-2 border-amber-400 bg-amber-400/20 inline-block"></span>
+            <span class="text-amber-300 font-medium">Excited Shell (*)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full border-2 border-dashed border-rose-400 inline-block"></span>
+            <span class="text-rose-300 font-medium">Drip-Line Unbound</span>
+          </div>
+        </div>
+
+        <!-- Bottom-Left Live Pedagogical Callout Banner -->
+        <div id="hud-callout" class="absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md border border-slate-700 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-200 shadow-lg pointer-events-none">
+          <span class="font-bold text-amber-400">Ready:</span> Click <span class="font-bold text-white">Step 1</span> to trigger primary decay and observe how quantum selection rules place the daughter nucleus into an excited state (*).
+        </div>
+      </div>
+
+      <!-- INTERACTIVE STEP-BY-STEP CONTROL BAR -->
+      <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-3.5 shadow-lg flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <!-- Step Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-2.5 flex-1">
+          <button id="btn-step1" class="phet-btn flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm flex items-center justify-center gap-2">
+            <span class="px-2 py-0.5 rounded-md bg-white/20 text-xs">STEP 1</span>
+            <span id="btn-step1-label">Trigger β⁻ Decay</span>
+          </button>
+
+          <button id="btn-step2" disabled class="phet-btn flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-sm flex items-center justify-center gap-2">
+            <span class="px-2 py-0.5 rounded-md bg-slate-950/20 text-xs">STEP 2</span>
+            <span id="btn-step2-label">Emit Gamma Photon (γ)</span>
+          </button>
+        </div>
+
+        <!-- Simulation Toggles (Auto-Cascade & Slow Motion) -->
+        <div class="flex items-center justify-between sm:justify-end gap-4 bg-slate-900/80 px-3.5 py-2.5 rounded-xl border border-slate-700/80">
+          <!-- Auto-Cascade Toggle -->
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input id="toggle-auto" type="checkbox" class="w-4 h-4 accent-amber-400 rounded cursor-pointer" />
+            <span class="text-xs font-bold text-slate-200">Auto-Cascade</span>
+          </label>
+
+          <div class="h-5 w-px bg-slate-700"></div>
+
+          <!-- Slow Motion Toggle -->
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input id="toggle-slowmo" type="checkbox" checked class="w-4 h-4 accent-cyan-400 rounded cursor-pointer" />
+            <span class="text-xs font-bold text-cyan-300">Slow Motion</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT SIDEBAR: INTERACTIVE NUCLEAR ENERGY LEVEL DIAGRAM (5 cols on lg) -->
+    <aside class="lg:col-span-5 bg-slate-800/90 border border-slate-700 rounded-2xl p-4 shadow-xl flex flex-col justify-between gap-3">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-sm font-extrabold uppercase tracking-wider text-amber-400">Interactive Energy Level &amp; Shell Diagram</h2>
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/40 animate-pulse">Click Any Level!</span>
+        </div>
+        <p class="text-xs text-slate-400 mb-2.5">Click any energy rung, spin/parity label ($J^\pi$), or transition arrow below to inspect <strong class="text-slate-200">why</strong> the nucleus becomes excited or crosses a drip line.</p>
+
+        <!-- Interactive Energy Ladder Canvas -->
+        <div class="w-full h-[265px] sm:h-[280px] bg-slate-950 rounded-xl border border-slate-700/90 overflow-hidden relative">
+          <canvas id="energy-canvas" class="w-full h-full block cursor-pointer"></canvas>
+        </div>
+      </div>
+
+      <!-- Interactive Inspector Card (Updates when clicking graph nodes or stepping decay) -->
+      <div id="inspector-card" class="bg-slate-900/95 border border-amber-500/40 rounded-xl p-3 text-xs space-y-1.5 transition-all">
+        <div class="flex items-center justify-between">
+          <div id="inspector-title" class="font-extrabold text-amber-300 flex items-center gap-1.5">
+            <span>⚛️</span> Why Does Decay Land in an Excited State (*)?
+          </div>
+          <span id="inspector-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-slate-800 text-cyan-300 border border-slate-700">Shell &amp; Spin Rules</span>
+        </div>
+        <p id="inspector-body" class="text-slate-300 leading-relaxed">
+          Nucleons sit in quantized nuclear shells with specific spin and parity (<span class="mono text-amber-300">Jπ</span>). Jumping straight from <span class="mono text-indigo-300">⁵⁺</span> to the <span class="mono text-emerald-300">⁰⁺</span> ground state is <strong>spin-forbidden</strong> (ΔJ = 5), so the nucleus takes a fast "allowed" shortcut to the <span class="mono text-amber-300">⁴⁺</span> excited shell—then cascades down via γ photons!
+        </p>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- BOTTOM PANEL: LIVE CONSERVATION COUNTERS & BALANCED EQUATION BAR -->
+  <footer class="max-w-7xl w-full mx-auto px-3 sm:px-4 pb-4 space-y-3">
+    <!-- Live Conservation Counters -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+      <!-- Protons (Z) -->
+      <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-2.5 text-center">
+        <div class="text-[11px] font-bold uppercase text-rose-400">Protons (Z)</div>
+        <div id="stat-z" class="mono text-xl sm:text-2xl font-extrabold text-white mt-0.5">27</div>
+        <div id="stat-z-note" class="text-[10px] text-slate-400">Atomic Number</div>
+      </div>
+
+      <!-- Neutrons (N) -->
+      <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-2.5 text-center">
+        <div class="text-[11px] font-bold uppercase text-sky-400">Neutrons (N)</div>
+        <div id="stat-n" class="mono text-xl sm:text-2xl font-extrabold text-white mt-0.5">33</div>
+        <div id="stat-n-note" class="text-[10px] text-slate-400">Neutron Count</div>
+      </div>
+
+      <!-- Mass Number (A) -->
+      <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-2.5 text-center">
+        <div class="text-[11px] font-bold uppercase text-emerald-400">Mass Number (A)</div>
+        <div id="stat-a" class="mono text-xl sm:text-2xl font-extrabold text-white mt-0.5">60</div>
+        <div id="stat-a-note" class="text-[10px] text-slate-400">A = Z + N</div>
+      </div>
+
+      <!-- Separation Energy (Sn / Sp) -->
+      <div id="stat-sep-card" class="bg-slate-800/90 border border-slate-700 rounded-xl p-2.5 text-center">
+        <div id="stat-sep-title" class="text-[11px] font-bold uppercase text-cyan-400">Separation Energy (Sₙ)</div>
+        <div id="stat-sep" class="mono text-lg sm:text-xl font-extrabold text-cyan-300 mt-0.5">+7.49 MeV</div>
+        <div id="stat-sep-note" class="text-[10px] text-slate-400">Bound (S &gt; 0)</div>
+      </div>
+
+      <!-- Nuclear Excitation Energy -->
+      <div class="bg-slate-800/90 border border-amber-500/40 rounded-xl p-2.5 text-center">
+        <div class="text-[11px] font-bold uppercase text-amber-400">Excitation Energy (E*)</div>
+        <div id="stat-energy" class="mono text-lg sm:text-xl font-extrabold text-amber-300 mt-0.5">2.82 MeV</div>
+        <div id="stat-energy-note" class="text-[10px] text-slate-400">Parent Energy Level</div>
+      </div>
+
+      <!-- Emitted Radiation Summary -->
+      <div class="bg-slate-800/90 border border-slate-700 rounded-xl p-2.5 text-center">
+        <div class="text-[11px] font-bold uppercase text-orange-400">Emitted Radiation</div>
+        <div id="stat-emitted-summary" class="mono text-xs sm:text-sm font-extrabold text-slate-200 mt-1.5">None yet</div>
+        <div id="stat-gamma-note" class="text-[10px] text-slate-400 mt-0.5">Particles &amp; Photons</div>
+      </div>
+    </div>
+
+    <!-- Live Balanced Nuclear Equation Bar -->
+    <div class="bg-slate-900 border-2 border-slate-700 rounded-2xl p-3.5 shadow-xl flex flex-col md:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold uppercase tracking-wider">
+          Live Nuclear Equation
+        </span>
+      </div>
+
+      <div id="equation-display" class="mono text-sm sm:text-lg md:text-xl font-bold text-center text-white tracking-wide flex flex-wrap items-center justify-center gap-2">
+        <!-- Populated dynamically -->
+      </div>
+
+      <div id="conservation-badge" class="text-xs font-semibold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700 text-center shrink-0">
+        A &amp; Z Conserved
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /**
+     * MEJITPhET: Nuclear Decay, Drip-Line & Gamma Cascade Lab
+     * Features:
+     * 1. Primary radioactive decay (Beta-minus, Alpha, Beta-plus, Metastable Isomer)
+     * 2. Nuclear Drip-Line spontaneous emission (Neutron Drip Line He-5 & Proton Drip Line F-16)
+     * 3. Interactive Nuclear Energy Level & Shell Diagram explaining Spin/Parity (Jπ) selection rules
+     * 4. Synthesized Web Audio API sound effects (zero external assets)
+     */
+
+    // ==========================================
+    // 1. WEB AUDIO API SOUND SYNTHESIZER
+    // ==========================================
+    class NuclearSoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            this.ctx = new AudioCtx();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggle() {
+        this.enabled = !this.enabled;
+        if (this.enabled) {
+          this.init();
+          this.playClick(660);
+        }
+        return this.enabled;
+      }
+
+      playClick(freq = 520) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.25, now + 0.08);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.095);
+      }
+
+      playBetaDecay(isPositron = false) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        // High-velocity lepton zip + subtle neutrino shimmer
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        const startF = isPositron ? 360 : 280;
+        const endF = isPositron ? 1280 : 1050;
+        osc.frequency.setValueAtTime(startF, now);
+        osc.frequency.exponentialRampToValueAtTime(endF, now + 0.24);
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.27);
+      }
+
+      playAlphaDecay() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        // Heavy 4-nucleon cluster tunneling thud
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(165, now);
+        osc.frequency.exponentialRampToValueAtTime(48, now + 0.36);
+        gain.gain.setValueAtTime(0.32, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      }
+
+      playDripLineSnap(isProton = false) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        // Crisp quantum snap / pop as unbound nucleon escapes (S <= 0)
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(isProton ? 780 : 620, now);
+        osc.frequency.exponentialRampToValueAtTime(190, now + 0.16);
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.19);
+      }
+
+      playGammaCascade(gammaList) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        // Crystal electromagnetic chimes scaled to photon MeV energy
+        gammaList.forEach((g, idx) => {
+          const delay = idx * 0.22;
+          const baseFreq = Math.min(1800, 680 + g.energy * 380);
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(baseFreq, now + delay);
+          osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.4, now + delay + 0.32);
+
+          gain.gain.setValueAtTime(0.001, now + delay);
+          gain.gain.linearRampToValueAtTime(0.24, now + delay + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.42);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + delay);
+          osc.stop(now + delay + 0.44);
+        });
+      }
+    }
+
+    const sound = new NuclearSoundEngine();
+
+    // ==========================================
+    // 2. ISOTOPE DATASET (DECAY + DRIP LINES + SHELL PHYSICS)
+    // ==========================================
+    const ISOTOPES = [
+      {
+        id: 'co60',
+        tabLabel: '⁶⁰₂₇Co (β⁻ → γ)',
+        name: 'Cobalt-60',
+        parentSymbol: '⁶⁰₂₇Co',
+        parentSpin: '5⁺',
+        parentZ: 27,
+        parentN: 33,
+        parentA: 60,
+        parentEnergy: 2.82,
+        sepLabel: 'Sₙ = +7.49 MeV',
+        sepTitle: 'Separation Energy (Sₙ)',
+        sepNote: 'Bound (Inside Drip Line)',
+        isDripLine: false,
+        decayType: 'beta-minus',
+        step1BtnText: 'Trigger β⁻ Decay',
+        daughterName: 'Nickel-60',
+        daughterExcitedSymbol: '⁶⁰₂₈Ni*',
+        daughterExcitedSpin: '4⁺ → 2⁺',
+        daughterGroundSymbol: '⁶⁰₂₈Ni',
+        daughterGroundSpin: '0⁺',
+        daughterZ: 28,
+        daughterN: 32,
+        daughterA: 60,
+        excitedEnergy: 2.50,
+        gammaList: [
+          { energy: 1.17, label: 'γ₁ (1.17 MeV)' },
+          { energy: 1.33, label: 'γ₂ (1.33 MeV)' }
+        ],
+        step1ParticlesText: '1 e⁻ + 1 ν̄ₑ',
+        step1EquationHTML: `<span class="text-indigo-300">⁶⁰₂₇Co (5⁺)</span> <span>➔</span> <span class="text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-400/40">⁶⁰₂₈Ni* (4⁺)</span> <span>+</span> <span class="text-cyan-300">e⁻</span> <span>+</span> <span class="text-slate-400">ν̄ₑ</span>`,
+        step2EquationHTML: `<span class="text-amber-300">⁶⁰₂₈Ni* (4⁺)</span> <span>➔</span> <span class="text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-400/40">⁶⁰₂₈Ni (0⁺)</span> <span>+</span> <span class="text-orange-400 font-extrabold">2γ (1.17 + 1.33 MeV)</span>`,
+        initialEquationHTML: `<span class="text-indigo-300">⁶⁰₂₇Co (5⁺)</span> <span class="text-slate-400 text-sm">(Ready for β⁻ Decay)</span>`,
+        step1Callout: `<span class="font-bold text-cyan-300">Step 1 (β⁻ Decay):</span> A neutron became a proton (Z: 27 → 28). Because jumping directly from <span class="mono">5⁺ → 0⁺</span> is spin-forbidden, <span class="font-bold text-amber-300">⁶⁰₂₈Ni*</span> lands in a <span class="mono">4⁺</span> excited shell (2.50 MeV)!`,
+        step2Callout: `<span class="font-bold text-orange-400">Step 2 (γ Cascade):</span> Excited ⁶⁰₂₈Ni* stepped down (<span class="mono">4⁺ → 2⁺ → 0⁺</span>) by releasing two gamma photons (1.17 &amp; 1.33 MeV). <span class="font-bold text-emerald-300">A = 60 and Z = 28 stayed unchanged!</span>`,
+        whyExcitedTitle: 'Spin/Parity Selection Rule (5⁺ → 4⁺ Allowed)',
+        whyExcitedBadge: 'ΔJ = 1 (Allowed)',
+        whyExcitedText: 'Cobalt-60 has nuclear spin 5⁺, while Nickel-60’s ground state is 0⁺. Jumping straight to 0⁺ requires carrying away 5 units of spin (ΔJ = 5, heavily suppressed). Landing on Nickel’s 4⁺ excited proton shell requires only ΔJ = 1—a fast "allowed" transition—leaving 2.50 MeV to be shed as two γ photons!',
+        startsExcited: false
+      },
+      {
+        id: 'ra226',
+        tabLabel: '²²⁶₈₈Ra (α → γ)',
+        name: 'Radium-226',
+        parentSymbol: '²²⁶₈₈Ra',
+        parentSpin: '0⁺',
+        parentZ: 88,
+        parentN: 138,
+        parentA: 226,
+        parentEnergy: 4.87,
+        sepLabel: 'Sₙ = +6.39 MeV',
+        sepTitle: 'Separation Energy (Sₙ)',
+        sepNote: 'Bound (Heavy α Emitter)',
+        isDripLine: false,
+        decayType: 'alpha',
+        step1BtnText: 'Trigger α Decay',
+        daughterName: 'Radon-222',
+        daughterExcitedSymbol: '²²²₈₆Rn*',
+        daughterExcitedSpin: '2⁺',
+        daughterGroundSymbol: '²²²₈₆Rn',
+        daughterGroundSpin: '0⁺',
+        daughterZ: 86,
+        daughterN: 136,
+        daughterA: 222,
+        excitedEnergy: 0.186,
+        gammaList: [
+          { energy: 0.186, label: 'γ (0.186 MeV)' }
+        ],
+        step1ParticlesText: '1 ⁴₂He (α)',
+        step1EquationHTML: `<span class="text-indigo-300">²²⁶₈₈Ra (0⁺)</span> <span>➔</span> <span class="text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-400/40">²²²₈₆Rn* (2⁺)</span> <span>+</span> <span class="text-rose-400">⁴₂He (α)</span>`,
+        step2EquationHTML: `<span class="text-amber-300">²²²₈₆Rn* (2⁺)</span> <span>➔</span> <span class="text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-400/40">²²²₈₆Rn (0⁺)</span> <span>+</span> <span class="text-orange-400 font-extrabold">γ (0.186 MeV)</span>`,
+        initialEquationHTML: `<span class="text-indigo-300">²²⁶₈₈Ra (0⁺)</span> <span class="text-slate-400 text-sm">(Ready for α Decay)</span>`,
+        step1Callout: `<span class="font-bold text-rose-400">Step 1 (α Decay):</span> An alpha cluster (2p + 2n) tunneled out (A: 226 → 222, Z: 88 → 86), setting <span class="font-bold text-amber-300">²²²₈₆Rn*</span> spinning in a <span class="mono">2⁺</span> rotational excited state (0.186 MeV)!`,
+        step2Callout: `<span class="font-bold text-orange-400">Step 2 (γ Emission):</span> Rotating ²²²₈₆Rn* slowed down (<span class="mono">2⁺ → 0⁺</span>) by emitting a 0.186 MeV gamma photon. <span class="font-bold text-emerald-300">A = 222 and Z = 86 remained identical!</span>`,
+        whyExcitedTitle: 'Alpha Tunneling & Collective Nuclear Rotation',
+        whyExcitedBadge: 'Rotational State (2⁺)',
+        whyExcitedText: 'Heavy nuclei like Radium-226 are football-shaped (deformed). When an α particle tunnels out off-center, it gives the daughter Radon-222 nucleus a rotational "kick" into its 2⁺ collective rotational band (0.186 MeV), which then radiates away a γ photon to stop spinning!',
+        startsExcited: false
+      },
+      {
+        id: 'na22',
+        tabLabel: '²²₁₁Na (β⁺ → γ)',
+        name: 'Sodium-22',
+        parentSymbol: '²²₁₁Na',
+        parentSpin: '3⁺',
+        parentZ: 11,
+        parentN: 11,
+        parentA: 22,
+        parentEnergy: 2.84,
+        sepLabel: 'Sₚ = +6.74 MeV',
+        sepTitle: 'Separation Energy (Sₚ)',
+        sepNote: 'Bound (Inside Drip Line)',
+        isDripLine: false,
+        decayType: 'beta-plus',
+        step1BtnText: 'Trigger β⁺ Decay',
+        daughterName: 'Neon-22',
+        daughterExcitedSymbol: '²²₁₀Ne*',
+        daughterExcitedSpin: '2⁺',
+        daughterGroundSymbol: '²²₁₀Ne',
+        daughterGroundSpin: '0⁺',
+        daughterZ: 10,
+        daughterN: 12,
+        daughterA: 22,
+        excitedEnergy: 1.27,
+        gammaList: [
+          { energy: 1.27, label: 'γ (1.27 MeV)' }
+        ],
+        step1ParticlesText: '1 e⁺ + 1 νₑ',
+        step1EquationHTML: `<span class="text-indigo-300">²²₁₁Na (3⁺)</span> <span>➔</span> <span class="text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-400/40">²²₁₀Ne* (2⁺)</span> <span>+</span> <span class="text-fuchsia-400">e⁺</span> <span>+</span> <span class="text-slate-400">νₑ</span>`,
+        step2EquationHTML: `<span class="text-amber-300">²²₁₀Ne* (2⁺)</span> <span>➔</span> <span class="text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-400/40">²²₁₀Ne (0⁺)</span> <span>+</span> <span class="text-orange-400 font-extrabold">γ (1.27 MeV)</span>`,
+        initialEquationHTML: `<span class="text-indigo-300">²²₁₁Na (3⁺)</span> <span class="text-slate-400 text-sm">(Ready for β⁺ Decay)</span>`,
+        step1Callout: `<span class="font-bold text-fuchsia-400">Step 1 (β⁺ Decay):</span> A proton converted into a neutron (Z: 11 → 10), emitting e⁺ and νₑ. Spin selection (<span class="mono">3⁺ → 2⁺</span>) placed <span class="font-bold text-amber-300">²²₁₀Ne*</span> in a 1.27 MeV excited shell!`,
+        step2Callout: `<span class="font-bold text-orange-400">Step 2 (γ Emission):</span> Excited ²²₁₀Ne* dropped from <span class="mono">2⁺ → 0⁺</span>, releasing a 1.27 MeV gamma photon. <span class="font-bold text-emerald-300">A = 22 and Z = 10 stayed unchanged!</span>`,
+        whyExcitedTitle: 'Positron Decay & Gamow-Teller Spin Rule (3⁺ → 2⁺)',
+        whyExcitedBadge: 'ΔJ = 1 (Allowed)',
+        whyExcitedText: 'Sodium-22 has spin 3⁺, while Neon-22’s ground state is 0⁺. Direct 3⁺ → 0⁺ decay is suppressed by ΔJ = 3 angular momentum mismatch. Instead, β⁺ decay populates Neon-22’s 2⁺ excited state (ΔJ = 1, 99.9% branching), which immediately emits a 1.27 MeV γ photon!',
+        startsExcited: false
+      },
+      {
+        id: 'tc99m',
+        tabLabel: '⁹⁹ᵐ₄₃Tc (Pure γ)',
+        name: 'Technetium-99m',
+        parentSymbol: '⁹⁹ᵐ₄₃Tc',
+        parentSpin: '1/2⁻',
+        parentZ: 43,
+        parentN: 56,
+        parentA: 99,
+        parentEnergy: 0.14,
+        sepLabel: 'Sₙ = +8.97 MeV',
+        sepTitle: 'Separation Energy (Sₙ)',
+        sepNote: 'Metastable Isomer (*)',
+        isDripLine: false,
+        decayType: 'isomeric',
+        step1BtnText: 'Already in Excited State (*)',
+        daughterName: 'Technetium-99',
+        daughterExcitedSymbol: '⁹⁹ᵐ₄₃Tc',
+        daughterExcitedSpin: '1/2⁻',
+        daughterGroundSymbol: '⁹⁹₄₃Tc',
+        daughterGroundSpin: '9/2⁺',
+        daughterZ: 43,
+        daughterN: 56,
+        daughterA: 99,
+        excitedEnergy: 0.14,
+        gammaList: [
+          { energy: 0.14, label: 'γ (0.140 MeV)' }
+        ],
+        step1ParticlesText: 'None (Metastable)',
+        step1EquationHTML: `<span class="text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-400/40">⁹⁹ᵐ₄₃Tc (1/2⁻)</span> <span class="text-slate-400 text-sm">(Metastable Excited State — Ready for γ Emission)</span>`,
+        step2EquationHTML: `<span class="text-amber-300">⁹⁹ᵐ₄₃Tc (1/2⁻)</span> <span>➔</span> <span class="text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-400/40">⁹⁹₄₃Tc (9/2⁺)</span> <span>+</span> <span class="text-orange-400 font-extrabold">γ (0.140 MeV)</span>`,
+        initialEquationHTML: `<span class="text-amber-300">⁹⁹ᵐ₄₃Tc (1/2⁻)</span> <span class="text-slate-400 text-sm">(Metastable Excited State)</span>`,
+        step1Callout: `<span class="font-bold text-amber-300">Metastable Hospital Isotope (⁹⁹ᵐ₄₃Tc):</span> Trapped in a <span class="mono">1/2⁻</span> excited shell for ~6 hours because dropping to <span class="mono">9/2⁺</span> requires a huge spin flip (ΔJ = 4). Click <span class="font-bold text-white">Step 2</span> to emit its diagnostic γ ray!`,
+        step2Callout: `<span class="font-bold text-orange-400">Isomeric Transition Complete:</span> ⁹⁹ᵐ₄₃Tc emitted a 0.140 MeV gamma photon used in hospital SPECT scans. <span class="font-bold text-emerald-300">Technetium stayed Technetium (A = 99, Z = 43)!</span>`,
+        whyExcitedTitle: 'Why Is Technetium-99m "Metastable" (6-Hour Delay)?',
+        whyExcitedBadge: 'ΔJ = 4 (Spin Trap)',
+        whyExcitedText: 'Most excited nuclei emit γ rays in picoseconds (10⁻¹² s). However, ⁹⁹ᵐTc is trapped in a 1/2⁻ shell while its ground state is 9/2⁺—a massive ΔJ = 4 spin and parity jump! That quantum bottleneck delays γ emission to a 6-hour half-life, making it ideal for medical imaging.',
+        startsExcited: true
+      },
+      {
+        id: 'he5',
+        tabLabel: '⁵₂He (n Drip Line)',
+        name: 'Helium-5',
+        parentSymbol: '⁵₂He',
+        parentSpin: '3/2⁻',
+        parentZ: 2,
+        parentN: 3,
+        parentA: 5,
+        parentEnergy: 0.89,
+        sepLabel: 'Sₙ = -0.89 MeV ≤ 0',
+        sepTitle: 'Neutron Separation (Sₙ)',
+        sepNote: 'UNBOUND (Neutron Drip Line!)',
+        isDripLine: true,
+        dripMode: 'neutron',
+        decayType: 'neutron-drip',
+        step1BtnText: 'Trigger Neutron Drip-Line Ejection',
+        daughterName: 'Helium-4',
+        daughterExcitedSymbol: '⁴₂He',
+        daughterExcitedSpin: '0⁺',
+        daughterGroundSymbol: '⁴₂He',
+        daughterGroundSpin: '0⁺',
+        daughterZ: 2,
+        daughterN: 2,
+        daughterA: 4,
+        excitedEnergy: 0.00,
+        gammaList: [],
+        step1ParticlesText: '1 Free Neutron (¹₀n)',
+        step1EquationHTML: `<span class="text-rose-300">⁵₂He (Sₙ = -0.89 MeV)</span> <span>➔</span> <span class="text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-400/40">⁴₂He (0⁺)</span> <span>+</span> <span class="text-sky-400 font-extrabold">¹₀n (Free Neutron)</span>`,
+        step2EquationHTML: `<span class="text-emerald-300">⁴₂He (0⁺)</span> <span class="text-slate-400 text-sm">(Already in Ground State — No γ Emission Needed!)</span>`,
+        initialEquationHTML: `<span class="text-rose-300">⁵₂He (3/2⁻)</span> <span class="text-slate-400 text-sm">(Beyond Neutron Drip Line: Sₙ = -0.89 MeV ≤ 0)</span>`,
+        step1Callout: `<span class="font-bold text-sky-400">Neutron Drip-Line Emission (NOT Gamma!):</span> Because <span class="mono">Sₙ = -0.89 MeV ≤ 0</span>, the 3rd neutron sits in an unbound shell above the potential well and snaps off in <span class="mono">10⁻²¹ s</span>, leaving doubly-magic <span class="font-bold text-emerald-300">⁴₂He</span> directly in its ground state!`,
+        step2Callout: `<span class="font-bold text-emerald-300">Ground State Reached Directly:</span> Helium-4 is doubly magic (2p + 2n closed shells), so no excited state or gamma photon follows.`,
+        whyExcitedTitle: 'Neutron Drip Line: Why Sₙ ≤ 0 Ejects a Physical Neutron',
+        whyExcitedBadge: 'Sₙ = -0.89 MeV (Unbound)',
+        whyExcitedText: 'In Helium-4, the lowest 1s nuclear shell is completely full (2 protons + 2 neutrons). Adding a 3rd neutron forces it into a high p-shell where the strong force cannot hold it (Sₙ = -0.89 MeV ≤ 0). Instead of waiting for β⁻ decay, it immediately drips a free neutron (¹₀n)—NOT a gamma photon!',
+        startsExcited: false,
+        landsInGround: true
+      },
+      {
+        id: 'f16',
+        tabLabel: '¹⁶₉F (p Drip → γ)',
+        name: 'Fluorine-16',
+        parentSymbol: '¹⁶₉F',
+        parentSpin: '0⁻',
+        parentZ: 9,
+        parentN: 7,
+        parentA: 16,
+        parentEnergy: 5.81,
+        sepLabel: 'Sₚ = -0.54 MeV ≤ 0',
+        sepTitle: 'Proton Separation (Sₚ)',
+        sepNote: 'UNBOUND (Proton Drip Line!)',
+        isDripLine: true,
+        dripMode: 'proton',
+        decayType: 'proton-drip',
+        step1BtnText: 'Trigger Proton Drip-Line Ejection',
+        daughterName: 'Oxygen-15',
+        daughterExcitedSymbol: '¹⁵₈O*',
+        daughterExcitedSpin: '1/2⁺',
+        daughterGroundSymbol: '¹⁵₈O',
+        daughterGroundSpin: '1/2⁻',
+        daughterZ: 8,
+        daughterN: 7,
+        daughterA: 15,
+        excitedEnergy: 5.18,
+        gammaList: [
+          { energy: 5.18, label: 'γ (5.18 MeV)' }
+        ],
+        step1ParticlesText: '1 Free Proton (¹₁p)',
+        step1EquationHTML: `<span class="text-rose-300">¹⁶₉F (Sₚ = -0.54 MeV)</span> <span>➔</span> <span class="text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-400/40">¹⁵₈O* (1/2⁺)</span> <span>+</span> <span class="text-rose-400 font-extrabold">¹₁p (Free Proton)</span>`,
+        step2EquationHTML: `<span class="text-amber-300">¹⁵₈O* (1/2⁺)</span> <span>➔</span> <span class="text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-400/40">¹⁵₈O (1/2⁻)</span> <span>+</span> <span class="text-orange-400 font-extrabold">γ (5.18 MeV)</span>`,
+        initialEquationHTML: `<span class="text-rose-300">¹⁶₉F (0⁻)</span> <span class="text-slate-400 text-sm">(Beyond Proton Drip Line: Sₚ = -0.54 MeV ≤ 0)</span>`,
+        step1Callout: `<span class="font-bold text-rose-400">Step 1 (Proton Drip-Line Emission):</span> Because <span class="mono">Sₚ = -0.54 MeV ≤ 0</span>, ¹⁶₉F immediately ejects a single free proton (<span class="mono">¹₁p</span>, NOT an α particle!) and leaves <span class="font-bold text-amber-300">¹⁵₈O*</span> in a 5.18 MeV excited shell!`,
+        step2Callout: `<span class="font-bold text-orange-400">Step 2 (γ Relaxation After Drip-Line Decay!):</span> Even drip-line proton emission can leave the daughter excited! ¹⁵₈O* emitted a 5.18 MeV γ photon to reach ground state (<span class="mono">A = 15, Z = 8</span> unchanged).`,
+        whyExcitedTitle: 'Proton Drip Line + Excited Daughter State (¹⁵₈O*)',
+        whyExcitedBadge: 'Sₚ = -0.54 MeV → γ',
+        whyExcitedText: 'Fluorine-16 has 9 protons vs. 7 neutrons, pushing its 9th proton past the proton drip line (Sₚ = -0.54 MeV ≤ 0). It immediately ejects 1 free proton (¹₁p)—not a 4-nucleon α particle! Moreover, because of parity/shell overlap, Oxygen-15 is left in its 1/2⁺ excited state (5.18 MeV) and must emit a γ photon!',
+        startsExcited: false
+      }
+    ];
+
+    // ==========================================
+    // 3. SIMULATION STATE & HIT REGIONS
+    // ==========================================
+    let currentIsotope = ISOTOPES[0];
+    // stage: 'initial' | 'excited' | 'ground'
+    let stage = 'initial';
+    let nucleons = [];
+    let flyingParticles = [];
+    let gammaCount = 0;
+    let autoCascadeTimer = null;
+    let flashAlpha = 0;
+    let time = 0;
+    let selectedDiagramNode = null; // 'parent' | 'step1' | 'excited' | 'step2' | 'ground' | 'threshold'
+    let diagramHitBoxes = []; // Clickable bounding boxes on energy-canvas
+
+    // ==========================================
+    // 4. DOM REFERENCES
+    // ==========================================
+    const simCanvas = document.getElementById('sim-canvas');
+    const simCtx = simCanvas.getContext('2d');
+    const energyCanvas = document.getElementById('energy-canvas');
+    const energyCtx = energyCanvas.getContext('2d');
+
+    const tabsContainer = document.getElementById('isotope-tabs');
+    const btnSound = document.getElementById('btn-sound');
+    const soundIcon = document.getElementById('sound-icon');
+    const soundLabel = document.getElementById('sound-label');
+    const btnReset = document.getElementById('btn-reset');
+    const btnStep1 = document.getElementById('btn-step1');
+    const btnStep1Label = document.getElementById('btn-step1-label');
+    const btnStep2 = document.getElementById('btn-step2');
+    const btnStep2Label = document.getElementById('btn-step2-label');
+    const toggleAuto = document.getElementById('toggle-auto');
+    const toggleSlowmo = document.getElementById('toggle-slowmo');
+
+    const hudNucleusName = document.getElementById('hud-nucleus-name');
+    const hudStatePill = document.getElementById('hud-state-pill');
+    const hudSpinPill = document.getElementById('hud-spin-pill');
+    const hudCallout = document.getElementById('hud-callout');
+
+    const inspectorTitle = document.getElementById('inspector-title');
+    const inspectorBadge = document.getElementById('inspector-badge');
+    const inspectorBody = document.getElementById('inspector-body');
+
+    const statZ = document.getElementById('stat-z');
+    const statZNote = document.getElementById('stat-z-note');
+    const statN = document.getElementById('stat-n');
+    const statNNote = document.getElementById('stat-n-note');
+    const statA = document.getElementById('stat-a');
+    const statANote = document.getElementById('stat-a-note');
+    const statSepCard = document.getElementById('stat-sep-card');
+    const statSepTitle = document.getElementById('stat-sep-title');
+    const statSep = document.getElementById('stat-sep');
+    const statSepNote = document.getElementById('stat-sep-note');
+    const statEnergy = document.getElementById('stat-energy');
+    const statEnergyNote = document.getElementById('stat-energy-note');
+    const statEmittedSummary = document.getElementById('stat-emitted-summary');
+    const statGammaNote = document.getElementById('stat-gamma-note');
+    const equationDisplay = document.getElementById('equation-display');
+    const conservationBadge = document.getElementById('conservation-badge');
+
+    // ==========================================
+    // 5. RESPONSIVE CANVAS SIZING
+    // ==========================================
+    function resizeCanvases() {
+      const dpr = window.devicePixelRatio || 1;
+
+      const simRect = simCanvas.parentElement.getBoundingClientRect();
+      simCanvas.width = simRect.width * dpr;
+      simCanvas.height = simRect.height * dpr;
+      simCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const enRect = energyCanvas.parentElement.getBoundingClientRect();
+      energyCanvas.width = enRect.width * dpr;
+      energyCanvas.height = enRect.height * dpr;
+      energyCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    window.addEventListener('resize', resizeCanvases);
+
+    // ==========================================
+    // 6. NUCLEUS CLUSTER GENERATION
+    // ==========================================
+    function buildNucleonCluster(Z, N, isDripUnbound = false) {
+      const totalActual = Z + N;
+      const scaleFactor = totalActual > 95 ? 95 / totalActual : 1;
+      const renderP = Math.max(1, Math.round(Z * scaleFactor));
+      const renderN = Math.max(1, Math.round(N * scaleFactor));
+      const totalRender = renderP + renderN;
+
+      const types = [];
+      for (let i = 0; i < renderP; i++) types.push('p');
+      for (let i = 0; i < renderN; i++) types.push('n');
+
+      for (let i = types.length - 1; i > 0; i--) {
+        const j = (i * 17 + 7) % (i + 1);
+        [types[i], types[j]] = [types[j], types[i]];
+      }
+
+      // If drip-line parent, make sure the outermost nucleon matches the escaping nucleon type
+      if (isDripUnbound && currentIsotope.dripMode) {
+        const targetType = currentIsotope.dripMode === 'neutron' ? 'n' : 'p';
+        const idx = types.lastIndexOf(targetType);
+        if (idx !== -1) {
+          types.splice(idx, 1);
+          types.push(targetType); // Place at outermost shell index
+        }
+      }
+
+      const list = [];
+      const clusterRadius = Math.min(72, 24 + Math.pow(totalRender, 0.42) * 8.5);
+      const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+
+      for (let i = 0; i < totalRender; i++) {
+        const isLooseHaloNucleon = isDripUnbound && i === totalRender - 1;
+        const t = i / Math.max(1, totalRender - 1);
+        const r = isLooseHaloNucleon
+          ? clusterRadius + 18
+          : clusterRadius * Math.cbrt(0.15 + 0.85 * t);
+
+        const y = isLooseHaloNucleon ? -0.35 : 1 - (i / Math.max(1, totalRender - 1)) * 2;
+        const radiusAtY = Math.sqrt(Math.max(0, 1 - y * y));
+        const theta = isLooseHaloNucleon ? 0.2 : goldenAngle * i;
+
+        list.push({
+          type: types[i],
+          baseX: Math.cos(theta) * radiusAtY * r,
+          baseY: y * r,
+          baseZ: isLooseHaloNucleon ? 20 : Math.sin(theta) * radiusAtY * r,
+          phase: i * 0.7,
+          isLooseHalo: isLooseHaloNucleon
+        });
+      }
+
+      list.sort((a, b) => a.baseZ - b.baseZ);
+      nucleons = list;
+    }
+
+    // ==========================================
+    // 7. TABS, INSPECTOR CARD & UI SYNCHRONIZATION
+    // ==========================================
+    function renderIsotopeTabs() {
+      tabsContainer.innerHTML = '';
+      ISOTOPES.forEach((iso) => {
+        const btn = document.createElement('button');
+        const isActive = iso.id === currentIsotope.id;
+        btn.className = isActive
+          ? 'px-2.5 py-1.5 rounded-lg text-xs font-extrabold bg-amber-400 text-slate-950 shadow transition'
+          : 'px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition';
+        btn.textContent = iso.tabLabel;
+        btn.addEventListener('click', () => {
+          sound.playClick(580);
+          selectIsotope(iso);
+        });
+        tabsContainer.appendChild(btn);
+      });
+    }
+
+    function selectIsotope(iso) {
+      currentIsotope = iso;
+      selectedDiagramNode = null;
+      resetSimulation(false);
+    }
+
+    function resetSimulation(playTone = true) {
+      if (playTone) sound.playClick(440);
+      if (autoCascadeTimer) {
+        clearTimeout(autoCascadeTimer);
+        autoCascadeTimer = null;
+      }
+
+      flyingParticles = [];
+      gammaCount = 0;
+      flashAlpha = 0;
+      selectedDiagramNode = null;
+
+      if (currentIsotope.startsExcited) {
+        stage = 'excited';
+        buildNucleonCluster(currentIsotope.daughterZ, currentIsotope.daughterN, false);
+      } else {
+        stage = 'initial';
+        buildNucleonCluster(currentIsotope.parentZ, currentIsotope.parentN, currentIsotope.isDripLine);
+      }
+
+      renderIsotopeTabs();
+      updateInspectorCard();
+      updateUI();
+    }
+
+    function updateInspectorCard(overrideNode = null) {
+      const iso = currentIsotope;
+      const node = overrideNode || selectedDiagramNode;
+
+      if (node === 'threshold') {
+        inspectorTitle.innerHTML = `<span>🚧</span> Drip-Line Binding Threshold (Sₙ = 0 or Sₚ = 0)`;
+        inspectorBadge.textContent = iso.sepLabel;
+        inspectorBody.innerHTML = iso.isDripLine
+          ? `Because <strong>${iso.name}</strong> sits <em>above</em> the S = 0 threshold (<span class="mono text-rose-300">${iso.sepLabel}</span>), the strong nuclear force cannot trap the outermost nucleon. It snaps off instantaneously (~10⁻²¹ s) instead of waiting for beta decay!`
+          : `Because <strong>${iso.name}</strong> has a positive separation energy (<span class="mono text-cyan-300">${iso.sepLabel}</span>), all protons and neutrons are bound inside the nuclear potential well—so it decays via α or β instead of dripping nucleons.`;
+        return;
+      }
+
+      if (node === 'ground') {
+        inspectorTitle.innerHTML = `<span>🟢</span> Nuclear Ground State (${iso.daughterGroundSymbol}, Jπ = ${iso.daughterGroundSpin})`;
+        inspectorBadge.textContent = '0.00 MeV (Lowest Shell)';
+        inspectorBody.innerHTML = `In the <strong>ground state</strong>, all protons and neutrons fill the lowest available nuclear energy shells from the bottom up. No excess excitation energy remains to emit gamma photons.`;
+        return;
+      }
+
+      if (node === 'step2') {
+        inspectorTitle.innerHTML = `<span>⚡</span> Gamma (γ) Relaxation: Electromagnetic Transition`;
+        inspectorBadge.textContent = 'ΔA = 0, ΔZ = 0';
+        inspectorBody.innerHTML = iso.gammaList.length > 0
+          ? `When an excited nucleon drops to a lower shell, the nucleus releases pure electromagnetic light (<span class="mono text-amber-300">γ photon</span>) carrying away the exact energy difference (<span class="mono">${iso.excitedEnergy} MeV</span>) and angular momentum change—without altering Z or A!`
+          : `Helium-4 is doubly magic (closed 1s shells) and lands directly in its 0⁺ ground state upon neutron ejection, so no gamma photon is emitted.`;
+        return;
+      }
+
+      // Default / Excited / Step 1 explanation tailored to the active isotope
+      inspectorTitle.innerHTML = `<span>⚛️</span> ${iso.whyExcitedTitle}`;
+      inspectorBadge.textContent = iso.whyExcitedBadge;
+      inspectorBody.textContent = iso.whyExcitedText;
+    }
+
+    function updateUI() {
+      const iso = currentIsotope;
+
+      // Update Separation Energy Card styling
+      statSepTitle.textContent = iso.sepTitle;
+      statSep.textContent = iso.sepLabel;
+      statSepNote.textContent = iso.sepNote;
+      if (iso.isDripLine && stage === 'initial') {
+        statSepCard.className = 'bg-rose-950/60 border border-rose-500/70 rounded-xl p-2.5 text-center animate-pulse';
+        statSep.className = 'mono text-lg sm:text-xl font-extrabold text-rose-300 mt-0.5';
+      } else {
+        statSepCard.className = 'bg-slate-800/90 border border-slate-700 rounded-xl p-2.5 text-center';
+        statSep.className = 'mono text-lg sm:text-xl font-extrabold text-cyan-300 mt-0.5';
+      }
+
+      if (stage === 'initial') {
+        hudNucleusName.innerHTML = `${iso.name} (<span class="mono">${iso.parentSymbol}</span>)`;
+        hudSpinPill.textContent = `Jπ = ${iso.parentSpin}`;
+
+        if (iso.isDripLine) {
+          hudStatePill.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/25 text-rose-300 border border-rose-400/60 animate-pulse';
+          hudStatePill.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-400"></span> Beyond Drip Line (Unbound!)`;
+        } else {
+          hudStatePill.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/40';
+          hudStatePill.innerHTML = `<span class="w-2 h-2 rounded-full bg-indigo-400"></span> Unstable Parent Nucleus`;
+        }
+
+        btnStep1.disabled = false;
+        btnStep1Label.textContent = iso.step1BtnText;
+        btnStep2.disabled = true;
+        btnStep2Label.textContent = 'Emit Gamma Photon (γ)';
+
+        hudCallout.innerHTML = iso.isDripLine
+          ? `<span class="font-bold text-rose-400">Drip-Line Alert (${iso.sepLabel}):</span> The outermost nucleon is unbound! Click <span class="font-bold text-white">Step 1</span> to watch it eject immediately.`
+          : `<span class="font-bold text-amber-400">Ready:</span> Click <span class="font-bold text-white">${iso.step1BtnText}</span> to trigger primary decay and see how selection rules populate an excited state (*).`;
+
+        statZ.textContent = iso.parentZ;
+        statZNote.textContent = 'Parent Protons';
+        statN.textContent = iso.parentN;
+        statNNote.textContent = 'Parent Neutrons';
+        statA.textContent = iso.parentA;
+        statANote.textContent = 'Parent Mass #';
+        statEnergy.textContent = `${iso.parentEnergy.toFixed(2)} MeV`;
+        statEnergyNote.textContent = 'Parent Energy Level';
+        statEmittedSummary.textContent = 'None yet';
+        statGammaNote.textContent = 'Awaiting Decay';
+
+        equationDisplay.innerHTML = iso.initialEquationHTML;
+        conservationBadge.textContent = iso.isDripLine ? 'Unbound Drip-Line State' : 'Initial Parent State';
+        conservationBadge.className = iso.isDripLine
+          ? 'text-xs font-bold text-rose-300 bg-rose-950/70 px-3 py-1.5 rounded-xl border border-rose-500/50 text-center shrink-0'
+          : 'text-xs font-semibold text-indigo-300 bg-indigo-950/60 px-3 py-1.5 rounded-xl border border-indigo-500/40 text-center shrink-0';
+
+      } else if (stage === 'excited') {
+        hudNucleusName.innerHTML = `${iso.daughterName}* (<span class="mono text-amber-300">${iso.daughterExcitedSymbol}</span>)`;
+        hudSpinPill.textContent = `Jπ = ${iso.daughterExcitedSpin}`;
+        hudStatePill.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/25 text-amber-300 border border-amber-400/60 animate-pulse';
+        hudStatePill.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400"></span> EXCITED SHELL STATE (*)`;
+
+        btnStep1.disabled = true;
+        btnStep1Label.textContent = iso.startsExcited ? 'Already in Excited State' : 'Step 1 Completed ✓';
+        btnStep2.disabled = false;
+        btnStep2Label.textContent = iso.gammaList.length > 1
+          ? `Emit ${iso.gammaList.length} Gamma Photons (γ)`
+          : `Emit Gamma Photon (${iso.excitedEnergy} MeV γ)`;
+
+        hudCallout.innerHTML = iso.step1Callout;
+
+        statZ.textContent = iso.daughterZ;
+        statZNote.textContent = iso.startsExcited ? 'Z = 43 (Metastable)' : `Changed: ${iso.parentZ} → ${iso.daughterZ}`;
+        statN.textContent = iso.daughterN;
+        statNNote.textContent = iso.startsExcited ? 'N = 56 (Metastable)' : `Changed: ${iso.parentN} → ${iso.daughterN}`;
+        statA.textContent = iso.daughterA;
+        statANote.textContent = iso.startsExcited ? 'A = 99' : `Changed: ${iso.parentA} → ${iso.daughterA}`;
+        statEnergy.textContent = `${iso.excitedEnergy.toFixed(3).replace(/0$/, '')} MeV`;
+        statEnergyNote.textContent = 'EXCITED STATE (E*)';
+        statEmittedSummary.textContent = iso.step1ParticlesText;
+        statGammaNote.textContent = 'Ready to Emit γ!';
+
+        equationDisplay.innerHTML = iso.step1EquationHTML;
+        conservationBadge.textContent = 'Step 1: Nucleons Changed';
+        conservationBadge.className = 'text-xs font-semibold text-amber-300 bg-amber-950/60 px-3 py-1.5 rounded-xl border border-amber-500/40 text-center shrink-0';
+
+      } else if (stage === 'ground') {
+        hudNucleusName.innerHTML = `${iso.daughterName} (<span class="mono text-emerald-300">${iso.daughterGroundSymbol}</span>)`;
+        hudSpinPill.textContent = `Jπ = ${iso.daughterGroundSpin}`;
+        hudStatePill.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/50';
+        hudStatePill.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Calm Ground State (0.00 MeV)`;
+
+        btnStep1.disabled = true;
+        btnStep2.disabled = true;
+        btnStep2Label.textContent = iso.landsInGround ? 'No γ Needed (Ground)' : 'Gamma Emitted ✓';
+
+        hudCallout.innerHTML = iso.step2Callout;
+
+        statZ.textContent = iso.daughterZ;
+        statZNote.textContent = iso.landsInGround ? `Changed: ${iso.parentZ} → ${iso.daughterZ}` : 'UNCHANGED in Step 2!';
+        statN.textContent = iso.daughterN;
+        statNNote.textContent = iso.landsInGround ? `Changed: ${iso.parentN} → ${iso.daughterN}` : 'UNCHANGED in Step 2!';
+        statA.textContent = iso.daughterA;
+        statANote.textContent = iso.landsInGround ? `Changed: ${iso.parentA} → ${iso.daughterA}` : 'UNCHANGED in Step 2!';
+        statEnergy.textContent = '0.00 MeV';
+        statEnergyNote.textContent = 'Ground State Reached';
+        statEmittedSummary.textContent = gammaCount > 0
+          ? `${iso.step1ParticlesText} + ${gammaCount}γ`
+          : iso.step1ParticlesText;
+        statGammaNote.textContent = gammaCount > 0 ? `${iso.excitedEnergy} MeV γ Released` : 'Direct Ground State';
+
+        equationDisplay.innerHTML = iso.landsInGround ? iso.step1EquationHTML : iso.step2EquationHTML;
+        conservationBadge.textContent = iso.landsInGround ? 'Drip-Line Ejection Complete' : 'Step 2: ΔA = 0, ΔZ = 0';
+        conservationBadge.className = 'text-xs font-bold text-emerald-300 bg-emerald-950/70 px-3 py-1.5 rounded-xl border border-emerald-400/50 text-center shrink-0';
+      }
+    }
+
+    // ==========================================
+    // 8. STEP 1 & STEP 2 TRIGGER HANDLERS
+    // ==========================================
+    function triggerStep1() {
+      if (stage !== 'initial') return;
+      const iso = currentIsotope;
+      flashAlpha = 0.55;
+
+      // Determine whether Step 1 lands in Excited State (*) or directly in Ground State (He-5)
+      stage = iso.landsInGround ? 'ground' : 'excited';
+
+      // Rebuild daughter nucleus cluster
+      buildNucleonCluster(iso.daughterZ, iso.daughterN, false);
+
+      // Spawn primary decay particles & trigger synthesized sound
+      if (iso.decayType === 'alpha') {
+        sound.playAlphaDecay();
+        flyingParticles.push({
+          kind: 'alpha',
+          x: 0,
+          y: 0,
+          vx: 2.3,
+          vy: -1.1,
+          label: '⁴₂He (α Particle)',
+          color: '#fb7185',
+          alpha: 1
+        });
+      } else if (iso.decayType === 'beta-minus') {
+        sound.playBetaDecay(false);
+        flyingParticles.push({
+          kind: 'beta-minus',
+          x: 0,
+          y: 0,
+          vx: 3.4,
+          vy: -1.5,
+          label: 'e⁻ (Beta-Minus)',
+          color: '#22d3ee',
+          alpha: 1
+        });
+        flyingParticles.push({
+          kind: 'antineutrino',
+          x: 0,
+          y: 0,
+          vx: 3.1,
+          vy: 1.8,
+          label: 'ν̄ₑ (Antineutrino)',
+          color: '#94a3b8',
+          alpha: 1
+        });
+      } else if (iso.decayType === 'beta-plus') {
+        sound.playBetaDecay(true);
+        flyingParticles.push({
+          kind: 'beta-plus',
+          x: 0,
+          y: 0,
+          vx: 3.4,
+          vy: -1.5,
+          label: 'e⁺ (Positron)',
+          color: '#e879f9',
+          alpha: 1
+        });
+        flyingParticles.push({
+          kind: 'neutrino',
+          x: 0,
+          y: 0,
+          vx: 3.1,
+          vy: 1.8,
+          label: 'νₑ (Neutrino)',
+          color: '#94a3b8',
+          alpha: 1
+        });
+      } else if (iso.decayType === 'neutron-drip') {
+        sound.playDripLineSnap(false);
+        flyingParticles.push({
+          kind: 'free-neutron',
+          x: 35,
+          y: -15,
+          vx: 3.2,
+          vy: -1.2,
+          label: '¹₀n (Free Neutron — NOT γ!)',
+          color: '#38bdf8',
+          alpha: 1
+        });
+      } else if (iso.decayType === 'proton-drip') {
+        sound.playDripLineSnap(true);
+        flyingParticles.push({
+          kind: 'free-proton',
+          x: 35,
+          y: -15,
+          vx: 3.2,
+          vy: -1.2,
+          label: '¹₁p (Free Proton — NOT α!)',
+          color: '#fb7185',
+          alpha: 1
+        });
+      }
+
+      updateInspectorCard();
+      updateUI();
+
+      // If Auto-Cascade is enabled and daughter is excited, trigger Step 2 automatically
+      if (toggleAuto.checked && stage === 'excited') {
+        const delay = toggleSlowmo.checked ? 2600 : 1400;
+        autoCascadeTimer = setTimeout(() => {
+          if (stage === 'excited') triggerStep2();
+        }, delay);
+      }
+    }
+
+    function triggerStep2() {
+      if (stage !== 'excited') return;
+      if (autoCascadeTimer) {
+        clearTimeout(autoCascadeTimer);
+        autoCascadeTimer = null;
+      }
+
+      const iso = currentIsotope;
+      stage = 'ground';
+      flashAlpha = 0.75;
+      gammaCount = iso.gammaList.length;
+
+      sound.playGammaCascade(iso.gammaList);
+
+      iso.gammaList.forEach((g, idx) => {
+        const angle = idx === 0 ? -0.42 : 0.35;
+        const speed = 3.8;
+        flyingParticles.push({
+          kind: 'gamma',
+          x: 0,
+          y: 0,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          angle: angle,
+          label: `${g.label} Photon`,
+          color: '#fbbf24',
+          alpha: 1
+        });
+      });
+
+      updateInspectorCard('step2');
+      updateUI();
+    }
+
+    btnStep1.addEventListener('click', triggerStep1);
+    btnStep2.addEventListener('click', triggerStep2);
+    btnReset.addEventListener('click', () => resetSimulation(true));
+
+    btnSound.addEventListener('click', () => {
+      const isOn = sound.toggle();
+      soundIcon.textContent = isOn ? '🔊' : '🔇';
+      soundLabel.textContent = isOn ? 'Sound ON' : 'Muted';
+      btnSound.className = isOn
+        ? 'phet-btn px-3 py-2 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-emerald-400/40'
+        : 'phet-btn px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-slate-500/40';
+    });
+
+    toggleAuto.addEventListener('change', () => {
+      if (toggleAuto.checked && stage === 'excited') {
+        autoCascadeTimer = setTimeout(() => {
+          if (stage === 'excited') triggerStep2();
+        }, 1200);
+      }
+    });
+
+    // ==========================================
+    // 9. INTERACTIVE ENERGY DIAGRAM CLICK HANDLER
+    // ==========================================
+    energyCanvas.addEventListener('click', (e) => {
+      const rect = energyCanvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      for (const box of diagramHitBoxes) {
+        if (
+          clickX >= box.x &&
+          clickX <= box.x + box.w &&
+          clickY >= box.y &&
+          clickY <= box.y + box.h
+        ) {
+          selectedDiagramNode = box.node;
+          sound.playClick(box.freq || 600);
+          updateInspectorCard(box.node);
+          break;
+        }
+      }
+    });
+
+    // ==========================================
+    // 10. CANVAS RENDERING: NUCLEUS & PARTICLES
+    // ==========================================
+    function drawSimCanvas() {
+      const w = simCanvas.clientWidth;
+      const h = simCanvas.clientHeight;
+      const cx = w * 0.44;
+      const cy = h * 0.54;
+
+      simCtx.clearRect(0, 0, w, h);
+
+      // Subtle background radial rings
+      simCtx.save();
+      for (let r = 70; r <= 280; r += 70) {
+        simCtx.beginPath();
+        simCtx.arc(cx, cy, r, 0, Math.PI * 2);
+        simCtx.strokeStyle = 'rgba(148, 163, 184, 0.06)';
+        simCtx.lineWidth = 1;
+        simCtx.stroke();
+      }
+      simCtx.restore();
+
+      // Flash effect on transition
+      if (flashAlpha > 0.01) {
+        simCtx.fillStyle = `rgba(251, 191, 36, ${flashAlpha * 0.25})`;
+        simCtx.fillRect(0, 0, w, h);
+        flashAlpha *= 0.92;
+      }
+
+      // Excited State Golden Energy Halo & Vibration Amplitude
+      const isExcited = stage === 'excited';
+      const isDripInitial = stage === 'initial' && currentIsotope.isDripLine;
+      const jiggleAmp = isExcited ? 4.2 : isDripInitial ? 3.2 : 1.1;
+      const jiggleSpeed = isExcited ? 18 : isDripInitial ? 15 : 5;
+
+      if (isExcited) {
+        const pulse = 1 + 0.08 * Math.sin(time * 8);
+        const haloRadius = 115 * pulse;
+        const grad = simCtx.createRadialGradient(cx, cy, 20, cx, cy, haloRadius);
+        grad.addColorStop(0, 'rgba(251, 191, 36, 0.42)');
+        grad.addColorStop(0.6, 'rgba(245, 158, 11, 0.16)');
+        grad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+        simCtx.fillStyle = grad;
+        simCtx.beginPath();
+        simCtx.arc(cx, cy, haloRadius, 0, Math.PI * 2);
+        simCtx.fill();
+
+        simCtx.save();
+        simCtx.translate(cx, cy);
+        simCtx.rotate(time * 0.6);
+        simCtx.beginPath();
+        simCtx.arc(0, 0, 92 * pulse, 0, Math.PI * 2);
+        simCtx.setLineDash([8, 6]);
+        simCtx.strokeStyle = 'rgba(251, 191, 36, 0.75)';
+        simCtx.lineWidth = 2;
+        simCtx.stroke();
+        simCtx.restore();
+      }
+
+      // Render 3D-shaded Nucleons
+      const nucleonRadius = nucleons.length > 60 ? 8.5 : 11.5;
+
+      nucleons.forEach((nuc) => {
+        const extraAmp = nuc.isLooseHalo ? 4.5 : 0;
+        const dx = Math.sin(time * jiggleSpeed + nuc.phase) * (jiggleAmp + extraAmp);
+        const dy = Math.cos(time * (jiggleSpeed * 0.9) + nuc.phase * 1.3) * (jiggleAmp + extraAmp);
+
+        const px = cx + nuc.baseX + dx;
+        const py = cy + nuc.baseY + dy;
+
+        // Draw dashed unbound halo around the drip-line escaping nucleon
+        if (nuc.isLooseHalo) {
+          simCtx.save();
+          simCtx.beginPath();
+          simCtx.arc(px, py, nucleonRadius + 6, 0, Math.PI * 2);
+          simCtx.setLineDash([3, 3]);
+          simCtx.strokeStyle = '#fb7185';
+          simCtx.lineWidth = 1.8;
+          simCtx.stroke();
+          simCtx.restore();
+        }
+
+        const grad = simCtx.createRadialGradient(
+          px - nucleonRadius * 0.35,
+          py - nucleonRadius * 0.35,
+          nucleonRadius * 0.15,
+          px,
+          py,
+          nucleonRadius
+        );
+
+        if (nuc.type === 'p') {
+          grad.addColorStop(0, '#fda4af');
+          grad.addColorStop(0.45, '#e11d48');
+          grad.addColorStop(1, '#881337');
+        } else {
+          grad.addColorStop(0, '#bae6fd');
+          grad.addColorStop(0.45, '#0284c7');
+          grad.addColorStop(1, '#1e3a8a');
+        }
+
+        simCtx.beginPath();
+        simCtx.arc(px, py, nucleonRadius, 0, Math.PI * 2);
+        simCtx.fillStyle = grad;
+        simCtx.fill();
+        simCtx.lineWidth = 0.8;
+        simCtx.strokeStyle = 'rgba(15, 23, 42, 0.6)';
+        simCtx.stroke();
+
+        if (nuc.type === 'p' && nuc.baseZ > -10 && nucleonRadius >= 9.5) {
+          simCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+          simCtx.font = 'bold 10px Inter, sans-serif';
+          simCtx.textAlign = 'center';
+          simCtx.textBaseline = 'middle';
+          simCtx.fillText('+', px, py + 0.5);
+        }
+      });
+
+      // Floating Label directly under the Nucleus
+      simCtx.font = '800 15px "JetBrains Mono", monospace';
+      simCtx.textAlign = 'center';
+      const labelText =
+        stage === 'initial'
+          ? `${currentIsotope.parentSymbol} (${currentIsotope.parentSpin})`
+          : stage === 'excited'
+          ? `${currentIsotope.daughterExcitedSymbol} (${currentIsotope.daughterExcitedSpin})  [EXCITED]`
+          : `${currentIsotope.daughterGroundSymbol} (${currentIsotope.daughterGroundSpin})  [GROUND STATE]`;
+
+      simCtx.fillStyle =
+        stage === 'initial'
+          ? isDripInitial ? '#fda4af' : '#c7d2fe'
+          : stage === 'excited'
+          ? '#fcd34d'
+          : '#6ee7b7';
+      simCtx.fillText(labelText, cx, cy + 115);
+
+      // Update & Render Flying Emitted Particles
+      const speedMult = toggleSlowmo.checked ? 0.55 : 1.15;
+
+      for (let i = flyingParticles.length - 1; i >= 0; i--) {
+        const p = flyingParticles[i];
+        p.x += p.vx * speedMult;
+        p.y += p.vy * speedMult;
+
+        const screenX = cx + p.x;
+        const screenY = cy + p.y;
+
+        if (screenX > w - 40 || screenY < 30 || screenY > h - 30) {
+          p.alpha -= 0.015 * speedMult;
+        }
+        if (p.alpha <= 0) {
+          flyingParticles.splice(i, 1);
+          continue;
+        }
+
+        simCtx.save();
+        simCtx.globalAlpha = Math.max(0, p.alpha);
+
+        if (p.kind === 'alpha') {
+          const offsets = [
+            { ox: -6, oy: -5, c: '#e11d48' },
+            { ox: 6, oy: 5, c: '#e11d48' },
+            { ox: 6, oy: -5, c: '#0284c7' },
+            { ox: -6, oy: 5, c: '#0284c7' }
+          ];
+          offsets.forEach((o) => {
+            simCtx.beginPath();
+            simCtx.arc(screenX + o.ox, screenY + o.oy, 7, 0, Math.PI * 2);
+            simCtx.fillStyle = o.c;
+            simCtx.fill();
+            simCtx.strokeStyle = '#fff';
+            simCtx.lineWidth = 1;
+            simCtx.stroke();
+          });
+          drawParticleTag(simCtx, screenX, screenY - 20, p.label, '#fb7185');
+
+        } else if (p.kind === 'free-neutron' || p.kind === 'free-proton') {
+          const isP = p.kind === 'free-proton';
+          simCtx.beginPath();
+          simCtx.arc(screenX, screenY, 10, 0, Math.PI * 2);
+          simCtx.fillStyle = isP ? '#e11d48' : '#0284c7';
+          simCtx.shadowColor = p.color;
+          simCtx.shadowBlur = 14;
+          simCtx.fill();
+          simCtx.shadowBlur = 0;
+          simCtx.strokeStyle = '#fff';
+          simCtx.lineWidth = 1.5;
+          simCtx.stroke();
+
+          simCtx.fillStyle = '#fff';
+          simCtx.font = 'bold 10px Inter, sans-serif';
+          simCtx.textAlign = 'center';
+          simCtx.textBaseline = 'middle';
+          simCtx.fillText(isP ? 'p+' : 'n⁰', screenX, screenY);
+
+          drawParticleTag(simCtx, screenX, screenY - 22, p.label, p.color);
+
+        } else if (p.kind === 'beta-minus' || p.kind === 'beta-plus') {
+          simCtx.beginPath();
+          simCtx.arc(screenX, screenY, 8, 0, Math.PI * 2);
+          simCtx.fillStyle = p.color;
+          simCtx.shadowColor = p.color;
+          simCtx.shadowBlur = 14;
+          simCtx.fill();
+          simCtx.shadowBlur = 0;
+
+          simCtx.fillStyle = '#090d16';
+          simCtx.font = 'bold 10px Inter, sans-serif';
+          simCtx.textAlign = 'center';
+          simCtx.textBaseline = 'middle';
+          simCtx.fillText(p.kind === 'beta-minus' ? 'e⁻' : 'e⁺', screenX, screenY);
+
+          drawParticleTag(simCtx, screenX, screenY - 18, p.label, p.color);
+
+        } else if (p.kind === 'antineutrino' || p.kind === 'neutrino') {
+          simCtx.beginPath();
+          simCtx.arc(screenX, screenY, 6, 0, Math.PI * 2);
+          simCtx.setLineDash([3, 3]);
+          simCtx.strokeStyle = '#cbd5e1';
+          simCtx.lineWidth = 1.8;
+          simCtx.stroke();
+          simCtx.setLineDash([]);
+          drawParticleTag(simCtx, screenX, screenY + 18, p.label, '#cbd5e1');
+
+        } else if (p.kind === 'gamma') {
+          simCtx.save();
+          simCtx.translate(screenX, screenY);
+          simCtx.rotate(p.angle);
+
+          simCtx.beginPath();
+          const waveLen = 68;
+          for (let wx = -waveLen; wx <= 0; wx += 2) {
+            const wy = Math.sin((wx + time * 180) * 0.28) * 9;
+            if (wx === -waveLen) simCtx.moveTo(wx, wy);
+            else simCtx.lineTo(wx, wy);
+          }
+          simCtx.strokeStyle = '#fbbf24';
+          simCtx.lineWidth = 3;
+          simCtx.shadowColor = '#f59e0b';
+          simCtx.shadowBlur = 12;
+          simCtx.stroke();
+
+          simCtx.beginPath();
+          simCtx.moveTo(8, 0);
+          simCtx.lineTo(-3, -6);
+          simCtx.lineTo(-3, 6);
+          simCtx.closePath();
+          simCtx.fillStyle = '#fef08a';
+          simCtx.fill();
+          simCtx.restore();
+
+          drawParticleTag(simCtx, screenX - 15, screenY - 22, p.label, '#fbbf24');
+        }
+
+        simCtx.restore();
+      }
+    }
+
+    function drawParticleTag(ctx, x, y, text, color) {
+      ctx.font = 'bold 11px "JetBrains Mono", monospace';
+      const padX = 7;
+      const metrics = ctx.measureText(text);
+      const boxW = metrics.width + padX * 2;
+      const boxH = 20;
+
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.roundRect(x - boxW / 2, y - boxH / 2, boxW, boxH, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x, y + 0.5);
+    }
+
+    // ==========================================
+    // 11. INTERACTIVE NUCLEAR ENERGY LADDER
+    // ==========================================
+    function drawEnergyDiagram() {
+      const w = energyCanvas.clientWidth;
+      const h = energyCanvas.clientHeight;
+      const iso = currentIsotope;
+      diagramHitBoxes = [];
+
+      energyCtx.clearRect(0, 0, w, h);
+
+      // Left Energy Axis
+      const axisX = 42;
+      const topY = 28;
+      const bottomY = h - 28;
+
+      energyCtx.strokeStyle = '#475569';
+      energyCtx.lineWidth = 1.5;
+      energyCtx.beginPath();
+      energyCtx.moveTo(axisX, bottomY);
+      energyCtx.lineTo(axisX, topY - 8);
+      energyCtx.stroke();
+
+      energyCtx.beginPath();
+      energyCtx.moveTo(axisX, topY - 12);
+      energyCtx.lineTo(axisX - 4, topY - 4);
+      energyCtx.lineTo(axisX + 4, topY - 4);
+      energyCtx.closePath();
+      energyCtx.fillStyle = '#475569';
+      energyCtx.fill();
+
+      energyCtx.save();
+      energyCtx.translate(14, (topY + bottomY) / 2);
+      energyCtx.rotate(-Math.PI / 2);
+      energyCtx.fillStyle = '#94a3b8';
+      energyCtx.font = 'bold 11px Inter, sans-serif';
+      energyCtx.textAlign = 'center';
+      energyCtx.fillText('Nuclear Shell Energy (MeV)', 0, 0);
+      energyCtx.restore();
+
+      // Separation Energy Threshold Line (S = 0 Drip-Line Boundary)
+      const threshY = iso.isDripLine ? topY + 42 : topY + 12;
+      energyCtx.save();
+      energyCtx.strokeStyle = selectedDiagramNode === 'threshold' ? '#fb7185' : 'rgba(244, 63, 94, 0.45)';
+      energyCtx.lineWidth = selectedDiagramNode === 'threshold' ? 2 : 1.2;
+      energyCtx.setLineDash([5, 4]);
+      energyCtx.beginPath();
+      energyCtx.moveTo(axisX + 6, threshY);
+      energyCtx.lineTo(w - 14, threshY);
+      energyCtx.stroke();
+      energyCtx.restore();
+
+      energyCtx.fillStyle = iso.isDripLine ? '#fda4af' : '#94a3b8';
+      energyCtx.font = 'bold 10px "JetBrains Mono", monospace';
+      energyCtx.textAlign = 'right';
+      energyCtx.fillText(
+        iso.isDripLine ? `S = 0 Drip Threshold (Unbound Above)` : `S = 0 Binding Threshold`,
+        w - 16,
+        threshY - 4
+      );
+      diagramHitBoxes.push({
+        node: 'threshold',
+        x: axisX + 6,
+        y: threshY - 14,
+        w: w - axisX - 20,
+        h: 22,
+        freq: 480
+      });
+
+      // Rung Y coordinates
+      const parentY = iso.isDripLine ? threshY - 16 : topY + 34;
+      const excitedY = iso.startsExcited ? topY + 46 : topY + (bottomY - topY) * 0.52;
+      const groundY = bottomY - 10;
+
+      // 1. Parent Level (Left Column)
+      if (!iso.startsExcited) {
+        const pLeft = 56;
+        const pRight = w * 0.44;
+        const isParentActive = stage === 'initial' || selectedDiagramNode === 'parent';
+
+        energyCtx.strokeStyle = isParentActive ? (iso.isDripLine ? '#fb7185' : '#818cf8') : '#475569';
+        energyCtx.lineWidth = isParentActive ? 4 : 2;
+        energyCtx.beginPath();
+        energyCtx.moveTo(pLeft, parentY);
+        energyCtx.lineTo(pRight, parentY);
+        energyCtx.stroke();
+
+        energyCtx.fillStyle = isParentActive ? (iso.isDripLine ? '#fecdd3' : '#c7d2fe') : '#64748b';
+        energyCtx.font = 'bold 11px "JetBrains Mono", monospace';
+        energyCtx.textAlign = 'left';
+        energyCtx.fillText(`${iso.parentSymbol} (${iso.parentSpin})`, pLeft, parentY - 6);
+        energyCtx.font = '10px Inter, sans-serif';
+        energyCtx.fillText(
+          iso.isDripLine ? `Unbound (${iso.sepLabel})` : `Parent (${iso.parentEnergy} MeV)`,
+          pLeft,
+          parentY + 13
+        );
+
+        diagramHitBoxes.push({
+          node: 'parent',
+          x: pLeft - 4,
+          y: parentY - 18,
+          w: pRight - pLeft + 8,
+          h: 36,
+          freq: 520
+        });
+
+        // Diagonal Transition Arrow (Step 1)
+        const dLeft = w * 0.52;
+        const arrowStartX = pRight - 6;
+        const arrowEndX = dLeft + 6;
+        const targetY = iso.landsInGround ? groundY - 4 : excitedY - 4;
+        const step1Active = stage === 'excited' || stage === 'ground' || selectedDiagramNode === 'step1';
+
+        energyCtx.strokeStyle = step1Active ? '#38bdf8' : 'rgba(148, 163, 184, 0.35)';
+        energyCtx.lineWidth = selectedDiagramNode === 'step1' ? 3 : 2;
+        energyCtx.setLineDash([4, 3]);
+        energyCtx.beginPath();
+        energyCtx.moveTo(arrowStartX, parentY + 3);
+        energyCtx.lineTo(arrowEndX, targetY);
+        energyCtx.stroke();
+        energyCtx.setLineDash([]);
+
+        energyCtx.fillStyle = step1Active ? '#7dd3fc' : '#64748b';
+        energyCtx.font = 'bold 10px Inter, sans-serif';
+        energyCtx.textAlign = 'center';
+        const modeShort =
+          iso.decayType === 'alpha'
+            ? 'α Decay'
+            : iso.decayType === 'beta-minus'
+            ? 'β⁻ + ν̄ₑ'
+            : iso.decayType === 'beta-plus'
+            ? 'β⁺ + νₑ'
+            : iso.decayType === 'neutron-drip'
+            ? 'n Ejection'
+            : 'p Ejection';
+        energyCtx.fillText(modeShort, (arrowStartX + arrowEndX) / 2 - 14, (parentY + targetY) / 2 + 12);
+
+        diagramHitBoxes.push({
+          node: 'step1',
+          x: arrowStartX - 10,
+          y: Math.min(parentY, targetY),
+          w: arrowEndX - arrowStartX + 20,
+          h: Math.abs(targetY - parentY) + 16,
+          freq: 620
+        });
+      }
+
+      // 2. Daughter Excited Level (*) (Right Column) - skip if He-5 lands directly in ground state
+      const dLeft = iso.startsExcited ? 72 : w * 0.50;
+      const dRight = w - 18;
+
+      if (!iso.landsInGround) {
+        const isExcitedActive = stage === 'excited' || selectedDiagramNode === 'excited';
+
+        energyCtx.strokeStyle = isExcitedActive ? '#fbbf24' : '#64748b';
+        energyCtx.lineWidth = isExcitedActive ? 4.5 : 2;
+        energyCtx.beginPath();
+        energyCtx.moveTo(dLeft, excitedY);
+        energyCtx.lineTo(dRight, excitedY);
+        energyCtx.stroke();
+
+        energyCtx.fillStyle = isExcitedActive ? '#fde047' : '#94a3b8';
+        energyCtx.font = 'bold 11px "JetBrains Mono", monospace';
+        energyCtx.textAlign = 'left';
+        energyCtx.fillText(
+          `${iso.daughterExcitedSymbol} (${iso.daughterExcitedSpin})`,
+          dLeft,
+          excitedY - 7
+        );
+        energyCtx.font = '10px Inter, sans-serif';
+        energyCtx.fillText(`Excited Shell (${iso.excitedEnergy} MeV)`, dLeft, excitedY + 13);
+
+        diagramHitBoxes.push({
+          node: 'excited',
+          x: dLeft - 4,
+          y: excitedY - 18,
+          w: dRight - dLeft + 8,
+          h: 36,
+          freq: 740
+        });
+
+        // Vertical Wavy Gamma Transition Arrow (Excited -> Ground)
+        const waveX = dLeft + (dRight - dLeft) * 0.35;
+        const isGammaActive = stage === 'ground' || selectedDiagramNode === 'step2';
+        energyCtx.strokeStyle = isGammaActive
+          ? '#fb923c'
+          : isExcitedActive
+          ? 'rgba(251, 191, 36, 0.65)'
+          : 'rgba(100, 116, 139, 0.35)';
+        energyCtx.lineWidth = isGammaActive ? 3 : 1.8;
+
+        energyCtx.beginPath();
+        for (let y = excitedY + 16; y <= groundY - 12; y += 2) {
+          const xOff = Math.sin((y - excitedY) * 0.45) * 5;
+          if (y === excitedY + 16) energyCtx.moveTo(waveX + xOff, y);
+          else energyCtx.lineTo(waveX + xOff, y);
+        }
+        energyCtx.stroke();
+
+        energyCtx.beginPath();
+        energyCtx.moveTo(waveX, groundY - 5);
+        energyCtx.lineTo(waveX - 5, groundY - 13);
+        energyCtx.lineTo(waveX + 5, groundY - 13);
+        energyCtx.closePath();
+        energyCtx.fillStyle = isGammaActive ? '#fb923c' : '#64748b';
+        energyCtx.fill();
+
+        energyCtx.fillStyle = isGammaActive ? '#fdba74' : '#94a3b8';
+        energyCtx.font = 'bold 10px "JetBrains Mono", monospace';
+        energyCtx.textAlign = 'left';
+        energyCtx.fillText(`γ (${iso.excitedEnergy} MeV)`, waveX + 9, (excitedY + groundY) / 2 + 4);
+
+        diagramHitBoxes.push({
+          node: 'step2',
+          x: waveX - 16,
+          y: excitedY + 14,
+          w: dRight - waveX + 16,
+          h: groundY - excitedY - 22,
+          freq: 880
+        });
+      }
+
+      // 3. Daughter Ground Level (0.00 MeV)
+      const isGroundActive = stage === 'ground' || selectedDiagramNode === 'ground';
+      energyCtx.strokeStyle = isGroundActive ? '#34d399' : '#475569';
+      energyCtx.lineWidth = isGroundActive ? 4.5 : 2;
+      energyCtx.beginPath();
+      energyCtx.moveTo(dLeft, groundY);
+      energyCtx.lineTo(dRight, groundY);
+      energyCtx.stroke();
+
+      energyCtx.fillStyle = isGroundActive ? '#6ee7b7' : '#94a3b8';
+      energyCtx.font = 'bold 11px "JetBrains Mono", monospace';
+      energyCtx.textAlign = 'left';
+      energyCtx.fillText(
+        `${iso.daughterGroundSymbol} (${iso.daughterGroundSpin}) — 0.00 MeV`,
+        dLeft,
+        groundY + 15
+      );
+
+      diagramHitBoxes.push({
+        node: 'ground',
+        x: dLeft - 4,
+        y: groundY - 10,
+        w: dRight - dLeft + 8,
+        h: 30,
+        freq: 420
+      });
+
+      // Active Glowing Dot Indicator on Current Rung
+      let dotX = 0;
+      let dotY = 0;
+      let dotColor = '#fff';
+      if (stage === 'initial') {
+        dotX = 56 + (w * 0.44 - 56) * 0.5;
+        dotY = parentY;
+        dotColor = iso.isDripLine ? '#fb7185' : '#818cf8';
+      } else if (stage === 'excited') {
+        dotX = dLeft + 12;
+        dotY = excitedY;
+        dotColor = '#fbbf24';
+      } else {
+        dotX = dLeft + 12;
+        dotY = groundY;
+        dotColor = '#34d399';
+      }
+
+      energyCtx.beginPath();
+      energyCtx.arc(dotX, dotY, 5.5 + Math.sin(time * 8) * 1.5, 0, Math.PI * 2);
+      energyCtx.fillStyle = dotColor;
+      energyCtx.shadowColor = dotColor;
+      energyCtx.shadowBlur = 10;
+      energyCtx.fill();
+      energyCtx.shadowBlur = 0;
+    }
+
+    // ==========================================
+    // 12. MAIN ANIMATION LOOP (ON WINDOW LOAD)
+    // ==========================================
+    let lastTimestamp = 0;
+    function animate(timestamp) {
+      const dt = (timestamp - lastTimestamp) / 1000 || 0.016;
+      lastTimestamp = timestamp;
+      time += dt;
+
+      drawSimCanvas();
+      drawEnergyDiagram();
+      requestAnimationFrame(animate);
+    }
+
+    window.onload = function () {
+      resizeCanvases();
+      resetSimulation(false);
+      requestAnimationFrame(animate);
+    };
+  </script>
+</body>
+</html>
