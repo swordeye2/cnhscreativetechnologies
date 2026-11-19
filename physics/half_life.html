@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Half-Life, Decay Emissions &amp; Nuclear Power Fuel Lab</title>
+  <title>Half-Life, Decay Emissions &amp; Energy Accounting Lab</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
@@ -111,9 +111,9 @@
         <div>
           <div class="flex items-center gap-2">
             <span class="px-2 py-0.5 text-[11px] font-extrabold tracking-wider uppercase rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40">Nuclear Physics Lab</span>
-            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">Half-Life, Decay Emissions &amp; Nuclear Power Fuel Lab</h1>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">Half-Life, Decay Emissions &amp; Energy Accounting Lab</h1>
           </div>
-          <p class="text-xs text-slate-400">Connecting Microscopic Radiation Emissions (α, β, γ) to Half-Life &amp; Reactor Engineering</p>
+          <p class="text-xs text-slate-400">Connecting Microscopic Emissions (α, β, γ) &amp; Q-Value Energy Generation to Half-Life &amp; Reactor Power</p>
         </div>
       </div>
 
@@ -157,7 +157,7 @@
 
         <!-- Top-Left Sample Identity HUD -->
         <div class="theme-hud absolute top-3 left-3 backdrop-blur-md border rounded-xl px-3.5 py-2 shadow-md pointer-events-none max-w-[68%]">
-          <div class="text-[11px] uppercase tracking-wider font-semibold text-theme-muted">Radioactive Sample &amp; Decay Chain</div>
+          <div class="text-[11px] uppercase tracking-wider font-semibold text-theme-muted">Radioactive Sample &amp; Q-Value Per Decay</div>
           <div id="hud-isotope-title" class="text-sm sm:text-base font-extrabold text-theme-primary leading-snug">
             Cobalt-60 (<span class="mono">⁶⁰₂₇Co ➔ ⁶⁰₂₈Ni + e⁻ + ν̄ₑ + 2γ</span>)
           </div>
@@ -165,8 +165,8 @@
             <span id="hud-halflife-pill" class="mono inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40">
               t½ = 5.27 years
             </span>
-            <span id="hud-role-pill" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/40">
-              Medical &amp; Industrial γ Source
+            <span id="hud-qval-pill" class="mono inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40">
+              Q = 2.823 MeV / decay
             </span>
           </div>
         </div>
@@ -198,7 +198,7 @@
 
         <!-- Bottom-Left Live Pedagogical Callout -->
         <div id="hud-callout" class="theme-hud absolute bottom-3 left-3 right-3 backdrop-blur-md border rounded-xl px-4 py-2 text-xs sm:text-sm text-theme-primary shadow-md pointer-events-none">
-          <span class="font-bold text-amber-600 dark:text-amber-400">Microscopic + Macroscopic:</span> Every individual atom that decays fires its real radiation particles (<span class="mono">α, β, γ</span>), while half the sample decays every <span class="mono font-bold">1 t½</span>!
+          <span class="font-bold text-amber-600 dark:text-amber-400">Energy + Half-Life Link:</span> Every decaying nucleus converts mass defect into <span class="mono font-bold">Q</span> energy—releasing <span class="font-bold text-emerald-600 dark:text-emerald-300">50% of total energy</span> in the first half-life!
         </div>
       </div>
 
@@ -248,37 +248,49 @@
               <span class="text-theme-secondary">Half-Life ($t_{1/2}$) Scale:</span>
               <span id="slider-hl-val" class="mono text-cyan-600 dark:text-cyan-400">5.27 years</span>
             </div>
-            <input id="slider-hl" type="range" min="1" max="100" step="1" value="50" class="w-full accent-cyan-500 cursor-pointer" />
+            <input id="slider-hl" type="range" min="1" max="100" step="1" value="48" class="w-full accent-cyan-500 cursor-pointer" />
             <div class="flex justify-between text-[10px] text-theme-muted">
-              <span>Short t½ (Intense Activity)</span>
-              <span>Long t½ (Stable Fuel)</span>
+              <span>Short t½ (Fast Power Burst)</span>
+              <span>Long t½ (Slow Steady Release)</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- RIGHT SIDEBAR: EXPONENTIAL GRAPH & 2-TAB REACTOR/SHIELDING INSPECTOR (5 cols on lg) -->
+    <!-- RIGHT SIDEBAR: DUAL-TRACE DECAY & ENERGY GRAPH + 2-TAB INSPECTOR (5 cols on lg) -->
     <aside class="theme-card lg:col-span-5 border rounded-2xl p-4 shadow-md flex flex-col justify-between gap-3">
       <div>
-        <div class="flex items-center justify-between mb-1">
-          <h2 class="text-sm font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">Exponential Decay Curve ($N$ vs. $t/t_{1/2}$)</h2>
-          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/40">Click Dots!</span>
+        <div class="flex items-center justify-between gap-1 mb-1">
+          <h2 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">Nuclei Remaining &amp; Energy Generated</h2>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/40">Click Dots!</span>
         </div>
-        <p class="text-xs text-theme-muted mb-2">Dashed <strong class="text-theme-primary">theoretical curve</strong> $N_0(1/2)^n$ vs. live <strong class="text-amber-600 dark:text-amber-400">sample count</strong>.</p>
 
-        <!-- Exponential Decay Graph Canvas -->
-        <div class="graph-box-bg w-full h-[230px] sm:h-[245px] rounded-xl border overflow-hidden relative shadow-inner">
+        <!-- Graph Trace Mode Switcher -->
+        <div class="flex gap-1 bg-slate-200/80 dark:bg-slate-900 p-1 rounded-lg mb-2 text-[11px]">
+          <button data-gmode="both" class="gmode-btn flex-1 py-1 px-1.5 rounded font-extrabold bg-indigo-500 text-white shadow transition">
+            📊 Dual: N(t) + Energy E(t)
+          </button>
+          <button data-gmode="nuclei" class="gmode-btn flex-1 py-1 px-1.5 rounded font-bold text-theme-secondary hover:text-theme-primary transition">
+            📉 Nuclei N(t)
+          </button>
+          <button data-gmode="energy" class="gmode-btn flex-1 py-1 px-1.5 rounded font-bold text-theme-secondary hover:text-theme-primary transition">
+            ⚡ Energy E(t)
+          </button>
+        </div>
+
+        <!-- Exponential Decay + Energy Growth Graph Canvas -->
+        <div class="graph-box-bg w-full h-[225px] sm:h-[240px] rounded-xl border overflow-hidden relative shadow-inner">
           <canvas id="graph-canvas" class="w-full h-full block cursor-pointer"></canvas>
         </div>
       </div>
 
-      <!-- 2-Tab Pedagogical Inspector: Decay Emissions vs. Nuclear Power Generation -->
+      <!-- 2-Tab Pedagogical Inspector: Decay & Energy Accounting vs. Nuclear Power Generation -->
       <div class="theme-subcard border border-amber-500/40 rounded-xl p-3 text-xs space-y-2">
         <!-- Inspector Sub-Tabs -->
         <div class="flex gap-1.5 bg-slate-200/80 dark:bg-slate-900 p-1 rounded-lg">
           <button id="tab-decay-info" class="flex-1 py-1.5 px-2 rounded-md font-extrabold text-[11px] bg-amber-400 text-slate-950 shadow transition">
-            ⚛️ Emitted Particles &amp; Shielding
+            ⚛️ Energy Accounting &amp; Emissions
           </button>
           <button id="tab-reactor-info" class="flex-1 py-1.5 px-2 rounded-md font-bold text-[11px] text-theme-secondary hover:text-theme-primary transition">
             ⚡ Why It Matters in Nuclear Power
@@ -287,10 +299,10 @@
 
         <div class="flex items-center justify-between gap-2 pt-0.5">
           <div id="inspector-title" class="font-extrabold text-amber-700 dark:text-amber-300">
-            Cobalt-60: β⁻ + 2γ High-Energy Cascade
+            Cobalt-60: 2.823 MeV Energy Ledger per Decay
           </div>
           <span id="inspector-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 border border-slate-300 dark:border-slate-700 shrink-0">
-            t½ = 5.27 yr
+            Q = 2.823 MeV
           </span>
         </div>
 
@@ -302,7 +314,7 @@
 
   </main>
 
-  <!-- BOTTOM PANEL: LIVE TELEMETRY & EXPONENTIAL EQUATION BAR -->
+  <!-- BOTTOM PANEL: LIVE TELEMETRY & EXPONENTIAL ENERGY/NUCLEI EQUATION BAR -->
   <footer class="max-w-7xl w-full mx-auto px-3 sm:px-4 pb-4 space-y-3">
     <!-- 6 Live Telemetry Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
@@ -320,18 +332,18 @@
         <div id="stat-parent-pct" class="text-[10px] text-theme-muted">100.0% of N₀</div>
       </div>
 
-      <!-- Emitted Radiation Counter -->
-      <div class="theme-card border rounded-xl p-2.5 text-center shadow-sm">
-        <div class="text-[11px] font-bold uppercase text-orange-600 dark:text-orange-400">Particles Emitted</div>
-        <div id="stat-emitted" class="mono text-xs sm:text-sm font-extrabold text-orange-600 dark:text-orange-300 mt-1.5">0 e⁻, 0 γ</div>
-        <div id="stat-daughter-pct" class="text-[10px] text-theme-muted mt-0.5">0 Daughter Atoms</div>
+      <!-- Cumulative Energy Generated E(t) -->
+      <div class="theme-card border border-emerald-500/50 rounded-xl p-2.5 text-center shadow-sm">
+        <div class="text-[11px] font-bold uppercase text-emerald-600 dark:text-emerald-400">Energy Generated E(t)</div>
+        <div id="stat-energy-total" class="mono text-base sm:text-lg font-extrabold text-emerald-600 dark:text-emerald-300 mt-0.5">0.0 MeV</div>
+        <div id="stat-energy-split" class="text-[10px] text-theme-muted">0.0 β/α + 0.0 γ MeV</div>
       </div>
 
-      <!-- Theoretical Prediction -->
+      <!-- Theoretical Energy Budget -->
       <div class="theme-card border rounded-xl p-2.5 text-center shadow-sm">
-        <div class="text-[11px] font-bold uppercase text-indigo-600 dark:text-indigo-400">Theoretical N₀(½)ⁿ</div>
-        <div id="stat-theory" class="mono text-lg sm:text-xl font-extrabold text-indigo-600 dark:text-indigo-300 mt-0.5">320.0</div>
-        <div id="stat-diff" class="text-[10px] text-theme-muted">Statistical Δ = 0.0</div>
+        <div class="text-[11px] font-bold uppercase text-indigo-600 dark:text-indigo-400">Max Energy Budget</div>
+        <div id="stat-energy-max" class="mono text-base sm:text-lg font-extrabold text-indigo-600 dark:text-indigo-300 mt-0.5">903.4 MeV</div>
+        <div id="stat-energy-pct" class="text-[10px] text-theme-muted">0.0% of N₀·Q Released</div>
       </div>
 
       <!-- Decay Constant (λ) -->
@@ -341,162 +353,174 @@
         <div class="text-[10px] text-theme-muted">λ = ln(2) / t½</div>
       </div>
 
-      <!-- Sample Activity A = λN -->
+      <!-- Thermal / Radiation Power P = A * Q -->
       <div class="theme-card border rounded-xl p-2.5 text-center shadow-sm">
         <div class="text-[11px] font-bold uppercase text-rose-600 dark:text-rose-400">Activity (A = λN)</div>
         <div id="stat-activity" class="mono text-base sm:text-lg font-extrabold text-rose-600 dark:text-rose-300 mt-0.5">1.33e-6 Bq</div>
-        <div class="text-[10px] text-theme-muted">Radioactivity Rate</div>
+        <div id="stat-emitted" class="text-[10px] text-theme-muted">0 Decays Fired</div>
       </div>
     </div>
 
-    <!-- Live Substituted Half-Life Equation Bar -->
+    <!-- Live Substituted Half-Life & Energy Accounting Equation Bar -->
     <div class="theme-card border-2 rounded-2xl p-3.5 shadow-md flex flex-col md:flex-row items-center justify-between gap-3">
       <div class="flex items-center gap-2 shrink-0">
-        <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-300 text-xs font-extrabold uppercase tracking-wider">
-          Live Half-Life Formula
+        <span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold uppercase tracking-wider">
+          Live Energy &amp; Decay Law
         </span>
       </div>
 
-      <div id="equation-display" class="mono text-xs sm:text-base md:text-lg font-bold text-center text-theme-primary tracking-wide flex flex-wrap items-center justify-center gap-2">
+      <div id="equation-display" class="mono text-xs sm:text-sm md:text-base font-bold text-center text-theme-primary tracking-wide flex flex-wrap items-center justify-center gap-2">
         <!-- Populated dynamically -->
       </div>
 
       <div id="fraction-badge" class="mono text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/40 text-center shrink-0">
-        (1/2)⁰·⁰⁰ = 100.0%
+        Energy Released: 0.0%
       </div>
     </div>
   </footer>
 
   <script>
     // ==========================================
-    // 1. ISOTOPE DATASET (MEDICAL, INDUSTRIAL & REACTOR FUEL)
+    // 1. ISOTOPE DATASET (WITH EXACT Q-VALUE ENERGY BREAKDOWN)
     // ==========================================
     const ISOTOPES = [
       {
-        id: 'u235',
-        tabLabel: '²³⁵₉₂U (Reactor Fuel)',
-        name: 'Uranium-235',
-        reaction: '²³⁵₉₂U ➔ ²³¹₉₀Th + ⁴₂He (α) + γ',
-        roleBadge: '⚡ Primary Nuclear Reactor Fuel',
-        halfLifeVal: 703800000,
-        unit: 'yr',
-        secondsFactor: 31557600,
-        sliderPos: 95,
-        parentColorDark: '#38bdf8',
-        parentColorLight: '#0284c7',
-        daughterColorDark: '#94a3b8',
-        daughterColorLight: '#64748b',
-        emissions: ['alpha', 'gamma'],
-        emittedUnitLabel: 'α, γ',
-        decayTitle: 'Uranium-235: Spontaneous α + γ Emission',
-        decayInfo: 'Naturally occurring ²³⁵₉₂U decays slowly via 4.68 MeV alpha (⁴₂He) emission and low-energy γ rays into Thorium-231. Because α particles are heavy +2 clusters, they are stopped by a sheet of paper or outer skin—making fresh nuclear fuel rods safe to handle before irradiation!',
-        reactorTitle: '⚡ Why Reactor Fuel Needs a Long Half-Life (704 Million Yr)',
-        reactorInfo: 'In a nuclear power plant, ²³⁵U must sit inside fuel rods for years without decaying away on its own (low spontaneous λ = 3.12 × 10⁻¹⁷ s⁻¹). Instead of waiting 704 million years for natural α decay, operators fire slow thermal neutrons at ²³⁵U to trigger controlled chain fission on demand!'
-      },
-      {
-        id: 'pu239',
-        tabLabel: '²³⁹₉₄Pu (MOX Fuel)',
-        name: 'Plutonium-239',
-        reaction: '²³⁹₉₄Pu ➔ ²³⁵₉₂U + ⁴₂He (α) + γ',
-        roleBadge: '⚡ Bred Reactor Fuel & Spent Waste',
-        halfLifeVal: 24110,
-        unit: 'yr',
-        secondsFactor: 31557600,
-        sliderPos: 82,
-        parentColorDark: '#f472b6',
-        parentColorLight: '#db2777',
-        daughterColorDark: '#38bdf8',
-        daughterColorLight: '#0284c7',
-        emissions: ['alpha', 'gamma'],
-        emittedUnitLabel: 'α, γ',
-        decayTitle: 'Plutonium-239: 5.24 MeV α + γ Emitter',
-        decayInfo: '²³⁹₉₄Pu emits a 5.24 MeV alpha particle (⁴₂He) and weak γ rays to become ²³⁵U. While α radiation cannot penetrate skin externally, inhaled dust is dangerous because α particles deposit huge energy over microns.',
-        reactorTitle: '⚡ Dual Role: Reactor Energy Source & Long-Term Waste',
-        reactorInfo: 'Inside a running reactor, non-fissile ²³⁸U absorbs neutrons and β⁻-decays into fissile ²³⁹Pu—contributing ~1/3 of a nuclear plant’s total electricity! However, unburned ²³⁹Pu in spent fuel has t½ = 24,110 yr, requiring deep geological repositories for ~10 half-lives (~240,000 yr).'
-      },
-      {
-        id: 'cs137',
-        tabLabel: '¹³⁷₅₅Cs (Fission Waste)',
-        name: 'Cesium-137',
-        reaction: '¹³⁷₅₅Cs ➔ ¹³⁷₅₆Ba + e⁻ + ν̄ₑ + γ',
-        roleBadge: '☢️ Spent Fuel & Decay Heat',
-        halfLifeVal: 30.17,
-        unit: 'yr',
-        secondsFactor: 31557600,
-        sliderPos: 64,
-        parentColorDark: '#fb923c',
-        parentColorLight: '#ea580c',
-        daughterColorDark: '#34d399',
-        daughterColorLight: '#059669',
-        emissions: ['beta-minus', 'antineutrino', 'gamma'],
-        emittedUnitLabel: 'e⁻, γ',
-        decayTitle: 'Cesium-137: β⁻ Electron + 0.662 MeV γ Photon',
-        decayInfo: 'Each decaying ¹³⁷₅₅Cs atom fires a high-speed β⁻ electron (stopped by aluminum) and leaves ¹³⁷ᵐBa*, which emits a penetrating 0.662 MeV γ photon requiring thick lead or concrete shielding.',
-        reactorTitle: '⚡ The "Medium Half-Life" Nuclear Waste Challenge',
-        reactorInfo: 'When ²³⁵U splits in a reactor, it creates fission fragments like ¹³⁷Cs (t½ = 30.17 yr) and ⁹⁰Sr (t½ = 28.8 yr). Medium half-lives are the most hazardous in spent fuel pools: short enough to emit intense β⁻/γ heat (high λ), yet long enough to require ~300 years (10 half-lives) of active cooling and dry-cask shielding!'
-      },
-      {
         id: 'co60',
-        tabLabel: '⁶⁰₂₇Co (5.27 yr)',
+        tabLabel: '⁶⁰₂₇Co (2.82 MeV)',
         name: 'Cobalt-60',
         reaction: '⁶⁰₂₇Co ➔ ⁶⁰₂₈Ni + e⁻ + ν̄ₑ + 2γ',
-        roleBadge: '🏥 Cancer Therapy & γ Source',
         halfLifeVal: 5.27,
         unit: 'yr',
         secondsFactor: 31557600,
         sliderPos: 48,
+        qTotalMeV: 2.823,
+        qParticleMeV: 0.318, // e- + antineutrino
+        qGammaMeV: 2.505,    // 1.173 + 1.332 MeV
         parentColorDark: '#818cf8',
         parentColorLight: '#4f46e5',
         daughterColorDark: '#34d399',
         daughterColorLight: '#059669',
         emissions: ['beta-minus', 'antineutrino', 'gamma', 'gamma'],
         emittedUnitLabel: 'e⁻, 2γ',
-        decayTitle: 'Cobalt-60: β⁻ + Twin γ Cascade (1.17 & 1.33 MeV)',
-        decayInfo: 'Cobalt-60 emits a 0.318 MeV β⁻ electron + antineutrino, followed immediately by two high-energy γ photons (1.173 & 1.332 MeV) that penetrate deep tissue to destroy tumors or sterilize surgical gear.',
-        reactorTitle: '⚡ Produced Inside Reactors via Neutron Activation',
-        reactorInfo: 'Cobalt-60 does not exist in nature—it is manufactured by placing stable ⁵⁹Co inside a nuclear reactor core to absorb stray neutrons! Its 5.27-year half-life is ideal for commercial γ irradiators, which must be reloaded every ~5–10 years as activity drops by 50%–75%.'
+        decayTitle: 'Cobalt-60 Energy Accounting: 0.318 MeV β⁻ + 2.505 MeV γ',
+        decayInfo: 'Each decaying ⁶⁰Co nucleus converts Δm = 0.003031 u into Q = 2.823 MeV: 11.3% (0.318 MeV) goes to the β⁻ electron + antineutrino, and 88.7% (2.505 MeV) is released as two penetrating γ photons (1.173 + 1.332 MeV). After 1 t½ (5.27 yr), 50% of the sample’s total energy budget has been radiated!',
+        reactorTitle: '⚡ Produced in Reactors & Measured for Source Reloading',
+        reactorInfo: 'Cobalt-60 is bred inside nuclear reactors by exposing stable ⁵⁹Co to neutrons. Because thermal power output P(t) = A(t)·Q drops by 50% every 5.27 years alongside N(t), hospital therapy units must recalculate exposure times monthly and replace capsules after ~1–2 half-lives.'
+      },
+      {
+        id: 'cs137',
+        tabLabel: '¹³⁷₅₅Cs (1.18 MeV)',
+        name: 'Cesium-137',
+        reaction: '¹³⁷₅₅Cs ➔ ¹³⁷₅₆Ba + e⁻ + ν̄ₑ + γ',
+        halfLifeVal: 30.17,
+        unit: 'yr',
+        secondsFactor: 31557600,
+        sliderPos: 64,
+        qTotalMeV: 1.176,
+        qParticleMeV: 0.514, // e- + antineutrino (94.4% branch)
+        qGammaMeV: 0.662,    // Ba-137m gamma
+        parentColorDark: '#fb923c',
+        parentColorLight: '#ea580c',
+        daughterColorDark: '#34d399',
+        daughterColorLight: '#059669',
+        emissions: ['beta-minus', 'antineutrino', 'gamma'],
+        emittedUnitLabel: 'e⁻, γ',
+        decayTitle: 'Cesium-137 Energy Accounting: 0.514 MeV β⁻ + 0.662 MeV γ',
+        decayInfo: 'In 94.4% of decays, ¹³⁷Cs splits its Q = 1.176 MeV mass defect into 0.514 MeV for the β⁻ electron/antineutrino and 0.662 MeV for the ¹³⁷ᵐBa gamma photon. Notice how the green cumulative energy curve rises at the exact rate the orange parent curve falls!',
+        reactorTitle: '⚡ Spent Nuclear Fuel Decay Heat (30.2-Year Half-Life)',
+        reactorInfo: 'When ²³⁵U fissions in a power plant, ~6% of fissions produce ¹³⁷Cs. Because t½ = 30.17 yr is long enough to persist for centuries yet short enough to emit intense β⁻/γ decay heat, spent fuel rods must cool in water pools for 5–10 years before transfer to ventilated dry storage casks.'
+      },
+      {
+        id: 'u235',
+        tabLabel: '²³⁵₉₂U (4.68 MeV α)',
+        name: 'Uranium-235',
+        reaction: '²³⁵₉₂U ➔ ²³¹₉₀Th + ⁴₂He (α) + γ',
+        halfLifeVal: 703800000,
+        unit: 'yr',
+        secondsFactor: 31557600,
+        sliderPos: 95,
+        qTotalMeV: 4.679,
+        qParticleMeV: 4.493, // Alpha kinetic energy + recoil
+        qGammaMeV: 0.186,    // 186 keV characteristic gamma
+        parentColorDark: '#38bdf8',
+        parentColorLight: '#0284c7',
+        daughterColorDark: '#94a3b8',
+        daughterColorLight: '#64748b',
+        emissions: ['alpha', 'gamma'],
+        emittedUnitLabel: 'α, γ',
+        decayTitle: 'Uranium-235 Spontaneous Decay: 4.49 MeV α + 0.19 MeV γ',
+        decayInfo: 'Left alone, ²³⁵U slowly emits a 4.49 MeV alpha particle (⁴₂He) and a 0.186 MeV gamma ray (Q = 4.68 MeV total). Because α particles carry +2 charge and large mass, they deposit all 4.49 MeV within microns—stopped completely by a sheet of paper!',
+        reactorTitle: '⚡ Spontaneous α Decay (4.68 MeV) vs. Induced Fission (~200 MeV)',
+        reactorInfo: 'Why is ²³⁵U the ideal nuclear fuel? First, its 704-million-year half-life means fresh fuel rods don’t melt from spontaneous α decay before loading. Second, when struck by a neutron inside the reactor, ²³⁵U splits immediately—releasing ~200 MeV per fission (43× more energy than natural α decay) on demand!'
+      },
+      {
+        id: 'pu239',
+        tabLabel: '²³⁹₉₄Pu (5.24 MeV α)',
+        name: 'Plutonium-239',
+        reaction: '²³⁹₉₄Pu ➔ ²³⁵₉₂U + ⁴₂He (α) + γ',
+        halfLifeVal: 24110,
+        unit: 'yr',
+        secondsFactor: 31557600,
+        sliderPos: 82,
+        qTotalMeV: 5.245,
+        qParticleMeV: 5.193,
+        qGammaMeV: 0.052,
+        parentColorDark: '#f472b6',
+        parentColorLight: '#db2777',
+        daughterColorDark: '#38bdf8',
+        daughterColorLight: '#0284c7',
+        emissions: ['alpha', 'gamma'],
+        emittedUnitLabel: 'α, γ',
+        decayTitle: 'Plutonium-239 Energy Accounting: 5.19 MeV α + 0.05 MeV γ',
+        decayInfo: '²³⁹Pu releases Q = 5.245 MeV per decay, with 99% carried as kinetic energy by the heavy ⁴₂He alpha particle. Its 24,110-year half-life is ~29,000× shorter than ²³⁵U, making it noticeably warm to the touch from continuous α self-heating!',
+        reactorTitle: '⚡ Bred Fuel in Reactors & Deep Geological Storage',
+        reactorInfo: 'Inside a power reactor, neutron capture turns ²³⁸U into ²³⁹Pu, which fissions to generate ~33% of a nuclear plant’s electricity. Unburned ²³⁹Pu in spent fuel requires geological isolation for ~10 half-lives (~240,000 years) until its α energy output drops below natural uranium ore.'
       },
       {
         id: 'tc99m',
-        tabLabel: '⁹⁹ᵐ₄₃Tc (6.0 hr)',
+        tabLabel: '⁹⁹ᵐ₄₃Tc (0.14 MeV γ)',
         name: 'Technetium-99m',
         reaction: '⁹⁹ᵐ₄₃Tc ➔ ⁹⁹₄₃Tc + γ (0.140 MeV)',
-        roleBadge: '🏥 Medical SPECT Imaging',
         halfLifeVal: 6.01,
         unit: 'hr',
         secondsFactor: 3600,
         sliderPos: 26,
+        qTotalMeV: 0.140,
+        qParticleMeV: 0.000, // Pure gamma isomer!
+        qGammaMeV: 0.140,
         parentColorDark: '#fbbf24',
         parentColorLight: '#d97706',
         daughterColorDark: '#94a3b8',
         daughterColorLight: '#64748b',
         emissions: ['gamma'],
         emittedUnitLabel: 'γ',
-        decayTitle: 'Technetium-99m: Pure 0.140 MeV γ Emission (No α/β)',
-        decayInfo: 'Because ⁹⁹ᵐTc emits only a clean 0.140 MeV γ photon without tissue-damaging α or β particles, hospital gamma cameras can see it cleanly outside the body while minimizing patient radiation dose.',
-        reactorTitle: '⚡ Harvested from Reactor Fission Molybdenum-99',
-        reactorInfo: 'Medical ⁹⁹ᵐTc comes from ⁹⁹Mo (t½ = 66 hr), a direct fission product of ²³⁵U in research reactors! Its 6.01-hour half-life clears 94% of the tracer from the patient within 24 hours (4 half-lives)—showing why short half-lives are prized in medicine but useless as reactor fuel.'
+        decayTitle: 'Technetium-99m: 100% Pure 0.140 MeV γ Energy (0 MeV α/β)',
+        decayInfo: '⁹⁹ᵐTc is a pure metastable gamma isomer: 100% of its Q = 0.140 MeV excitation energy leaves as a single diagnostic γ photon, with zero tissue-damaging α or β particles!',
+        reactorTitle: '⚡ Reactor-Produced Medical Isotope (6-Hour Clearance)',
+        reactorInfo: 'Hospitals get ⁹⁹ᵐTc from ⁹⁹Mo (t½ = 66 hr) produced by fissioning ²³⁵U in research reactors. After 24 hours (4 half-lives), 93.75% of the 0.140 MeV γ energy has already been emitted and cleared from the patient.'
       },
       {
         id: 'o15',
-        tabLabel: '¹⁵₈O (122 s)',
+        tabLabel: '¹⁵₈O (2.75 MeV β⁺)',
         name: 'Oxygen-15',
         reaction: '¹⁵₈O ➔ ¹⁵₇N + e⁺ + νₑ',
-        roleBadge: '🏥 Hospital PET Brain Scans',
         halfLifeVal: 122.24,
         unit: 's',
         secondsFactor: 1,
         sliderPos: 12,
+        qTotalMeV: 2.754,
+        qParticleMeV: 2.754, // Positron + neutrino kinetic energy (excluding 1.022 MeV mass creation)
+        qGammaMeV: 0.000,
         parentColorDark: '#22d3ee',
         parentColorLight: '#0284c7',
         daughterColorDark: '#a78bfa',
         daughterColorLight: '#7c3aed',
         emissions: ['beta-plus', 'neutrino'],
         emittedUnitLabel: 'e⁺, νₑ',
-        decayTitle: 'Oxygen-15: β⁺ Positron + Neutrino Emission',
-        decayInfo: 'Oxygen-15 emits a positively charged positron (e⁺) and a neutrino (νₑ). Within millimeters, the positron annihilates with an atomic electron, producing two back-to-back 0.511 MeV γ photons detected by a PET scanner.',
-        reactorTitle: '⚡ Extreme Short Half-Life = High Decay Heat Analogy',
-        reactorInfo: 'With t½ = 122 s (λ = 5.67 × 10⁻³ s⁻¹), ¹⁵O burns through 97% of its atoms in 10 minutes! In a nuclear reactor, dozens of short-lived fission products (t½ = seconds to minutes) generate ~7% of the reactor’s full thermal power right after shutdown—which is why emergency cooling pumps must run immediately when control rods drop!'
+        decayTitle: 'Oxygen-15: 2.754 MeV β⁺ Positron + Neutrino Decay',
+        decayInfo: 'Oxygen-15 undergoes β⁺ decay (t½ = 122.2 s), releasing 2.754 MeV of kinetic energy to the positron (e⁺) and neutrino (νₑ). (When the positron then annihilates with an electron, two 0.511 MeV γ photons appear for PET imaging.)',
+        reactorTitle: '⚡ Short Half-Life = Intense Post-Shutdown Reactor Decay Heat',
+        reactorInfo: 'Because Power P = λN·Q is inversely proportional to half-life t½, short-lived isotopes dump their energy in a massive initial surge! When a nuclear reactor scrams (shuts down fission), dozens of short-lived fission fragments (t½ = seconds to minutes) still generate ~7% of full reactor thermal power—requiring immediate emergency core cooling.'
       }
     ];
 
@@ -560,19 +584,20 @@
     // 3. SIMULATION STATE
     // ==========================================
     let isDarkMode = true;
-    let currentIsotope = ISOTOPES[2]; // Default: Cesium-137 (great bridge between β/γ and reactor waste)
+    let currentIsotope = ISOTOPES[0]; // Default: Cobalt-60 (connects directly to 2.823 MeV problem!)
     let customHalfLife = currentIsotope.halfLifeVal;
     let N0 = 320;
     let atoms = [];
     let flyingEmissions = [];
     let totalEmittedEvents = 0;
-    let historyPoints = [];
+    let historyPoints = []; // { n, remaining, decayed }
     let elapsedHalfLives = 0;
     let isRunning = false;
     let simSpeed = 1.0;
     let graphHitBoxes = [];
     let selectedMilestone = null;
     let activeInspectorTab = 'decay'; // 'decay' or 'reactor'
+    let graphTraceMode = 'both';      // 'both', 'nuclei', or 'energy'
 
     // ==========================================
     // 4. DOM ELEMENTS
@@ -602,7 +627,7 @@
 
     const hudIsotopeTitle = document.getElementById('hud-isotope-title');
     const hudHalflifePill = document.getElementById('hud-halflife-pill');
-    const hudRolePill = document.getElementById('hud-role-pill');
+    const hudQvalPill = document.getElementById('hud-qval-pill');
     const legendParentDot = document.getElementById('legend-parent-dot');
     const legendDaughterDot = document.getElementById('legend-daughter-dot');
     const hudCallout = document.getElementById('hud-callout');
@@ -617,12 +642,13 @@
     const statHlCount = document.getElementById('stat-hl-count');
     const statParent = document.getElementById('stat-parent');
     const statParentPct = document.getElementById('stat-parent-pct');
-    const statEmitted = document.getElementById('stat-emitted');
-    const statDaughterPct = document.getElementById('stat-daughter-pct');
-    const statTheory = document.getElementById('stat-theory');
-    const statDiff = document.getElementById('stat-diff');
+    const statEnergyTotal = document.getElementById('stat-energy-total');
+    const statEnergySplit = document.getElementById('stat-energy-split');
+    const statEnergyMax = document.getElementById('stat-energy-max');
+    const statEnergyPct = document.getElementById('stat-energy-pct');
     const statLambda = document.getElementById('stat-lambda');
     const statActivity = document.getElementById('stat-activity');
+    const statEmitted = document.getElementById('stat-emitted');
     const equationDisplay = document.getElementById('equation-display');
     const fractionBadge = document.getElementById('fraction-badge');
 
@@ -682,17 +708,15 @@
         });
       }
 
-      historyPoints = [{ n: 0, remaining: N0 }];
+      historyPoints = [{ n: 0, remaining: N0, decayed: 0 }];
       updateUI();
     }
 
     function spawnDecayEmissionsForAtom(atom) {
-      // Cap total active projectiles for crisp 60fps legibility
       if (flyingEmissions.length > 75) return;
 
       const baseAngle = Math.random() * Math.PI * 2;
       currentIsotope.emissions.forEach((kind, idx) => {
-        // Spread multiple particles emitted from the same decay event
         const angle = baseAngle + idx * 1.45 + (Math.random() - 0.5) * 0.4;
         const speed =
           kind === 'gamma'
@@ -701,7 +725,7 @@
             ? 3.3
             : kind === 'antineutrino' || kind === 'neutrino'
             ? 3.0
-            : 2.2; // alpha is heavier & slower
+            : 2.2;
 
         flyingEmissions.push({
           kind,
@@ -739,9 +763,10 @@
       }
 
       const remaining = atoms.filter((a) => !a.decayed).length;
+      const decayed = N0 - remaining;
       const lastPt = historyPoints[historyPoints.length - 1];
       if (!lastPt || elapsedHalfLives - lastPt.n >= 0.04 || deltaN >= 0.5) {
-        historyPoints.push({ n: elapsedHalfLives, remaining });
+        historyPoints.push({ n: elapsedHalfLives, remaining, decayed });
       }
 
       if (remaining === 0 && isRunning) {
@@ -813,19 +838,34 @@
     tabDecayInfo.addEventListener('click', () => setInspectorTab('decay'));
     tabReactorInfo.addEventListener('click', () => setInspectorTab('reactor'));
 
+    document.querySelectorAll('.gmode-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        graphTraceMode = btn.dataset.gmode;
+        document.querySelectorAll('.gmode-btn').forEach((b) => {
+          b.className = 'gmode-btn flex-1 py-1 px-1.5 rounded font-bold text-theme-secondary hover:text-theme-primary transition';
+        });
+        btn.className = 'gmode-btn flex-1 py-1 px-1.5 rounded font-extrabold bg-indigo-500 text-white shadow transition';
+        geiger.playGeigerClick(true);
+      });
+    });
+
     function updateInspector(milestoneN = null) {
       const iso = currentIsotope;
       if (milestoneN !== null) {
-        const pct = (Math.pow(0.5, milestoneN) * 100).toFixed(milestoneN <= 2 ? 0 : 2);
-        const decayedCount = N0 - Math.round(N0 * Math.pow(0.5, milestoneN));
+        const remFrac = Math.pow(0.5, milestoneN);
+        const energyFrac = 1 - remFrac;
+        const remPct = (remFrac * 100).toFixed(milestoneN <= 2 ? 0 : 2);
+        const energyPct = (energyFrac * 100).toFixed(milestoneN <= 2 ? 0 : 2);
+        const expectedEnergyMeV = (N0 * energyFrac * iso.qTotalMeV).toFixed(1);
         const timeAtMark = formatHalfLife(milestoneN * customHalfLife, iso.unit);
-        inspectorTitle.textContent = `📍 Milestone: ${milestoneN} Half-Life${milestoneN > 1 ? 's' : ''} (${timeAtMark})`;
-        inspectorBadge.textContent = `(1/2)^${milestoneN} = ${pct}%`;
-        inspectorBody.innerHTML = `After <strong>${milestoneN} half-life${milestoneN > 1 ? 's' : ''}</strong> (<span class="mono text-cyan-600 dark:text-cyan-300">${timeAtMark}</span>), <strong>${pct}%</strong> of parent atoms remain, while <strong>${decayedCount}</strong> atoms have transformed and fired <span class="mono text-amber-600 dark:text-amber-300">${iso.emittedUnitLabel}</span> radiation!`;
+
+        inspectorTitle.textContent = `📍 Milestone ${milestoneN} t½ (${timeAtMark}): ${remPct}% Left | ${energyPct}% Energy Out`;
+        inspectorBadge.textContent = `E = ${expectedEnergyMeV} MeV`;
+        inspectorBody.innerHTML = `After <strong>${milestoneN} half-life${milestoneN > 1 ? 's' : ''}</strong>, <strong>${remPct}%</strong> of parent atoms remain, meaning <strong>${energyPct}%</strong> of the sample's energy budget (<span class="mono text-emerald-600 dark:text-emerald-300">${expectedEnergyMeV} MeV</span> out of <span class="mono">${(N0 * iso.qTotalMeV).toFixed(1)} MeV</span>) has been generated!`;
         return;
       }
 
-      inspectorBadge.textContent = `t½ = ${formatHalfLife(customHalfLife, iso.unit)}`;
+      inspectorBadge.textContent = `Q = ${iso.qTotalMeV} MeV`;
       if (activeInspectorTab === 'decay') {
         inspectorTitle.textContent = iso.decayTitle;
         inspectorBody.textContent = iso.decayInfo;
@@ -841,8 +881,12 @@
       const decayed = N0 - remaining;
       const remPct = (remaining / N0) * 100;
 
-      const theoryRem = N0 * Math.pow(0.5, elapsedHalfLives);
-      const diff = remaining - theoryRem;
+      // Energy accounting calculations: E_total = decayed * Q
+      const energyGeneratedMeV = decayed * iso.qTotalMeV;
+      const energyParticleMeV = decayed * iso.qParticleMeV;
+      const energyGammaMeV = decayed * iso.qGammaMeV;
+      const maxEnergyBudgetMeV = N0 * iso.qTotalMeV;
+      const energyReleasedPct = (decayed / N0) * 100;
 
       const hlStr = formatHalfLife(customHalfLife, iso.unit);
       const elapsedTime = elapsedHalfLives * customHalfLife;
@@ -854,7 +898,7 @@
 
       hudIsotopeTitle.innerHTML = `${iso.name} (<span class="mono">${iso.reaction}</span>)`;
       hudHalflifePill.textContent = `t½ = ${hlStr}`;
-      hudRolePill.textContent = iso.roleBadge;
+      hudQvalPill.textContent = `Q = ${iso.qTotalMeV.toFixed(3)} MeV / decay`;
       sliderN0Val.textContent = `${N0} atoms`;
       sliderHLVal.textContent = hlStr;
 
@@ -867,33 +911,33 @@
       statParent.textContent = remaining;
       statParentPct.textContent = `${remPct.toFixed(1)}% of N₀`;
 
-      statEmitted.textContent = `${totalEmittedEvents} × (${iso.emittedUnitLabel})`;
-      statDaughterPct.textContent = `${decayed} Daughter Atoms`;
+      statEnergyTotal.textContent = `${energyGeneratedMeV.toFixed(1)} MeV`;
+      statEnergySplit.textContent = `${energyParticleMeV.toFixed(1)} α/β + ${energyGammaMeV.toFixed(1)} γ MeV`;
 
-      statTheory.textContent = theoryRem.toFixed(1);
-      statDiff.textContent = `Statistical Δ = ${diff >= 0 ? '+' : ''}${diff.toFixed(1)}`;
+      statEnergyMax.textContent = `${maxEnergyBudgetMeV.toFixed(1)} MeV`;
+      statEnergyPct.textContent = `${energyReleasedPct.toFixed(1)}% of N₀·Q Released`;
 
       statLambda.textContent = `${lambda.toExponential(2)} s⁻¹`;
       statActivity.textContent = `${activity.toExponential(2)} Bq`;
+      statEmitted.textContent = `${decayed} Decays (${iso.emittedUnitLabel})`;
 
-      const frac = Math.pow(0.5, elapsedHalfLives);
+      // Live Substituted Energy Accounting & Half-Life Equation
       equationDisplay.innerHTML = `
-        <span class="text-theme-muted">N(t) =</span>
-        <span class="text-amber-600 dark:text-amber-300">${N0}</span>
+        <span class="text-emerald-600 dark:text-emerald-300">E(t) = N<sub>decayed</sub> × Q =</span>
+        <span class="text-amber-600 dark:text-amber-300">${decayed}</span>
         <span>×</span>
-        <span class="text-cyan-600 dark:text-cyan-300">(1/2)<sup>${elapsedHalfLives.toFixed(2)}</sup></span>
+        <span class="text-cyan-600 dark:text-cyan-300">${iso.qTotalMeV.toFixed(3)} MeV</span>
         <span>=</span>
-        <span class="text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/30">${theoryRem.toFixed(1)} theoretical</span>
-        <span class="text-xs text-theme-muted">(Actual: <strong class="text-amber-600 dark:text-amber-300">${remaining}</strong>)</span>
+        <span class="text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/40">${energyGeneratedMeV.toFixed(1)} MeV</span>
       `;
-      fractionBadge.textContent = `(1/2)^${elapsedHalfLives.toFixed(2)} = ${(frac * 100).toFixed(1)}%`;
+      fractionBadge.textContent = `Energy Released: ${energyReleasedPct.toFixed(1)}%`;
 
       if (elapsedHalfLives === 0) {
-        hudCallout.innerHTML = `<span class="font-bold text-amber-600 dark:text-amber-400">Ready:</span> Press <span class="font-bold">Start Decay</span> or <span class="font-bold">+1 Half-Life Step</span> to see each decaying nucleus eject <span class="mono font-bold">${iso.emittedUnitLabel}</span> radiation!`;
+        hudCallout.innerHTML = `<span class="font-bold text-amber-600 dark:text-amber-400">Ready:</span> Total stored nuclear energy = <span class="mono font-bold">${N0} × ${iso.qTotalMeV} MeV = ${maxEnergyBudgetMeV.toFixed(1)} MeV</span>. Click <span class="font-bold">+1 Half-Life Step</span> to release 50% of it!`;
       } else if (remaining === 0) {
-        hudCallout.innerHTML = `<span class="font-bold text-emerald-600 dark:text-emerald-400">Sample Exhausted:</span> All <span class="mono font-bold">${N0}</span> parent nuclei decayed and fired <span class="mono font-bold">${totalEmittedEvents}</span> emission bursts!`;
+        hudCallout.innerHTML = `<span class="font-bold text-emerald-600 dark:text-emerald-400">100% Energy Released:</span> All <span class="mono font-bold">${N0}</span> parent nuclei decayed, generating the full <span class="mono font-bold">${energyGeneratedMeV.toFixed(1)} MeV</span> energy budget!`;
       } else {
-        hudCallout.innerHTML = `<span class="font-bold text-cyan-600 dark:text-cyan-300">After ${elapsedHalfLives.toFixed(2)} t½ (${elapsedStr}):</span> <span class="font-bold text-amber-600 dark:text-amber-300">${remaining}</span> parent atoms remain (<span class="mono">${remPct.toFixed(1)}%</span>); <span class="font-bold text-orange-600 dark:text-orange-400">${decayed}</span> nuclei emitted <span class="mono">${iso.emittedUnitLabel}</span>.`;
+        hudCallout.innerHTML = `<span class="font-bold text-cyan-600 dark:text-cyan-300">At n = ${elapsedHalfLives.toFixed(2)} t½:</span> <span class="font-bold text-amber-600 dark:text-amber-300">${remPct.toFixed(1)}%</span> parent atoms remain while <span class="font-bold text-emerald-600 dark:text-emerald-300">${energyReleasedPct.toFixed(1)}% (${energyGeneratedMeV.toFixed(1)} MeV)</span> of total decay energy has been generated!`;
       }
 
       if (selectedMilestone === null) {
@@ -1037,7 +1081,6 @@
         chamberCtx.globalAlpha = Math.max(0, f.alpha);
 
         if (f.kind === 'alpha') {
-          // 4-nucleon Alpha Cluster (2 red protons + 2 blue neutrons)
           const sub = [
             { dx: -3.2, dy: -2.8, c: '#e11d48' },
             { dx: 3.2, dy: 2.8, c: '#e11d48' },
@@ -1082,7 +1125,6 @@
           chamberCtx.setLineDash([]);
 
         } else if (f.kind === 'gamma') {
-          // Wavy Golden Electromagnetic Gamma Photon
           const gColor = isDarkMode ? '#fbbf24' : '#d97706';
           chamberCtx.save();
           chamberCtx.translate(fx, fy);
@@ -1101,7 +1143,6 @@
           chamberCtx.shadowBlur = 8;
           chamberCtx.stroke();
 
-          // Arrowhead
           chamberCtx.beginPath();
           chamberCtx.moveTo(5, 0);
           chamberCtx.lineTo(-2, -3.5);
@@ -1121,7 +1162,7 @@
     }
 
     // ==========================================
-    // 9. CANVAS RENDERING: EXPONENTIAL DECAY GRAPH
+    // 9. CANVAS RENDERING: DUAL NUCLEI & CUMULATIVE ENERGY GRAPH
     // ==========================================
     function drawGraph() {
       const w = graphCanvas.clientWidth;
@@ -1131,8 +1172,8 @@
 
       const marginLeft = 46;
       const marginRight = 16;
-      const marginTop = 18;
-      const marginBottom = 32;
+      const marginTop = 26;
+      const marginBottom = 30;
       const plotW = w - marginLeft - marginRight;
       const plotH = h - marginTop - marginBottom;
 
@@ -1141,11 +1182,30 @@
       const gridColor = isDarkMode ? 'rgba(148, 163, 184, 0.12)' : 'rgba(15, 23, 42, 0.08)';
       const labelColor = isDarkMode ? '#94a3b8' : '#475569';
 
+      // Top Legend Inside Plot Canvas
+      graphCtx.font = 'bold 10px Inter, sans-serif';
+      graphCtx.textBaseline = 'middle';
+      if (graphTraceMode === 'both' || graphTraceMode === 'nuclei') {
+        graphCtx.fillStyle = isDarkMode ? '#fbbf24' : '#d97706';
+        graphCtx.textAlign = 'left';
+        graphCtx.fillText('● Parent N(t) %', marginLeft, 11);
+      }
+      if (graphTraceMode === 'both' || graphTraceMode === 'energy') {
+        graphCtx.fillStyle = isDarkMode ? '#34d399' : '#059669';
+        graphCtx.textAlign = graphTraceMode === 'both' ? 'right' : 'left';
+        graphCtx.fillText(
+          `● Energy E(t) [Max ${(N0 * currentIsotope.qTotalMeV).toFixed(0)} MeV]`,
+          graphTraceMode === 'both' ? w - marginRight : marginLeft,
+          11
+        );
+      }
+
+      // Horizontal Percentage Grid Lines
       const yMarks = [
         { frac: 1.0, text: '100%' },
+        { frac: 0.75, text: '75%' },
         { frac: 0.5, text: '50%' },
         { frac: 0.25, text: '25%' },
-        { frac: 0.125, text: '12.5%' },
         { frac: 0.0, text: '0%' }
       ];
 
@@ -1165,6 +1225,7 @@
         graphCtx.fillText(m.text, marginLeft - 6, y);
       });
 
+      // Vertical Half-Life Grid Lines
       for (let n = 0; n <= maxHalfLives; n++) {
         const x = marginLeft + (n / maxHalfLives) * plotW;
         graphCtx.strokeStyle = n === 0 ? axisColor : gridColor;
@@ -1184,74 +1245,128 @@
       graphCtx.fillStyle = labelColor;
       graphCtx.font = 'bold 10px Inter, sans-serif';
       graphCtx.textAlign = 'center';
-      graphCtx.fillText('Elapsed Half-Lives (n = t / t½)', marginLeft + plotW / 2, h - 10);
+      graphCtx.fillText('Elapsed Half-Lives (n = t / t½)', marginLeft + plotW / 2, h - 9);
 
-      // Theoretical Curve
-      graphCtx.save();
-      graphCtx.strokeStyle = isDarkMode ? '#818cf8' : '#4f46e5';
-      graphCtx.lineWidth = 2.2;
-      graphCtx.setLineDash([5, 4]);
-      graphCtx.beginPath();
-      const steps = 100;
-      for (let s = 0; s <= steps; s++) {
-        const nVal = (s / steps) * maxHalfLives;
-        const frac = Math.pow(0.5, nVal);
-        const x = marginLeft + (nVal / maxHalfLives) * plotW;
-        const y = marginTop + (1 - frac) * plotH;
-        if (s === 0) graphCtx.moveTo(x, y);
-        else graphCtx.lineTo(x, y);
+      const showNuclei = graphTraceMode === 'both' || graphTraceMode === 'nuclei';
+      const showEnergy = graphTraceMode === 'both' || graphTraceMode === 'energy';
+
+      // A. Theoretical Parent Decay Curve: (1/2)^n
+      if (showNuclei) {
+        graphCtx.save();
+        graphCtx.strokeStyle = isDarkMode ? 'rgba(251, 191, 36, 0.45)' : 'rgba(217, 119, 6, 0.45)';
+        graphCtx.lineWidth = 1.8;
+        graphCtx.setLineDash([4, 4]);
+        graphCtx.beginPath();
+        for (let s = 0; s <= 100; s++) {
+          const nVal = (s / 100) * maxHalfLives;
+          const frac = Math.pow(0.5, nVal);
+          const x = marginLeft + (nVal / maxHalfLives) * plotW;
+          const y = marginTop + (1 - frac) * plotH;
+          if (s === 0) graphCtx.moveTo(x, y);
+          else graphCtx.lineTo(x, y);
+        }
+        graphCtx.stroke();
+        graphCtx.restore();
       }
-      graphCtx.stroke();
-      graphCtx.restore();
 
-      // Clickable Milestone Dots
+      // B. Theoretical Cumulative Energy Growth Curve: 1 - (1/2)^n
+      if (showEnergy) {
+        graphCtx.save();
+        graphCtx.strokeStyle = isDarkMode ? 'rgba(52, 211, 153, 0.45)' : 'rgba(5, 150, 105, 0.45)';
+        graphCtx.lineWidth = 1.8;
+        graphCtx.setLineDash([4, 4]);
+        graphCtx.beginPath();
+        for (let s = 0; s <= 100; s++) {
+          const nVal = (s / 100) * maxHalfLives;
+          const eFrac = 1 - Math.pow(0.5, nVal);
+          const x = marginLeft + (nVal / maxHalfLives) * plotW;
+          const y = marginTop + (1 - eFrac) * plotH;
+          if (s === 0) graphCtx.moveTo(x, y);
+          else graphCtx.lineTo(x, y);
+        }
+        graphCtx.stroke();
+        graphCtx.restore();
+      }
+
+      // C. Clickable Milestone Nodes (n = 1, 2, 3, 4)
       for (let n = 1; n <= Math.min(4, maxHalfLives); n++) {
-        const frac = Math.pow(0.5, n);
+        const remFrac = Math.pow(0.5, n);
+        const enFrac = 1 - remFrac;
         const mx = marginLeft + (n / maxHalfLives) * plotW;
-        const my = marginTop + (1 - frac) * plotH;
         const isSel = selectedMilestone === n;
 
-        graphCtx.beginPath();
-        graphCtx.arc(mx, my, isSel ? 6.5 : 4.5, 0, Math.PI * 2);
-        graphCtx.fillStyle = isSel ? '#fbbf24' : isDarkMode ? '#818cf8' : '#4f46e5';
-        graphCtx.fill();
-        graphCtx.strokeStyle = isDarkMode ? '#0f172a' : '#ffffff';
-        graphCtx.lineWidth = 1.5;
-        graphCtx.stroke();
+        if (showNuclei) {
+          const myN = marginTop + (1 - remFrac) * plotH;
+          graphCtx.beginPath();
+          graphCtx.arc(mx, myN, isSel ? 6 : 4, 0, Math.PI * 2);
+          graphCtx.fillStyle = isSel ? '#ffffff' : isDarkMode ? '#fbbf24' : '#d97706';
+          graphCtx.fill();
+          graphHitBoxes.push({ n, x: mx - 12, y: myN - 12, w: 24, h: 24 });
+        }
 
-        graphHitBoxes.push({
-          n,
-          x: mx - 12,
-          y: my - 12,
-          w: 24,
-          h: 24
-        });
+        if (showEnergy) {
+          const myE = marginTop + (1 - enFrac) * plotH;
+          graphCtx.beginPath();
+          graphCtx.arc(mx, myE, isSel ? 6 : 4, 0, Math.PI * 2);
+          graphCtx.fillStyle = isSel ? '#ffffff' : isDarkMode ? '#34d399' : '#059669';
+          graphCtx.fill();
+          graphHitBoxes.push({ n, x: mx - 12, y: myE - 12, w: 24, h: 24 });
+        }
       }
 
-      // Live Sample Data Curve
+      // D. Live Experimental Data Traces
       if (historyPoints.length > 0) {
-        const liveColor = isDarkMode ? '#fbbf24' : '#d97706';
-        graphCtx.strokeStyle = liveColor;
-        graphCtx.lineWidth = 2.8;
-        graphCtx.beginPath();
-        historyPoints.forEach((pt, idx) => {
-          const x = marginLeft + (pt.n / maxHalfLives) * plotW;
-          const y = marginTop + (1 - pt.remaining / N0) * plotH;
-          if (idx === 0) graphCtx.moveTo(x, y);
-          else graphCtx.lineTo(x, y);
-        });
-        graphCtx.stroke();
+        // 1. Live Cumulative Energy Generated Trace (Emerald)
+        if (showEnergy) {
+          const enColor = isDarkMode ? '#34d399' : '#059669';
+          graphCtx.strokeStyle = enColor;
+          graphCtx.lineWidth = 2.8;
+          graphCtx.beginPath();
+          historyPoints.forEach((pt, idx) => {
+            const x = marginLeft + (pt.n / maxHalfLives) * plotW;
+            const y = marginTop + (1 - pt.decayed / N0) * plotH;
+            if (idx === 0) graphCtx.moveTo(x, y);
+            else graphCtx.lineTo(x, y);
+          });
+          graphCtx.stroke();
 
-        const last = historyPoints[historyPoints.length - 1];
-        const lx = marginLeft + (last.n / maxHalfLives) * plotW;
-        const ly = marginTop + (1 - last.remaining / N0) * plotH;
-        graphCtx.beginPath();
-        graphCtx.arc(lx, ly, 5.5, 0, Math.PI * 2);
-        graphCtx.fillStyle = liveColor;
-        graphCtx.shadowColor = liveColor;
-        graphCtx.shadowBlur = 10;
-        graphCtx.fill();
-        graphCtx.shadowBlur = 0;
+          const last = historyPoints[historyPoints.length - 1];
+          const lx = marginLeft + (last.n / maxHalfLives) * plotW;
+          const ly = marginTop + (1 - last.decayed / N0) * plotH;
+          graphCtx.beginPath();
+          graphCtx.arc(lx, ly, 5, 0, Math.PI * 2);
+          graphCtx.fillStyle = enColor;
+          graphCtx.shadowColor = enColor;
+          graphCtx.shadowBlur = 9;
+          graphCtx.fill();
+          graphCtx.shadowBlur = 0;
+        }
+
+        // 2. Live Parent Nuclei Remaining Trace (Amber)
+        if (showNuclei) {
+          const nucColor = isDarkMode ? '#fbbf24' : '#d97706';
+          graphCtx.strokeStyle = nucColor;
+          graphCtx.lineWidth = 2.8;
+          graphCtx.beginPath();
+          historyPoints.forEach((pt, idx) => {
+            const x = marginLeft + (pt.n / maxHalfLives) * plotW;
+            const y = marginTop + (1 - pt.remaining / N0) * plotH;
+            if (idx === 0) graphCtx.moveTo(x, y);
+            else graphCtx.lineTo(x, y);
+          });
+          graphCtx.stroke();
+
+          const last = historyPoints[historyPoints.length - 1];
+          const lx = marginLeft + (last.n / maxHalfLives) * plotW;
+          const ly = marginTop + (1 - last.remaining / N0) * plotH;
+          graphCtx.beginPath();
+          graphCtx.arc(lx, ly, 5, 0, Math.PI * 2);
+          graphCtx.fillStyle = nucColor;
+          graphCtx.shadowColor = nucColor;
+          graphCtx.shadowBlur = 9;
+          graphCtx.fill();
+          graphCtx.shadowBlur = 0;
+        }
       }
     }
 
