@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Half-Life &amp; Radioactive Decay Curve Lab</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+    :root {
+      --bg-page: #f1f5f9;
+      --bg-card: #ffffff;
+      --bg-subcard: #f8fafc;
+      --border-card: #cbd5e1;
+      --border-subtle: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --canvas-bg: radial-gradient(circle at 50% 50%, #e0f2fe 0%, #f1f5f9 75%, #e2e8f0 100%);
+      --graph-bg: #f8fafc;
+      --hud-bg: rgba(255, 255, 255, 0.92);
+      --hud-border: #cbd5e1;
+    }
+
+    html.dark {
+      --bg-page: #090d16;
+      --bg-card: #111827;
+      --bg-subcard: #0f172a;
+      --border-card: #1e293b;
+      --border-subtle: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --canvas-bg: radial-gradient(circle at 50% 50%, #172554 0%, #090d16 75%, #05080f 100%);
+      --graph-bg: #05080f;
+      --hud-bg: rgba(15, 23, 42, 0.88);
+      --hud-border: #334155;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .theme-card {
+      background-color: var(--bg-card);
+      border-color: var(--border-card);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .theme-subcard {
+      background-color: var(--bg-subcard);
+      border-color: var(--border-subtle);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .theme-hud {
+      background-color: var(--hud-bg);
+      border-color: var(--hud-border);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .text-theme-primary { color: var(--text-primary); }
+    .text-theme-secondary { color: var(--text-secondary); }
+    .text-theme-muted { color: var(--text-muted); }
+
+    .phet-btn {
+      transition: transform 0.1s ease, box-shadow 0.15s ease, filter 0.15s ease;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.28);
+    }
+    .phet-btn:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
+    }
+    .phet-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .cosmic-bg {
+      background: var(--canvas-bg);
+      transition: background 0.3s ease;
+    }
+
+    .graph-box-bg {
+      background-color: var(--graph-bg);
+      border-color: var(--border-subtle);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between select-none">
+
+  <!-- TOP HEADER BAR -->
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 shadow-lg z-10">
+    <div class="max-w-7xl mx-auto flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 flex items-center justify-center shadow-md shrink-0">
+          <span class="text-slate-950 font-black text-base mono">t½</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-[11px] font-extrabold tracking-wider uppercase rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40">Nuclear Physics Lab</span>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">Half-Life &amp; Radioactive Decay Curve Lab</h1>
+          </div>
+          <p class="text-xs text-slate-400">Stochastic Atomic Decay, Activity ($A = \lambda N$) &amp; Exponential Curve Simulator</p>
+        </div>
+      </div>
+
+      <!-- Isotope Selector Tabs + Theme, Geiger Audio & Reset -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div id="isotope-tabs" class="flex flex-wrap gap-1.5 bg-slate-950/90 p-1.5 rounded-xl border border-slate-800">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Theme Toggle Button -->
+        <button id="btn-theme" class="phet-btn px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-slate-600/60" title="Switch between Light Mode and Obsidian Dark Mode">
+          <span id="theme-icon">☀️</span>
+          <span id="theme-label">Light Mode</span>
+        </button>
+
+        <!-- Geiger Sound Toggle Button -->
+        <button id="btn-sound" class="phet-btn px-3 py-2 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-emerald-400/40" title="Toggle Geiger Counter Clicks">
+          <span id="sound-icon">🔊</span>
+          <span id="sound-label">Geiger ON</span>
+        </button>
+
+        <!-- Reset Button -->
+        <button id="btn-reset" class="phet-btn px-3.5 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-slate-500/40">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Reset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN SIMULATION WORKSPACE -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+    <!-- LEFT/CENTER: ATOMIC SAMPLE CHAMBER & CONTROLS (7 cols on lg) -->
+    <section class="lg:col-span-7 flex flex-col gap-3">
+      <!-- Atomic Chamber Canvas -->
+      <div class="relative w-full h-[380px] sm:h-[445px] rounded-2xl cosmic-bg border-2 border-[var(--border-card)] shadow-xl overflow-hidden">
+        <canvas id="chamber-canvas" class="w-full h-full block"></canvas>
+
+        <!-- Top-Left Sample Identity HUD -->
+        <div class="theme-hud absolute top-3 left-3 backdrop-blur-md border rounded-xl px-3.5 py-2 shadow-md pointer-events-none">
+          <div class="text-[11px] uppercase tracking-wider font-semibold text-theme-muted">Radioactive Sample Chamber</div>
+          <div id="hud-isotope-title" class="text-base sm:text-lg font-extrabold text-theme-primary flex items-center gap-2">
+            Cobalt-60 (<span class="mono">⁶⁰₂₇Co ➔ ⁶⁰₂₈Ni</span>)
+          </div>
+          <div class="mt-1 flex flex-wrap items-center gap-1.5">
+            <span id="hud-halflife-pill" class="mono inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40">
+              t½ = 5.27 years
+            </span>
+            <span id="hud-mode-pill" class="mono inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/40">
+              β⁻ + 2γ Decay
+            </span>
+          </div>
+        </div>
+
+        <!-- Top-Right Legend -->
+        <div class="theme-hud hidden sm:flex flex-col gap-1.5 absolute top-3 right-3 backdrop-blur-md border rounded-xl px-3 py-2 text-xs shadow-sm pointer-events-none">
+          <div class="flex items-center gap-2">
+            <span id="legend-parent-dot" class="w-3.5 h-3.5 rounded-full bg-amber-400 inline-block shadow"></span>
+            <span id="legend-parent-text" class="text-theme-primary font-semibold">Undecayed Parent (N)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="legend-daughter-dot" class="w-3.5 h-3.5 rounded-full bg-emerald-500 inline-block"></span>
+            <span id="legend-daughter-text" class="text-theme-secondary font-medium">Stable Daughter (N₀ − N)</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 rounded-full border-2 border-cyan-400 inline-block"></span>
+            <span class="text-cyan-700 dark:text-cyan-300 font-semibold">Emitted Radiation Flash</span>
+          </div>
+        </div>
+
+        <!-- Bottom-Left Live Pedagogical Callout -->
+        <div id="hud-callout" class="theme-hud absolute bottom-3 left-3 right-3 backdrop-blur-md border rounded-xl px-4 py-2 text-xs sm:text-sm text-theme-primary shadow-md pointer-events-none">
+          <span class="font-bold text-amber-600 dark:text-amber-400">Stochastic Law:</span> Each nucleus decays randomly, yet across <span class="mono font-bold">N₀ = 400</span> atoms, half transform every <span class="mono font-bold">1 t½</span>!
+        </div>
+      </div>
+
+      <!-- INTERACTIVE TIME & SAMPLE CONTROL BAR -->
+      <div class="theme-card border rounded-2xl p-3.5 shadow-md space-y-3">
+        <!-- Row 1: Play/Pause, +1 Half-Life Step, Speed -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+          <div class="flex flex-wrap gap-2 flex-1">
+            <button id="btn-play" class="phet-btn flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2">
+              <span id="play-icon">▶</span>
+              <span id="play-label">Start Decay</span>
+            </button>
+
+            <button id="btn-step-hl" class="phet-btn flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5">
+              <span>⏭</span>
+              <span>+1 Half-Life Step</span>
+            </button>
+          </div>
+
+          <!-- Speed Selector -->
+          <div class="theme-subcard flex items-center justify-between sm:justify-end gap-2 px-3 py-2 rounded-xl border">
+            <span class="text-xs font-bold text-theme-muted">Sim Speed:</span>
+            <div class="flex gap-1" id="speed-group">
+              <button data-speed="0.5" class="speed-btn px-2 py-1 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-800 text-theme-secondary">0.5×</button>
+              <button data-speed="1" class="speed-btn px-2 py-1 rounded-lg text-xs font-extrabold bg-cyan-500 text-slate-950">1×</button>
+              <button data-speed="2.5" class="speed-btn px-2 py-1 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-800 text-theme-secondary">2.5×</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Initial Sample Size (N0) Slider & Custom Half-Life Slider -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-[var(--border-subtle)]">
+          <div>
+            <div class="flex justify-between text-xs font-bold mb-1">
+              <span class="text-theme-secondary">Initial Nuclei ($N_0$):</span>
+              <span id="slider-n0-val" class="mono text-amber-600 dark:text-amber-400">400 atoms</span>
+            </div>
+            <input id="slider-n0" type="range" min="40" max="800" step="20" value="400" class="w-full accent-amber-500 cursor-pointer" />
+            <div class="flex justify-between text-[10px] text-theme-muted">
+              <span>40 (High Statistical Jitter)</span>
+              <span>800 (Smooth Curve)</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs font-bold mb-1">
+              <span class="text-theme-secondary">Half-Life ($t_{1/2}$) Scale:</span>
+              <span id="slider-hl-val" class="mono text-cyan-600 dark:text-cyan-400">5.27 years</span>
+            </div>
+            <input id="slider-hl" type="range" min="1" max="100" step="1" value="53" class="w-full accent-cyan-500 cursor-pointer" />
+            <div class="flex justify-between text-[10px] text-theme-muted">
+              <span>Fast Decay (High λ)</span>
+              <span>Slow Decay (Low λ)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT SIDEBAR: REAL-TIME EXPONENTIAL DECAY GRAPH & INSPECTOR (5 cols on lg) -->
+    <aside class="theme-card lg:col-span-5 border rounded-2xl p-4 shadow-md flex flex-col justify-between gap-3">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-sm font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">Exponential Decay Curve ($N$ vs. $t/t_{1/2}$)</h2>
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/40">Click Milestones!</span>
+        </div>
+        <p class="text-xs text-theme-muted mb-2.5">Compare the dashed <strong class="text-theme-primary">theoretical curve</strong> $N_0(1/2)^n$ with live <strong class="text-amber-600 dark:text-amber-400">experimental data points</strong>. Click any $t_{1/2}$ marker!</p>
+
+        <!-- Exponential Decay Graph Canvas -->
+        <div class="graph-box-bg w-full h-[265px] sm:h-[280px] rounded-xl border overflow-hidden relative shadow-inner">
+          <canvas id="graph-canvas" class="w-full h-full block cursor-pointer"></canvas>
+        </div>
+      </div>
+
+      <!-- Pedagogical & Real-World Application Card -->
+      <div class="theme-subcard border border-amber-500/40 rounded-xl p-3 text-xs space-y-1.5">
+        <div class="flex items-center justify-between gap-2">
+          <div id="inspector-title" class="font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+            <span>🏥</span> Real-World Use &amp; Decay Constant ($\lambda$)
+          </div>
+          <span id="inspector-badge" class="mono text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 border border-slate-300 dark:border-slate-700 shrink-0">λ = 0.693 / t½</span>
+        </div>
+        <p id="inspector-body" class="text-theme-secondary leading-relaxed">
+          <strong>Cobalt-60 ($t_{1/2} = 5.27\text{ yr}$)</strong> has a medium half-life: long enough to power hospital cancer teletherapy machines for several years before replacement, yet active enough ($\lambda = 4.17 \times 10^{-9}\text{ s}^{-1}$) to deliver focused $1.17$ &amp; $1.33\text{ MeV}$ gamma beams!
+        </p>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- BOTTOM PANEL: LIVE TELEMETRY & EXPONENTIAL EQUATION BAR -->
+  <footer class="max-w-7xl w-full mx-auto px-3 sm:px-4 pb-4 space-y-3">
+    <!-- 6 Live Telemetry Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+      <!-- Elapsed Time (t) -->
+      <div class="theme-card border rounded-xl p-2.5 text-center shadow-sm">
+        <div class="text-[11px] font-bold uppercase text-cyan-600 dark:text-cyan-400">Elapsed Time (t)</div>
+        <div id="stat-time" class="mono text-lg sm:text-xl font-extrabold text-theme-primary mt-0.5">0.00 yr</div>
+        <div id="stat-hl-count" class="text-[10px] font-semibold text-cyan-700 dark:text-cyan-300">n = 0.00 half-lives</div>
+      </div>
+
+      <!-- Undecayed Parent Nuclei N(t) -->
+      <div class="theme-card border border-amber-500/40 rounded-xl p-2.5 text-center shadow-sm">
+        <div class="text-[11px] font-bold uppercase text-amber-600 dark:text-amber-400">Parent Remaining (N)</div>
+        <div id="stat-parent" class="mono text-lg sm:text-xl font-extrabold text-amber-600 dark:text-amber-300 mt-0.5">400</div>
+        <div id="stat-parent-pct" class="text-[10px] text-theme-muted">100.0% of N₀</div>
+      </div>
+
+      <!-- Decayed Daughter Nuclei -->
+      <div class="theme-card border rounded-xl p-2.5 text-center shadow-sm">
+        <div class="text-[11px] font-bold uppercase text-emerald-600 dark:text-emerald-400">Daughter Formed</div>
+        <div id="stat-daughter" class="mono text-lg sm:text-xl font-extrabold text-emerald-600 dark:text-emerald-300 mt-0.5">0</div>
+        <div id="stat-daughter-pct" class="text-[10px] text-theme-muted">0.0% Transformed</div>
+      </div>
+
+      <!-- Theoretical Prediction -->
+      <div class="theme-card border rounded-xl p-2.5 text-center shadow-sm">
+        <div class="text-[11px] font-bold uppercase text-indigo-600 dark:text-indigo-400">Theoretical N₀(½)ⁿ</div>
+        <div id="stat-theory" class="mono text-lg sm:text-xl font-extrabold text-indigo-600 dark:text-indigo-300 mt-0.5">400.0</div>
+        <div id="stat-diff" class="text-[10px] text-theme-muted">Statistical Δ = 0.0</div>
+      </div>
+
+      <!-- Decay Constant (λ) -->
+      <div class="theme-card border rounded-xl p-2.5 text-center shadow-sm">
+        <div class="text-[11px] font-bold uppercase text-purple-600 dark:text-purple-400">Decay Constant (λ)</div>
+        <div id="stat-lambda" class="mono text-base sm:text-lg font-extrabold text-purple-600 dark:text-purple-300 mt-0.5">4.17e-9 s⁻¹</div>
+        <div class="text-[10px] text-theme-muted">λ = ln(2) / t½</div>
+      </div>
+
+      <!-- Sample Activity A = λN -->
+      <div class="theme-card border rounded-xl p-2.5 text-center shadow-sm">
+        <div class="text-[11px] font-bold uppercase text-rose-600 dark:text-rose-400">Activity (A = λN)</div>
+        <div id="stat-activity" class="mono text-base sm:text-lg font-extrabold text-rose-600 dark:text-rose-300 mt-0.5">1.67e-6 Bq</div>
+        <div id="stat-cpm" class="text-[10px] text-theme-muted">Decays / sec (Scaled)</div>
+      </div>
+    </div>
+
+    <!-- Live Substituted Half-Life Equation Bar -->
+    <div class="theme-card border-2 rounded-2xl p-3.5 shadow-md flex flex-col md:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-300 text-xs font-extrabold uppercase tracking-wider">
+          Live Half-Life Formula
+        </span>
+      </div>
+
+      <div id="equation-display" class="mono text-xs sm:text-base md:text-lg font-bold text-center text-theme-primary tracking-wide flex flex-wrap items-center justify-center gap-2">
+        <!-- Populated dynamically -->
+      </div>
+
+      <div id="fraction-badge" class="mono text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/40 text-center shrink-0">
+        (1/2)⁰·⁰⁰ = 100.0%
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ==========================================
+    // 1. ISOTOPE PRESET DATASET
+    // ==========================================
+    const ISOTOPES = [
+      {
+        id: 'o15',
+        tabLabel: '¹⁵₈O (122 s)',
+        name: 'Oxygen-15',
+        reaction: '¹⁵₈O ➔ ¹⁵₇N + e⁺ + νₑ',
+        modeBadge: 'β⁺ Positron Decay',
+        halfLifeVal: 122.24,
+        unit: 's',
+        secondsFactor: 1,
+        sliderPos: 12,
+        parentColorDark: '#f472b6',
+        parentColorLight: '#db2777',
+        daughterColorDark: '#38bdf8',
+        daughterColorLight: '#0284c7',
+        particleLabel: 'e⁺',
+        title: 'Hospital PET Scan Tracer (Oxygen-15)',
+        info: 'Oxygen-15 (t½ = 122.2 s ≈ 2.04 min) has a very high decay constant (λ = 5.67 × 10⁻³ s⁻¹). Because it decays by 97% within just 10 minutes (5 half-lives), doctors can image blood flow in the brain safely without leaving lingering radiation in the patient!'
+      },
+      {
+        id: 'tc99m',
+        tabLabel: '⁹⁹ᵐ₄₃Tc (6.0 hr)',
+        name: 'Technetium-99m',
+        reaction: '⁹⁹ᵐ₄₃Tc ➔ ⁹⁹₄₃Tc + γ',
+        modeBadge: 'Pure γ Isomeric',
+        halfLifeVal: 6.01,
+        unit: 'hr',
+        secondsFactor: 3600,
+        sliderPos: 28,
+        parentColorDark: '#fbbf24',
+        parentColorLight: '#d97706',
+        daughterColorDark: '#94a3b8',
+        daughterColorLight: '#64748b',
+        particleLabel: 'γ',
+        title: 'Diagnostic Medical Workhorse (Technetium-99m)',
+        info: 'Technetium-99m (t½ = 6.01 hours) sits in a "goldilocks" half-life window for hospital SPECT scans: long enough to prepare and inject the radiotracer, yet after 24 hours (4 half-lives) only (1/2)⁴ = 6.25% remains!'
+      },
+      {
+        id: 'co60',
+        tabLabel: '⁶⁰₂₇Co (5.27 yr)',
+        name: 'Cobalt-60',
+        reaction: '⁶⁰₂₇Co ➔ ⁶⁰₂₈Ni + e⁻ + ν̄ₑ + 2γ',
+        modeBadge: 'β⁻ + 2γ Cascade',
+        halfLifeVal: 5.27,
+        unit: 'yr',
+        secondsFactor: 31557600,
+        sliderPos: 50,
+        parentColorDark: '#818cf8',
+        parentColorLight: '#4f46e5',
+        daughterColorDark: '#34d399',
+        daughterColorLight: '#059669',
+        particleLabel: 'e⁻/γ',
+        title: 'Radiation Therapy & Sterilization (Cobalt-60)',
+        info: 'Cobalt-60 (t½ = 5.27 years, λ = 4.17 × 10⁻⁹ s⁻¹) powers cancer teletherapy units and medical equipment sterilizers. After 15.8 years (3 half-lives), 12.5% of the source remains and the hospital replaces the capsule.'
+      },
+      {
+        id: 'cs137',
+        tabLabel: '¹³⁷₅₅Cs (30.2 yr)',
+        name: 'Cesium-137',
+        reaction: '¹³⁷₅₅Cs ➔ ¹³⁷₅₆Ba + e⁻ + ν̄ₑ + γ',
+        modeBadge: 'β⁻ + 0.662 MeV γ',
+        halfLifeVal: 30.17,
+        unit: 'yr',
+        secondsFactor: 31557600,
+        sliderPos: 66,
+        parentColorDark: '#fb923c',
+        parentColorLight: '#ea580c',
+        daughterColorDark: '#34d399',
+        daughterColorLight: '#059669',
+        particleLabel: 'e⁻/γ',
+        title: 'Long-Lived Fission Product (Cesium-137)',
+        info: 'Cesium-137 (t½ = 30.17 years) is a major nuclear reactor fission product. Because 10 half-lives (~302 years) are needed to reduce its radioactivity by a factor of 1,024 (to < 0.1%), spent fuel requires engineered multi-century containment.'
+      },
+      {
+        id: 'ra226',
+        tabLabel: '²²⁶₈₈Ra (1600 yr)',
+        name: 'Radium-226',
+        reaction: '²²⁶₈₈Ra ➔ ²²²₈₆Rn + ⁴₂He (α)',
+        modeBadge: 'α Alpha Emitter',
+        halfLifeVal: 1600,
+        unit: 'yr',
+        secondsFactor: 31557600,
+        sliderPos: 82,
+        parentColorDark: '#fb7185',
+        parentColorLight: '#e11d48',
+        daughterColorDark: '#38bdf8',
+        daughterColorLight: '#0284c7',
+        particleLabel: 'α',
+        title: 'Natural Uranium-Series Emitter (Radium-226)',
+        info: 'Discovered by Marie and Pierre Curie, Radium-226 (t½ = 1,600 years) decays via 4.78 MeV alpha emission into Radon-222 gas. Its small decay constant (λ = 1.37 × 10⁻¹¹ s⁻¹) means natural ore stays radioactive for millennia.'
+      },
+      {
+        id: 'c14',
+        tabLabel: '¹⁴₆C (5730 yr)',
+        name: 'Carbon-14',
+        reaction: '¹⁴₆C ➔ ¹⁴₇N + e⁻ + ν̄ₑ',
+        modeBadge: 'Pure β⁻ Dating',
+        halfLifeVal: 5730,
+        unit: 'yr',
+        secondsFactor: 31557600,
+        sliderPos: 95,
+        parentColorDark: '#22d3ee',
+        parentColorLight: '#0284c7',
+        daughterColorDark: '#a78bfa',
+        daughterColorLight: '#7c3aed',
+        particleLabel: 'e⁻',
+        title: 'Archaeological Radiocarbon Clock (Carbon-14)',
+        info: 'Living organisms replenish Carbon-14 (t½ = 5,730 years) from the atmosphere. Once an organism dies, ¹⁴C decays into ¹⁴N without replacement—allowing archaeologists to date wood, bone, and textiles up to ~50,000 years old (~9 half-lives)!'
+      }
+    ];
+
+    // ==========================================
+    // 2. GEIGER COUNTER WEB AUDIO SYNTHESIZER
+    // ==========================================
+    class GeigerAudio {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+        this.lastClickTime = 0;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggle() {
+        this.enabled = !this.enabled;
+        if (this.enabled) {
+          this.init();
+          this.playGeigerClick(true);
+        }
+        return this.enabled;
+      }
+
+      playGeigerClick(force = false) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        if (!force && now - this.lastClickTime < 0.025) return; // Rate limit for crisp audio
+        this.lastClickTime = now;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1400 + Math.random() * 600, now);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.018);
+
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.022);
+      }
+    }
+
+    const geiger = new GeigerAudio();
+
+    // ==========================================
+    // 3. SIMULATION STATE
+    // ==========================================
+    let isDarkMode = true;
+    let currentIsotope = ISOTOPES[2]; // Default: Cobalt-60
+    let customHalfLife = currentIsotope.halfLifeVal;
+    let N0 = 400;
+    let atoms = [];
+    let radiationFlashes = [];
+    let historyPoints = []; // { n: number_of_half_lives, remaining: count }
+    let elapsedHalfLives = 0;
+    let isRunning = false;
+    let simSpeed = 1.0;
+    let graphHitBoxes = [];
+    let selectedMilestone = null;
+
+    // ==========================================
+    // 4. DOM ELEMENTS
+    // ==========================================
+    const chamberCanvas = document.getElementById('chamber-canvas');
+    const chamberCtx = chamberCanvas.getContext('2d');
+    const graphCanvas = document.getElementById('graph-canvas');
+    const graphCtx = graphCanvas.getContext('2d');
+
+    const tabsContainer = document.getElementById('isotope-tabs');
+    const btnTheme = document.getElementById('btn-theme');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeLabel = document.getElementById('theme-label');
+    const btnSound = document.getElementById('btn-sound');
+    const soundIcon = document.getElementById('sound-icon');
+    const soundLabel = document.getElementById('sound-label');
+    const btnReset = document.getElementById('btn-reset');
+    const btnPlay = document.getElementById('btn-play');
+    const playIcon = document.getElementById('play-icon');
+    const playLabel = document.getElementById('play-label');
+    const btnStepHL = document.getElementById('btn-step-hl');
+
+    const sliderN0 = document.getElementById('slider-n0');
+    const sliderN0Val = document.getElementById('slider-n0-val');
+    const sliderHL = document.getElementById('slider-hl');
+    const sliderHLVal = document.getElementById('slider-hl-val');
+
+    const hudIsotopeTitle = document.getElementById('hud-isotope-title');
+    const hudHalflifePill = document.getElementById('hud-halflife-pill');
+    const hudModePill = document.getElementById('hud-mode-pill');
+    const legendParentDot = document.getElementById('legend-parent-dot');
+    const legendDaughterDot = document.getElementById('legend-daughter-dot');
+    const hudCallout = document.getElementById('hud-callout');
+
+    const inspectorTitle = document.getElementById('inspector-title');
+    const inspectorBadge = document.getElementById('inspector-badge');
+    const inspectorBody = document.getElementById('inspector-body');
+
+    const statTime = document.getElementById('stat-time');
+    const statHlCount = document.getElementById('stat-hl-count');
+    const statParent = document.getElementById('stat-parent');
+    const statParentPct = document.getElementById('stat-parent-pct');
+    const statDaughter = document.getElementById('stat-daughter');
+    const statDaughterPct = document.getElementById('stat-daughter-pct');
+    const statTheory = document.getElementById('stat-theory');
+    const statDiff = document.getElementById('stat-diff');
+    const statLambda = document.getElementById('stat-lambda');
+    const statActivity = document.getElementById('stat-activity');
+    const equationDisplay = document.getElementById('equation-display');
+    const fractionBadge = document.getElementById('fraction-badge');
+
+    // ==========================================
+    // 5. CANVAS SIZING & THEME SWITCHING
+    // ==========================================
+    function resizeCanvases() {
+      const dpr = window.devicePixelRatio || 1;
+      const cRect = chamberCanvas.parentElement.getBoundingClientRect();
+      chamberCanvas.width = cRect.width * dpr;
+      chamberCanvas.height = cRect.height * dpr;
+      chamberCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const gRect = graphCanvas.parentElement.getBoundingClientRect();
+      graphCanvas.width = gRect.width * dpr;
+      graphCanvas.height = gRect.height * dpr;
+      graphCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', resizeCanvases);
+
+    btnTheme.addEventListener('click', () => {
+      isDarkMode = !isDarkMode;
+      document.documentElement.classList.toggle('dark', isDarkMode);
+      themeIcon.textContent = isDarkMode ? '☀️' : '🌙';
+      themeLabel.textContent = isDarkMode ? 'Light Mode' : 'Dark Mode';
+      btnTheme.className = isDarkMode
+        ? 'phet-btn px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-slate-600/60'
+        : 'phet-btn px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-indigo-400/50';
+      updateUI();
+    });
+
+    // ==========================================
+    // 6. ATOMIC GRID & STOCHASTIC DECAY ENGINE
+    // ==========================================
+    function buildAtomicSample() {
+      atoms = [];
+      radiationFlashes = [];
+      elapsedHalfLives = 0;
+      selectedMilestone = null;
+
+      // Arrange N0 nuclei in a clean centered grid with subtle thermal jitter
+      const cols = Math.ceil(Math.sqrt(N0 * 1.45));
+      const rows = Math.ceil(N0 / cols);
+
+      for (let i = 0; i < N0; i++) {
+        const r = Math.floor(i / cols);
+        const c = i % cols;
+        // Center partial last row
+        const itemsInThisRow = r === rows - 1 ? N0 - r * cols : cols;
+        const colOffset = (cols - itemsInThisRow) * 0.5;
+
+        atoms.push({
+          normX: (c + colOffset + 0.5) / cols,
+          normY: (r + 0.5) / rows,
+          decayed: false,
+          flash: 0,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+
+      historyPoints = [{ n: 0, remaining: N0 }];
+      updateUI();
+    }
+
+    function advanceDecayByHalfLives(deltaN) {
+      if (deltaN <= 0) return;
+      // Exact quantum decay probability over interval deltaN = dt / t_1/2:
+      // P(decay) = 1 - (1/2)^deltaN = 1 - e^(-ln(2)*deltaN)
+      const decayProb = 1 - Math.pow(0.5, deltaN);
+      let decayedThisStep = 0;
+
+      for (let i = 0; i < atoms.length; i++) {
+        const a = atoms[i];
+        if (!a.decayed && Math.random() < decayProb) {
+          a.decayed = true;
+          a.flash = 1.0;
+          decayedThisStep++;
+
+          // Spawn visual radiation particle flash (capped for smooth 60fps)
+          if (radiationFlashes.length < 45) {
+            const angle = Math.random() * Math.PI * 2;
+            radiationFlashes.push({
+              normX: a.normX,
+              normY: a.normY,
+              vx: Math.cos(angle) * 2.4,
+              vy: Math.sin(angle) * 2.4,
+              alpha: 1.0,
+              label: currentIsotope.particleLabel
+            });
+          }
+        }
+      }
+
+      elapsedHalfLives += deltaN;
+
+      if (decayedThisStep > 0) {
+        geiger.playGeigerClick(false);
+      }
+
+      const remaining = atoms.filter((a) => !a.decayed).length;
+      const lastPt = historyPoints[historyPoints.length - 1];
+      if (!lastPt || elapsedHalfLives - lastPt.n >= 0.04 || deltaN >= 0.5) {
+        historyPoints.push({ n: elapsedHalfLives, remaining });
+      }
+
+      // Auto-pause if all atoms decayed
+      if (remaining === 0 && isRunning) {
+        togglePlayPause(false);
+      }
+
+      updateUI();
+    }
+
+    function togglePlayPause(forceState = null) {
+      isRunning = forceState !== null ? forceState : !isRunning;
+      if (isRunning) {
+        geiger.init();
+        playIcon.textContent = '⏸';
+        playLabel.textContent = 'Pause Decay';
+        btnPlay.className = 'phet-btn flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2';
+      } else {
+        playIcon.textContent = '▶';
+        playLabel.textContent = 'Start Decay';
+        btnPlay.className = 'phet-btn flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2';
+      }
+    }
+
+    // ==========================================
+    // 7. TABS, CONTROLS & TELEMETRY SYNC
+    // ==========================================
+    function renderTabs() {
+      tabsContainer.innerHTML = '';
+      ISOTOPES.forEach((iso) => {
+        const btn = document.createElement('button');
+        const active = iso.id === currentIsotope.id;
+        btn.className = active
+          ? 'px-2.5 py-1.5 rounded-lg text-xs font-extrabold bg-amber-400 text-slate-950 shadow transition'
+          : 'px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition';
+        btn.textContent = iso.tabLabel;
+        btn.addEventListener('click', () => {
+          currentIsotope = iso;
+          customHalfLife = iso.halfLifeVal;
+          sliderHL.value = iso.sliderPos;
+          togglePlayPause(false);
+          renderTabs();
+          buildAtomicSample();
+          geiger.playGeigerClick(true);
+        });
+        tabsContainer.appendChild(btn);
+      });
+    }
+
+    function formatHalfLife(val, unit) {
+      if (val >= 1000) return `${Math.round(val).toLocaleString()} ${unit}`;
+      if (val >= 10) return `${val.toFixed(1)} ${unit}`;
+      return `${val.toFixed(2)} ${unit}`;
+    }
+
+    function updateInspector(milestoneN = null) {
+      const iso = currentIsotope;
+      if (milestoneN !== null) {
+        const pct = (Math.pow(0.5, milestoneN) * 100).toFixed(milestoneN <= 2 ? 0 : 2);
+        const decayedPct = (100 - parseFloat(pct)).toFixed(milestoneN <= 2 ? 0 : 2);
+        const timeAtMark = formatHalfLife(milestoneN * customHalfLife, iso.unit);
+        inspectorTitle.innerHTML = `<span>📍</span> Milestone: ${milestoneN} Half-Life${milestoneN > 1 ? 's' : ''} (${timeAtMark})`;
+        inspectorBadge.textContent = `(1/2)^${milestoneN} = ${pct}%`;
+        inspectorBody.innerHTML = `After <strong>${milestoneN} half-life${milestoneN > 1 ? 's' : ''}</strong> (<span class="mono text-cyan-600 dark:text-cyan-300">${timeAtMark}</span>), exactly <strong>${pct}%</strong> (<span class="mono">${Math.round(N0 * Math.pow(0.5, milestoneN))}</span> of ${N0} atoms) remains undecayed parent, while <strong>${decayedPct}%</strong> has transformed into stable daughter nuclei!`;
+        return;
+      }
+
+      inspectorTitle.innerHTML = `<span>🏥</span> ${iso.title}`;
+      inspectorBadge.textContent = `t½ = ${formatHalfLife(customHalfLife, iso.unit)}`;
+      inspectorBody.textContent = iso.info;
+    }
+
+    function updateUI() {
+      const iso = currentIsotope;
+      const remaining = atoms.filter((a) => !a.decayed).length;
+      const decayed = N0 - remaining;
+      const remPct = (remaining / N0) * 100;
+      const decPct = (decayed / N0) * 100;
+
+      const theoryRem = N0 * Math.pow(0.5, elapsedHalfLives);
+      const diff = remaining - theoryRem;
+
+      const hlStr = formatHalfLife(customHalfLife, iso.unit);
+      const elapsedTime = elapsedHalfLives * customHalfLife;
+      const elapsedStr = formatHalfLife(elapsedTime, iso.unit);
+
+      // Decay constant lambda = ln(2) / t_1/2 (in s^-1)
+      const hlSeconds = customHalfLife * iso.secondsFactor;
+      const lambda = Math.LN2 / hlSeconds;
+      const activity = lambda * remaining;
+
+      // HUD & Legends
+      hudIsotopeTitle.innerHTML = `${iso.name} (<span class="mono">${iso.reaction}</span>)`;
+      hudHalflifePill.textContent = `t½ = ${hlStr}`;
+      hudModePill.textContent = iso.modeBadge;
+      sliderN0Val.textContent = `${N0} atoms`;
+      sliderHLVal.textContent = hlStr;
+
+      legendParentDot.style.backgroundColor = isDarkMode ? iso.parentColorDark : iso.parentColorLight;
+      legendDaughterDot.style.backgroundColor = isDarkMode ? iso.daughterColorDark : iso.daughterColorLight;
+
+      // Bottom Stat Cards
+      statTime.textContent = elapsedStr;
+      statHlCount.textContent = `n = ${elapsedHalfLives.toFixed(2)} half-lives`;
+
+      statParent.textContent = remaining;
+      statParentPct.textContent = `${remPct.toFixed(1)}% of N₀`;
+
+      statDaughter.textContent = decayed;
+      statDaughterPct.textContent = `${decPct.toFixed(1)}% Transformed`;
+
+      statTheory.textContent = theoryRem.toFixed(1);
+      statDiff.textContent = `Statistical Δ = ${diff >= 0 ? '+' : ''}${diff.toFixed(1)}`;
+
+      statLambda.textContent = `${lambda.toExponential(2)} s⁻¹`;
+      statActivity.textContent = `${activity.toExponential(2)} Bq`;
+
+      // Live Substituted Formula
+      const frac = Math.pow(0.5, elapsedHalfLives);
+      equationDisplay.innerHTML = `
+        <span class="text-theme-muted">N(t) =</span>
+        <span class="text-amber-600 dark:text-amber-300">${N0}</span>
+        <span>×</span>
+        <span class="text-cyan-600 dark:text-cyan-300">(1/2)<sup>${elapsedHalfLives.toFixed(2)}</sup></span>
+        <span>=</span>
+        <span class="text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/30">${theoryRem.toFixed(1)} theoretical</span>
+        <span class="text-xs text-theme-muted">(Actual: <strong class="text-amber-600 dark:text-amber-300">${remaining}</strong>)</span>
+      `;
+      fractionBadge.textContent = `(1/2)^${elapsedHalfLives.toFixed(2)} = ${(frac * 100).toFixed(1)}%`;
+
+      // Callout Banner
+      if (elapsedHalfLives === 0) {
+        hudCallout.innerHTML = `<span class="font-bold text-amber-600 dark:text-amber-400">Ready:</span> Press <span class="font-bold">Start Decay</span> or click <span class="font-bold">+1 Half-Life Step</span> to watch <span class="mono font-bold">${N0}</span> parent nuclei decay randomly.`;
+      } else if (remaining === 0) {
+        hudCallout.innerHTML = `<span class="font-bold text-emerald-600 dark:text-emerald-400">Sample Exhausted:</span> All <span class="mono font-bold">${N0}</span> parent nuclei have transformed into stable daughter atoms after <span class="mono font-bold">${elapsedHalfLives.toFixed(2)}</span> half-lives!`;
+      } else {
+        hudCallout.innerHTML = `<span class="font-bold text-cyan-600 dark:text-cyan-300">After ${elapsedHalfLives.toFixed(2)} t½ (${elapsedStr}):</span> <span class="font-bold text-amber-600 dark:text-amber-300">${remaining}</span> parent atoms remain (<span class="mono">${remPct.toFixed(1)}%</span>) vs. <span class="mono">${theoryRem.toFixed(1)}</span> predicted by <span class="mono">N₀(½)ⁿ</span>.`;
+      }
+
+      if (selectedMilestone === null) {
+        updateInspector(null);
+      }
+    }
+
+    // Event Listeners
+    btnPlay.addEventListener('click', () => togglePlayPause());
+
+    btnStepHL.addEventListener('click', () => {
+      togglePlayPause(false);
+      // Step to next whole integer half-life if close, otherwise +1.0 half-life
+      const nextTarget = Math.floor(elapsedHalfLives + 0.001) + 1;
+      const stepDelta = nextTarget - elapsedHalfLives;
+      advanceDecayByHalfLives(stepDelta);
+      selectedMilestone = nextTarget <= 5 ? nextTarget : null;
+      if (selectedMilestone) updateInspector(selectedMilestone);
+    });
+
+    btnReset.addEventListener('click', () => {
+      togglePlayPause(false);
+      geiger.playGeigerClick(true);
+      buildAtomicSample();
+    });
+
+    btnSound.addEventListener('click', () => {
+      const on = geiger.toggle();
+      soundIcon.textContent = on ? '🔊' : '🔇';
+      soundLabel.textContent = on ? 'Geiger ON' : 'Muted';
+      btnSound.className = on
+        ? 'phet-btn px-3 py-2 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-emerald-400/40'
+        : 'phet-btn px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold text-xs sm:text-sm flex items-center gap-1.5 border border-slate-500/40';
+    });
+
+    document.querySelectorAll('.speed-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        simSpeed = parseFloat(btn.dataset.speed);
+        document.querySelectorAll('.speed-btn').forEach((b) => {
+          b.className = 'speed-btn px-2 py-1 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-800 text-theme-secondary';
+        });
+        btn.className = 'speed-btn px-2 py-1 rounded-lg text-xs font-extrabold bg-cyan-500 text-slate-950';
+      });
+    });
+
+    sliderN0.addEventListener('input', () => {
+      N0 = parseInt(sliderN0.value, 10);
+      togglePlayPause(false);
+      buildAtomicSample();
+    });
+
+    sliderHL.addEventListener('input', () => {
+      // Scale half-life smoothly around the selected preset's base value (0.2x to 2.5x)
+      const ratio = parseInt(sliderHL.value, 10) / currentIsotope.sliderPos;
+      customHalfLife = Math.max(0.1, currentIsotope.halfLifeVal * ratio);
+      updateUI();
+    });
+
+    graphCanvas.addEventListener('click', (e) => {
+      const rect = graphCanvas.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      for (const box of graphHitBoxes) {
+        if (cx >= box.x && cx <= box.x + box.w && cy >= box.y && cy <= box.y + box.h) {
+          selectedMilestone = box.n;
+          geiger.playGeigerClick(true);
+          updateInspector(box.n);
+          break;
+        }
+      }
+    });
+
+    // ==========================================
+    // 8. CANVAS RENDERING: ATOMIC SAMPLE CHAMBER
+    // ==========================================
+    function drawChamber(timeSec) {
+      const w = chamberCanvas.clientWidth;
+      const h = chamberCanvas.clientHeight;
+      chamberCtx.clearRect(0, 0, w, h);
+
+      const padLeft = 28;
+      const padRight = 28;
+      const padTop = 76;
+      const padBottom = 56;
+      const boxW = w - padLeft - padRight;
+      const boxH = h - padTop - padBottom;
+
+      // Subtle containment chamber outline
+      chamberCtx.strokeStyle = isDarkMode ? 'rgba(148, 163, 184, 0.14)' : 'rgba(15, 23, 42, 0.12)';
+      chamberCtx.lineWidth = 1.5;
+      chamberCtx.beginPath();
+      chamberCtx.roundRect(padLeft - 8, padTop - 8, boxW + 16, boxH + 16, 14);
+      chamberCtx.stroke();
+
+      const parentColor = isDarkMode ? currentIsotope.parentColorDark : currentIsotope.parentColorLight;
+      const daughterColor = isDarkMode ? currentIsotope.daughterColorDark : currentIsotope.daughterColorLight;
+      const radius = N0 <= 120 ? 8.5 : N0 <= 320 ? 6.2 : N0 <= 550 ? 4.8 : 3.9;
+
+      for (let i = 0; i < atoms.length; i++) {
+        const a = atoms[i];
+        const jitterX = a.decayed ? 0 : Math.sin(timeSec * 6 + a.phase) * 1.1;
+        const jitterY = a.decayed ? 0 : Math.cos(timeSec * 5.3 + a.phase) * 1.1;
+
+        const px = padLeft + a.normX * boxW + jitterX;
+        const py = padTop + a.normY * boxH + jitterY;
+
+        if (a.flash > 0.02) {
+          chamberCtx.beginPath();
+          chamberCtx.arc(px, py, radius + 9 * a.flash, 0, Math.PI * 2);
+          chamberCtx.fillStyle = `rgba(56, 189, 248, ${a.flash * 0.45})`;
+          chamberCtx.fill();
+          a.flash *= 0.90;
+        }
+
+        chamberCtx.beginPath();
+        chamberCtx.arc(px, py, radius, 0, Math.PI * 2);
+        chamberCtx.fillStyle = a.decayed ? daughterColor : parentColor;
+        chamberCtx.fill();
+
+        if (!a.decayed && radius >= 5.5) {
+          chamberCtx.beginPath();
+          chamberCtx.arc(px - radius * 0.3, py - radius * 0.3, radius * 0.28, 0, Math.PI * 2);
+          chamberCtx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+          chamberCtx.fill();
+        }
+      }
+
+      // Render Ejected Radiation Particles
+      for (let i = radiationFlashes.length - 1; i >= 0; i--) {
+        const f = radiationFlashes[i];
+        f.normX += (f.vx / boxW) * 1.5;
+        f.normY += (f.vy / boxH) * 1.5;
+        f.alpha -= 0.028;
+
+        if (f.alpha <= 0) {
+          radiationFlashes.splice(i, 1);
+          continue;
+        }
+
+        const fx = padLeft + f.normX * boxW;
+        const fy = padTop + f.normY * boxH;
+
+        chamberCtx.save();
+        chamberCtx.globalAlpha = Math.max(0, f.alpha);
+        chamberCtx.strokeStyle = isDarkMode ? '#38bdf8' : '#0284c7';
+        chamberCtx.lineWidth = 2;
+        chamberCtx.beginPath();
+        chamberCtx.moveTo(fx - f.vx * 4, fy - f.vy * 4);
+        chamberCtx.lineTo(fx, fy);
+        chamberCtx.stroke();
+
+        chamberCtx.fillStyle = isDarkMode ? '#7dd3fc' : '#0369a1';
+        chamberCtx.font = 'bold 10px "JetBrains Mono", monospace';
+        chamberCtx.fillText(f.label, fx + 4, fy - 4);
+        chamberCtx.restore();
+      }
+    }
+
+    // ==========================================
+    // 9. CANVAS RENDERING: EXPONENTIAL DECAY GRAPH
+    // ==========================================
+    function drawGraph() {
+      const w = graphCanvas.clientWidth;
+      const h = graphCanvas.clientHeight;
+      graphCtx.clearRect(0, 0, w, h);
+      graphHitBoxes = [];
+
+      const marginLeft = 48;
+      const marginRight = 18;
+      const marginTop = 22;
+      const marginBottom = 36;
+      const plotW = w - marginLeft - marginRight;
+      const plotH = h - marginTop - marginBottom;
+
+      const maxHalfLives = Math.max(5, Math.ceil(elapsedHalfLives + 0.5));
+      const axisColor = isDarkMode ? '#475569' : '#94a3b8';
+      const gridColor = isDarkMode ? 'rgba(148, 163, 184, 0.12)' : 'rgba(15, 23, 42, 0.08)';
+      const labelColor = isDarkMode ? '#94a3b8' : '#475569';
+
+      // Horizontal Percentage Grid Lines (100%, 50%, 25%, 12.5%)
+      const yMarks = [
+        { frac: 1.0, text: '100%' },
+        { frac: 0.5, text: '50%' },
+        { frac: 0.25, text: '25%' },
+        { frac: 0.125, text: '12.5%' },
+        { frac: 0.0, text: '0%' }
+      ];
+
+      yMarks.forEach((m) => {
+        const y = marginTop + (1 - m.frac) * plotH;
+        graphCtx.strokeStyle = m.frac === 0 ? axisColor : gridColor;
+        graphCtx.lineWidth = m.frac === 0 ? 1.5 : 1;
+        graphCtx.beginPath();
+        graphCtx.moveTo(marginLeft, y);
+        graphCtx.lineTo(w - marginRight, y);
+        graphCtx.stroke();
+
+        graphCtx.fillStyle = labelColor;
+        graphCtx.font = 'bold 10px "JetBrains Mono", monospace';
+        graphCtx.textAlign = 'right';
+        graphCtx.textBaseline = 'middle';
+        graphCtx.fillText(m.text, marginLeft - 6, y);
+      });
+
+      // Vertical Half-Life Grid Lines (1 t1/2, 2 t1/2, 3 t1/2...)
+      for (let n = 0; n <= maxHalfLives; n++) {
+        const x = marginLeft + (n / maxHalfLives) * plotW;
+        graphCtx.strokeStyle = n === 0 ? axisColor : gridColor;
+        graphCtx.lineWidth = n === 0 ? 1.5 : 1;
+        graphCtx.beginPath();
+        graphCtx.moveTo(x, marginTop);
+        graphCtx.lineTo(x, marginTop + plotH);
+        graphCtx.stroke();
+
+        graphCtx.fillStyle = labelColor;
+        graphCtx.font = 'bold 10px "JetBrains Mono", monospace';
+        graphCtx.textAlign = 'center';
+        graphCtx.textBaseline = 'top';
+        graphCtx.fillText(`${n}t½`, x, marginTop + plotH + 6);
+      }
+
+      // Axis Titles
+      graphCtx.fillStyle = labelColor;
+      graphCtx.font = 'bold 10px Inter, sans-serif';
+      graphCtx.textAlign = 'center';
+      graphCtx.fillText('Elapsed Half-Lives (n = t / t½)', marginLeft + plotW / 2, h - 11);
+
+      // 1. Theoretical Exponential Curve: N(t) = N0 * (1/2)^n
+      graphCtx.save();
+      graphCtx.strokeStyle = isDarkMode ? '#818cf8' : '#4f46e5';
+      graphCtx.lineWidth = 2.2;
+      graphCtx.setLineDash([5, 4]);
+      graphCtx.beginPath();
+      const steps = 100;
+      for (let s = 0; s <= steps; s++) {
+        const nVal = (s / steps) * maxHalfLives;
+        const frac = Math.pow(0.5, nVal);
+        const x = marginLeft + (nVal / maxHalfLives) * plotW;
+        const y = marginTop + (1 - frac) * plotH;
+        if (s === 0) graphCtx.moveTo(x, y);
+        else graphCtx.lineTo(x, y);
+      }
+      graphCtx.stroke();
+      graphCtx.restore();
+
+      // 2. Clickable Milestone Nodes on Theoretical Curve (n = 1, 2, 3, 4)
+      for (let n = 1; n <= Math.min(4, maxHalfLives); n++) {
+        const frac = Math.pow(0.5, n);
+        const mx = marginLeft + (n / maxHalfLives) * plotW;
+        const my = marginTop + (1 - frac) * plotH;
+        const isSel = selectedMilestone === n;
+
+        graphCtx.beginPath();
+        graphCtx.arc(mx, my, isSel ? 6.5 : 4.5, 0, Math.PI * 2);
+        graphCtx.fillStyle = isSel ? '#fbbf24' : isDarkMode ? '#818cf8' : '#4f46e5';
+        graphCtx.fill();
+        graphCtx.strokeStyle = isDarkMode ? '#0f172a' : '#ffffff';
+        graphCtx.lineWidth = 1.5;
+        graphCtx.stroke();
+
+        graphHitBoxes.push({
+          n,
+          x: mx - 12,
+          y: my - 12,
+          w: 24,
+          h: 24
+        });
+      }
+
+      // 3. Live Experimental Simulation Data Line
+      if (historyPoints.length > 0) {
+        const liveColor = isDarkMode ? '#fbbf24' : '#d97706';
+        graphCtx.strokeStyle = liveColor;
+        graphCtx.lineWidth = 2.8;
+        graphCtx.beginPath();
+        historyPoints.forEach((pt, idx) => {
+          const x = marginLeft + (pt.n / maxHalfLives) * plotW;
+          const y = marginTop + (1 - pt.remaining / N0) * plotH;
+          if (idx === 0) graphCtx.moveTo(x, y);
+          else graphCtx.lineTo(x, y);
+        });
+        graphCtx.stroke();
+
+        // Glowing Current Point Marker
+        const last = historyPoints[historyPoints.length - 1];
+        const lx = marginLeft + (last.n / maxHalfLives) * plotW;
+        const ly = marginTop + (1 - last.remaining / N0) * plotH;
+        graphCtx.beginPath();
+        graphCtx.arc(lx, ly, 5.5, 0, Math.PI * 2);
+        graphCtx.fillStyle = liveColor;
+        graphCtx.shadowColor = liveColor;
+        graphCtx.shadowBlur = 10;
+        graphCtx.fill();
+        graphCtx.shadowBlur = 0;
+      }
+    }
+
+    // ==========================================
+    // 10. MAIN ANIMATION LOOP
+    // ==========================================
+    let lastTime = 0;
+    function loop(timestamp) {
+      const dt = Math.min(0.05, (timestamp - lastTime) / 1000 || 0.016);
+      lastTime = timestamp;
+
+      if (isRunning) {
+        // 1x speed = 1 half-life every 3.2 seconds for clear classroom observation
+        const deltaHalfLives = (dt / 3.2) * simSpeed;
+        advanceDecayByHalfLives(deltaHalfLives);
+      }
+
+      drawChamber(timestamp / 1000);
+      drawGraph();
+      requestAnimationFrame(loop);
+    }
+
+    window.onload = function () {
+      resizeCanvases();
+      renderTabs();
+      buildAtomicSample();
+      requestAnimationFrame(loop);
+    };
+  </script>
+</body>
+</html>
