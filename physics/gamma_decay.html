@@ -354,8 +354,8 @@
      * Features:
      * 1. Seamless Light Mode & Obsidian Dark Mode toggle with canvas palette adaptation
      * 2. Primary radioactive decay (Beta-minus, Alpha, Beta-plus, Metastable Isomer)
-     * 3. Nuclear Drip-Line spontaneous emission (Neutron Drip Line He-5 & Proton Drip Line F-16)
-     * 4. Interactive Nuclear Energy Level & Shell Diagram explaining Spin/Parity (Jπ) selection rules
+     * 3. Accurate Nuclear Drip-Line spontaneous emission (He-5 neutron drip & F-16 proton drip)
+     * 4. Interactive Nuclear Energy Level & Shell Diagram explaining Spin/Parity (Jπ) & Q-value energy thresholds
      * 5. Synthesized Web Audio API sound effects (zero external assets)
      */
 
@@ -792,14 +792,14 @@
       },
       {
         id: 'f16',
-        tabLabel: '¹⁶₉F (p Drip → γ)',
+        tabLabel: '¹⁶₉F (p Drip Line)',
         name: 'Fluorine-16',
         parentSymbol: '¹⁶₉F',
         parentSpin: '0⁻',
         parentZ: 9,
         parentN: 7,
         parentA: 16,
-        parentEnergy: 5.81,
+        parentEnergy: 0.54,
         sepLabel: 'Sₚ = -0.54 MeV ≤ 0',
         sepTitle: 'Proton Separation (Sₚ)',
         sepNote: 'UNBOUND (Proton Drip Line!)',
@@ -808,27 +808,26 @@
         decayType: 'proton-drip',
         step1BtnText: 'Trigger Proton Drip-Line Ejection',
         daughterName: 'Oxygen-15',
-        daughterExcitedSymbol: '¹⁵₈O*',
-        daughterExcitedSpin: '1/2⁺',
+        daughterExcitedSymbol: '¹⁵₈O',
+        daughterExcitedSpin: '1/2⁻',
         daughterGroundSymbol: '¹⁵₈O',
         daughterGroundSpin: '1/2⁻',
         daughterZ: 8,
         daughterN: 7,
         daughterA: 15,
-        excitedEnergy: 5.18,
-        gammaList: [
-          { energy: 5.18, label: 'γ (5.18 MeV)' }
-        ],
+        excitedEnergy: 0.00,
+        gammaList: [],
         step1ParticlesText: '1 Free Proton (¹₁p)',
-        step1EquationHTML: `<span class="text-rose-600 dark:text-rose-300">¹⁶₉F (Sₚ = -0.54 MeV)</span> <span>➔</span> <span class="text-amber-700 dark:text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded border border-amber-500/40">¹⁵₈O* (1/2⁺)</span> <span>+</span> <span class="text-rose-600 dark:text-rose-400 font-extrabold">¹₁p (Free Proton)</span>`,
-        step2EquationHTML: `<span class="text-amber-700 dark:text-amber-300">¹⁵₈O* (1/2⁺)</span> <span>➔</span> <span class="text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/40">¹⁵₈O (1/2⁻)</span> <span>+</span> <span class="text-orange-600 dark:text-orange-400 font-extrabold">γ (5.18 MeV)</span>`,
+        step1EquationHTML: `<span class="text-rose-600 dark:text-rose-300">¹⁶₉F (Sₚ = -0.54 MeV)</span> <span>➔</span> <span class="text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2 py-0.5 rounded border border-emerald-500/40">¹⁵₈O (1/2⁻)</span> <span>+</span> <span class="text-rose-600 dark:text-rose-400 font-extrabold">¹₁p (Free Proton)</span>`,
+        step2EquationHTML: `<span class="text-emerald-700 dark:text-emerald-300">¹⁵₈O (1/2⁻)</span> <span class="text-slate-500 dark:text-slate-400 text-sm">(Direct to Ground State — Q = 0.54 MeV &lt; 5.18 MeV First Excited Level!)</span>`,
         initialEquationHTML: `<span class="text-rose-600 dark:text-rose-300">¹⁶₉F (0⁻)</span> <span class="text-slate-500 dark:text-slate-400 text-sm">(Beyond Proton Drip Line: Sₚ = -0.54 MeV ≤ 0)</span>`,
-        step1Callout: `<span class="font-bold text-rose-600 dark:text-rose-400">Step 1 (Proton Drip-Line Emission):</span> Because <span class="mono">Sₚ = -0.54 MeV ≤ 0</span>, ¹⁶₉F immediately ejects a single free proton (<span class="mono">¹₁p</span>, NOT an α particle!) and leaves <span class="font-bold text-amber-700 dark:text-amber-300">¹⁵₈O*</span> in a 5.18 MeV excited shell!`,
-        step2Callout: `<span class="font-bold text-orange-600 dark:text-orange-400">Step 2 (γ Relaxation After Drip-Line Decay!):</span> Even drip-line proton emission can leave the daughter excited! ¹⁵₈O* emitted a 5.18 MeV γ photon to reach ground state (<span class="mono">A = 15, Z = 8</span> unchanged).`,
-        whyExcitedTitle: 'Proton Drip Line + Excited Daughter State (¹⁵₈O*)',
-        whyExcitedBadge: 'Sₚ = -0.54 MeV → γ',
-        whyExcitedText: 'Fluorine-16 has 9 protons vs. 7 neutrons, pushing its 9th proton past the proton drip line (Sₚ = -0.54 MeV ≤ 0). It immediately ejects 1 free proton (¹₁p)—not a 4-nucleon α particle! Moreover, because of parity/shell overlap, Oxygen-15 is left in its 1/2⁺ excited state (5.18 MeV) and must emit a γ photon!',
-        startsExcited: false
+        step1Callout: `<span class="font-bold text-rose-600 dark:text-rose-400">Proton Drip-Line Emission (Direct to Ground State!):</span> Because <span class="mono">Sₚ = -0.54 MeV ≤ 0</span>, ¹⁶₉F immediately ejects 1 free proton (<span class="mono">¹₁p</span>) with Q = 0.54 MeV. Since ¹⁵₈O’s lowest excited state sits at <span class="mono">5.18 MeV</span>, it lands 100% in the <span class="font-bold text-emerald-700 dark:text-emerald-300">¹⁵₈O ground state (no γ)!</span>`,
+        step2Callout: `<span class="font-bold text-emerald-700 dark:text-emerald-300">Ground State Reached Directly (No γ):</span> Total mass defect Q = 0.54 MeV is far below ¹⁵₈O’s 5.18 MeV excited level, so zero gamma photons are emitted.`,
+        whyExcitedTitle: 'Why Proton Drip-Line ¹⁶₉F Lands Directly in ¹⁵₈O Ground State (No γ)',
+        whyExcitedBadge: 'Q = 0.54 MeV < 5.18 MeV',
+        whyExcitedText: 'Fluorine-16 sits beyond the proton drip line (Sₚ = -0.54 MeV ≤ 0) and immediately ejects 1 free proton (¹₁p), releasing Q = 0.536 MeV of mass-defect energy. Because Oxygen-15’s lowest excited nuclear shell sits way up at 5.18 MeV, ¹⁶₉F simply does not have enough energy to excite ¹⁵₈O—so 100% of decays go straight to the 1/2⁻ ground state with zero γ emission!',
+        startsExcited: false,
+        landsInGround: true
       }
     ];
 
@@ -1048,7 +1047,7 @@
         inspectorTitle.innerHTML = `<span>🚧</span> Drip-Line Binding Threshold (Sₙ = 0 or Sₚ = 0)`;
         inspectorBadge.textContent = iso.sepLabel;
         inspectorBody.innerHTML = iso.isDripLine
-          ? `Because <strong>${iso.name}</strong> sits <em>above</em> the S = 0 threshold (<span class="mono text-rose-600 dark:text-rose-300">${iso.sepLabel}</span>), the strong nuclear force cannot trap the outermost nucleon. It snaps off instantaneously (~10⁻²¹ s) instead of waiting for beta decay!`
+          ? `Because <strong>${iso.name}</strong> sits <em>above</em> the S = 0 threshold (<span class="mono text-rose-600 dark:text-rose-300">${iso.sepLabel}</span>), the strong nuclear force cannot trap the outermost nucleon. It snaps off instantaneously (~10⁻²⁰ s) instead of waiting for beta decay!`
           : `Because <strong>${iso.name}</strong> has a positive separation energy (<span class="mono text-cyan-700 dark:text-cyan-300">${iso.sepLabel}</span>), all protons and neutrons are bound inside the nuclear potential well—so it decays via α or β instead of dripping nucleons.`;
         return;
       }
@@ -1065,7 +1064,7 @@
         inspectorBadge.textContent = 'ΔA = 0, ΔZ = 0';
         inspectorBody.innerHTML = iso.gammaList.length > 0
           ? `When an excited nucleon drops to a lower shell, the nucleus releases pure electromagnetic light (<span class="mono text-amber-600 dark:text-amber-300">γ photon</span>) carrying away the exact energy difference (<span class="mono">${iso.excitedEnergy} MeV</span>) and angular momentum change—without altering Z or A!`
-          : `Helium-4 is doubly magic (closed 1s shells) and lands directly in its 0⁺ ground state upon neutron ejection, so no gamma photon is emitted.`;
+          : `<strong>${iso.daughterName} (${iso.daughterGroundSymbol})</strong> lands directly in its <span class="mono">${iso.daughterGroundSpin}</span> ground state upon nucleon ejection, so no gamma photon is emitted.`;
         return;
       }
 
@@ -1275,7 +1274,7 @@
           y: -15,
           vx: 3.2,
           vy: -1.2,
-          label: '¹₁p (Free Proton — NOT α!)',
+          label: '¹₁p (Free Proton — No γ!)',
           colorKey: 'particleAlpha',
           alpha: 1
         });
