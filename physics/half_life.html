@@ -263,7 +263,7 @@
       <div>
         <div class="flex items-center justify-between gap-1 mb-1">
           <h2 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400">Nuclei Remaining &amp; Energy Generated</h2>
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/40">Click Dots!</span>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/40">Hover Curves to Inspect!</span>
         </div>
 
         <!-- Graph Trace Mode Switcher -->
@@ -281,7 +281,7 @@
 
         <!-- Exponential Decay + Energy Growth Graph Canvas -->
         <div class="graph-box-bg w-full h-[225px] sm:h-[240px] rounded-xl border overflow-hidden relative shadow-inner">
-          <canvas id="graph-canvas" class="w-full h-full block cursor-pointer"></canvas>
+          <canvas id="graph-canvas" class="w-full h-full block cursor-crosshair"></canvas>
         </div>
       </div>
 
@@ -353,7 +353,7 @@
         <div class="text-[10px] text-theme-muted">λ = ln(2) / t½</div>
       </div>
 
-      <!-- Thermal / Radiation Power P = A * Q -->
+      <!-- Activity -->
       <div class="theme-card border rounded-xl p-2.5 text-center shadow-sm">
         <div class="text-[11px] font-bold uppercase text-rose-600 dark:text-rose-400">Activity (A = λN)</div>
         <div id="stat-activity" class="mono text-base sm:text-lg font-extrabold text-rose-600 dark:text-rose-300 mt-0.5">1.33e-6 Bq</div>
@@ -394,8 +394,8 @@
         secondsFactor: 31557600,
         sliderPos: 48,
         qTotalMeV: 2.823,
-        qParticleMeV: 0.318, // e- + antineutrino
-        qGammaMeV: 2.505,    // 1.173 + 1.332 MeV
+        qParticleMeV: 0.318,
+        qGammaMeV: 2.505,
         parentColorDark: '#818cf8',
         parentColorLight: '#4f46e5',
         daughterColorDark: '#34d399',
@@ -403,7 +403,7 @@
         emissions: ['beta-minus', 'antineutrino', 'gamma', 'gamma'],
         emittedUnitLabel: 'e⁻, 2γ',
         decayTitle: 'Cobalt-60 Energy Accounting: 0.318 MeV β⁻ + 2.505 MeV γ',
-        decayInfo: 'Each decaying ⁶⁰Co nucleus converts Δm = 0.003031 u into Q = 2.823 MeV: 11.3% (0.318 MeV) goes to the β⁻ electron + antineutrino, and 88.7% (2.505 MeV) is released as two penetrating γ photons (1.173 + 1.332 MeV). After 1 t½ (5.27 yr), 50% of the sample’s total energy budget has been radiated!',
+        decayInfo: 'Each decaying ⁶⁰Co nucleus converts Δm = 0.003031 u into Q = 2.823 MeV: 11.3% (0.318 MeV) goes to the β⁻ electron + antineutrino, and 88.7% (2.505 MeV) is released as two penetrating γ photons (1.173 + 1.332 MeV). Hover over the curves above to inspect values at any time!',
         reactorTitle: '⚡ Produced in Reactors & Measured for Source Reloading',
         reactorInfo: 'Cobalt-60 is bred inside nuclear reactors by exposing stable ⁵⁹Co to neutrons. Because thermal power output P(t) = A(t)·Q drops by 50% every 5.27 years alongside N(t), hospital therapy units must recalculate exposure times monthly and replace capsules after ~1–2 half-lives.'
       },
@@ -417,8 +417,8 @@
         secondsFactor: 31557600,
         sliderPos: 64,
         qTotalMeV: 1.176,
-        qParticleMeV: 0.514, // e- + antineutrino (94.4% branch)
-        qGammaMeV: 0.662,    // Ba-137m gamma
+        qParticleMeV: 0.514,
+        qGammaMeV: 0.662,
         parentColorDark: '#fb923c',
         parentColorLight: '#ea580c',
         daughterColorDark: '#34d399',
@@ -440,8 +440,8 @@
         secondsFactor: 31557600,
         sliderPos: 95,
         qTotalMeV: 4.679,
-        qParticleMeV: 4.493, // Alpha kinetic energy + recoil
-        qGammaMeV: 0.186,    // 186 keV characteristic gamma
+        qParticleMeV: 4.493,
+        qGammaMeV: 0.186,
         parentColorDark: '#38bdf8',
         parentColorLight: '#0284c7',
         daughterColorDark: '#94a3b8',
@@ -486,7 +486,7 @@
         secondsFactor: 3600,
         sliderPos: 26,
         qTotalMeV: 0.140,
-        qParticleMeV: 0.000, // Pure gamma isomer!
+        qParticleMeV: 0.000,
         qGammaMeV: 0.140,
         parentColorDark: '#fbbf24',
         parentColorLight: '#d97706',
@@ -509,7 +509,7 @@
         secondsFactor: 1,
         sliderPos: 12,
         qTotalMeV: 2.754,
-        qParticleMeV: 2.754, // Positron + neutrino kinetic energy (excluding 1.022 MeV mass creation)
+        qParticleMeV: 2.754,
         qGammaMeV: 0.000,
         parentColorDark: '#22d3ee',
         parentColorLight: '#0284c7',
@@ -581,23 +581,24 @@
     const geiger = new GeigerAudio();
 
     // ==========================================
-    // 3. SIMULATION STATE
+    // 3. SIMULATION STATE & HOVER SCRUBBER STATE
     // ==========================================
     let isDarkMode = true;
-    let currentIsotope = ISOTOPES[0]; // Default: Cobalt-60 (connects directly to 2.823 MeV problem!)
+    let currentIsotope = ISOTOPES[0];
     let customHalfLife = currentIsotope.halfLifeVal;
     let N0 = 320;
     let atoms = [];
     let flyingEmissions = [];
     let totalEmittedEvents = 0;
-    let historyPoints = []; // { n, remaining, decayed }
+    let historyPoints = [];
     let elapsedHalfLives = 0;
     let isRunning = false;
     let simSpeed = 1.0;
     let graphHitBoxes = [];
     let selectedMilestone = null;
-    let activeInspectorTab = 'decay'; // 'decay' or 'reactor'
-    let graphTraceMode = 'both';      // 'both', 'nuclei', or 'energy'
+    let activeInspectorTab = 'decay';
+    let graphTraceMode = 'both';
+    let graphHover = null; // { x, y, nVal } when hovering over the graph
 
     // ==========================================
     // 4. DOM ELEMENTS
@@ -881,7 +882,6 @@
       const decayed = N0 - remaining;
       const remPct = (remaining / N0) * 100;
 
-      // Energy accounting calculations: E_total = decayed * Q
       const energyGeneratedMeV = decayed * iso.qTotalMeV;
       const energyParticleMeV = decayed * iso.qParticleMeV;
       const energyGammaMeV = decayed * iso.qGammaMeV;
@@ -921,7 +921,6 @@
       statActivity.textContent = `${activity.toExponential(2)} Bq`;
       statEmitted.textContent = `${decayed} Decays (${iso.emittedUnitLabel})`;
 
-      // Live Substituted Energy Accounting & Half-Life Equation
       equationDisplay.innerHTML = `
         <span class="text-emerald-600 dark:text-emerald-300">E(t) = N<sub>decayed</sub> × Q =</span>
         <span class="text-amber-600 dark:text-amber-300">${decayed}</span>
@@ -933,7 +932,7 @@
       fractionBadge.textContent = `Energy Released: ${energyReleasedPct.toFixed(1)}%`;
 
       if (elapsedHalfLives === 0) {
-        hudCallout.innerHTML = `<span class="font-bold text-amber-600 dark:text-amber-400">Ready:</span> Total stored nuclear energy = <span class="mono font-bold">${N0} × ${iso.qTotalMeV} MeV = ${maxEnergyBudgetMeV.toFixed(1)} MeV</span>. Click <span class="font-bold">+1 Half-Life Step</span> to release 50% of it!`;
+        hudCallout.innerHTML = `<span class="font-bold text-amber-600 dark:text-amber-400">Ready:</span> Total stored nuclear energy = <span class="mono font-bold">${N0} × ${iso.qTotalMeV} MeV = ${maxEnergyBudgetMeV.toFixed(1)} MeV</span>. Click <span class="font-bold">+1 Half-Life Step</span> or hover over the graph to explore!`;
       } else if (remaining === 0) {
         hudCallout.innerHTML = `<span class="font-bold text-emerald-600 dark:text-emerald-400">100% Energy Released:</span> All <span class="mono font-bold">${N0}</span> parent nuclei decayed, generating the full <span class="mono font-bold">${energyGeneratedMeV.toFixed(1)} MeV</span> energy budget!`;
       } else {
@@ -994,6 +993,51 @@
       updateUI();
     });
 
+    // Graph Hover, Touch & Click Scrubber Listeners
+    function updateGraphHoverFromClientXY(clientX, clientY) {
+      const rect = graphCanvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      const marginLeft = 46;
+      const marginRight = 16;
+      const marginTop = 26;
+      const marginBottom = 30;
+      const plotW = rect.width - marginLeft - marginRight;
+      const plotH = rect.height - marginTop - marginBottom;
+
+      if (x >= marginLeft && x <= marginLeft + plotW && y >= marginTop - 10 && y <= marginTop + plotH + 10) {
+        const maxHalfLives = Math.max(5, Math.ceil(elapsedHalfLives + 0.5));
+        const nVal = Math.max(0, Math.min(maxHalfLives, ((x - marginLeft) / plotW) * maxHalfLives));
+        graphHover = { x, y, nVal };
+      } else {
+        graphHover = null;
+      }
+    }
+
+    graphCanvas.addEventListener('mousemove', (e) => {
+      updateGraphHoverFromClientXY(e.clientX, e.clientY);
+    });
+
+    graphCanvas.addEventListener('mouseleave', () => {
+      graphHover = null;
+    });
+
+    graphCanvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) {
+        updateGraphHoverFromClientXY(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    graphCanvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) {
+        updateGraphHoverFromClientXY(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    graphCanvas.addEventListener('touchend', () => {
+      graphHover = null;
+    });
+
     graphCanvas.addEventListener('click', (e) => {
       const rect = graphCanvas.getBoundingClientRect();
       const cx = e.clientX - rect.left;
@@ -1007,6 +1051,26 @@
         }
       }
     });
+
+    // Helper: Interpolate Live Experimental History at Any Half-Life Position nVal
+    function getInterpolatedLivePoint(nVal) {
+      if (historyPoints.length === 0) return null;
+      const last = historyPoints[historyPoints.length - 1];
+      if (nVal > last.n) return null; // Future time not simulated yet
+
+      for (let i = 0; i < historyPoints.length - 1; i++) {
+        const p1 = historyPoints[i];
+        const p2 = historyPoints[i + 1];
+        if (nVal >= p1.n && nVal <= p2.n) {
+          const span = p2.n - p1.n;
+          const t = span > 0 ? (nVal - p1.n) / span : 0;
+          const remaining = p1.remaining + (p2.remaining - p1.remaining) * t;
+          const decayed = p1.decayed + (p2.decayed - p1.decayed) * t;
+          return { remaining, decayed };
+        }
+      }
+      return { remaining: last.remaining, decayed: last.decayed };
+    }
 
     // ==========================================
     // 8. CANVAS RENDERING: ATOMIC CHAMBER + α/β/γ PROJECTILES
@@ -1162,7 +1226,7 @@
     }
 
     // ==========================================
-    // 9. CANVAS RENDERING: DUAL NUCLEI & CUMULATIVE ENERGY GRAPH
+    // 9. CANVAS RENDERING: DUAL NUCLEI & CUMULATIVE ENERGY GRAPH + HOVER INSPECTOR
     // ==========================================
     function drawGraph() {
       const w = graphCanvas.clientWidth;
@@ -1316,7 +1380,6 @@
 
       // D. Live Experimental Data Traces
       if (historyPoints.length > 0) {
-        // 1. Live Cumulative Energy Generated Trace (Emerald)
         if (showEnergy) {
           const enColor = isDarkMode ? '#34d399' : '#059669';
           graphCtx.strokeStyle = enColor;
@@ -1342,7 +1405,6 @@
           graphCtx.shadowBlur = 0;
         }
 
-        // 2. Live Parent Nuclei Remaining Trace (Amber)
         if (showNuclei) {
           const nucColor = isDarkMode ? '#fbbf24' : '#d97706';
           graphCtx.strokeStyle = nucColor;
@@ -1367,6 +1429,111 @@
           graphCtx.fill();
           graphCtx.shadowBlur = 0;
         }
+      }
+
+      // E. Interactive Hover Crosshair & Floating Value Tooltip
+      if (graphHover) {
+        const nVal = graphHover.nVal;
+        const hx = marginLeft + (nVal / maxHalfLives) * plotW;
+        const livePt = getInterpolatedLivePoint(nVal);
+
+        // Compute either live simulated values (if nVal <= elapsedHalfLives) or theoretical curve values
+        const theoryRemFrac = Math.pow(0.5, nVal);
+        const theoryEnFrac = 1 - theoryRemFrac;
+
+        const displayRem = livePt ? livePt.remaining : N0 * theoryRemFrac;
+        const displayDecayed = livePt ? livePt.decayed : N0 * theoryEnFrac;
+        const displayRemPct = (displayRem / N0) * 100;
+        const displayEnPct = (displayDecayed / N0) * 100;
+        const displayEnergyMeV = displayDecayed * currentIsotope.qTotalMeV;
+        const timeStr = formatHalfLife(nVal * customHalfLife, currentIsotope.unit);
+
+        // 1. Vertical Crosshair Line
+        graphCtx.save();
+        graphCtx.strokeStyle = isDarkMode ? 'rgba(56, 189, 248, 0.7)' : 'rgba(2, 132, 199, 0.7)';
+        graphCtx.lineWidth = 1.4;
+        graphCtx.setLineDash([3, 3]);
+        graphCtx.beginPath();
+        graphCtx.moveTo(hx, marginTop);
+        graphCtx.lineTo(hx, marginTop + plotH);
+        graphCtx.stroke();
+        graphCtx.restore();
+
+        // 2. Highlight Ring Dots on Active Curves
+        if (showNuclei) {
+          const hyN = marginTop + (1 - displayRem / N0) * plotH;
+          graphCtx.beginPath();
+          graphCtx.arc(hx, hyN, 6.5, 0, Math.PI * 2);
+          graphCtx.fillStyle = isDarkMode ? '#fbbf24' : '#d97706';
+          graphCtx.fill();
+          graphCtx.strokeStyle = '#ffffff';
+          graphCtx.lineWidth = 2;
+          graphCtx.stroke();
+        }
+
+        if (showEnergy) {
+          const hyE = marginTop + (1 - displayDecayed / N0) * plotH;
+          graphCtx.beginPath();
+          graphCtx.arc(hx, hyE, 6.5, 0, Math.PI * 2);
+          graphCtx.fillStyle = isDarkMode ? '#34d399' : '#059669';
+          graphCtx.fill();
+          graphCtx.strokeStyle = '#ffffff';
+          graphCtx.lineWidth = 2;
+          graphCtx.stroke();
+        }
+
+        // 3. Smart Floating Tooltip Card
+        const lines = [
+          {
+            text: `t = ${timeStr} (${nVal.toFixed(2)} t½) ${livePt ? '[Live]' : '[Theory]'}`,
+            color: isDarkMode ? '#7dd3fc' : '#0369a1',
+            bold: true
+          }
+        ];
+
+        if (showNuclei) {
+          lines.push({
+            text: `Parent N: ${displayRem.toFixed(1)} (${displayRemPct.toFixed(1)}%)`,
+            color: isDarkMode ? '#fcd34d' : '#b45309',
+            bold: true
+          });
+        }
+
+        if (showEnergy) {
+          lines.push({
+            text: `Energy E: ${displayEnergyMeV.toFixed(1)} MeV (${displayEnPct.toFixed(1)}%)`,
+            color: isDarkMode ? '#6ee7b7' : '#047857',
+            bold: true
+          });
+        }
+
+        const boxW = 198;
+        const lineH = 16;
+        const boxH = lines.length * lineH + 12;
+        // Position to the right of crosshair unless near right edge
+        let tipX = hx + 10;
+        if (tipX + boxW > w - 8) {
+          tipX = hx - boxW - 10;
+        }
+        const tipY = Math.max(marginTop + 4, Math.min(marginTop + plotH - boxH - 4, graphHover.y - boxH / 2));
+
+        graphCtx.save();
+        graphCtx.fillStyle = isDarkMode ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)';
+        graphCtx.strokeStyle = isDarkMode ? '#38bdf8' : '#0284c7';
+        graphCtx.lineWidth = 1.3;
+        graphCtx.beginPath();
+        graphCtx.roundRect(tipX, tipY, boxW, boxH, 8);
+        graphCtx.fill();
+        graphCtx.stroke();
+
+        graphCtx.textAlign = 'left';
+        graphCtx.textBaseline = 'middle';
+        lines.forEach((ln, idx) => {
+          graphCtx.font = ln.bold ? 'bold 10.5px "JetBrains Mono", monospace' : '10px "JetBrains Mono", monospace';
+          graphCtx.fillStyle = ln.color;
+          graphCtx.fillText(ln.text, tipX + 9, tipY + 11 + idx * lineH);
+        });
+        graphCtx.restore();
       }
     }
 
